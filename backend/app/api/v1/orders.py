@@ -1,0 +1,83 @@
+from __future__ import annotations
+
+from flask import Blueprint, jsonify, request
+
+from app.core.deps import client_ip, current_user, get_db, get_settings, require_auth
+from app.core.errors import ValidationError
+from app.services import checkout_service, fulfillment_service, order_service
+
+bp = Blueprint("orders", __name__, url_prefix="/api/v1")
+
+
+@bp.post("/checkout")
+@require_auth("customer")
+def checkout():
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise ValidationError("بدنه درخواست باید JSON باشد")
+    settings = get_settings()
+    user = current_user()
+    raw_redeem = body.get("redeem_coins", 0)
+    try:
+        redeem_coins = int(raw_redeem) if raw_redeem not in (None, "") else 0
+    except (TypeError, ValueError) as exc:
+        raise ValidationError("redeem_coins باید عدد صحیح باشد") from exc
+    status, payload = checkout_service.checkout(
+        get_db(),
+        user_id=user["id"],
+        user_email=user["email"],
+        address=body.get("shipping_address") or {},
+        idempotency_key=request.headers.get("Idempotency-Key", ""),
+        payment_provider_name=settings.payment_provider,
+        payment_method=body.get("payment_method", "card"),
+        exponent=settings.currency_exponent,
+        ip_address=client_ip(),
+        redeem_coins=redeem_coins,
+    )
+    return jsonify({"order": payload}), status
+
+
+@bp.get("/orders")
+@require_auth("customer")
+def list_orders():
+    def _int(name: str, default: int) -> int:
+        raw = request.args.get(name)
+        if not raw:
+            return default
+        try:
+            return int(raw)
+        except ValueError as exc:
+            raise ValidationError(f"پارامتر {name} باید عدد باشد") from exc
+
+    return jsonify(
+        order_service.list_orders(
+            get_db(),
+            user_id=current_user()["id"],
+            page=_int("page", 1),
+            page_size=_int("page_size", 10),
+            exponent=get_settings().currency_exponent,
+        )
+    )
+
+
+@bp.get("/orders/<order_number>")
+@require_auth("customer")
+def get_order(order_number: str):
+    db   = get_db()
+    user = current_user()
+    exponent = get_settings().currency_exponent
+    with db.read_transaction() as conn:
+        row = conn.execute(
+            "SELECT id FROM orders WHERE order_number = ? AND user_id = ?",
+            (order_number, user["id"]),
+        ).fetchone()
+        from app.core.errors import NotFoundError
+        if row is None:
+            raise NotFoundError("سفارش یافت نشد", code="order_not_found")
+        order_id = int(row["id"])
+        order = order_service.read_order(conn, order_id=order_id, user_id=user["id"], exponent=exponent)
+        # Phase 3: include fulfillment info
+        fulfillment_orders = fulfillment_service.list_fulfillment_orders_for_order(
+            conn, order_id=order_id
+        )
+    return jsonify({"order": order, "fulfillment_orders": fulfillment_orders})

@@ -1,0 +1,5 @@
+# PostgreSQL driver — install in addition to requirements.txt when using
+# PostgreSQL as the database backend (DATABASE_URL=postgresql://...).
+# This file is also installed in CI for the postgresql-backend job.
+# Not required for SQLite deployments.
+psycopg2-binary==2.9.9

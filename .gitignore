@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+.venv/
+.venv2/
+__pycache__/
+*.pyc
+
+# build artifacts / caches
+.next/
+.next.*/
+*.tsbuildinfo
+dist/
+build/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*id_rsa*
+
+# databases / dumps
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.dump
+*.sql.gz
+
+# logs
+*.log
+logs/
+
+# os / editor
+.DS_Store
+.vscode/
+.idea/

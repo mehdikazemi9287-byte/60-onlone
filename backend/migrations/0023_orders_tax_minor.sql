@@ -1,0 +1,21 @@
+-- Migration 0023: Add tax_minor column to orders table
+--
+-- BACKGROUND:
+--   The orders table previously had no tax_minor column.  Tax was calculated on
+--   the fly via the /api/v1/tax/calculate endpoint but never persisted with the
+--   order, making audit trails incomplete.
+--
+--   This migration adds tax_minor so that:
+--     1. The VAT amount is stored atomically with the order at checkout time.
+--     2. Audit queries can join orders and retrieve the exact tax collected
+--        per order and per organization without re-running tax calculations.
+--     3. tax_minor is stored as an informational field; it does NOT change
+--        total_minor (the existing CHECK keeps: total_minor = subtotal_minor
+--        + shipping_fee_minor).  Tax is collected separately per Iranian VAT rules.
+--
+-- IDEMPOTENCY:
+--   Applied exactly once by the schema_migrations table.  The column default (0)
+--   means all pre-existing rows get tax_minor = 0, which is correct because
+--   those orders were placed before VAT persistence was implemented.
+
+ALTER TABLE orders ADD COLUMN tax_minor INTEGER NOT NULL DEFAULT 0;

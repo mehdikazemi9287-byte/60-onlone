@@ -1,0 +1,4 @@
+-r requirements.txt
+# Tests run on the stdlib `unittest` runner:
+#     python -m unittest discover -s tests
+# No extra test dependency is required.

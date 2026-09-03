@@ -1,0 +1,52 @@
+{
+  "audit_date": "2026-08-22",
+  "production_write_scope": "product imagery only",
+  "candidates": [
+    {
+      "targets": ["storefront:S1", "pack_builder:S1", "product:4"],
+      "product": "Samsung Galaxy A55 5G",
+      "source_type": "official_manufacturer",
+      "source_page_url": "https://www.samsung.com/es/business/smartphones/galaxy-a/galaxy-a55-5g-awesome-navy-128gb-sm-a556bzkaeub/buy/",
+      "image_url": "https://images.samsung.com/is/image/samsung/p6pim/es/sm-a556bzkaeub/gallery/es-galaxy-a55-5g-sm-a556-sm-a556bzkaeub-540179713?$720_576_JPG$",
+      "stored_asset": "/images/products/samsung-galaxy-a55-5g.jpg",
+      "visual_verification": "new_clean_exact_model"
+    },
+    {
+      "targets": ["product:6"],
+      "product": "Samsung Galaxy Tab A9",
+      "source_type": "official_manufacturer",
+      "source_page_url": "https://www.samsung.com/ie/tablets/galaxy-tab-a/galaxy-tab-a9-wifi-graphite-64gb-sm-x110nzaaeua/",
+      "image_url": "https://images.samsung.com/is/image/samsung/p6pim/ie/sm-x110nzaaeua/gallery/ie-galaxy-tab-a9-sm-x110-558174-sm-x110nzaaeua-547886460?$624_468_PNG$",
+      "stored_asset": "/images/products/samsung-galaxy-tab-a9.png",
+      "visual_verification": "new_clean_exact_model"
+    },
+    {
+      "targets": ["product:10"],
+      "product": "MikroTik hEX S",
+      "source_type": "official_manufacturer",
+      "source_page_url": "https://mikrotik.com/product/hex_s",
+      "image_url": "https://cdn.mikrotik.com/web-assets/product_files/hEX_S_250118_thumb.webp",
+      "stored_asset": "/images/products/mikrotik-hex-s.webp",
+      "visual_verification": "new_clean_exact_model_product_sheet"
+    }
+  ],
+  "removals": [
+    {"target": "storefront:S2", "reason": "wrong model and used-looking personal photo"},
+    {"target": "storefront:S3", "reason": "model-incomplete Acer Aspire; exact identity cannot be established"},
+    {"target": "storefront:S5", "reason": "wrong model and used-looking personal photo"},
+    {"target": "storefront:S6", "reason": "wrong product and used-looking installation photo"},
+    {"target": "storefront:S7", "reason": "pencil case image does not match four-piece desk set"},
+    {"target": "storefront:S9", "reason": "variant-incomplete Armani perfume; exact identity cannot be established"},
+    {"target": "pack_builder:S2", "reason": "wrong model and used-looking personal photo"},
+    {"target": "pack_builder:S3", "reason": "model-incomplete Acer Aspire; exact identity cannot be established"},
+    {"target": "pack_builder:S4", "reason": "used-looking personal photo; no verified exact clean replacement approved"},
+    {"target": "pack_builder:S5", "reason": "wrong model and used-looking personal photo"},
+    {"target": "pack_builder:S6", "reason": "wrong product and used-looking installation photo"},
+    {"target": "pack_builder:S7", "reason": "pencil case image does not match four-piece desk set"},
+    {"target": "pack_builder:S9", "reason": "variant-incomplete Armani perfume; exact identity cannot be established"},
+    {"target": "hero:laptop", "reason": "used-looking Acer photo; hero label does not establish an exact model"},
+    {"target": "hero:headphones", "reason": "used-looking personal photo; hero label does not establish an exact model"},
+    {"target": "hero:appliances", "reason": "used-looking personal photo; hero label does not establish an exact model"},
+    {"target": "hero:office", "reason": "personal photo unsuitable for professional catalog presentation"}
+  ]
+}

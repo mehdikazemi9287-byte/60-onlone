@@ -1,0 +1,253 @@
+"""Safe bulk import for the canonical and storefront catalogues.
+
+One physical product is created once in ``master_products``.  A row is only
+published to the storefront when ``publish_status=active`` and SKU, price and
+stock are all supplied.  Preview is the default; writes require ``confirm``.
+"""
+from __future__ import annotations
+
+import csv
+import io
+import json
+import re
+import uuid
+
+from app.core.errors import ValidationError
+
+REQUIRED_COLUMNS = {"canonical_name_fa", "category_slug"}
+ALLOWED_STATUS = {"draft", "active", "skip"}
+
+
+def _clean(value) -> str:
+    return str(value or "").strip()
+
+
+def _integer(value, *, field: str, minimum: int = 0, allow_blank: bool = True):
+    text = _clean(value)
+    if not text and allow_blank:
+        return None
+    if not re.fullmatch(r"-?\d+", text):
+        raise ValueError(f"{field} باید عدد صحیح باشد")
+    result = int(text)
+    if result < minimum:
+        raise ValueError(f"{field} باید حداقل {minimum} باشد")
+    return result
+
+
+def parse_catalog_csv(csv_text: str) -> dict:
+    reader = csv.DictReader(io.StringIO(csv_text.lstrip("\ufeff")))
+    headers = set(reader.fieldnames or [])
+    missing = REQUIRED_COLUMNS - headers
+    if missing:
+        raise ValidationError("ستون‌های الزامی وجود ندارند: " + ", ".join(sorted(missing)))
+
+    rows, errors = [], []
+    seen_skus = set()
+    for number, raw in enumerate(reader, start=2):
+        item = {key: _clean(value) for key, value in raw.items() if key}
+        row_errors = []
+        status = (item.get("publish_status") or item.get("row_status") or "draft").lower()
+        if status not in ALLOWED_STATUS:
+            row_errors.append("publish_status باید draft، active یا skip باشد")
+        if not item.get("canonical_name_fa"):
+            row_errors.append("canonical_name_fa خالی است")
+        if not item.get("category_slug"):
+            row_errors.append("category_slug خالی است")
+        sku = item.get("sku", "").upper()
+        if sku:
+            if sku in seen_skus:
+                row_errors.append("SKU در همین فایل تکراری است")
+            seen_skus.add(sku)
+            item["sku"] = sku
+        try:
+            item["package_quantity"] = _integer(
+                item.get("package_quantity"), field="package_quantity", minimum=1
+            ) or 1
+            item["vat_rate_bps"] = _integer(
+                item.get("vat_rate_bps"), field="vat_rate_bps", minimum=0
+            )
+            item["price_minor"] = _integer(
+                item.get("price_minor"), field="price_minor", minimum=0
+            )
+            item["stock_quantity"] = _integer(
+                item.get("stock_quantity"), field="stock_quantity", minimum=0
+            )
+        except ValueError as exc:
+            row_errors.append(str(exc))
+
+        if status == "active":
+            for field in ("sku", "price_minor", "stock_quantity"):
+                if item.get(field) in (None, ""):
+                    row_errors.append(f"برای انتشار، {field} الزامی است")
+
+        parsed = {"row_number": number, "status": "invalid" if row_errors else status,
+                  "errors": row_errors, "data": item}
+        rows.append(parsed)
+        if row_errors:
+            errors.append({"row_number": number, "errors": row_errors})
+
+    return {
+        "rows": rows,
+        "total": len(rows),
+        "valid": sum(1 for row in rows if not row["errors"] and row["status"] != "skip"),
+        "skipped": sum(1 for row in rows if row["status"] == "skip"),
+        "invalid": len(errors),
+        "errors": errors,
+    }
+
+
+def _find_master(conn, item):
+    if item.get("sku"):
+        row = conn.execute(
+            "SELECT master_product_id FROM product_identifiers_legacy "
+            "WHERE identifier_type='INTERNAL' AND identifier_value=? LIMIT 1",
+            (item["sku"],),
+        ).fetchone()
+        if row:
+            return int(row["master_product_id"])
+    row = conn.execute(
+        "SELECT id FROM master_products WHERE canonical_name_fa=? "
+        "AND COALESCE(brand,'')=? AND COALESCE(model,'')=? AND status!='merged' LIMIT 1",
+        (item["canonical_name_fa"], item.get("brand", ""), item.get("model", "")),
+    ).fetchone()
+    return int(row["id"]) if row else None
+
+
+def _upsert_category(conn, item):
+    slug = item["category_slug"]
+    name = item.get("category_name_fa") or slug
+    row = conn.execute("SELECT id FROM categories WHERE slug=?", (slug,)).fetchone()
+    if row:
+        if item.get("category_name_fa"):
+            conn.execute("UPDATE categories SET name_fa=? WHERE id=?", (name, row["id"]))
+        return int(row["id"])
+    cursor = conn.execute(
+        "INSERT INTO categories (slug,name_fa,sort_order) VALUES (?,?,?)",
+        (slug, name, 900),
+    )
+    return int(cursor.lastrowid)
+
+
+def _upsert_master(conn, item):
+    master_id = _find_master(conn, item)
+    # image_urls_json is NOT NULL on every supported schema version. A
+    # catalogue row without an image still needs a valid empty JSON array.
+    image_urls_json = (
+        json.dumps([item["image_url"]], ensure_ascii=False)
+        if item.get("image_url")
+        else "[]"
+    )
+    values = (
+        item["canonical_name_fa"], item.get("canonical_name_en") or None,
+        item.get("brand") or None, item.get("manufacturer") or None,
+        item["category_slug"], item.get("subcategory") or None,
+        item.get("product_type") or None, item.get("model") or None,
+        item.get("variant") or None, item.get("size_label") or None,
+        item.get("unit") or "عدد", item["package_quantity"],
+        item.get("net_quantity") or None, item.get("description_fa") or None,
+        image_urls_json,
+        item.get("country_of_origin") or None,
+        item["vat_rate_bps"] if item["vat_rate_bps"] is not None else 1000,
+        "active" if item.get("publish_status", "draft").lower() == "active" else "draft",
+    )
+    if master_id:
+        conn.execute(
+            """UPDATE master_products SET canonical_name_fa=?,canonical_name_en=?,brand=?,
+            manufacturer=?,category=?,subcategory=?,product_type=?,model=?,variant=?,
+            size_label=?,unit=?,package_quantity=?,net_quantity=?,description_fa=?,
+            image_urls_json=COALESCE(?,image_urls_json),country_of_origin=?,vat_rate_bps=?,
+            status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?""",
+            (*values, master_id),
+        )
+    else:
+        cursor = conn.execute(
+            """INSERT INTO master_products
+            (public_product_id,canonical_name_fa,canonical_name_en,brand,manufacturer,
+             category,subcategory,product_type,model,variant,size_label,unit,
+             package_quantity,net_quantity,description_fa,image_urls_json,country_of_origin,
+             vat_rate_bps,status)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (str(uuid.uuid4()), *values),
+        )
+        master_id = int(cursor.lastrowid)
+    if item.get("sku"):
+        conn.execute(
+            """INSERT INTO product_identifiers_legacy
+            (master_product_id,identifier_type,identifier_value,issuer)
+            SELECT ?, 'INTERNAL', ?, ? WHERE NOT EXISTS (
+              SELECT 1 FROM product_identifiers_legacy
+              WHERE identifier_type='INTERNAL' AND identifier_value=?
+            )""",
+            (master_id, item["sku"], item.get("brand") or None, item["sku"]),
+        )
+    if item.get("barcode"):
+        conn.execute(
+            """INSERT INTO product_identifiers_legacy
+            (master_product_id,identifier_type,identifier_value,issuer)
+            SELECT ?, 'BARCODE', ?, ? WHERE NOT EXISTS (
+              SELECT 1 FROM product_identifiers_legacy
+              WHERE identifier_type='BARCODE' AND identifier_value=?
+            )""",
+            (master_id, item["barcode"], item.get("brand") or None, item["barcode"]),
+        )
+    return master_id
+
+
+def _upsert_storefront(conn, item, master_id, category_id):
+    if item.get("publish_status", "draft").lower() != "active":
+        return None
+    sku = item["sku"]
+    row = conn.execute("SELECT id FROM products WHERE sku=?", (sku,)).fetchone()
+    slug = item.get("slug") or sku.lower().replace("_", "-")
+    values = (
+        slug, item["canonical_name_fa"], item.get("description_fa") or "",
+        item.get("brand") or "", category_id, item["price_minor"],
+        item.get("currency") or "IRR", item.get("image_emoji") or "📦", master_id,
+    )
+    if row:
+        product_id = int(row["id"])
+        conn.execute(
+            """UPDATE products SET slug=?,title_fa=?,description_fa=?,brand_fa=?,
+            category_id=?,base_price_minor=?,currency=?,image_emoji=?,master_product_id=?,
+            is_active=1 WHERE id=?""",
+            (*values, product_id),
+        )
+    else:
+        cursor = conn.execute(
+            """INSERT INTO products
+            (slug,sku,title_fa,description_fa,brand_fa,category_id,base_price_minor,
+             currency,image_emoji,master_product_id,is_active)
+            VALUES (?,?,?,?,?,?,?,?,?,?,1)""",
+            (slug, sku, *values[1:]),
+        )
+        product_id = int(cursor.lastrowid)
+    conn.execute(
+        """INSERT INTO inventory (product_id,quantity_available,quantity_reserved)
+        VALUES (?,?,0) ON CONFLICT(product_id) DO UPDATE SET
+        quantity_available=excluded.quantity_available,updated_at=CURRENT_TIMESTAMP""",
+        (product_id, item["stock_quantity"]),
+    )
+    return product_id
+
+
+def import_catalog_csv(conn, csv_text: str, *, confirm: bool = False) -> dict:
+    parsed = parse_catalog_csv(csv_text)
+    if parsed["invalid"]:
+        return {**parsed, "confirmed": False, "created": 0, "updated": 0, "published": 0}
+    if not confirm:
+        return {**parsed, "confirmed": False, "created": 0, "updated": 0, "published": 0}
+
+    created = updated = published = 0
+    for row in parsed["rows"]:
+        if row["status"] == "skip":
+            continue
+        item = row["data"]
+        existed = _find_master(conn, item) is not None
+        category_id = _upsert_category(conn, item)
+        master_id = _upsert_master(conn, item)
+        product_id = _upsert_storefront(conn, item, master_id, category_id)
+        updated += int(existed)
+        created += int(not existed)
+        published += int(product_id is not None)
+    return {**parsed, "confirmed": True, "created": created,
+            "updated": updated, "published": published}

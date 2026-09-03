@@ -1,0 +1,51 @@
+-- Migration 0026: 60Coin checkout redemption, 60Club tiers, coin expiration
+--
+-- PURELY ADDITIVE. No existing table/column dropped or renamed. Note: the
+-- tables are named `payment_intents` and `orders` in the live schema —
+-- migration 0024 built them as payment_intents_v2/orders_v2 then renamed
+-- them back (DROP old + ALTER ... RENAME TO) at the end of that migration.
+-- Every existing row and CHECK constraint on them stays valid:
+-- redeem_coins/redeem_discount_minor are new columns (DEFAULT 0), and the
+-- discount is applied to subtotal_minor BEFORE tax is computed (see
+-- quote_service.py), so
+--   total_minor = subtotal_minor + shipping_fee_minor + tax_minor
+--   total_minor = credit_minor + cash_minor
+-- both still hold exactly as before — no CHECK constraint is touched, no
+-- table rebuild needed.
+
+ALTER TABLE payment_intents ADD COLUMN redeem_coins INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE payment_intents ADD COLUMN redeem_discount_minor INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE orders ADD COLUMN redeem_coins INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN redeem_discount_minor INTEGER NOT NULL DEFAULT 0;
+
+-- Coin expiration: nullable, set only on 'earn' entries at insert time.
+-- NULL means "does not expire" (e.g. manual_adjustment, campaign grants
+-- unless a policy sets one). Aggregate-level FIFO — see
+-- loyalty_service.expire_due_coins() docstring for the accounting model
+-- and its documented limitation vs. true per-lot FIFO.
+ALTER TABLE loyalty_ledger_entries ADD COLUMN expires_at TEXT;
+
+-- ================================================================ 60CLUB TIERS
+-- Configurable thresholds only. No hard-coded commercial benefit text —
+-- benefit_note_fa is free-form and NULL by default; a real business
+-- decision fills it in later. Tier membership is derived (lifetime coins
+-- earned), never stored per-user, matching this project's established
+-- "fold from the ledger, never a mutable cached field" rule.
+CREATE TABLE loyalty_tiers (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    code                TEXT    NOT NULL UNIQUE,
+    name_fa             TEXT    NOT NULL,
+    min_lifetime_coins  INTEGER NOT NULL CHECK (min_lifetime_coins >= 0),
+    sort_order          INTEGER NOT NULL,
+    benefit_note_fa      TEXT,
+    is_active           INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+    created_at          TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+CREATE UNIQUE INDEX idx_loyalty_tiers_threshold ON loyalty_tiers(min_lifetime_coins);
+
+-- Safe defaults: thresholds only, no invented commercial perks.
+INSERT INTO loyalty_tiers (code, name_fa, min_lifetime_coins, sort_order, benefit_note_fa) VALUES
+    ('member',  'عضو ۶۰کلاب',  0,      1, NULL),
+    ('silver',  'نقره‌ای ۶۰کلاب', 500,    2, NULL),
+    ('gold',    'طلایی ۶۰کلاب',  2000,   3, NULL);

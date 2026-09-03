@@ -1,0 +1,50 @@
+{
+  "audit": "60Online remaining image recovery",
+  "verification_date": "2026-08-23",
+  "records": [
+    {
+      "master_product_id": 138,
+      "product_name": "روغن خوراکی خانوار طبیعت 16 کیلوگرمی",
+      "source_page": "https://tabiatsabz.ir/product/16-kg-oil-family/",
+      "image_source": "https://tabiatsabz.ir/wp-content/uploads/2023/03/16-masraf-khanevar.png",
+      "source_type": "official_manufacturer",
+      "model_variant_evidence": "Official image label states Consumer Edible Vegetable Oil / روغن خوراکی مصرف خانوار / 16 Kg.",
+      "confidence_bps": 10000,
+      "asset_action": "newly_downloaded",
+      "sha256": "6a77b46f318343d639794b427b2809733dfcf2d8bcd90dacf861a5ffce838070"
+    },
+    {
+      "master_product_id": 139,
+      "product_name": "روغن سرخ‌کردنی خانواده طبیعت 16 کیلوگرمی",
+      "source_page": "https://tabiatsabz.ir/product/16-kg-oil-family/",
+      "image_source": "https://tabiatsabz.ir/wp-content/uploads/2023/03/16-sorkh-kardani.png",
+      "source_type": "official_manufacturer",
+      "model_variant_evidence": "Official image label states Frying Oil / روغن سرخ کردنی / 16 Kg.",
+      "confidence_bps": 10000,
+      "asset_action": "newly_downloaded",
+      "sha256": "27f801b9f76f3c39086995b9bb6d2dd26fd4b084b3e2aca4a666391b5c8d93a8"
+    },
+    {
+      "master_product_id": 140,
+      "product_name": "روغن سویا تصفیه‌شده خانواده طبیعت 16 کیلوگرمی",
+      "source_page": "https://tabiatsabz.ir/product/16-kg-oil-family/",
+      "image_source": "https://tabiatsabz.ir/wp-content/uploads/2023/03/16-soya.png",
+      "source_type": "official_manufacturer",
+      "model_variant_evidence": "Official image label states Edible Refined Soy bean Oil / روغن مایع سویای پالایش شده خوراکی / 16 Kg.",
+      "confidence_bps": 10000,
+      "asset_action": "newly_downloaded",
+      "sha256": "6112bb49441e135b5ffa7dd1d2455a37e459c52e4823907a897306b2432a0be5"
+    },
+    {
+      "master_product_id": 152,
+      "product_name": "برنج عنبربو طبیعت 10 کیلوگرم",
+      "source_page": "https://tabiatsabz.ir/product/anbarbou-iranian-rice/",
+      "image_source": "https://tabiatsabz.ir/wp-content/uploads/2023/02/Anbarbo-10.png",
+      "source_type": "official_manufacturer",
+      "model_variant_evidence": "Existing Production official image visibly states 10 کیلوگرم and its filename identifies Anbarbo 10.",
+      "confidence_bps": 10000,
+      "asset_action": "reused_existing_verified",
+      "sha256": "1ea8e0d8b359367edd06c8cf45f474ffc591ec68fe5a5e37dba027496fb863ec"
+    }
+  ]
+}
