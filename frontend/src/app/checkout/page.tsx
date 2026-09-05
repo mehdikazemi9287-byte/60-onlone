@@ -268,7 +268,7 @@ function ConfirmStep({
           <p className="text-sm text-neutral-500 mt-1">شماره سفارش: {placedOrderNumber}</p>
         </div>
         <p className="text-sm text-neutral-600 max-w-sm mx-auto">
-          سفارش شما با موفقیت ثبت و پرداخت شد.
+          سفارش شما ثبت شد. وضعیت پرداخت را در صفحه سفارش مشاهده کنید.
         </p>
         <div className="flex justify-center gap-3 pt-2">
           <button
