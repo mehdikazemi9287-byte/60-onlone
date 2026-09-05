@@ -20,6 +20,7 @@ by a test:
 """
 from __future__ import annotations
 
+import os
 import secrets
 import sqlite3
 from datetime import datetime, timezone
@@ -303,19 +304,35 @@ def current_tier(conn: sqlite3.Connection, user_id: int) -> dict | None:
 
 
 # ───────────────────────────────────────────────────────── coin expiration
-# Policy: a purchase-earned coin expires EXPIRY_POLICY_DAYS after it was
-# earned. This is a code-level default pending a real business decision —
-# not a claim about an announced policy.
-EXPIRY_POLICY_DAYS = 365
+# Expiration is fail-closed until the business approves a policy and Production
+# explicitly configures it.  The ledger mechanics remain available, but merely
+# deploying code must never create a customer-facing expiration promise.
+LOYALTY_EXPIRY_DAYS_ENV = "LOYALTY_EXPIRY_DAYS"
 
 
-def expiry_stamp_for_new_earn(now: datetime | None = None) -> str:
-    """UTC timestamp EXPIRY_POLICY_DAYS from now, for a caller creating a new
-    purchase-earn entry. Callers that should never expire (manual grants,
-    etc.) simply don't call this and pass expires_at=None instead."""
+def configured_expiry_policy_days() -> int | None:
+    raw = os.getenv(LOYALTY_EXPIRY_DAYS_ENV, "").strip()
+    if not raw:
+        return None
+    try:
+        days = int(raw)
+    except ValueError:
+        return None
+    return days if days > 0 else None
+
+
+def expiration_policy_active() -> bool:
+    return configured_expiry_policy_days() is not None
+
+
+def expiry_stamp_for_new_earn(now: datetime | None = None) -> str | None:
+    """Return a UTC expiry only when an approved policy is explicitly enabled."""
     from datetime import timedelta
+    days = configured_expiry_policy_days()
+    if days is None:
+        return None
     now = now or datetime.now(timezone.utc)
-    return (now + timedelta(days=EXPIRY_POLICY_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
+    return (now + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def expire_due_coins(db: Database, *, user_id: int, now: datetime | None = None) -> dict:

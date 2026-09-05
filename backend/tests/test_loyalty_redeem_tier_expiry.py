@@ -9,6 +9,7 @@ import sys
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -242,8 +243,12 @@ class ExpirationTest(AppTestCase):
         self.assertFalse(second["created"])
         self.assertEqual(second["balance_coins"], 0)
 
-    def test_purchase_earn_gets_a_real_expiry_stamp(self):
-        """checkout_service._award_purchase_coins sets expires_at automatically."""
+    def test_purchase_earn_has_no_expiry_without_approved_policy(self):
+        """Production-safe default: no unapproved expiration is stamped."""
+        self.assertIsNone(loyalty_service.expiry_stamp_for_new_earn())
+
+    def test_purchase_earn_gets_expiry_when_policy_is_explicitly_enabled(self):
+        """checkout stamps expiry only with an explicit positive policy value."""
         _, headers = self.new_customer()
         kettle = self.product("appliance-kettle-2l")
         self.set_stock(kettle["id"], 10)
@@ -251,11 +256,12 @@ class ExpirationTest(AppTestCase):
             "/api/v1/cart/items", json={"product_id": kettle["id"], "quantity": 1},
             headers=headers,
         )
-        response = self.client.post(
-            "/api/v1/checkout",
-            json={"shipping_address": self.DEFAULT_ADDRESS},
-            headers={**headers, "Idempotency-Key": uuid.uuid4().hex},
-        )
+        with patch.dict("os.environ", {"LOYALTY_EXPIRY_DAYS": "365"}):
+            response = self.client.post(
+                "/api/v1/checkout",
+                json={"shipping_address": self.DEFAULT_ADDRESS},
+                headers={**headers, "Idempotency-Key": uuid.uuid4().hex},
+            )
         self.assertEqual(response.status_code, 201, response.get_json())
         entry = self.db.query_one(
             "SELECT * FROM loyalty_ledger_entries WHERE entry_type='earn' AND source='purchase' "

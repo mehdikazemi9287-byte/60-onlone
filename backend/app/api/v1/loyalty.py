@@ -10,7 +10,7 @@ from __future__ import annotations
 from flask import Blueprint, jsonify, request
 
 from app.core.deps import current_user, get_db, require_auth
-from app.core.errors import ValidationError
+from app.core.errors import ConflictError, ValidationError
 from app.services import loyalty_service
 
 bp = Blueprint("loyalty", __name__, url_prefix="/api/v1")
@@ -71,6 +71,11 @@ def admin_expire_loyalty():
     """Process due coin expiration for one user. No scheduler exists in this
     project yet — this is the manual/admin-triggered hook; a cron can call
     it (or backend/scripts/expire_loyalty_coins.py) once one is set up."""
+    if not loyalty_service.expiration_policy_active():
+        raise ConflictError(
+            "سیاست انقضای 60Coin هنوز فعال نشده است",
+            code="loyalty_expiration_policy_disabled",
+        )
     body = request.get_json(silent=True) or {}
     if "user_id" not in body:
         raise ValidationError("user_id لازم است")

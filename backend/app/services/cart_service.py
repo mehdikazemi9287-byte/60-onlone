@@ -12,6 +12,7 @@ import sqlite3
 from app.core.db import Database
 from app.core.errors import NotFoundError, OutOfStockError, ValidationError
 from app.core.money import format_minor
+from app.services import sale_eligibility
 
 MAX_LINE_QUANTITY = 20
 SHIPPING_FLAT_MINOR = 350_000  # 35,000 Toman expressed in IRR minor units
@@ -50,6 +51,7 @@ def _load_product(conn: sqlite3.Connection, product_id: int) -> sqlite3.Row:
     ).fetchone()
     if row is None or not row["is_active"]:
         raise NotFoundError("محصول یافت نشد", code="product_not_found")
+    sale_eligibility.require_sale_eligible(conn, product_id)
     return row
 
 
@@ -150,6 +152,7 @@ def read_cart(conn: sqlite3.Connection, user_id: int, exponent: int = 0) -> dict
     items = []
     subtotal = 0
     for r in rows:
+        sale_eligibility.require_sale_eligible(conn, int(r["product_id"]))
         line_total = int(r["unit_price_minor"]) * int(r["quantity"])
         subtotal += line_total
         items.append(

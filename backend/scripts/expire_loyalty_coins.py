@@ -20,6 +20,9 @@ from app.services import loyalty_service  # noqa: E402
 
 
 def main() -> int:
+    if not loyalty_service.expiration_policy_active():
+        print("disabled: LOYALTY_EXPIRY_DAYS is not configured with an approved positive value")
+        return 0
     settings = load_settings()
     db = Database(settings.sqlite_path)
 
