@@ -199,6 +199,7 @@ def create_app(
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "0"           # modern browsers use CSP
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
         response.headers["Cache-Control"] = "no-store"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
         # Expose correlation ID to caller
