@@ -1,0 +1,41 @@
+{
+  "categories": [
+    {
+      "master_id": 172,
+      "name": "کتری برقی آردزیا مدل AKT-P1650ST",
+      "old_category": "home-kitchen",
+      "category": "appliances",
+      "basis": "existing product category or explicit electrical appliance model"
+    },
+    {
+      "master_id": 183,
+      "name": "Samsung Galaxy A55 5G",
+      "old_category": "image-remediation",
+      "category": "mobile",
+      "basis": "existing product category or explicit electrical appliance model"
+    },
+    {
+      "master_id": 184,
+      "name": "Samsung Galaxy Tab A9",
+      "old_category": "image-remediation",
+      "category": "mobile",
+      "basis": "existing product category or explicit electrical appliance model"
+    },
+    {
+      "master_id": 185,
+      "name": "MikroTik hEX S",
+      "old_category": "image-remediation",
+      "category": "network",
+      "basis": "existing product category or explicit electrical appliance model"
+    }
+  ],
+  "excluded_images": [
+    {
+      "master_id": 169,
+      "original_images": [
+        "https://snowa.ir/wp-content/uploads/2023/01/13-SWM-94616.svg"
+      ],
+      "reason": "Official SVG inspected in server browser shows laundry-room background, not the product"
+    }
+  ]
+}

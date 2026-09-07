@@ -1,19 +1,35 @@
-"use client";
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { AlertCircle, PackageSearch, SlidersHorizontal } from "lucide-react";
-import { catalog, categories } from "@/lib/api";
-import { ProductGrid } from "@/components/product/ProductCard";
-import { toPersianNum } from "@/lib/utils";
-import type { Category, Product } from "@/lib/types";
-
-type SortKey="default"|"price_asc"|"price_desc"|"newest";
-export default function CategoryPage(){const params=useParams<{slug:string}>();const slug=params.slug;const[category,setCategory]=useState<Category|null>(null);const[products,setProducts]=useState<Product[]|null>(null);const[total,setTotal]=useState(0);const[notFound,setNotFound]=useState(false);const[error,setError]=useState<string|null>(null);const[sort,setSort]=useState<SortKey>("default");const[availableOnly,setAvailableOnly]=useState(false);
- useEffect(()=>{let cancelled=false;setCategory(null);setProducts(null);setNotFound(false);setError(null);Promise.all([categories.list(),catalog.list({category:slug,page_size:48})]).then(([cats,list])=>{if(cancelled)return;const match=cats.find(c=>c.slug===slug)??null;if(!match){setNotFound(true);return}setCategory(match);setProducts(list.items);setTotal(list.total)}).catch(e=>{if(!cancelled){setError(e instanceof Error?e.message:"خطا در دریافت اطلاعات");setProducts([])}});return()=>{cancelled=true}},[slug]);
- const visible=useMemo(()=>{let list=[...(products??[])];if(availableOnly)list=list.filter(p=>p.purchasable!==false&&p.stock!==0);if(sort==="price_asc")list.sort((a,b)=>(a.price_minor??Infinity)-(b.price_minor??Infinity));if(sort==="price_desc")list.sort((a,b)=>(b.price_minor??-1)-(a.price_minor??-1));if(sort==="newest")list.sort((a,b)=>b.id-a.id);return list},[products,sort,availableOnly]);
- if(notFound)return <div className="internal-page container-page py-16"><div className="card mx-auto max-w-xl p-8 text-center"><PackageSearch className="mx-auto mb-3 h-11 w-11 text-neutral-300"/><h1 className="font-black text-brand-navy">این دسته‌بندی یافت نشد</h1><p className="mt-2 text-sm text-neutral-500">ممکن است نشانی دسته‌بندی تغییر کرده باشد.</p><Link href="/category" className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-amber-400 px-5 text-sm font-bold text-brand-navy">مشاهده دسته‌بندی‌ها</Link></div></div>;
- if(error)return <div className="internal-page container-page py-16"><div role="alert" className="card mx-auto max-w-xl border-red-200 bg-red-50 p-8 text-center text-red-700"><AlertCircle className="mx-auto mb-3 h-10 w-10"/><h1 className="font-black">بارگذاری دسته‌بندی ناموفق بود</h1><p className="mt-2 text-sm">{error}</p><Link href="/category" className="mt-5 inline-flex text-sm font-bold text-brand-navy">بازگشت به دسته‌بندی‌ها</Link></div></div>;
- return <div className="internal-page container-page py-6 md:py-10"><nav className="page-breadcrumb"><Link href="/">خانه</Link><span>/</span><Link href="/category">دسته‌بندی‌ها</Link>{category&&<><span>/</span><span className="text-neutral-600">{category.name}</span></>}</nav><div className="mb-5 flex items-end justify-between gap-4"><div><span className="section-kicker">محصولات فروشگاه</span><h1 className="text-xl font-black text-brand-navy md:text-2xl">{category?category.name:"در حال دریافت دسته‌بندی"}</h1>{products&&<p className="mt-1 text-sm text-neutral-500">{toPersianNum(total)} محصول ثبت‌شده</p>}</div></div>
- {products!==null&&products.length>0&&<div className="mb-5 flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center"><span className="flex items-center gap-2 text-sm font-bold text-neutral-700"><SlidersHorizontal className="h-4 w-4 text-amber-700"/>مرتب‌سازی و نمایش</span><label className="flex min-h-11 items-center gap-2 rounded-xl bg-neutral-50 px-3 text-sm text-neutral-600"><input type="checkbox" checked={availableOnly} onChange={e=>setAvailableOnly(e.target.checked)} className="h-4 w-4 accent-amber-500"/>فقط کالاهای قابل خرید</label><select value={sort} onChange={e=>setSort(e.target.value as SortKey)} className="min-h-11 rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-700 sm:mr-auto"><option value="default">ترتیب پیش‌فرض</option><option value="price_asc">کمترین قیمت</option><option value="price_desc">بیشترین قیمت</option><option value="newest">جدیدترین</option></select><span className="text-xs text-neutral-400">نمایش {toPersianNum(visible.length)} مورد</span></div>}
- {products===null?<div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">{Array.from({length:8}).map((_,i)=><div key={i} className="card aspect-[3/4] skeleton"/>)}</div>:visible.length?<ProductGrid products={visible} cols={4}/>:<div className="card py-16 text-center text-neutral-500"><PackageSearch className="mx-auto mb-3 h-11 w-11 text-neutral-300"/><p className="font-bold text-neutral-700">{products.length?"کالای قابل خریدی با این فیلتر یافت نشد":"در حال حاضر محصولی در این دسته‌بندی ثبت نشده است"}</p>{products.length?<button onClick={()=>setAvailableOnly(false)} className="mt-4 text-sm font-bold text-amber-800">نمایش همه محصولات</button>:<Link href="/category" className="mt-4 inline-flex text-sm font-bold text-brand-navy">مشاهده سایر دسته‌بندی‌ها</Link>}</div>}</div>}
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { CatalogBrowser } from "@/components/catalog/CatalogBrowser";
+import { serverCategories, site } from "@/lib/server-catalog";
+export const dynamic = "force-dynamic";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const c = (await serverCategories()).find((c) => c.slug === slug);
+  return c
+    ? {
+        title: c.name_fa + " | شصت‌آنلاین",
+        alternates: {
+          canonical: site + "/category/" + encodeURIComponent(c.slug),
+        },
+      }
+    : { title: "دسته یافت نشد", robots: { index: false } };
+}
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  if (!(await serverCategories()).some((c) => c.slug === slug))
+    notFound();
+  return (
+    <Suspense fallback={<p>در حال دریافت…</p>}>
+      <CatalogBrowser categorySlug={slug} />
+    </Suspense>
+  );
+}

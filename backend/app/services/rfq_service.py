@@ -69,6 +69,7 @@ def _rfq_item_dict(row) -> dict:
         "purchase_request_item_id": row["purchase_request_item_id"],
         "master_product_id": row["master_product_id"],
         "free_text_description": row["free_text_description"],
+        "product_name_fa": row["product_name_fa"] if "product_name_fa" in row.keys() else row["free_text_description"],
         "quantity": row["quantity_requested"],  # expose as 'quantity' for API compatibility
         "unit": row["unit"],
         "notes": row["notes"],
@@ -226,7 +227,7 @@ def get_rfq(conn, rfq_id: int, *, actor_user_id: int, organization_id: int) -> d
         raise NotFoundError("استعلام یافت نشد")
     rfq = _rfq_dict(row)
     items = conn.execute(
-        "SELECT * FROM rfq_items WHERE rfq_id=? ORDER BY id", (rfq_id,)
+        "SELECT ri.*,mp.canonical_name_fa AS product_name_fa FROM rfq_items ri LEFT JOIN master_products mp ON mp.id=ri.master_product_id WHERE ri.rfq_id=? ORDER BY ri.id", (rfq_id,)
     ).fetchall()
     rfq["items"] = [_rfq_item_dict(i) for i in items]
     suppliers = conn.execute(
@@ -260,7 +261,7 @@ def list_rfqs(
     result = []
     for r in rows:
         rfq = _rfq_dict(r)
-        items = conn.execute("SELECT * FROM rfq_items WHERE rfq_id=? ORDER BY id", (r["id"],)).fetchall()
+        items = conn.execute("SELECT ri.*,mp.canonical_name_fa AS product_name_fa FROM rfq_items ri LEFT JOIN master_products mp ON mp.id=ri.master_product_id WHERE ri.rfq_id=? ORDER BY ri.id", (r["id"],)).fetchall()
         rfq["items"] = [_rfq_item_dict(i) for i in items]
         suppliers = conn.execute("SELECT * FROM rfq_suppliers WHERE rfq_id=? ORDER BY id", (r["id"],)).fetchall()
         rfq["suppliers"] = [_rfq_supplier_dict(s) for s in suppliers]
@@ -402,9 +403,9 @@ def submit_supplier_quote(
 
     rfq_supplier_id = inv_row["id"]
 
-    if not items:
-        raise ValidationError("حداقل یک ردیف قیمت الزامی است")
-    if shipping_cost_minor < 0:
+    if not isinstance(items,list) or not 1 <= len(items) <= 50 or any(not isinstance(i,dict) for i in items):
+        raise ValidationError("یک تا ۵۰ ردیف قیمت معتبر لازم است")
+    if isinstance(shipping_cost_minor,bool) or not isinstance(shipping_cost_minor,int) or shipping_cost_minor < 0:
         raise ValidationError("هزینه ارسال نمی‌تواند منفی باشد")
 
     organization_id = rfq_row["organization_id"]
@@ -419,13 +420,17 @@ def submit_supplier_quote(
     # Build items with computed totals
     prepared_items = []
     items_total = 0
+    seen_items=set()
     for item in items:
         rfq_item_id = item.get("rfq_item_id")
-        unit_price = item.get("unit_price_minor", 0)
+        unit_price = item.get("unit_price_minor")
         qty = item.get("quantity")
-        if rfq_item_id is None:
+        if isinstance(rfq_item_id,bool) or not isinstance(rfq_item_id,int) or rfq_item_id < 1:
             raise ValidationError("شناسه ردیف استعلام الزامی است")
-        if unit_price is None or unit_price < 0:
+        if rfq_item_id in seen_items:
+            raise ValidationError("ردیف استعلام تکراری است")
+        seen_items.add(rfq_item_id)
+        if isinstance(unit_price,bool) or not isinstance(unit_price,int) or unit_price < 0:
             raise ValidationError("قیمت واحد نمی‌تواند منفی باشد")
         rfq_item_row = conn.execute(
             "SELECT * FROM rfq_items WHERE id=? AND rfq_id=?", (rfq_item_id, rfq_id)
@@ -433,7 +438,7 @@ def submit_supplier_quote(
         if not rfq_item_row:
             raise NotFoundError(f"ردیف استعلام {rfq_item_id} یافت نشد")
         actual_qty = qty if qty is not None else rfq_item_row["quantity_requested"]
-        if not isinstance(actual_qty, int) or actual_qty < 1:
+        if isinstance(actual_qty,bool) or not isinstance(actual_qty, int) or actual_qty < 1:
             raise ValidationError("تعداد باید عدد صحیح مثبت باشد")
         item_total = unit_price * actual_qty
         # BLOCKER 5: integer floor division — no float arithmetic on money
@@ -456,6 +461,8 @@ def submit_supplier_quote(
     shipping_vat = (shipping_cost_minor * vat_rate_bps) // 10_000
     total_vat = items_vat + shipping_vat
     grand_total = items_total + shipping_cost_minor + total_vat
+    if grand_total > 9007199254740991:
+        raise ValidationError("مبلغ پیشنهاد بیش از دامنه عدد صحیح قابل نمایش است")
 
     cur = conn.execute(
         """INSERT INTO supplier_quotes
@@ -535,7 +542,7 @@ def get_rfq_comparison(conn, rfq_id: int, *, actor_user_id: int, organization_id
     if rfq_row["status"] not in ("closed", "open", "awarded"):
         raise ConflictError("مقایسه فقط برای استعلام‌های باز، بسته یا جایزه‌یافته امکان‌پذیر است")
 
-    rfq_items = conn.execute("SELECT * FROM rfq_items WHERE rfq_id=? ORDER BY id", (rfq_id,)).fetchall()
+    rfq_items = conn.execute("SELECT ri.*,mp.canonical_name_fa AS product_name_fa FROM rfq_items ri LEFT JOIN master_products mp ON mp.id=ri.master_product_id WHERE ri.rfq_id=? ORDER BY ri.id", (rfq_id,)).fetchall()
     quotes = conn.execute("SELECT * FROM supplier_quotes WHERE rfq_id=? ORDER BY id", (rfq_id,)).fetchall()
 
     comparison_quotes = []
@@ -667,7 +674,7 @@ def list_supplier_invited_rfqs(conn, supplier_id: int) -> list[dict]:
         rfq = _rfq_dict(r)
         rfq["supplier_status"] = r["supplier_status"]
         rfq["invited_at"] = r["invited_at"]
-        items = conn.execute("SELECT * FROM rfq_items WHERE rfq_id=? ORDER BY id", (r["id"],)).fetchall()
+        items = conn.execute("SELECT ri.*,mp.canonical_name_fa AS product_name_fa FROM rfq_items ri LEFT JOIN master_products mp ON mp.id=ri.master_product_id WHERE ri.rfq_id=? ORDER BY ri.id", (r["id"],)).fetchall()
         rfq["items"] = [_rfq_item_dict(i) for i in items]
         result.append(rfq)
     return result

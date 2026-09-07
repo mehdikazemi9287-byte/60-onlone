@@ -10,7 +10,7 @@ class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
-    public details?: Record<string, string>
+    public details?: Record<string, string>,
   ) {
     super(message);
     this.name = "ApiError";
@@ -19,7 +19,7 @@ class ApiError extends Error {
 
 async function request<T>(
   path: string,
-  options: RequestInit & { token?: string } = {}
+  options: RequestInit & { token?: string } = {},
 ): Promise<T> {
   const { token, ...rest } = options;
   const headers: Record<string, string> = {
@@ -76,23 +76,35 @@ export interface AuthUser {
 }
 
 export const auth = {
-  register: (email: string, password: string, full_name: string, phone?: string) =>
+  register: (
+    email: string,
+    password: string,
+    full_name: string,
+    phone?: string,
+  ) =>
     request<{ access_token: string; token_type: string; user: AuthUser }>(
       "/auth/register",
-      { method: "POST", body: JSON.stringify({ email, password, full_name, phone }) }
+      {
+        method: "POST",
+        body: JSON.stringify({ email, password, full_name, phone }),
+      },
     ),
 
   login: (email: string, password: string) =>
-    request<{ access_token: string; token_type: string; expires_in: number; user: AuthUser }>(
-      "/auth/login",
-      { method: "POST", body: JSON.stringify({ email, password }) }
-    ),
+    request<{
+      access_token: string;
+      token_type: string;
+      expires_in: number;
+      user: AuthUser;
+    }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
 
   logout: (token: string) =>
     request<{ message: string }>("/auth/logout", { method: "POST", token }),
 
-  me: (token: string) =>
-    request<{ user: AuthUser }>("/auth/me", { token }),
+  me: (token: string) => request<{ user: AuthUser }>("/auth/me", { token }),
 };
 
 // ── Catalog ─────────────────────────────────────────────────────────────────
@@ -130,14 +142,16 @@ type BackendProductList = {
   total_pages: number;
 };
 
-function normalizeProduct(row: BackendProductRow): import("./types").Product {
+export function normalizeProduct(
+  row: BackendProductRow,
+): import("./types").Product {
   return {
     id: row.id,
     slug: row.slug,
     name: row.title_fa,
     description: row.description_fa ?? "",
     price_minor: row.price_minor,
-    purchasable: row.purchasable !== false,
+    purchasable: row.purchasable === true,
     price_status: row.price_status,
     image_url: row.image_url ?? undefined,
     category: row.category_slug
@@ -161,13 +175,25 @@ function normalizeProduct(row: BackendProductRow): import("./types").Product {
 }
 
 export const catalog = {
-  list: async (params?: { category?: string; q?: string; page?: number; page_size?: number }) => {
+  list: async (params?: {
+    category?: string;
+    q?: string;
+    page?: number;
+    page_size?: number;
+    sort?: string;
+    available_only?: string;
+    price_max?: number;
+  }) => {
     const qs = new URLSearchParams(
       Object.fromEntries(
-        Object.entries(params ?? {}).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)])
-      )
+        Object.entries(params ?? {})
+          .filter(([, v]) => v != null)
+          .map(([k, v]) => [k, String(v)]),
+      ),
     ).toString();
-    const res = await request<BackendProductList>(`/products${qs ? `?${qs}` : ""}`);
+    const res = await request<BackendProductList>(
+      `/products${qs ? `?${qs}` : ""}`,
+    );
     return {
       items: res.items.map(normalizeProduct),
       total: res.total,
@@ -177,7 +203,9 @@ export const catalog = {
   },
 
   get: async (slug: string) => {
-    const res = await request<{ product: BackendProductRow }>(`/products/${slug}`);
+    const res = await request<{ product: BackendProductRow }>(
+      `/products/${slug}`,
+    );
     return { product: normalizeProduct(res.product) };
   },
 };
@@ -220,8 +248,7 @@ function _notifyCartChanged() {
 }
 
 export const cart = {
-  get: (token: string) =>
-    request<import("./types").Cart>("/cart", { token }),
+  get: (token: string) => request<import("./types").Cart>("/cart", { token }),
 
   add: async (token: string, product_id: number, quantity: number) => {
     const res = await request<import("./types").Cart>("/cart/items", {
@@ -234,23 +261,32 @@ export const cart = {
   },
 
   update: async (token: string, product_id: number, quantity: number) => {
-    const res = await request<import("./types").Cart>(`/cart/items/${product_id}`, {
-      method: "PATCH",
-      token,
-      body: JSON.stringify({ quantity }),
-    });
+    const res = await request<import("./types").Cart>(
+      `/cart/items/${product_id}`,
+      {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ quantity }),
+      },
+    );
     _notifyCartChanged();
     return res;
   },
 
   remove: async (token: string, product_id: number) => {
-    const res = await request<import("./types").Cart>(`/cart/items/${product_id}`, { method: "DELETE", token });
+    const res = await request<import("./types").Cart>(
+      `/cart/items/${product_id}`,
+      { method: "DELETE", token },
+    );
     _notifyCartChanged();
     return res;
   },
 
   clear: async (token: string) => {
-    const res = await request<import("./types").Cart>("/cart", { method: "DELETE", token });
+    const res = await request<import("./types").Cart>("/cart", {
+      method: "DELETE",
+      token,
+    });
     _notifyCartChanged();
     return res;
   },
@@ -270,7 +306,7 @@ export const checkout = {
     token: string,
     idempotencyKey: string,
     shipping_address: import("./types").Address,
-    payment_method: import("./types").PaymentMethod = "card"
+    payment_method: import("./types").PaymentMethod = "card",
   ) =>
     request<{ order: import("./types").Order }>("/checkout", {
       method: "POST",
@@ -285,13 +321,15 @@ export const checkout = {
 export const orders = {
   list: (token: string, page = 1, pageSize = 10) =>
     request<{ items: import("./types").Order[]; total: number; page: number }>(
-      `/orders?page=${page}&page_size=${pageSize}`, { token }
+      `/orders?page=${page}&page_size=${pageSize}`,
+      { token },
     ),
 
   get: (token: string, orderNumber: string) =>
-    request<{ order: import("./types").Order; fulfillment_orders: import("./types").FulfillmentOrder[] }>(
-      `/orders/${orderNumber}`, { token }
-    ),
+    request<{
+      order: import("./types").Order;
+      fulfillment_orders: import("./types").FulfillmentOrder[];
+    }>(`/orders/${orderNumber}`, { token }),
 };
 
 // ── Organization ─────────────────────────────────────────────────────────────
@@ -300,14 +338,14 @@ export const org = {
   get: (token: string, id: number) =>
     request<{ organization: import("./types").Organization }>(
       `/organizations/${id}`,
-      { token }
+      { token },
     ),
 
   creditAllocations: (token: string, orgId: number) =>
     request<{ items: import("./types").CreditAllocation[] }>(
       `/organizations/${orgId}/credit-allocations`,
-      { token }
+      { token },
     ),
 };
 
-export { ApiError };
+export { ApiError, request as apiRequest };

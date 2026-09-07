@@ -11,6 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY migrations ./migrations
+COPY migrations_postgresql ./migrations_postgresql
+COPY recovery ./recovery
 COPY scripts ./scripts
 COPY tests ./tests
 COPY entrypoint.sh ./

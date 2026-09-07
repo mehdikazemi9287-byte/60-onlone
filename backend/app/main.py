@@ -1,4 +1,5 @@
 """Flask application factory (modular monolith, single deployable)."""
+
 from __future__ import annotations
 
 import logging
@@ -6,6 +7,7 @@ import time
 
 from flask import Flask, current_app, g, jsonify, request
 
+from app.api.v1 import customer_requests as customer_requests_api
 from app.api.v1 import auth as auth_api
 from app.api.v1 import cart as cart_api
 from app.api.v1 import catalog as catalog_api
@@ -18,6 +20,7 @@ from app.api.v1 import settlement as settlement_api
 from app.api.v1 import suppliers as suppliers_api
 from app.api.v1 import master_catalog as master_catalog_api
 from app.api.v1 import procurement as procurement_api
+
 # Phase 6 — Inventory Intelligence + Product Identifiers + ERP/Store Connector
 from app.api.v1 import identifiers as identifiers_api
 from app.api.v1 import inventory_sources as inventory_sources_api
@@ -27,16 +30,19 @@ from app.api.v1 import sync_runs as sync_runs_api
 from app.api.v1 import erp_mappings as erp_mappings_api
 from app.api.v1 import import_jobs as import_jobs_api
 from app.api.v1 import scanner as scanner_api
+
 # Phase 6 Final — Exception inbox, Invoices, Reconciliation, Discovery
 from app.api.v1 import exceptions as exceptions_api
 from app.api.v1 import invoices as invoices_api
 from app.api.v1 import reconciliation as reconciliation_api
 from app.api.v1 import discovery as discovery_api
+
 # Phase 7 — Enterprise Integration & Automation Hub
 from app.api.v1 import integration_events as integration_events_api
 from app.api.v1 import tax as tax_api
 from app.api.v1 import accounting_connectors as accounting_connectors_api
 from app.api.v1 import connector_wizard as connector_wizard_api
+
 # Loyalty foundation — 60Coin (structurally separate from credit/ledger)
 from app.api.v1 import loyalty as loyalty_api
 from app.core.config import Settings, load_settings
@@ -89,28 +95,49 @@ def create_app(
         rate_limiter = NoOpRateLimiter()
     app.extensions["rate_limiter"] = rate_limiter
 
-    for blueprint in (health_api.bp, auth_api.bp, catalog_api.bp, cart_api.bp, orders_api.bp,
-                      credit_api.bp, organizations_api.bp, suppliers_api.bp,
-                      master_catalog_api.bp, procurement_api.bp,
-                      logistics_api.bp, settlement_api.bp,
-                      # Phase 6
-                      identifiers_api.bp, inventory_sources_api.bp, price_sources_api.bp,
-                      connectors_v6_api.bp, sync_runs_api.bp, erp_mappings_api.bp,
-                      import_jobs_api.bp, scanner_api.bp,
-                      # Phase 6 Final
-                      exceptions_api.bp, invoices_api.bp,
-                      reconciliation_api.bp, discovery_api.bp,
-                      # Phase 7
-                      integration_events_api.bp, tax_api.bp,
-                      accounting_connectors_api.bp, connector_wizard_api.bp,
-                      # Loyalty
-                      loyalty_api.bp):
+    for blueprint in (
+        health_api.bp,
+        auth_api.bp,
+        catalog_api.bp,
+        cart_api.bp,
+        orders_api.bp,
+        credit_api.bp,
+        organizations_api.bp,
+        suppliers_api.bp,
+        master_catalog_api.bp,
+        procurement_api.bp,
+        logistics_api.bp,
+        settlement_api.bp,
+        # Phase 6
+        identifiers_api.bp,
+        inventory_sources_api.bp,
+        price_sources_api.bp,
+        connectors_v6_api.bp,
+        sync_runs_api.bp,
+        erp_mappings_api.bp,
+        import_jobs_api.bp,
+        scanner_api.bp,
+        # Phase 6 Final
+        exceptions_api.bp,
+        invoices_api.bp,
+        reconciliation_api.bp,
+        discovery_api.bp,
+        # Phase 7
+        integration_events_api.bp,
+        tax_api.bp,
+        accounting_connectors_api.bp,
+        connector_wizard_api.bp,
+        # Loyalty
+        loyalty_api.bp,
+        customer_requests_api.bp,
+    ):
         app.register_blueprint(blueprint)
 
     # ---- Request correlation ID ------------------------------------------
     @app.before_request
     def _stamp_request():
         import uuid
+
         g.request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
         g.request_start = time.monotonic()
 
@@ -121,16 +148,19 @@ def create_app(
         if limiter is None:
             return
         from app.core.deps import client_ip
+
         ip = client_ip() or "unknown"
         key = f"ip:{ip}"
         if not limiter.is_allowed(key):
             retry = limiter.retry_after(key)
-            response = jsonify({
-                "error": {
-                    "code": "rate_limit_exceeded",
-                    "message": "درخواست‌های شما بیش از حد مجاز است. لطفاً کمی صبر کنید.",
+            response = jsonify(
+                {
+                    "error": {
+                        "code": "rate_limit_exceeded",
+                        "message": "درخواست‌های شما بیش از حد مجاز است. لطفاً کمی صبر کنید.",
+                    }
                 }
-            })
+            )
             response.status_code = 429
             response.headers["Retry-After"] = str(retry)
             return response
@@ -142,14 +172,20 @@ def create_app(
             ct = request.content_type or ""
             if not ct.startswith("application/json"):
                 return (
-                    jsonify({"error": {"code": "unsupported_media_type",
-                                       "message": "Content-Type must be application/json"}}),
+                    jsonify(
+                        {
+                            "error": {
+                                "code": "unsupported_media_type",
+                                "message": "Content-Type must be application/json",
+                            }
+                        }
+                    ),
                     415,
                 )
 
     # ---- Request-size limits for import/upload endpoints ----------------
-    _IMPORT_SIZE_LIMIT = 10 * 1024 * 1024   # 10 MB
-    _DEFAULT_SIZE_LIMIT = 1 * 1024 * 1024   # 1 MB
+    _IMPORT_SIZE_LIMIT = 10 * 1024 * 1024  # 10 MB
+    _DEFAULT_SIZE_LIMIT = 1 * 1024 * 1024  # 1 MB
 
     @app.before_request
     def _enforce_request_size():
@@ -159,8 +195,14 @@ def create_app(
         limit = _IMPORT_SIZE_LIMIT if "/import" in request.path else _DEFAULT_SIZE_LIMIT
         if cl > limit:
             return (
-                jsonify({"error": {"code": "payload_too_large",
-                                   "message": f"Request body exceeds {limit // 1024} KB limit"}}),
+                jsonify(
+                    {
+                        "error": {
+                            "code": "payload_too_large",
+                            "message": f"Request body exceeds {limit // 1024} KB limit",
+                        }
+                    }
+                ),
                 413,
             )
 
@@ -171,7 +213,9 @@ def create_app(
         if origin and origin in settings.cors_origins:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"
-            response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Idempotency-Key, X-Request-ID"
+            response.headers["Access-Control-Allow-Headers"] = (
+                "Authorization, Content-Type, Idempotency-Key, X-Request-ID"
+            )
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
             response.headers["Access-Control-Max-Age"] = "600"
         return response
@@ -184,10 +228,17 @@ def create_app(
             endpoint = request.endpoint or "unknown"
             method = request.method
             status = str(response.status_code)
-            m.increment("http_requests_total", labels={"method": method, "endpoint": endpoint, "status": status})
+            m.increment(
+                "http_requests_total",
+                labels={"method": method, "endpoint": endpoint, "status": status},
+            )
             if hasattr(g, "request_start"):
                 duration_ms = (time.monotonic() - g.request_start) * 1000
-                m.record("http_request_duration_ms", duration_ms, labels={"method": method, "endpoint": endpoint})
+                m.record(
+                    "http_request_duration_ms",
+                    duration_ms,
+                    labels={"method": method, "endpoint": endpoint},
+                )
             if response.status_code >= 500:
                 m.increment("http_errors_total", labels={"method": method, "endpoint": endpoint})
         return response
@@ -197,9 +248,11 @@ def create_app(
     def apply_security_headers(response):
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "0"           # modern browsers use CSP
+        response.headers["X-XSS-Protection"] = "0"  # modern browsers use CSP
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=63072000; includeSubDomains; preload"
+        )
         response.headers["Cache-Control"] = "no-store"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
         # Expose correlation ID to caller
@@ -241,16 +294,22 @@ def create_app(
     import click
 
     @app.cli.command("outbox-worker-run-once")
-    @click.option("--batch-size", default=50, show_default=True,
-                  help="Maximum events to claim per run")
-    @click.option("--lease-timeout-s", default=300, show_default=True,
-                  help="Seconds before a processing event is considered stale")
+    @click.option(
+        "--batch-size", default=50, show_default=True, help="Maximum events to claim per run"
+    )
+    @click.option(
+        "--lease-timeout-s",
+        default=300,
+        show_default=True,
+        help="Seconds before a processing event is considered stale",
+    )
     def outbox_worker_run_once(batch_size: int, lease_timeout_s: int):  # pragma: no cover
         """Process one batch of pending outbox events then exit.
 
         Safe to call from multiple concurrent processes.
         """
         from app.services.outbox_worker import run_once
+
         result = run_once(batch_size=batch_size, lease_timeout_s=lease_timeout_s)
         click.echo(
             f"recovered={result['recovered']} claimed={result['claimed']} "

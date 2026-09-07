@@ -15,6 +15,7 @@ Roles:
 
 Tenant isolation: every operation asserts organization_id matches the actor's membership.
 """
+
 from __future__ import annotations
 
 import datetime
@@ -25,6 +26,7 @@ from app.core.errors import ConflictError, PermissionError_, NotFoundError, Vali
 
 
 # ── Number generation ──────────────────────────────────────────────────────────
+
 
 def _next_pr_number(conn, organization_id: int) -> str:
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
@@ -55,6 +57,7 @@ def _next_po_number(conn, organization_id: int) -> str:
 
 # ── Membership helpers ─────────────────────────────────────────────────────────
 
+
 def _get_membership(conn, user_id: int, organization_id: int) -> dict:
     row = conn.execute(
         """SELECT id, role, procurement_role, status
@@ -72,15 +75,21 @@ def _assert_org_member(conn, user_id: int, organization_id: int) -> dict:
 
 
 def _can_approve(membership: dict) -> bool:
-    return membership["role"] in ("organization_admin",) or membership["procurement_role"] == "approver"
+    return (
+        membership["role"] in ("organization_admin",)
+        or membership["procurement_role"] == "approver"
+    )
 
 
 def _can_procure(membership: dict) -> bool:
-    return membership["role"] in ("organization_admin", "procurement_agent") or \
-           membership["procurement_role"] == "procurement_officer"
+    return (
+        membership["role"] in ("organization_admin", "procurement_agent")
+        or membership["procurement_role"] == "procurement_officer"
+    )
 
 
 # ── Serialisation ──────────────────────────────────────────────────────────────
+
 
 def _pr_dict(row) -> dict:
     return {
@@ -121,18 +130,34 @@ def _pri_dict(row) -> dict:
 
 # ── Audit log ──────────────────────────────────────────────────────────────────
 
-def _audit(conn, *, organization_id: int, actor_user_id: int, event_type: str,
-           entity_type: str, entity_id: int, details: dict | None = None) -> None:
+
+def _audit(
+    conn,
+    *,
+    organization_id: int,
+    actor_user_id: int,
+    event_type: str,
+    entity_type: str,
+    entity_id: int,
+    details: dict | None = None,
+) -> None:
     conn.execute(
         """INSERT INTO procurement_audit_log
            (organization_id, actor_user_id, event_type, entity_type, entity_id, details_json)
            VALUES (?,?,?,?,?,?)""",
-        (organization_id, actor_user_id, event_type, entity_type, entity_id,
-         json.dumps(details or {}, ensure_ascii=False)),
+        (
+            organization_id,
+            actor_user_id,
+            event_type,
+            entity_type,
+            entity_id,
+            json.dumps(details or {}, ensure_ascii=False),
+        ),
     )
 
 
 # ── Purchase Request CRUD ──────────────────────────────────────────────────────
+
 
 def create_purchase_request(
     conn,
@@ -154,7 +179,15 @@ def create_purchase_request(
 ) -> dict:
     """Create a draft purchase request. Actor must be org member."""
     membership = _assert_org_member(conn, requester_user_id, organization_id)
-    title = (title or "").strip()
+    if not isinstance(title, str) or len(title) > 200:
+        raise ValidationError("عنوان درخواست خرید نامعتبر است")
+    if items is not None and (
+        not isinstance(items, list)
+        or len(items) > 50
+        or any(not isinstance(i, dict) for i in items)
+    ):
+        raise ValidationError("اقلام درخواست نامعتبر است")
+    title = title.strip()
     if not title:
         raise ValidationError("عنوان درخواست خرید الزامی است")
     if urgency not in ("low", "normal", "high", "urgent"):
@@ -170,40 +203,75 @@ def create_purchase_request(
             delivery_province, delivery_city, delivery_address,
             budget_minor, cost_center, project_code, urgency, notes)
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-        (organization_id, requester_user_id, membership["id"],
-         req_number, title, description, needed_by_date,
-         delivery_province, delivery_city, delivery_address,
-         budget_minor, cost_center, project_code, urgency, notes),
+        (
+            organization_id,
+            requester_user_id,
+            membership["id"],
+            req_number,
+            title,
+            description,
+            needed_by_date,
+            delivery_province,
+            delivery_city,
+            delivery_address,
+            budget_minor,
+            cost_center,
+            project_code,
+            urgency,
+            notes,
+        ),
     )
     pr_id = cur.lastrowid
 
-    for item in (items or []):
+    for item in items or []:
         _add_pr_item(conn, pr_id, item)
 
-    _audit(conn,
-           organization_id=organization_id,
-           actor_user_id=requester_user_id,
-           event_type="pr_created",
-           entity_type="purchase_request",
-           entity_id=pr_id,
-           details={"request_number": req_number, "title": title})
+    _audit(
+        conn,
+        organization_id=organization_id,
+        actor_user_id=requester_user_id,
+        event_type="pr_created",
+        entity_type="purchase_request",
+        entity_id=pr_id,
+        details={"request_number": req_number, "title": title},
+    )
 
-    return get_purchase_request(conn, pr_id, actor_user_id=requester_user_id, organization_id=organization_id)
+    return get_purchase_request(
+        conn, pr_id, actor_user_id=requester_user_id, organization_id=organization_id
+    )
 
 
 def _add_pr_item(conn, pr_id: int, item: dict) -> None:
     qty = item.get("quantity", 0)
-    if not isinstance(qty, int) or qty < 1:
+    if isinstance(qty, bool) or not isinstance(qty, int) or qty < 1 or qty > 100000:
         raise ValidationError("تعداد باید عدد صحیح مثبت باشد")
     if not item.get("master_product_id") and not item.get("free_text_description"):
         raise ValidationError("هر ردیف باید شناسه محصول یا توضیح متنی داشته باشد")
+    mid = item.get("master_product_id")
+    if mid is not None:
+        if (
+            isinstance(mid, bool)
+            or not isinstance(mid, int)
+            or not conn.execute("SELECT 1 FROM master_products WHERE id=?", (mid,)).fetchone()
+        ):
+            raise ValidationError("شناسه کالای مرجع نامعتبر است")
+    description = item.get("free_text_description")
+    if description is not None and (not isinstance(description, str) or len(description) > 2000):
+        raise ValidationError("شرح قلم نامعتبر است")
     conn.execute(
         """INSERT INTO purchase_request_items
            (purchase_request_id, master_product_id, free_text_description,
             quantity, unit, estimated_unit_price_minor, notes)
            VALUES (?,?,?,?,?,?,?)""",
-        (pr_id, item.get("master_product_id"), item.get("free_text_description"),
-         qty, item.get("unit"), item.get("estimated_unit_price_minor"), item.get("notes")),
+        (
+            pr_id,
+            item.get("master_product_id"),
+            item.get("free_text_description"),
+            qty,
+            item.get("unit"),
+            item.get("estimated_unit_price_minor"),
+            item.get("notes"),
+        ),
     )
 
 
@@ -276,16 +344,26 @@ def submit_purchase_request(conn, pr_id: int, *, actor_user_id: int, organizatio
         "UPDATE purchase_requests SET status='submitted', submitted_at=?, updated_at=? WHERE id=?",
         (now, now, pr_id),
     )
-    _audit(conn, organization_id=organization_id, actor_user_id=actor_user_id,
-           event_type="pr_submitted", entity_type="purchase_request", entity_id=pr_id)
-    return get_purchase_request(conn, pr_id, actor_user_id=actor_user_id, organization_id=organization_id)
+    _audit(
+        conn,
+        organization_id=organization_id,
+        actor_user_id=actor_user_id,
+        event_type="pr_submitted",
+        entity_type="purchase_request",
+        entity_id=pr_id,
+    )
+    return get_purchase_request(
+        conn, pr_id, actor_user_id=actor_user_id, organization_id=organization_id
+    )
 
 
 def approve_purchase_request(
-    conn, pr_id: int, *,
+    conn,
+    pr_id: int,
+    *,
     actor_user_id: int,
     organization_id: int,
-    action: str,   # 'approve' | 'reject'
+    action: str,  # 'approve' | 'reject'
     reason: str | None = None,
 ) -> dict:
     membership = _assert_org_member(conn, actor_user_id, organization_id)
@@ -316,10 +394,18 @@ def approve_purchase_request(
         (pr_id, actor_user_id, membership["id"], action, reason),
     )
     event = "pr_approved" if action == "approve" else "pr_rejected"
-    _audit(conn, organization_id=organization_id, actor_user_id=actor_user_id,
-           event_type=event, entity_type="purchase_request", entity_id=pr_id,
-           details={"reason": reason})
-    return get_purchase_request(conn, pr_id, actor_user_id=actor_user_id, organization_id=organization_id)
+    _audit(
+        conn,
+        organization_id=organization_id,
+        actor_user_id=actor_user_id,
+        event_type=event,
+        entity_type="purchase_request",
+        entity_id=pr_id,
+        details={"reason": reason},
+    )
+    return get_purchase_request(
+        conn, pr_id, actor_user_id=actor_user_id, organization_id=organization_id
+    )
 
 
 def cancel_purchase_request(conn, pr_id: int, *, actor_user_id: int, organization_id: int) -> dict:
@@ -340,9 +426,17 @@ def cancel_purchase_request(conn, pr_id: int, *, actor_user_id: int, organizatio
         "UPDATE purchase_requests SET status='cancelled', updated_at=? WHERE id=?",
         (now, pr_id),
     )
-    _audit(conn, organization_id=organization_id, actor_user_id=actor_user_id,
-           event_type="pr_cancelled", entity_type="purchase_request", entity_id=pr_id)
-    return get_purchase_request(conn, pr_id, actor_user_id=actor_user_id, organization_id=organization_id)
+    _audit(
+        conn,
+        organization_id=organization_id,
+        actor_user_id=actor_user_id,
+        event_type="pr_cancelled",
+        entity_type="purchase_request",
+        entity_id=pr_id,
+    )
+    return get_purchase_request(
+        conn, pr_id, actor_user_id=actor_user_id, organization_id=organization_id
+    )
 
 
 def _now() -> str:
