@@ -5,6 +5,7 @@ from app.services.master_catalog_service import create_master_product
 class CatalogPublicationsTest(AppTestCase):
     def setUp(self):
         super().setUp()
+        self.app.config["TEST_SALES_OVERRIDE"] = False
         self.before = self.client.get("/api/v1/products").get_json()["total"]
         self.ids = []
         with self.db.write_transaction() as conn:

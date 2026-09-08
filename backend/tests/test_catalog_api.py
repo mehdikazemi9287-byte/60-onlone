@@ -115,6 +115,12 @@ class CatalogTest(AppTestCase):
     def test_out_of_stock_flag(self):
         product = self.product("mobile-samsung-a55")
         self.set_stock(product["id"], 0)
+        with self.db.write_transaction() as conn:
+            conn.execute(
+                "UPDATE seller_offers SET stock_quantity=0 WHERE product_id=?",
+                (product["id"],),
+            )
+        self.app.config["TEST_SALES_OVERRIDE"] = False
         self.assertFalse(self.product("mobile-samsung-a55")["in_stock"])
 
     def test_unknown_route_returns_json_404(self):

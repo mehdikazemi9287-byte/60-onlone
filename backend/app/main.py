@@ -76,6 +76,7 @@ def create_app(
 
     app = Flask(__name__)
     app.config["JSON_SORT_KEYS"] = False
+    app.config["TEST_SALES_OVERRIDE"] = settings.app_env == "test"
     app.extensions["settings"] = settings
     app.extensions["db"] = database
     app.extensions["secret_resolver"] = secret_resolver
