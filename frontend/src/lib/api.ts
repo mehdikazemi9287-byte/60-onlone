@@ -349,3 +349,75 @@ export const org = {
 };
 
 export { ApiError, request as apiRequest };
+
+// ── Smart Pack Builder ───────────────────────────────────────────────────────
+export interface PackLine {
+  product_id: number;
+  slug: string | null;
+  title: string;
+  brand: string | null;
+  category_slug: string | null;
+  category_name: string | null;
+  quantity: number;
+  image_url: string | null;
+  price_status: "verified" | "unpriced" | "unavailable";
+  purchase_status: "purchasable" | "inquiry-only" | "unavailable";
+  in_stock: boolean;
+  unit_price: number | null;
+  line_total: number | null;
+}
+export interface PackSummary {
+  verified_subtotal: number | null;
+  unpriced_item_count: number;
+  has_unpriced: boolean;
+  all_purchasable: boolean;
+  currency: string;
+  note: string;
+}
+export interface Pack {
+  id: number;
+  name: string;
+  kind: string;
+  created_at: string;
+  updated_at: string;
+  items: PackLine[];
+  item_count: number;
+  summary: PackSummary;
+}
+export interface PackRow {
+  id: number;
+  name: string;
+  kind: string;
+  item_count: number;
+  updated_at: string;
+}
+export interface PackCartResult {
+  pack_id: number;
+  added: { product_id: number; title: string; quantity: number }[];
+  skipped: { product_id: number; title: string; reason: string }[];
+  cart_updated: boolean;
+}
+
+export const packs = {
+  list: (token: string) => request<{ packs: PackRow[] }>("/packs", { token }),
+  get: (token: string, id: number) => request<{ pack: Pack }>(`/packs/${id}`, { token }),
+  create: (token: string, name: string, kind = "custom") =>
+    request<{ pack: Pack }>("/packs", { method: "POST", token, body: JSON.stringify({ name, kind }) }),
+  rename: (token: string, id: number, name: string) =>
+    request<{ pack: Pack }>(`/packs/${id}`, { method: "PATCH", token, body: JSON.stringify({ name }) }),
+  remove: (token: string, id: number) =>
+    request<{ deleted: number }>(`/packs/${id}`, { method: "DELETE", token }),
+  setItem: (token: string, id: number, product_id: number, quantity: number) =>
+    request<{ pack: Pack }>(`/packs/${id}/items`, {
+      method: "PUT", token, body: JSON.stringify({ product_id, quantity }),
+    }),
+  removeItem: (token: string, id: number, product_id: number) =>
+    request<{ pack: Pack }>(`/packs/${id}/items/${product_id}`, { method: "DELETE", token }),
+  addToCart: (token: string, id: number) =>
+    request<PackCartResult>(`/packs/${id}/add-to-cart`, { method: "POST", token, body: "{}" }),
+  proforma: (token: string, id: number, message: string, organization_id?: number) =>
+    request<{ request_id: number; status: string; subject: string }>(
+      `/packs/${id}/proforma`,
+      { method: "POST", token, body: JSON.stringify({ message, organization_id }) },
+    ),
+};
