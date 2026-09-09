@@ -242,7 +242,7 @@ export function CategoryCard({ name, href, count, icon, color = "bg-brand-blueLi
       </div>
       <div>
         <p className="text-sm font-semibold text-neutral-900 group-hover:text-brand-blue transition-colors">{name}</p>
-        {count != null && <p className="text-2xs text-neutral-400 mt-0.5">{count} محصول</p>}
+        {count != null && <p className={cn("text-2xs mt-0.5", count > 0 ? "text-neutral-400" : "text-amber-600")}>{count > 0 ? `${count} محصول` : "در حال تکمیل محصولات"}</p>}
       </div>
     </Link>
   );

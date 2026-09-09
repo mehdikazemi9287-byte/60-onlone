@@ -35,7 +35,7 @@ function Hero() {
 
 function CategorySection() {
   return <section id="home-categories" className="section bg-warm-surface"><div className="container-page">
-    <div className="section-heading"><div><span className="section-kicker">شروع خرید</span><h2>دسته‌بندی‌های اصلی</h2><p>مسیر کوتاه‌تر برای رسیدن به کالای مورد نیاز</p></div><Link href="/category" className="section-link">همه دسته‌بندی‌ها <ArrowLeft className="h-4 w-4" /></Link></div>
+    <div className="section-heading"><div><span className="section-kicker">شروع خرید</span><h2>دسته‌بندی‌های اصلی</h2><p>مسیر کوتاه‌تر برای رسیدن به کالای مورد نیاز</p></div><Link href="/category" className="section-link">مشاهده همه ۲۰ دسته <ArrowLeft className="h-4 w-4" /></Link></div>
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">{HOME_CATEGORIES.map((cat, index) => { const Icon = cat.icon; return <Link key={cat.name} href={cat.href} className="category-tile group"><span className={`category-icon ${index === 0 ? "category-icon-active" : ""}`}><Icon className="h-6 w-6" strokeWidth={1.8} /></span><span className="text-sm font-bold text-neutral-900 group-hover:text-brand-navy">{cat.name}</span><span className="mt-1 line-clamp-2 text-[11px] leading-5 text-neutral-500">{cat.subtitle}</span></Link>; })}</div>
   </div></section>;
 }
