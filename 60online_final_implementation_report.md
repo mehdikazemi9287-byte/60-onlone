@@ -31,3 +31,18 @@ restore point Production: /home/ubuntu/60online-restore-points/20260909T180812Z/
 - frontend: /pack-builder (page + client) · lib/api.ts packs · homepage PackBuilder section به‌روزرسانی (placeholder → live، بدون بازطراحی) · nav links
 - تست API کامل PASS (create/add/qty/rename/remove/get/add-to-cart[0 added,1 skipped با دلیل]/proforma[req#]/list/delete/cross-user 401)
 - commit 62938a8 · build PASS · /pack-builder 200 · proxy /api/v1/packs PASS · search/home intact
+
+## PHASE 5 — specifications_json  [PARTIAL — 3/44 DONE, 41 pending, display wired]
+- ۳ کالای CONFIRMED با مشخصات کلمه‌به‌کلمه از صفحه رسمی سازنده + field_provenance (confidence 9500، official_manufacturer):
+  P10 MikroTik hEX S (mikrotik.com/product/hex_s) · M177 ASUS VY229HE (asus.com techspec) · M170 Snowa SSD-55SK610US (snowa.ir)
+- backend: get_product_by_slug → فیلد `specifications` از master (helper _parse_specs، فقط dict معتبر با groups)
+- frontend: ProductDetail بخش «مشخصات فنی» (جدول گروه‌بندی‌شده) + لینک منبع + تاریخ مشاهده — فقط وقتی داده واقعی هست
+- ۴۱ کالای باقی: PENDING_DIRECT_SOURCE (هر کدام یک fetch رسمی؛ برای کنترل توکن) — specifications_json خالی، هیچ داده جعلی
+- audit: 50_specs_audit.md · staging backend rebuilt (image packs-v1) · commit 1230fc2
+
+## PHASE 6 — پنل‌ها  [AUDIT DONE — پنل‌ها واقعی و کارآمدند]
+یافته: هر ۳ پنل EXISTS + REAL API + WORKING (کار پاس‌های قبلی؛ هیچ mock/fake/dummy در کد). تست زنده staging 8064:
+- Customer (/account,/wallet,/60coin,/60club,/requests): صفحات ۲۰۰ · APIها ۲۰۰: /orders /me/credit /me/loyalty /loyalty/tiers /requests /cart /auth/me
+- Organization (/org): صفحه ۲۰۰ · /organizations ۲۰۰ (پارس فناوری) · /orgs/1/procurement/{requests,purchase-orders,rfqs} ۲۰۰ · /organizations/1/members ۲۰۰ — بدون اعتبار/داده سازمانی جعلی (همه از seed واقعی)
+- Supplier (/supplier): صفحه ۲۰۰ · /supplier/me ۲۰۰ · /supplier/offers ۲۰۰ (۰ offer — واقعی) · /supplier/payables/summary ۲۰۰ — بدون هویت/national_id/قرارداد جعلی
+- افزوده شد: لینک «پک‌ساز» در nav پنل کاربر (ادغام قابلیت جدید)

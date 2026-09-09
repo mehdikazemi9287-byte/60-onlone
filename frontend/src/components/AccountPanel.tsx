@@ -103,6 +103,7 @@ export default function AccountPanel({
         ))}
         <Link href="/requests">درخواست‌ها</Link>
         <Link href="/orders">سفارش‌ها</Link>
+        <Link href="/pack-builder">پک‌ساز</Link>
         <Link href="/org">سازمان</Link>
         {user.role === "supplier" && (
           <Link href="/supplier">پنل تأمین‌کننده</Link>
