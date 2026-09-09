@@ -120,6 +120,7 @@ type BackendProductRow = {
   slug: string;
   title_fa: string;
   description_fa?: string;
+  specifications?: import("./types").ProductSpecs | null;
   price_minor: number | null;
   purchasable?: boolean;
   price_status?: "verified" | "pending";
@@ -171,6 +172,7 @@ export function normalizeProduct(
     // data, so it is left undefined rather than invented.
     stock: row.in_stock === false ? 0 : row.quantity_available,
     sku: row.sku,
+    specifications: row.specifications ?? undefined,
   };
 }
 

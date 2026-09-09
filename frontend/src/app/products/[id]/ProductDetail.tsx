@@ -452,6 +452,35 @@ export default function ProductDetailPage({
           </p>
         )}
       </div>
+
+      {/* ── Specifications (manufacturer-sourced only) ───────────────────────── */}
+      {product.specifications && (
+        <div className="card p-5 md:p-6 max-w-3xl">
+          <h2 className="text-lg font-bold text-neutral-900 mb-3">مشخصات فنی</h2>
+          <div className="space-y-4">
+            {product.specifications.groups.map((g) => (
+              <div key={g.title}>
+                <h3 className="mb-1.5 text-sm font-bold text-neutral-800">{g.title}</h3>
+                <dl className="divide-y divide-neutral-100 rounded-lg border border-neutral-100">
+                  {g.items.map((it) => (
+                    <div key={it.label} className="flex gap-3 px-3 py-2 text-sm">
+                      <dt className="w-40 shrink-0 text-neutral-500">{it.label}</dt>
+                      <dd className="text-neutral-800">{it.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-neutral-400">
+            منبع مشخصات:{" "}
+            <a href={product.specifications.source.url} target="_blank" rel="noopener noreferrer" className="underline">
+              {product.specifications.source.url}
+            </a>
+            {product.specifications.source.retrieved_at ? ` — مشاهده ${product.specifications.source.retrieved_at}` : ""}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -50,6 +50,12 @@ export interface Product {
   review_count?: number;
   stock?: number;
   sku?: string;
+  specifications?: ProductSpecs;
+}
+
+export interface ProductSpecs {
+  groups: { title: string; items: { label: string; value: string }[] }[];
+  source: { url: string; type: string; retrieved_at?: string; note?: string };
 }
 
 export interface CartItem {

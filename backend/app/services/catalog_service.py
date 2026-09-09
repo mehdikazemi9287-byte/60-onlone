@@ -142,7 +142,8 @@ def search_products(
         f"""
         SELECT p.*, c.slug AS category_slug, c.name_fa AS category_name_fa,
                COALESCE(i.quantity_available, 0) AS quantity_available,
-               mp.image_urls_json AS image_urls_json
+               mp.image_urls_json AS image_urls_json,
+               mp.specifications_json AS specifications_json
         FROM products p
         JOIN categories c ON c.id = p.category_id
         LEFT JOIN inventory i ON i.product_id = p.id
@@ -205,12 +206,24 @@ def search_products(
     }
 
 
+def _parse_specs(raw):
+    """Parsed manufacturer specifications, or None. Never fabricated."""
+    if not raw:
+        return None
+    try:
+        data = json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+    return data if isinstance(data, dict) and data.get("groups") else None
+
+
 def get_product_by_slug(db: Database, slug: str, *, exponent: int) -> dict:
     row = db.query_one(
         """
         SELECT p.*, c.slug AS category_slug, c.name_fa AS category_name_fa,
                COALESCE(i.quantity_available, 0) AS quantity_available,
-               mp.image_urls_json AS image_urls_json
+               mp.image_urls_json AS image_urls_json,
+               mp.specifications_json AS specifications_json
         FROM products p
         JOIN categories c ON c.id = p.category_id
         LEFT JOIN inventory i ON i.product_id = p.id
@@ -223,7 +236,7 @@ def get_product_by_slug(db: Database, slug: str, *, exponent: int) -> dict:
         publication = db.query_one(
             """
             SELECT cp.*, mp.canonical_name_fa, mp.brand, mp.description_fa,
-                   mp.image_urls_json, c.name_fa AS category_name_fa
+                   mp.image_urls_json, mp.specifications_json, c.name_fa AS category_name_fa
             FROM catalog_publications cp
             JOIN master_products mp ON mp.id = cp.master_product_id
             JOIN categories c ON c.slug = cp.category_slug
@@ -235,7 +248,9 @@ def get_product_by_slug(db: Database, slug: str, *, exponent: int) -> dict:
             raise NotFoundError("محصول یافت نشد", code="product_not_found")
         data = _publication_dict(publication, exponent)
         data["description_fa"] = publication["description_fa"]
+        data["specifications"] = _parse_specs(publication["specifications_json"])
         return data
     data = _product_dict(row, exponent, sale_eligibility.eligible_offer_db(db, int(row["id"])))
     data["description_fa"] = row["description_fa"]
+    data["specifications"] = _parse_specs(row["specifications_json"])
     return data
