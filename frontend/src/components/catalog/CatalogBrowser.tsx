@@ -137,7 +137,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
       ) : items.length ? (
         <ProductGrid products={items} cols={3} />
       ) : (
-        <div className="card p-8">کالایی برای این جستجو یافت نشد.</div>
+        <div className="card p-8 text-center text-neutral-600">{categorySlug && !q ? "این دسته در حال تکمیل محصولات است." : "کالایی برای این جستجو یافت نشد."}</div>
       )}
       {!loading && !error && pages > 1 && (
         <nav
