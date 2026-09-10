@@ -46,3 +46,16 @@ restore point Production: /home/ubuntu/60online-restore-points/20260909T180812Z/
 - Organization (/org): صفحه ۲۰۰ · /organizations ۲۰۰ (پارس فناوری) · /orgs/1/procurement/{requests,purchase-orders,rfqs} ۲۰۰ · /organizations/1/members ۲۰۰ — بدون اعتبار/داده سازمانی جعلی (همه از seed واقعی)
 - Supplier (/supplier): صفحه ۲۰۰ · /supplier/me ۲۰۰ · /supplier/offers ۲۰۰ (۰ offer — واقعی) · /supplier/payables/summary ۲۰۰ — بدون هویت/national_id/قرارداد جعلی
 - افزوده شد: لینک «پک‌ساز» در nav پنل کاربر (ادغام قابلیت جدید)
+
+## PHASE 7 — محتوا + SEO  [DONE (محتوای غیرحقوقی) / BLOCKED (حقوقی)]
+SEO:
+- layout: metadataBase + JSON-LD گراف (Organization «شصت‌آنلاین/60Online» + WebSite + SearchAction) — فقط نام و دامنه واقعی، بدون آدرس/تلفن/شبکه اجتماعی جعلی
+- category/[slug]: BreadcrumbList JSON-LD · product: BreadcrumbList + Product JSON-LD (از قبل، فقط فیلد واقعی: name/description/image/sku/brand — بدون offers/price/rating/review)
+- sitemap: هر ۲۰ دسته (قبلاً فقط دارای‌محصول) + /assistant + /pack-builder + /help/buying + /help/faq → ۱۱۷ URL · robots از قبل درست
+- metadata صفحات کلیدی (product/category/assistant/pack-builder/faq/buying) با title/description/canonical واقعی
+محتوا:
+- /help/buying: راهنمای خرید کامل و واقعی (کالای قیمت‌دار/استعلامی، جستجو، دستیار، پک‌ساز، سبد/تسویه، پیش‌فاکتور، خرید سازمانی، 60Coin) + اعلام شفاف «درگاه هنوز فعال نیست»
+- /help/faq: ۸ پرسش «نحوه کار سامانه» با پاسخ واقعی + FAQPage JSON-LD؛ صریحاً می‌گوید سوالات سیاست بازگشت/گارانتی/پرداخت پس از انتشار رسمی افزوده می‌شوند
+- BLOCKED (حقوقی/اطلاعات تأییدنشده، UnavailablePage صادقانه می‌ماند): /contact، /terms، /help/terms، /help/privacy، /help/returns، /privacy
+- build PASS · regression routes 200
+

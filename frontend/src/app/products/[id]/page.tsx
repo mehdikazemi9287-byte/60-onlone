@@ -23,6 +23,15 @@ export default async function Page({
 }) {
   const p = await serverProduct((await params).id);
   if (!p) notFound();
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: site },
+      ...(p.category ? [{ "@type": "ListItem", position: 2, name: p.category.name, item: site + "/category/" + encodeURIComponent(p.category.slug) }] : []),
+      { "@type": "ListItem", position: p.category ? 3 : 2, name: p.name, item: site + "/products/" + encodeURIComponent(p.slug) },
+    ],
+  };
   const structured = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -39,6 +48,12 @@ export default async function Page({
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(structured).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumb).replace(/</g, "\\u003c"),
         }}
       />
       <ProductDetail initialProduct={p} />
