@@ -395,7 +395,7 @@ export function PackBuilderInteractive() {
       const seen = new Set<number>();
       const items: PackItem[] = [];
       for (const l of lists) for (const p of l.items) if (!seen.has(p.id)) { seen.add(p.id); items.push(fromProduct(p)); }
-      setPool((prev) => { const ex = new Set(prev.map((x) => x.id)); return [...prev.filter((x) => x.id < 9_000_000), ...items.filter((x) => !ex.has(x.id))]; });
+      setPool((prev) => { const inj = prev.filter((x) => x.id >= 9_000_000); const ex = new Set(inj.map((x) => x.id)); return [...inj, ...items.filter((x) => !ex.has(x.id))]; });
     } catch { setPool([]); } finally { setLoading(false); }
   }, []);
   useEffect(() => { loadPool(purposeKey); }, [purposeKey, loadPool]);
