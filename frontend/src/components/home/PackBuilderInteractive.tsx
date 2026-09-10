@@ -22,7 +22,7 @@ type Budget = (typeof BUDGET_PRESETS_MINOR)[number];
 type Occasion = (typeof OCCASIONS)[number];
 interface Editing { label: string; items: PBItem[]; }
 
-export function PackBuilderClient() {
+export function PackBuilderInteractive() {
   const { token } = useAuth();
   const [budget, setBudget] = useState<Budget | null>(null);
   const [occasion, setOccasion] = useState<Occasion | null>(null);
