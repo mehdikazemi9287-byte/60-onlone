@@ -59,3 +59,14 @@ SEO:
 - BLOCKED (حقوقی/اطلاعات تأییدنشده، UnavailablePage صادقانه می‌ماند): /contact، /terms، /help/terms، /help/privacy، /help/returns، /privacy
 - build PASS · regression routes 200
 
+
+## RECOVERY — Smart 60 Pack Builder (original)  [DONE, verified]
+FORENSIC: «پک‌ساز اصلی» در فرانت‌اند vanilla-JS قدیمی بود: /home/ubuntu/70online/repo/frontend/src/pack-builder.js (+ tests/pack-builder.test.js + UI در src/pages/home.js). آن مخزن git ندارد.
+در مخزن Next.js فعلی (60online-authoritative)، فایل PackBuilder.tsx از همان اولین commit (f977b49 «Initial authoritative 60Online snapshot») فقط کارت placeholder بوده — منطق اصلی هیچ‌گاه به Next.js پورت نشده. این «regression» پیش از این نشست و در زمان مهاجرت به Next.js رخ داده، نه در این نشست.
+بازیابی:
+- lib/pack-builder.ts: پورت کلمه‌به‌کلمه‌ی pack-builder.js (BUDGET_PRESETS_MINOR، OCCASIONS، filterPriced، packTotalMinor، budgetState، addItem/removeItem/setQuantity/replaceItem، fillToTarget، buildRecommendations) — فقط type اضافه شد. ۹/۹ تست اصلی PASS.
+- app/pack-builder/PackBuilderClient.tsx: UI بازساخته مطابق نسخه اصلی — chipهای بودجه (۳) + مناسبت (۶)، سه پک پیشنهادی اقتصادی/متعادل/ویژه، «پک سفارشی از صفر»، پنل ویرایش (تعداد +/−، حذف، جایگزینی، جست‌وجوی افزودن)، ردیابی بودجه (جمع/باقی‌مانده/بیش از بودجه)، افزودن به سبد هر قلم (رفتار اصلی)
+- افزوده‌های سازگاری (بدون حذف/ساده‌سازی نسخه اصلی): ذخیره پک سمت سرور + درخواست پیش‌فاکتور (از Phase 4)
+- homepage section → «پک‌ساز هوشمند ۶۰» + توضیح واقعی · nav دست‌نخورده
+تأیید: build PASS · tsc exit 0 · SSR همه کنترل‌های اصلی رندر می‌شوند (۳ بودجه + ۶ مناسبت + پک سفارشی) · /pack-builder=200 · refresh=200 · مسیر داده: انتخاب مناسبت → catalog.list واقعی → filterPriced → چون price_minor همه null است، tierها با پیام صادقانه «کالای دارای قیمت رسمی یافت نشد» خالی می‌مانند (رفتار دقیقاً مطابق نسخه اصلی امروز)
+regression: ۲۰ دسته سالم · Search سالم · دسته خالی سالم · Production دست‌نخورده (BUILD_ID fvZI7bAvR3BMpOlIhbpzr)
