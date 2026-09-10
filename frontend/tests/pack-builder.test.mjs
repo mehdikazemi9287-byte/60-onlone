@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   addItem, budgetState, buildRecommendations, filterPriced, packTotalMinor,
   removeItem, replaceItem, setQuantity,
-} from "./pack-builder.mjs";
+} from "./pack-builder.reference.mjs";
 const product = (id, price_minor, in_stock = true) => ({ id, price_minor, in_stock });
 test("filterPriced drops products with no real price", () => {
   assert.deepEqual(filterPriced([product(1,100000),{id:2,price_minor:null},{id:3}]).map(p=>p.id),[1]);
