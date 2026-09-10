@@ -121,23 +121,31 @@ function Thumb({ item, size = "sm" }: { item: PackItem; size?: "sm" | "xs" }) {
 function SuggestionCard({ pack, active, onAdopt, onEdit, onSwap }: {
   pack: SuggestedPack; active: boolean; onAdopt: () => void; onEdit: () => void; onSwap: () => void;
 }) {
-  return (
-    <div className={`relative flex flex-col rounded-2xl border-2 p-4 h-[336px] transition-colors ${active ? "border-brand-blue bg-brand-blueLight" : "border-neutral-200 bg-white"}`}>
-      {pack.recommended && <span className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-brand-blue text-white text-2xs font-bold">پیشنهاد محبوب</span>}
-      <div className="grid grid-cols-3 gap-1.5 h-16 mb-3">
-        {pack.items.slice(0, 3).map((it) => <div key={it.id} className="rounded-lg overflow-hidden bg-brand-gray"><Thumb item={it} /></div>)}
-        {pack.items.length === 0 && <div className="col-span-3 rounded-lg bg-brand-gray flex items-center justify-center text-2xs text-neutral-400 px-2 text-center">کالای دارای قیمت رسمی کافی برای این بودجه یافت نشد</div>}
+  if (pack.insufficient) {
+    return (
+      <div className="relative flex flex-col justify-center rounded-lg border border-neutral-200 bg-white p-3 min-h-[72px] h-full">
+        {pack.recommended && <span className="absolute -top-2 right-3 px-1.5 py-0.5 rounded-full bg-brand-blue text-white text-[10px] font-bold">پیشنهاد محبوب</span>}
+        <p className="text-sm font-bold text-neutral-900">{pack.title}</p>
+        <p className="text-2xs text-neutral-400 mt-1 leading-5">کالای دارای قیمت رسمی کافی برای این بودجه یافت نشد</p>
       </div>
-      <p className="text-base font-bold text-neutral-900">{pack.title}</p>
-      <p className="text-xs text-neutral-500 mt-1">{toPersianNum(pack.items.length)} قلم کالا</p>
+    );
+  }
+  return (
+    <div className={`relative flex flex-col rounded-xl border-2 p-3 h-[280px] transition-colors ${active ? "border-brand-blue bg-brand-blueLight" : "border-neutral-200 bg-white"}`}>
+      {pack.recommended && <span className="absolute -top-2 right-3 px-1.5 py-0.5 rounded-full bg-brand-blue text-white text-[10px] font-bold">پیشنهاد محبوب</span>}
+      <div className="grid grid-cols-3 gap-1.5 h-14 mb-2">
+        {pack.items.slice(0, 3).map((it) => <div key={it.id} className="rounded-lg overflow-hidden bg-brand-gray"><Thumb item={it} /></div>)}
+      </div>
+      <p className="text-sm font-bold text-neutral-900">{pack.title}</p>
+      <p className="text-2xs text-neutral-500 mt-0.5">{toPersianNum(pack.items.length)} قلم کالا</p>
       <div className="flex-1" />
-      <p className="text-sm font-black text-neutral-900 tabular-nums mb-3">{pack.insufficient ? "—" : formatTomanExact(pack.totalToman)}</p>
-      <button onClick={onAdopt} disabled={pack.insufficient} className={`w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold mb-1.5 transition-colors disabled:opacity-40 ${active ? "bg-brand-blue text-white" : "bg-brand-gray text-neutral-700 hover:bg-brand-blueLight"}`}>
+      <p className="text-sm font-black text-neutral-900 tabular-nums mb-2">{formatTomanExact(pack.totalToman)}</p>
+      <button onClick={onAdopt} className={`w-full inline-flex items-center justify-center gap-1.5 h-8 rounded-lg text-2xs font-semibold mb-1 transition-colors ${active ? "bg-brand-blue text-white" : "bg-brand-gray text-neutral-700 hover:bg-brand-blueLight"}`}>
         {active && <Check className="w-3.5 h-3.5" />}انتخاب این پیشنهاد
       </button>
       <div className="grid grid-cols-2 gap-1.5">
-        <button onClick={onEdit} disabled={pack.insufficient} className="inline-flex items-center justify-center gap-1 h-8 rounded-lg text-2xs font-semibold border border-neutral-200 text-neutral-600 hover:border-brand-blue hover:text-brand-blue disabled:opacity-40 transition-colors">ویرایش محتویات</button>
-        <button onClick={onSwap} disabled={pack.insufficient} className="inline-flex items-center justify-center gap-1 h-8 rounded-lg text-2xs font-semibold border border-neutral-200 text-neutral-600 hover:border-brand-blue hover:text-brand-blue disabled:opacity-40 transition-colors"><RefreshCw className="w-3 h-3" />تعویض کالا</button>
+        <button onClick={onEdit} className="inline-flex items-center justify-center gap-1 h-7 rounded-lg text-[10px] font-semibold border border-neutral-200 text-neutral-600 hover:border-brand-blue hover:text-brand-blue transition-colors">ویرایش محتویات</button>
+        <button onClick={onSwap} className="inline-flex items-center justify-center gap-1 h-7 rounded-lg text-[10px] font-semibold border border-neutral-200 text-neutral-600 hover:border-brand-blue hover:text-brand-blue transition-colors"><RefreshCw className="w-3 h-3" />تعویض کالا</button>
       </div>
     </div>
   );
@@ -236,8 +244,8 @@ function Customizer({
   const catName = (s: string) => (s === "all" ? "همه دسته‌ها" : catList.find((c) => c.slug === s)?.name ?? s);
 
   return (
-    <div className="mt-6 rounded-2xl border border-neutral-200 bg-brand-gray/40 p-4 md:p-6">
-      <div className="grid lg:grid-cols-[1fr_340px] gap-6">
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-brand-gray/40 p-3 md:p-4">
+      <div className="grid lg:grid-cols-[1fr_320px] gap-4">
         {/* Browse */}
         <div>
           <div className="relative mb-3">
@@ -259,7 +267,7 @@ function Customizer({
               <button onClick={() => setReplaceTargetId(null)} className="underline">انصراف</button>
             </div>
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[420px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[300px] overflow-y-auto pr-1">
             {browse.map((item) => (
               <button key={item.id} onClick={() => addItem(item.id)}
                 className="text-right rounded-xl border border-neutral-200 bg-white p-2.5 hover:border-brand-blue transition-colors flex flex-col">
@@ -281,7 +289,7 @@ function Customizer({
         {/* Pack composition */}
         <div className="rounded-xl bg-white border border-neutral-200 p-4 flex flex-col">
           <p className="text-sm font-bold text-neutral-900 mb-3">ترکیب پک شما</p>
-          <div className="flex-1 overflow-y-auto max-h-[280px] -mx-1 px-1 space-y-2 mb-3">
+          <div className="flex-1 overflow-y-auto max-h-[200px] -mx-1 px-1 space-y-2 mb-3">
             {lines.length === 0 && <p className="text-2xs text-neutral-400 text-center py-6">هنوز کالایی به پک اضافه نکرده‌اید</p>}
             {lines.map((l) => (
               <div key={l.itemId} className="flex items-center gap-2 rounded-lg border border-neutral-100 p-2">
@@ -396,10 +404,10 @@ export function PackBuilderInteractive() {
   const anyPriced = pool.some(priced);
 
   return (
-    <section className="section bg-brand-gray/60" id="pack-builder">
+    <section className="py-7 md:py-9 bg-brand-gray/60" id="pack-builder">
       <div className="container-page">
-        <div className="card p-5 md:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="card p-4 md:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h2 className="text-xl md:text-2xl font-black text-neutral-900">پک‌ساز هوشمند ۶۰</h2>
               <p className="text-sm text-neutral-500 mt-1">بودجه و مناسبت خود را انتخاب کنید یا از صفر یک پک ترکیبی از هر دسته‌ای بسازید</p>
@@ -414,11 +422,11 @@ export function PackBuilderInteractive() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-[minmax(0,280px)_1fr] gap-8">
+          <div className="grid lg:grid-cols-[minmax(0,260px)_1fr] gap-x-6 gap-y-4">
             {/* Controls */}
             <div>
-              <p className="text-sm font-semibold text-neutral-700 mb-2.5">بودجه شما</p>
-              <div className="flex flex-wrap gap-2 mb-6">
+              <p className="text-xs font-semibold text-neutral-700 mb-2">بودجه شما</p>
+              <div className="flex flex-wrap gap-2 mb-4">
                 {BUDGET_TIERS.map((b, i) => (
                   <button key={b.label} onClick={() => { setBudgetIdx(i); setStep("occasion"); }}
                     className={`px-3.5 h-9 rounded-lg text-sm font-semibold border transition-colors ${budgetIdx === i ? "bg-brand-blue text-white border-brand-blue" : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"}`}>
@@ -426,7 +434,7 @@ export function PackBuilderInteractive() {
                   </button>
                 ))}
               </div>
-              <p className="text-sm font-semibold text-neutral-700 mb-2.5">مناسبت</p>
+              <p className="text-xs font-semibold text-neutral-700 mb-2">مناسبت</p>
               <div className="flex flex-wrap gap-2">
                 {PURPOSES.map((p) => (
                   <button key={p.key} onClick={() => { setPurposeKey(p.key); if (p.key === "custom") openBlank(); else setStep("result"); }}
@@ -436,27 +444,29 @@ export function PackBuilderInteractive() {
                 ))}
               </div>
               <button onClick={openBlank}
-                className="w-full mt-6 inline-flex items-center justify-center gap-2 h-10 rounded-xl border-2 border-dashed border-neutral-300 text-neutral-500 text-sm font-semibold hover:border-brand-blue hover:text-brand-blue transition-colors">
+                className="w-full mt-4 inline-flex items-center justify-center gap-2 h-9 rounded-xl border-2 border-dashed border-neutral-300 text-neutral-500 text-sm font-semibold hover:border-brand-blue hover:text-brand-blue transition-colors">
                 <PackagePlus className="w-4 h-4" /> ساخت پک سفارشی از صفر
               </button>
             </div>
 
             {/* Result */}
             <div>
-              <p className="text-sm font-semibold text-neutral-700 mb-3">پیشنهادهای آماده برای شما</p>
+              <p className="text-xs font-semibold text-neutral-700 mb-2.5">پیشنهادهای آماده برای شما</p>
               {loading ? (
-                <div className="grid sm:grid-cols-3 gap-4 mb-5">{[0, 1, 2].map((i) => <div key={i} className="rounded-2xl border-2 border-neutral-200 h-[336px] animate-pulse bg-neutral-100" />)}</div>
+                <div className="flex gap-3 mb-4 overflow-x-auto -mx-1 px-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:mx-0 sm:px-0">{[0, 1, 2].map((i) => <div key={i} className="w-[70%] shrink-0 sm:w-auto sm:shrink rounded-xl border border-neutral-200 h-[120px] animate-pulse bg-neutral-100" />)}</div>
               ) : (
-                <div className="grid sm:grid-cols-3 gap-4 mb-5">
+                <div className="flex gap-3 mb-3 overflow-x-auto -mx-1 px-1 snap-x sm:grid sm:grid-cols-3 sm:gap-2 sm:overflow-visible sm:mx-0 sm:px-0 items-start">
                   {suggestions.map((pack) => (
-                    <SuggestionCard key={pack.key} pack={pack} active={activeSuggestionKey === pack.key}
-                      onAdopt={() => adopt(pack, false)} onEdit={() => adopt(pack, true)} onSwap={() => adopt(pack, true, true)} />
+                    <div key={pack.key} className="w-[72%] shrink-0 snap-start sm:w-auto sm:shrink">
+                      <SuggestionCard pack={pack} active={activeSuggestionKey === pack.key}
+                        onAdopt={() => adopt(pack, false)} onEdit={() => adopt(pack, true)} onSwap={() => adopt(pack, true, true)} />
+                    </div>
                   ))}
                 </div>
               )}
 
               {!loading && !anyPriced && (
-                <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900">
+                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-2xs leading-5 text-amber-900">
                   <b>در حال حاضر برای این دسته‌ها قیمت رسمی ثبت نشده است.</b> پک پیشنهادی با قیمت واقعی ساخته نمی‌شود؛ اما می‌توانید از «ساخت پک سفارشی از صفر» کالاها را انتخاب کنید و برای آن‌ها «درخواست پیش‌فاکتور» ثبت کنید. هیچ قیمت یا موجودی ساختگی نمایش داده نمی‌شود.
                 </div>
               )}
@@ -468,7 +478,7 @@ export function PackBuilderInteractive() {
               )}
               {!customizerOpen && (
                 <button onClick={() => setCustomizerOpen(true)} disabled={workingPack.length === 0}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 h-11 rounded-xl bg-brand-blue text-white font-semibold text-sm hover:bg-brand-blueDark disabled:opacity-40 transition-colors">
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 h-10 rounded-xl bg-brand-blue text-white font-semibold text-sm hover:bg-brand-blueDark disabled:opacity-40 transition-colors">
                   <Sparkles className="w-4 h-4" /> ویرایش و افزودن پک به سبد خرید
                 </button>
               )}
