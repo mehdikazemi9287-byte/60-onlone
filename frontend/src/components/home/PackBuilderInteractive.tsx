@@ -1,338 +1,481 @@
 "use client";
+
+// Smart 60 Pack Builder — Candidate A visual/UX (3-step flow, suggestion cards,
+// Customizer) wired to the REAL current storefront APIs. No static bundled
+// catalog, no hardcoded prices/stock, no fake cart/save/proforma.
+//   products  -> GET /api/v1/products   (catalog.list)
+//   add-to-cart -> POST /api/v1/cart/items  (cart.add)
+//   proforma  -> POST /api/v1/requests  (kind=procurement)
+//   save pack -> no production backend -> control disabled ("به‌زودی")
+// PRICE RULE: no verified price => never invented; unpriced items are shown as
+// "استعلام قیمت", excluded from every numeric total and from recommendations.
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Minus, Plus, Trash2, Save, Search, ShoppingCart, FileText, Sparkles, ArrowLeftRight } from "lucide-react";
-import { useAuth } from "@/lib/auth-context";
-import { catalog, cart as cartApi, packs, type Pack, type PackRow } from "@/lib/api";
+import type { LucideIcon } from "lucide-react";
 import {
-  BUDGET_PRESETS_MINOR, OCCASIONS, filterPriced, budgetState, buildRecommendations,
-  addItem, removeItem, setQuantity, replaceItem, packTotalMinor,
-  type PBProduct, type PBItem,
-} from "@/lib/pack-builder";
+  Search, Plus, Minus, X, RefreshCw, Check, ShoppingCart, FileText,
+  Smartphone, Home as HomeIcon, ShoppingBasket, Snowflake, Gift, Pencil,
+  Wheat, Leaf, PackagePlus, Laptop, Sparkles,
+} from "lucide-react";
+import { catalog, categories as categoriesApi, cart as cartApi, apiRequest, newIdempotencyKey } from "@/lib/api";
+import { formatTomanExact, toPersianNum } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 import type { Product } from "@/lib/types";
 
-const fmt = (minor: number) => Math.round(minor / 10).toLocaleString("fa-IR") + " تومان";
+// ── Model ────────────────────────────────────────────────────────────────────
+interface PackItem {
+  id: number;
+  slug: string;
+  name: string;
+  priceMinor: number | null; // IRR minor; null = no verified price
+  groupSlug: string;
+  imageUrl?: string;
+  inStock: boolean;
+}
+const toToman = (m: number) => Math.round(m / 10);
+const priced = (i: PackItem): i is PackItem & { priceMinor: number } =>
+  typeof i.priceMinor === "number" && i.priceMinor > 0;
 
-/** normalized catalog Product -> pure-logic PBProduct (never invents a price). */
-function toPB(p: Product): PBProduct {
-  return { ...p, id: p.id, price_minor: p.price_minor, title_fa: p.name, slug: p.slug, in_stock: p.stock !== 0 };
+function fromProduct(p: Product): PackItem {
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    priceMinor: p.price_minor != null && p.price_minor > 0 ? p.price_minor : null,
+    groupSlug: p.category?.slug ?? "other",
+    imageUrl: p.image_url || undefined,
+    inStock: p.stock !== 0,
+  };
 }
 
-type Budget = (typeof BUDGET_PRESETS_MINOR)[number];
-type Occasion = (typeof OCCASIONS)[number];
-interface Editing { label: string; items: PBItem[]; }
+const GROUP_ICON: Record<string, LucideIcon> = {
+  digital: Smartphone, laptop: Laptop, mobile: Smartphone,
+  appliances: HomeIcon, appliance: HomeIcon, "home-kitchen": HomeIcon,
+  "protein-fresh": Wheat, "nuts-local": Leaf, supermarket: ShoppingBasket,
+  "fresh-dairy-frozen": Snowflake, "gift-seasonal": Gift, "books-stationery": Pencil,
+};
+const iconFor = (slug: string) => GROUP_ICON[slug] ?? PackagePlus;
 
-export function PackBuilderInteractive() {
-  const { token } = useAuth();
-  const [budget, setBudget] = useState<Budget | null>(null);
-  const [occasion, setOccasion] = useState<Occasion | null>(null);
-  const [products, setProducts] = useState<PBProduct[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [editing, setEditing] = useState<Editing | null>(null);
-  const [note, setNote] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+// occasion step — real category slugs only
+const PURPOSES = [
+  { key: "family", label: "معیشتی", groups: ["protein-fresh", "supermarket", "fresh-dairy-frozen"] },
+  { key: "gift", label: "هدیه", groups: ["gift-seasonal", "nuts-local", "beauty-health"] },
+  { key: "school", label: "مدرسه", groups: ["books-stationery", "digital"] },
+  { key: "corporate", label: "شرکتی", groups: ["office", "office-org", "digital", "gift-seasonal"] },
+  { key: "occasion", label: "مناسبتی", groups: ["gift-seasonal", "nuts-local"] },
+  { key: "home", label: "خانه", groups: ["appliances", "appliance", "home-kitchen", "supermarket"] },
+  { key: "custom", label: "سایر / پک سفارشی", groups: [] as string[] },
+] as const;
+type PurposeKey = (typeof PURPOSES)[number]["key"];
 
-  // search-and-add / replace
-  const [q, setQ] = useState("");
-  const [results, setResults] = useState<PBProduct[]>([]);
-  const [replaceTarget, setReplaceTarget] = useState<number | "">("");
+const BUDGET_TIERS = [
+  { label: "۲ میلیون", ceilingToman: 2_000_000 },
+  { label: "۵ میلیون", ceilingToman: 5_000_000 },
+  { label: "۱۰ میلیون", ceilingToman: 10_000_000 },
+];
 
-  // server-side saved packs (compatibility addition — does not replace original)
-  const [savedRows, setSavedRows] = useState<PackRow[]>([]);
-  const refreshSaved = useCallback(async () => {
-    if (!token) return;
-    try { setSavedRows((await packs.list(token)).packs); } catch { /* optional */ }
-  }, [token]);
-  useEffect(() => { refreshSaved(); }, [refreshSaved]);
+// ── Recommendation engine (Candidate A concept; PRICED items only) ────────────
+interface SuggestedPack { key: string; title: string; items: PackItem[]; totalToman: number; recommended?: boolean; insufficient: boolean; }
 
-  const runBuild = useCallback(async (b: Budget | null, o: Occasion | null) => {
-    if (!b || !o) return;
-    setLoading(true); setErr(null);
-    try {
-      const results = await Promise.all(
-        o.category_slugs.map((slug) => catalog.list({ category: slug, page_size: 24 })),
-      );
-      setProducts(filterPriced(results.flatMap((r) => r.items.map(toPB))));
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "دریافت کالاها ناموفق بود");
-    } finally { setLoading(false); }
-  }, []);
-
-  const recs = useMemo(
-    () => (products.length && budget ? buildRecommendations(products, budget.amount_minor) : null),
-    [products, budget],
-  );
-
-  const runSearch = useCallback(async (term: string) => {
-    if (!term || term.trim().length < 2) { setResults([]); return; }
-    try {
-      const r = await catalog.list({ q: term.trim(), page_size: 6 });
-      setResults(filterPriced(r.items.map(toPB)));
-    } catch { /* optional-effort */ }
-  }, []);
-
-  const editItems = editing?.items ?? [];
-  const bState = budget && editing ? budgetState(editItems, budget.amount_minor) : null;
-
-  function openEdit(label: string, items: PBItem[]) {
-    setEditing({ label, items: items.map((it) => ({ ...it })) });
-    setNote(null); setErr(null); setResults([]); setReplaceTarget("");
+function pickItems(pool: (PackItem & { priceMinor: number })[], targetToman: number, countHint: number): PackItem[] {
+  const sorted = [...pool].sort((a, b) => a.priceMinor - b.priceMinor);
+  const out: PackItem[] = [];
+  let total = 0;
+  for (const it of sorted) {
+    const t = toToman(it.priceMinor);
+    if (out.length >= countHint && total >= targetToman * 0.6) break;
+    if (total + t > targetToman * 1.2 && out.length > 0) continue;
+    out.push(it); total += t;
+    if (total >= targetToman * 0.85 && out.length >= Math.min(3, countHint)) break;
   }
-  function patchItems(next: PBItem[]) { setEditing((e) => (e ? { ...e, items: next } : e)); }
+  return out;
+}
 
-  async function addPackToCart(label: string, items: PBItem[]) {
-    if (!token) { setErr("برای افزودن پک ابتدا وارد شوید"); return; }
-    if (!items.length) { setErr("پک خالی است"); return; }
-    setErr(null); setNote(null);
-    let added = 0; const skipped: string[] = [];
-    for (const it of items) {
-      try { await cartApi.add(token, it.product.id, it.quantity); added++; }
-      catch (e) { skipped.push(`${it.product.title_fa}: ${e instanceof Error ? e.message : "افزوده نشد"}`); }
-    }
-    setNote(
-      `پک «${label}»: ${added.toLocaleString("fa-IR")} قلم به سبد افزوده شد` +
-      (skipped.length ? ` — ${skipped.length.toLocaleString("fa-IR")} قلم افزوده نشد (${skipped[0]})` : ""),
-    );
+function buildSuggestions(pool: PackItem[], budgetToman: number, excludeIds: Set<number>): SuggestedPack[] {
+  const eligible = pool.filter((i) => priced(i) && i.inStock && !excludeIds.has(i.id)) as (PackItem & { priceMinor: number })[];
+  const tiers = [
+    { key: "economic", title: "اقتصادی", mult: 0.75, count: 4 },
+    { key: "balanced", title: "متعادل", mult: 1, count: 6, recommended: true },
+    { key: "premium", title: "ویژه", mult: 1.35, count: 8 },
+  ];
+  return tiers.map((t) => {
+    const items = eligible.length >= 2 ? pickItems(eligible, budgetToman * t.mult, t.count) : [];
+    const totalToman = items.reduce((s, i) => s + toToman(i.priceMinor as number), 0);
+    return { key: t.key, title: t.title, items, totalToman, recommended: t.recommended, insufficient: items.length < 2 };
+  });
+}
+
+// ── Thumb ────────────────────────────────────────────────────────────────────
+function Thumb({ item, size = "sm" }: { item: PackItem; size?: "sm" | "xs" }) {
+  const dim = size === "sm" ? "w-full h-full" : "w-9 h-9";
+  if (item.imageUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <div className={`${dim} bg-white flex items-center justify-center overflow-hidden`}><img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-1.5" /></div>;
   }
+  const Icon = iconFor(item.groupSlug);
+  return <div className={`${dim} bg-brand-blueLight flex items-center justify-center`}><Icon className={size === "sm" ? "w-6 h-6" : "w-4 h-4"} strokeWidth={1.6} color="#1677FF" /></div>;
+}
 
-  async function saveEditingPack() {
-    if (!token || !editing) { setErr("برای ذخیره پک وارد شوید"); return; }
-    if (!editing.items.length) { setErr("پک خالی است"); return; }
-    try {
-      const created: { pack: Pack } = await packs.create(token, editing.label || "پک سفارشی");
-      for (const it of editing.items) await packs.setItem(token, created.pack.id, it.product.id, it.quantity);
-      await refreshSaved();
-      setNote(`پک «${editing.label}» ذخیره شد. از «درخواست‌های من» / پنل کاربر قابل بازیابی است.`);
-    } catch (e) { setErr(e instanceof Error ? e.message : "ذخیره پک ناموفق بود"); }
-  }
-
-  async function proformaEditingPack() {
-    if (!token || !editing) { setErr("برای درخواست پیش‌فاکتور وارد شوید"); return; }
-    if (!editing.items.length) { setErr("پک خالی است"); return; }
-    try {
-      const created: { pack: Pack } = await packs.create(token, editing.label || "پک سفارشی");
-      for (const it of editing.items) await packs.setItem(token, created.pack.id, it.product.id, it.quantity);
-      const r = await packs.proforma(token, created.pack.id, "درخواست پیش‌فاکتور از پک‌ساز");
-      await refreshSaved();
-      setNote(`درخواست پیش‌فاکتور ثبت شد (شماره ${r.request_id.toLocaleString("fa-IR")}).`);
-    } catch (e) { setErr(e instanceof Error ? e.message : "ثبت پیش‌فاکتور ناموفق بود"); }
-  }
-
-  async function loadSaved(id: number) {
-    if (!token) return;
-    try {
-      const { pack } = await packs.get(token, id);
-      openEdit(pack.name, pack.items
-        .filter((l) => l.slug)
-        .map((l) => ({ product: { id: l.product_id, price_minor: l.unit_price != null ? l.unit_price * 10 : null, title_fa: l.title, slug: l.slug ?? undefined, in_stock: l.in_stock }, quantity: l.quantity })));
-    } catch (e) { setErr(e instanceof Error ? e.message : "بازیابی پک ناموفق بود"); }
-  }
-
-  // ── Editing panel ─────────────────────────────────────────────────────────
-  if (editing) {
-    return (
-      <div className="space-y-4">
-        {err && <div role="alert" className="card border-red-200 bg-red-50 p-3 text-sm text-red-700">{err}</div>}
-        {note && <div className="card border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{note}</div>}
-        <div className="card space-y-4 p-4 md:p-5">
-          <div className="flex items-center justify-between">
-            <strong className="text-neutral-900">ویرایش: {editing.label}</strong>
-            <button onClick={() => setEditing(null)} className="rounded-lg border px-3 py-1.5 text-sm">بستن ویرایش</button>
-          </div>
-
-          {editItems.length ? (
-            <div className="divide-y divide-neutral-100">
-              {editItems.map((it) => (
-                <div key={it.product.id} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-neutral-900">{it.product.title_fa}</p>
-                    <p className="text-2xs text-neutral-500">
-                      {it.product.price_minor != null ? fmt(it.product.price_minor * it.quantity) : "بدون قیمت رسمی"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button aria-label="کاهش تعداد" onClick={() => patchItems(setQuantity(editItems, it.product.id, it.quantity - 1))} className="rounded-md border p-1.5"><Minus className="h-3.5 w-3.5" /></button>
-                    <span className="w-8 text-center text-sm font-bold">{it.quantity.toLocaleString("fa-IR")}</span>
-                    <button aria-label="افزایش تعداد" onClick={() => patchItems(setQuantity(editItems, it.product.id, it.quantity + 1))} className="rounded-md border p-1.5"><Plus className="h-3.5 w-3.5" /></button>
-                    <button aria-label={`حذف ${it.product.title_fa}`} onClick={() => patchItems(removeItem(editItems, it.product.id))} className="mr-1 rounded-md p-1.5 text-red-500 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /></button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="py-4 text-center text-sm text-neutral-500">این پک هنوز کالایی ندارد — از جست‌وجوی زیر کالا اضافه کنید.</p>
-          )}
-
-          {bState && (
-            <div className="flex items-center justify-between rounded-lg bg-neutral-50 px-3 py-2 text-sm">
-              <span className="font-bold">جمع: {fmt(bState.total_minor)}</span>
-              <span className={bState.over_budget ? "text-red-600" : "text-emerald-700"}>
-                {bState.over_budget ? `${fmt(-bState.remaining_minor)} بیش از بودجه` : `${fmt(bState.remaining_minor)} باقی‌مانده`}
-              </span>
-            </div>
-          )}
-
-          <div>
-            <label htmlFor="pb-search" className="mb-1 block text-sm text-neutral-600">جست‌وجوی کالا برای افزودن یا جایگزینی</label>
-            <input id="pb-search" type="search" value={q} placeholder="نام کالا…"
-              onChange={(e) => { setQ(e.target.value); runSearch(e.target.value); }}
-              className="min-h-11 w-full rounded-xl border border-neutral-200 px-3 text-sm" />
-            <select value={replaceTarget} onChange={(e) => setReplaceTarget(e.target.value ? Number(e.target.value) : "")}
-              className="mt-1.5 w-full rounded-xl border border-neutral-200 p-2 text-sm">
-              <option value="">افزودن کالای جدید (جایگزینی نیست)</option>
-              {editItems.map((it) => <option key={it.product.id} value={it.product.id}>جایگزینی: {it.product.title_fa}</option>)}
-            </select>
-          </div>
-
-          {results.length > 0 && (
-            <ul className="space-y-2">
-              {results.map((p) => (
-                <li key={p.id} className="flex items-center justify-between gap-3 rounded-lg border border-neutral-100 p-2.5">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-neutral-800">{p.title_fa}</p>
-                    <p className="text-2xs text-neutral-500">{p.price_minor != null ? fmt(p.price_minor) : ""}</p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      patchItems(replaceTarget ? replaceItem(editItems, replaceTarget, p) : addItem(editItems, p, 1));
-                      setReplaceTarget("");
-                    }}
-                    className="shrink-0 rounded-lg border border-primary-200 bg-primary-50 px-3 py-1.5 text-xs font-bold text-primary-800">
-                    {replaceTarget ? <><ArrowLeftRight className="ml-1 inline h-3 w-3" />جایگزینی</> : "افزودن"}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {q.trim().length >= 2 && results.length === 0 && (
-            <p className="text-sm text-neutral-500">کالایی با قیمت رسمی یافت نشد.</p>
-          )}
-
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <button onClick={() => addPackToCart(editing.label, editItems)} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary-700 px-4 py-3 text-sm font-bold text-white">
-              <ShoppingCart className="h-4 w-4" />افزودن این پک ویرایش‌شده به سبد
-            </button>
-            <button onClick={saveEditingPack} className="inline-flex items-center justify-center gap-2 rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm font-bold text-primary-800">
-              <Save className="h-4 w-4" />ذخیره پک
-            </button>
-            <button onClick={proformaEditingPack} className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-300 bg-amber-100 px-4 py-3 text-sm font-bold text-amber-950">
-              <FileText className="h-4 w-4" />پیش‌فاکتور
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Budget / occasion / recommendations ───────────────────────────────────
+// ── Suggestion card ──────────────────────────────────────────────────────────
+function SuggestionCard({ pack, active, onAdopt, onEdit, onSwap }: {
+  pack: SuggestedPack; active: boolean; onAdopt: () => void; onEdit: () => void; onSwap: () => void;
+}) {
   return (
-    <div className="space-y-5">
-      {err && <div role="alert" className="card border-red-200 bg-red-50 p-3 text-sm text-red-700">{err}</div>}
-      {note && <div className="card border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{note}</div>}
-
-      <div className="card space-y-4 p-4 md:p-5">
-        <div>
-          <p className="mb-1.5 text-sm text-neutral-500">بودجه</p>
-          <div className="flex flex-wrap gap-2">
-            {BUDGET_PRESETS_MINOR.map((b) => (
-              <button key={b.id} type="button"
-                onClick={() => { setBudget(b); runBuild(b, occasion); }}
-                className={"rounded-full border px-3 py-1.5 text-xs font-bold " + (budget?.id === b.id ? "border-primary-600 bg-primary-600 text-white" : "border-neutral-200 bg-white text-neutral-700")}>
-                {b.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p className="mb-1.5 text-sm text-neutral-500">مناسبت / کاربرد</p>
-          <div className="flex flex-wrap gap-2">
-            {OCCASIONS.map((o) => (
-              <button key={o.id} type="button"
-                onClick={() => { setOccasion(o); runBuild(budget, o); }}
-                className={"rounded-full border px-3 py-1.5 text-xs font-bold " + (occasion?.id === o.id ? "border-primary-600 bg-primary-600 text-white" : "border-neutral-200 bg-white text-neutral-700")}>
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <button type="button" onClick={() => openEdit("پک سفارشی", [])}
-          className="inline-flex items-center gap-2 self-start rounded-xl border border-primary-200 bg-white px-4 py-2.5 text-sm font-bold text-primary-800">
-          <Sparkles className="h-4 w-4" />+ پک سفارشی از صفر (جست‌وجوی آزاد)
-        </button>
+    <div className={`relative flex flex-col rounded-2xl border-2 p-4 h-[336px] transition-colors ${active ? "border-brand-blue bg-brand-blueLight" : "border-neutral-200 bg-white"}`}>
+      {pack.recommended && <span className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-brand-blue text-white text-2xs font-bold">پیشنهاد محبوب</span>}
+      <div className="grid grid-cols-3 gap-1.5 h-16 mb-3">
+        {pack.items.slice(0, 3).map((it) => <div key={it.id} className="rounded-lg overflow-hidden bg-brand-gray"><Thumb item={it} /></div>)}
+        {pack.items.length === 0 && <div className="col-span-3 rounded-lg bg-brand-gray flex items-center justify-center text-2xs text-neutral-400 px-2 text-center">کالای دارای قیمت رسمی کافی برای این بودجه یافت نشد</div>}
       </div>
+      <p className="text-base font-bold text-neutral-900">{pack.title}</p>
+      <p className="text-xs text-neutral-500 mt-1">{toPersianNum(pack.items.length)} قلم کالا</p>
+      <div className="flex-1" />
+      <p className="text-sm font-black text-neutral-900 tabular-nums mb-3">{pack.insufficient ? "—" : formatTomanExact(pack.totalToman)}</p>
+      <button onClick={onAdopt} disabled={pack.insufficient} className={`w-full inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold mb-1.5 transition-colors disabled:opacity-40 ${active ? "bg-brand-blue text-white" : "bg-brand-gray text-neutral-700 hover:bg-brand-blueLight"}`}>
+        {active && <Check className="w-3.5 h-3.5" />}انتخاب این پیشنهاد
+      </button>
+      <div className="grid grid-cols-2 gap-1.5">
+        <button onClick={onEdit} disabled={pack.insufficient} className="inline-flex items-center justify-center gap-1 h-8 rounded-lg text-2xs font-semibold border border-neutral-200 text-neutral-600 hover:border-brand-blue hover:text-brand-blue disabled:opacity-40 transition-colors">ویرایش محتویات</button>
+        <button onClick={onSwap} disabled={pack.insufficient} className="inline-flex items-center justify-center gap-1 h-8 rounded-lg text-2xs font-semibold border border-neutral-200 text-neutral-600 hover:border-brand-blue hover:text-brand-blue disabled:opacity-40 transition-colors"><RefreshCw className="w-3 h-3" />تعویض کالا</button>
+      </div>
+    </div>
+  );
+}
 
-      {loading && (
-        <div className="grid gap-3 md:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="card h-48 skeleton" />)}</div>
-      )}
+// ── Customizer ───────────────────────────────────────────────────────────────
+type WorkingLine = { itemId: number; qty: number };
 
-      {recs && !loading && (
-        <div className="grid gap-3 md:grid-cols-3">
-          {[recs.economy, recs.balanced, recs.premium].map((tier) => (
-            <div key={tier.id} className="card space-y-3 p-4">
-              <div className="flex items-center justify-between">
-                <strong className="text-neutral-900">{tier.label}</strong>
-                <span className={"rounded-md border px-2 py-0.5 text-2xs font-medium " + (tier.over_budget ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700")}>
-                  {tier.over_budget ? "خارج از بودجه" : "در محدوده بودجه"}
-                </span>
+function Customizer({
+  pool, catList, workingPack, setWorkingPack, replaceTargetId, setReplaceTargetId, maxBudget, setMaxBudget, itemById,
+}: {
+  pool: PackItem[];
+  catList: { slug: string; name: string }[];
+  workingPack: WorkingLine[];
+  setWorkingPack: React.Dispatch<React.SetStateAction<WorkingLine[]>>;
+  replaceTargetId: number | null;
+  setReplaceTargetId: (id: number | null) => void;
+  maxBudget: number | "";
+  setMaxBudget: (v: number | "") => void;
+  itemById: Map<number, PackItem>;
+}) {
+  const { token } = useAuth();
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [browse, setBrowse] = useState<PackItem[]>(pool.slice(0, 48));
+  const [cartResult, setCartResult] = useState<string | null>(null);
+  const [proformaState, setProformaState] = useState<"idle" | "sending" | "done" | "err">("idle");
+  const [proformaMsg, setProformaMsg] = useState<string>("");
+
+  const runBrowse = useCallback(async (q: string, cat: string) => {
+    try {
+      const r = await catalog.list({ q: q.trim() || undefined, category: cat === "all" ? undefined : cat, page_size: 48 });
+      setBrowse(r.items.map(fromProduct));
+    } catch { /* keep prior */ }
+  }, []);
+  useEffect(() => { const t = setTimeout(() => runBrowse(search, categoryFilter), 250); return () => clearTimeout(t); }, [search, categoryFilter, runBrowse]);
+
+  function addItem(id: number) {
+    if (replaceTargetId != null) {
+      setWorkingPack((p) => p.map((x) => (x.itemId === replaceTargetId ? { itemId: id, qty: x.qty } : x)));
+      setReplaceTargetId(null);
+      return;
+    }
+    setWorkingPack((p) => {
+      const e = p.find((x) => x.itemId === id);
+      return e ? p.map((x) => (x.itemId === id ? { ...x, qty: x.qty + 1 } : x)) : [...p, { itemId: id, qty: 1 }];
+    });
+  }
+  const removeItem = (id: number) => { setWorkingPack((p) => p.filter((x) => x.itemId !== id)); if (replaceTargetId === id) setReplaceTargetId(null); };
+  const setQty = (id: number, qty: number) => setWorkingPack((p) => p.map((x) => (x.itemId === id ? { ...x, qty: Math.max(1, qty) } : x)));
+
+  const lines = workingPack.map((w) => ({ ...w, item: itemById.get(w.itemId) })).filter((l): l is WorkingLine & { item: PackItem } => !!l.item);
+  const pricedLines = lines.filter((l) => priced(l.item));
+  const unpricedCount = lines.length - pricedLines.length;
+  const runningTotal = pricedLines.reduce((s, l) => s + toToman(l.item.priceMinor as number) * l.qty, 0);
+  const budgetNum = typeof maxBudget === "number" ? maxBudget : null;
+  const remaining = budgetNum != null ? budgetNum - runningTotal : null;
+  const over = remaining != null && remaining < 0;
+
+  async function addPackToCart() {
+    if (!token) { setCartResult("برای افزودن پک به سبد ابتدا وارد شوید."); return; }
+    let ok = 0; const fail: string[] = []; const skipUnpriced = unpricedCount;
+    for (const l of pricedLines) {
+      try { await cartApi.add(token, l.item.id, l.qty); ok++; }
+      catch (e) { fail.push(`${l.item.name}: ${e instanceof Error ? e.message : "افزوده نشد"}`); }
+    }
+    setCartResult(
+      `${toPersianNum(ok)} قلم به سبد افزوده شد` +
+      (fail.length ? ` — ${toPersianNum(fail.length)} قلم افزوده نشد (${fail[0]})` : "") +
+      (skipUnpriced ? ` — ${toPersianNum(skipUnpriced)} قلم بدون قیمت رسمی، از طریق «استعلام قیمت» پیگیری کنید` : ""),
+    );
+  }
+
+  async function requestProforma() {
+    if (!token) { setProformaState("err"); setProformaMsg("برای درخواست پیش‌فاکتور ابتدا وارد شوید."); return; }
+    if (!lines.length) return;
+    setProformaState("sending");
+    try {
+      await apiRequest("/requests", {
+        method: "POST", token,
+        headers: { "Idempotency-Key": newIdempotencyKey() },
+        body: JSON.stringify({
+          kind: "procurement",
+          subject: "درخواست پیش‌فاکتور پک سفارشی (پک‌ساز ۶۰)",
+          message: "درخواست پیش‌فاکتور برای اقلام پک ساخته‌شده در پک‌ساز.",
+          items: lines.map((l) => ({ slug: l.item.slug, quantity: l.qty })),
+        }),
+      });
+      setProformaState("done"); setProformaMsg("درخواست پیش‌فاکتور ثبت شد؛ در «درخواست‌های من» قابل پیگیری است.");
+    } catch (e) {
+      setProformaState("err"); setProformaMsg(e instanceof Error ? e.message : "ثبت درخواست ناموفق بود.");
+    }
+  }
+
+  const cats = ["all", ...catList.map((c) => c.slug)];
+  const catName = (s: string) => (s === "all" ? "همه دسته‌ها" : catList.find((c) => c.slug === s)?.name ?? s);
+
+  return (
+    <div className="mt-6 rounded-2xl border border-neutral-200 bg-brand-gray/40 p-4 md:p-6">
+      <div className="grid lg:grid-cols-[1fr_340px] gap-6">
+        {/* Browse */}
+        <div>
+          <div className="relative mb-3">
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="جستجوی کالا..."
+              className="w-full h-10 pr-4 pl-10 rounded-lg border border-neutral-200 bg-white text-sm placeholder:text-neutral-400 focus:outline-none focus:border-brand-blue" />
+            <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 left-3 text-neutral-400" />
+          </div>
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {cats.map((c) => (
+              <button key={c} onClick={() => setCategoryFilter(c)}
+                className={`px-3 h-8 rounded-lg text-2xs font-semibold border transition-colors ${categoryFilter === c ? "bg-brand-blue text-white border-brand-blue" : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"}`}>
+                {catName(c)}
+              </button>
+            ))}
+          </div>
+          {replaceTargetId != null && (
+            <div className="flex items-center justify-between mb-3 px-3 py-2 rounded-lg bg-brand-blueLight text-brand-blue text-xs font-semibold">
+              <span>یک کالا برای جایگزینی انتخاب کنید</span>
+              <button onClick={() => setReplaceTargetId(null)} className="underline">انصراف</button>
+            </div>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[420px] overflow-y-auto pr-1">
+            {browse.map((item) => (
+              <button key={item.id} onClick={() => addItem(item.id)}
+                className="text-right rounded-xl border border-neutral-200 bg-white p-2.5 hover:border-brand-blue transition-colors flex flex-col">
+                <div className="rounded-lg overflow-hidden h-16 mb-2"><Thumb item={item} /></div>
+                <p className="text-2xs font-semibold text-neutral-800 line-clamp-2 h-8">{item.name}</p>
+                <p className="text-2xs text-neutral-400 mt-0.5">{catName(item.groupSlug)}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-2xs font-bold text-neutral-900 tabular-nums">
+                    {priced(item) ? formatTomanExact(toToman(item.priceMinor)) : <span className="text-amber-600 font-semibold">استعلام قیمت</span>}
+                  </span>
+                  <span className="w-6 h-6 rounded-md bg-brand-blueLight text-brand-blue flex items-center justify-center"><Plus className="w-3.5 h-3.5" /></span>
+                </div>
+              </button>
+            ))}
+            {browse.length === 0 && <p className="col-span-full text-center text-xs text-neutral-400 py-8">کالایی با این مشخصات یافت نشد</p>}
+          </div>
+        </div>
+
+        {/* Pack composition */}
+        <div className="rounded-xl bg-white border border-neutral-200 p-4 flex flex-col">
+          <p className="text-sm font-bold text-neutral-900 mb-3">ترکیب پک شما</p>
+          <div className="flex-1 overflow-y-auto max-h-[280px] -mx-1 px-1 space-y-2 mb-3">
+            {lines.length === 0 && <p className="text-2xs text-neutral-400 text-center py-6">هنوز کالایی به پک اضافه نکرده‌اید</p>}
+            {lines.map((l) => (
+              <div key={l.itemId} className="flex items-center gap-2 rounded-lg border border-neutral-100 p-2">
+                <div className="w-9 h-9 rounded-md overflow-hidden flex-shrink-0"><Thumb item={l.item} size="xs" /></div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-2xs font-semibold text-neutral-800 line-clamp-1">{l.item.name}</p>
+                  <p className="text-2xs tabular-nums">{priced(l.item) ? <span className="text-neutral-400">{formatTomanExact(toToman(l.item.priceMinor))}</span> : <span className="text-amber-600">استعلام قیمت</span>}</p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button onClick={() => setQty(l.itemId, l.qty - 1)} className="w-6 h-6 rounded-md border border-neutral-200 flex items-center justify-center text-neutral-500 hover:border-brand-blue"><Minus className="w-3 h-3" /></button>
+                  <span className="text-2xs font-bold w-4 text-center tabular-nums">{toPersianNum(l.qty)}</span>
+                  <button onClick={() => setQty(l.itemId, l.qty + 1)} className="w-6 h-6 rounded-md border border-neutral-200 flex items-center justify-center text-neutral-500 hover:border-brand-blue"><Plus className="w-3 h-3" /></button>
+                </div>
+                <button onClick={() => setReplaceTargetId(l.itemId)} title="تعویض کالا" className="w-6 h-6 rounded-md flex items-center justify-center text-neutral-400 hover:text-brand-blue flex-shrink-0"><RefreshCw className="w-3.5 h-3.5" /></button>
+                <button onClick={() => removeItem(l.itemId)} title="حذف" className="w-6 h-6 rounded-md flex items-center justify-center text-neutral-400 hover:text-brand-coral flex-shrink-0"><X className="w-3.5 h-3.5" /></button>
               </div>
-              {tier.items.length ? (
-                <ul className="space-y-1 text-sm">
-                  {tier.items.slice(0, 4).map((it) => (
-                    <li key={it.product.id} className="flex justify-between gap-2">
-                      <span className="truncate text-neutral-700">{it.product.title_fa}</span>
-                      <span className="shrink-0 text-neutral-400">{it.product.price_minor != null ? fmt(it.product.price_minor) : ""}</span>
-                    </li>
-                  ))}
-                  {tier.items.length > 4 && <li className="text-2xs text-neutral-400">+ {(tier.items.length - 4).toLocaleString("fa-IR")} قلم دیگر</li>}
-                </ul>
+            ))}
+          </div>
+          <div className="border-t border-neutral-100 pt-3 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-neutral-500">جمع کل (اقلام دارای قیمت رسمی)</span>
+              <span className="font-bold text-neutral-900 tabular-nums">{formatTomanExact(runningTotal)}</span>
+            </div>
+            {unpricedCount > 0 && <div className="flex items-center justify-between text-xs text-amber-600"><span>اقلام بدون قیمت رسمی</span><span className="font-bold">{toPersianNum(unpricedCount)} قلم — استعلامی</span></div>}
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="text-neutral-500 flex-shrink-0">سقف بودجه</span>
+              <input type="number" value={maxBudget} onChange={(e) => setMaxBudget(e.target.value === "" ? "" : Number(e.target.value))} placeholder="تومان"
+                className="w-28 h-8 px-2 rounded-md border border-neutral-200 text-left text-xs tabular-nums focus:outline-none focus:border-brand-blue" />
+            </div>
+            {remaining != null && (
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-neutral-500">{over ? "مازاد بر بودجه" : "باقی‌مانده بودجه"}</span>
+                <span className={`font-bold tabular-nums ${over ? "text-brand-coral" : "text-brand-blue"}`}>{formatTomanExact(Math.abs(remaining))}</span>
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-2 mt-4">
+            <button disabled title="این قابلیت هنوز فعال نیست" className="h-9 rounded-lg text-xs font-semibold border border-neutral-200 text-neutral-400 flex items-center justify-center gap-1.5 cursor-not-allowed">
+              ذخیره پک سفارشی <span className="text-2xs">(به‌زودی)</span>
+            </button>
+            <button onClick={addPackToCart} disabled={pricedLines.length === 0}
+              className="h-10 rounded-lg text-sm font-semibold bg-brand-blue text-white hover:bg-brand-blueDark disabled:opacity-40 flex items-center justify-center gap-1.5">
+              <ShoppingCart className="w-4 h-4" /> افزودن پک به سبد خرید
+            </button>
+            <button onClick={requestProforma} disabled={lines.length === 0 || proformaState === "sending"}
+              className="h-9 rounded-lg text-2xs font-semibold text-neutral-500 hover:text-brand-blue disabled:opacity-40 flex items-center justify-center gap-1.5">
+              <FileText className="w-3.5 h-3.5" />
+              {proformaState === "done" ? "درخواست پیش‌فاکتور ثبت شد" : proformaState === "sending" ? "در حال ارسال…" : "درخواست پیش‌فاکتور سازمانی برای تعداد بالا"}
+            </button>
+          </div>
+          {cartResult && <p className="mt-2 text-2xs text-neutral-600">{cartResult} {" "}<Link href="/cart" className="text-brand-blue underline">سبد خرید</Link></p>}
+          {proformaMsg && <p className={`mt-2 text-2xs ${proformaState === "err" ? "text-brand-coral" : "text-brand-blue"}`}>{proformaMsg}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────────
+export function PackBuilderInteractive() {
+  const [step, setStep] = useState<"budget" | "occasion" | "result">("budget");
+  const [budgetIdx, setBudgetIdx] = useState(1);
+  const [purposeKey, setPurposeKey] = useState<PurposeKey>("family");
+  const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [workingPack, setWorkingPack] = useState<WorkingLine[]>([]);
+  const [activeSuggestionKey, setActiveSuggestionKey] = useState<string | null>(null);
+  const [maxBudget, setMaxBudget] = useState<number | "">(BUDGET_TIERS[1].ceilingToman);
+  const [replaceTargetId, setReplaceTargetId] = useState<number | null>(null);
+
+  const [pool, setPool] = useState<PackItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [catList, setCatList] = useState<{ slug: string; name: string }[]>([]);
+
+  useEffect(() => { categoriesApi.list().then((c) => setCatList(c.map((x) => ({ slug: x.slug, name: x.name })))).catch(() => {}); }, []);
+
+  const loadPool = useCallback(async (pk: PurposeKey) => {
+    const purpose = PURPOSES.find((p) => p.key === pk)!;
+    const slugs = purpose.groups.length ? purpose.groups : ["nuts-local", "supermarket", "digital", "appliances"];
+    setLoading(true);
+    try {
+      const lists = await Promise.all(slugs.map((s) => catalog.list({ category: s, page_size: 24 })));
+      const seen = new Set<number>();
+      const items: PackItem[] = [];
+      for (const l of lists) for (const p of l.items) if (!seen.has(p.id)) { seen.add(p.id); items.push(fromProduct(p)); }
+      setPool(items);
+    } catch { setPool([]); } finally { setLoading(false); }
+  }, []);
+  useEffect(() => { loadPool(purposeKey); }, [purposeKey, loadPool]);
+
+  const itemById = useMemo(() => {
+    const m = new Map<number, PackItem>();
+    for (const i of pool) m.set(i.id, i);
+    return m;
+  }, [pool]);
+  const excludeIds = useMemo(() => new Set(workingPack.map((w) => w.itemId)), [workingPack]);
+  const suggestions = useMemo(() => buildSuggestions(pool, BUDGET_TIERS[budgetIdx].ceilingToman, excludeIds), [pool, budgetIdx, excludeIds]);
+
+  function adopt(pack: SuggestedPack, openPanel: boolean, focusReplace = false) {
+    if (pack.insufficient) return;
+    setWorkingPack(pack.items.map((i) => ({ itemId: i.id, qty: 1 })));
+    setActiveSuggestionKey(pack.key);
+    setMaxBudget(Math.round(pack.totalToman * 1.1));
+    setCustomizerOpen(openPanel);
+    setReplaceTargetId(focusReplace && pack.items[0] ? pack.items[0].id : null);
+    setStep("result");
+  }
+  function openBlank() { setPurposeKey("custom"); setCustomizerOpen(true); setReplaceTargetId(null); }
+
+  const steps: { key: typeof step; label: string }[] = [
+    { key: "budget", label: "بودجه" }, { key: "occasion", label: "مناسبتی" }, { key: "result", label: "نتیجه" },
+  ];
+  const anyPriced = pool.some(priced);
+
+  return (
+    <section className="section bg-brand-gray/60" id="pack-builder">
+      <div className="container-page">
+        <div className="card p-5 md:p-8">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-neutral-900">پک‌ساز هوشمند ۶۰</h2>
+              <p className="text-sm text-neutral-500 mt-1">بودجه و مناسبت خود را انتخاب کنید یا از صفر یک پک ترکیبی از هر دسته‌ای بسازید</p>
+            </div>
+            <div className="flex items-center rounded-xl bg-brand-gray p-1">
+              {steps.map((s) => (
+                <button key={s.key} onClick={() => setStep(s.key)}
+                  className={`px-4 h-9 rounded-lg text-sm font-semibold transition-colors ${step === s.key ? "bg-white text-brand-blue shadow-sm" : "text-neutral-500"}`}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-[minmax(0,280px)_1fr] gap-8">
+            {/* Controls */}
+            <div>
+              <p className="text-sm font-semibold text-neutral-700 mb-2.5">بودجه شما</p>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {BUDGET_TIERS.map((b, i) => (
+                  <button key={b.label} onClick={() => { setBudgetIdx(i); setStep("occasion"); }}
+                    className={`px-3.5 h-9 rounded-lg text-sm font-semibold border transition-colors ${budgetIdx === i ? "bg-brand-blue text-white border-brand-blue" : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"}`}>
+                    {b.label} تومان
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm font-semibold text-neutral-700 mb-2.5">مناسبت</p>
+              <div className="flex flex-wrap gap-2">
+                {PURPOSES.map((p) => (
+                  <button key={p.key} onClick={() => { setPurposeKey(p.key); if (p.key === "custom") openBlank(); else setStep("result"); }}
+                    className={`px-3.5 h-9 rounded-lg text-sm font-medium border transition-colors ${purposeKey === p.key ? "bg-brand-blueLight text-brand-blue border-brand-blue" : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"}`}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              <button onClick={openBlank}
+                className="w-full mt-6 inline-flex items-center justify-center gap-2 h-10 rounded-xl border-2 border-dashed border-neutral-300 text-neutral-500 text-sm font-semibold hover:border-brand-blue hover:text-brand-blue transition-colors">
+                <PackagePlus className="w-4 h-4" /> ساخت پک سفارشی از صفر
+              </button>
+            </div>
+
+            {/* Result */}
+            <div>
+              <p className="text-sm font-semibold text-neutral-700 mb-3">پیشنهادهای آماده برای شما</p>
+              {loading ? (
+                <div className="grid sm:grid-cols-3 gap-4 mb-5">{[0, 1, 2].map((i) => <div key={i} className="rounded-2xl border-2 border-neutral-200 h-[336px] animate-pulse bg-neutral-100" />)}</div>
               ) : (
-                <p className="text-sm text-neutral-500">کالای واجد شرایط با قیمت رسمی برای این بودجه یافت نشد.</p>
-              )}
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-bold">جمع: {fmt(tier.total_minor)}</span>
-                <span className="text-neutral-400">
-                  {tier.over_budget ? `${fmt(-tier.remaining_minor)} بیش از بودجه` : `${fmt(tier.remaining_minor)} باقی‌مانده`}
-                </span>
-              </div>
-              {tier.items.length > 0 && (
-                <div className="flex gap-2">
-                  <button onClick={() => addPackToCart(tier.label, tier.items)} className="flex-1 rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-xs font-bold text-primary-800">افزودن این پک به سبد</button>
-                  <button onClick={() => openEdit(tier.label, tier.items)} className="flex-1 rounded-lg bg-primary-700 px-3 py-2 text-xs font-bold text-white">ویرایش (حذف/جایگزینی/تعداد)</button>
+                <div className="grid sm:grid-cols-3 gap-4 mb-5">
+                  {suggestions.map((pack) => (
+                    <SuggestionCard key={pack.key} pack={pack} active={activeSuggestionKey === pack.key}
+                      onAdopt={() => adopt(pack, false)} onEdit={() => adopt(pack, true)} onSwap={() => adopt(pack, true, true)} />
+                  ))}
                 </div>
               )}
-            </div>
-          ))}
-        </div>
-      )}
 
-      {budget && occasion && !recs && !loading && (
-        <p className="text-sm text-neutral-500">برای این ترکیب بودجه/مناسبت هنوز کالای دارای قیمت رسمی کافی نیست.</p>
-      )}
+              {!loading && !anyPriced && (
+                <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900">
+                  <b>در حال حاضر برای این دسته‌ها قیمت رسمی ثبت نشده است.</b> پک پیشنهادی با قیمت واقعی ساخته نمی‌شود؛ اما می‌توانید از «ساخت پک سفارشی از صفر» کالاها را انتخاب کنید و برای آن‌ها «درخواست پیش‌فاکتور» ثبت کنید. هیچ قیمت یا موجودی ساختگی نمایش داده نمی‌شود.
+                </div>
+              )}
 
-      {token && savedRows.length > 0 && (
-        <div className="card p-4">
-          <p className="mb-2 text-sm font-bold text-neutral-800">پک‌های ذخیره‌شده شما</p>
-          <ul className="flex flex-wrap gap-2">
-            {savedRows.map((r) => (
-              <li key={r.id}>
-                <button onClick={() => loadSaved(r.id)} className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:border-primary-300">
-                  {r.name} <span className="text-neutral-400">({r.item_count.toLocaleString("fa-IR")})</span>
+              {customizerOpen && (
+                <Customizer pool={pool} catList={catList} workingPack={workingPack} setWorkingPack={setWorkingPack}
+                  replaceTargetId={replaceTargetId} setReplaceTargetId={setReplaceTargetId}
+                  maxBudget={maxBudget} setMaxBudget={setMaxBudget} itemById={itemById} />
+              )}
+              {!customizerOpen && (
+                <button onClick={() => setCustomizerOpen(true)} disabled={workingPack.length === 0}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 h-11 rounded-xl bg-brand-blue text-white font-semibold text-sm hover:bg-brand-blueDark disabled:opacity-40 transition-colors">
+                  <Sparkles className="w-4 h-4" /> ویرایش و افزودن پک به سبد خرید
                 </button>
-              </li>
-            ))}
-          </ul>
+              )}
+            </div>
+          </div>
         </div>
-      )}
-
-      {!token && (
-        <p className="text-xs text-neutral-500">
-          افزودن پک به سبد و ذخیره پک نیازمند <Link href="/login" className="text-primary-700 underline">ورود</Link> است. مشاهده پیشنهادها آزاد است.
-        </p>
-      )}
-      <p className="text-xs text-neutral-400">
-        همه کالاها و قیمت‌ها از کاتالوگ واقعی خوانده می‌شوند. کالای بدون قیمت رسمی هرگز در پیشنهادها یا جمع بودجه ظاهر نمی‌شود.
-        {" "}اگر همه پیشنهادها خالی‌اند یعنی هنوز قیمت رسمی برای آن دسته/بودجه ثبت نشده است.
-      </p>
-    </div>
+      </div>
+    </section>
   );
 }
