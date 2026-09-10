@@ -365,6 +365,27 @@ export function PackBuilderInteractive() {
 
   useEffect(() => { categoriesApi.list().then((c) => setCatList(c.map((x) => ({ slug: x.slug, name: x.name })))).catch(() => {}); }, []);
 
+  // Receive a structured selection from the Shopping Assistant (sessionStorage handoff).
+  useEffect(() => {
+    let raw: string | null = null;
+    try { raw = sessionStorage.getItem("60o_pack_draft"); sessionStorage.removeItem("60o_pack_draft"); } catch { /* ignore */ }
+    if (!raw) return;
+    try {
+      const d = JSON.parse(raw) as { items: { slug: string; title: string; priceMinor: number | null; quantity: number; categoryName?: string; imageUrl?: string | null }[]; perPersonToman?: number | null };
+      if (!Array.isArray(d.items) || !d.items.length) return;
+      const injected: PackItem[] = d.items.map((it, i) => ({
+        id: 9_000_000 + i, slug: it.slug, name: it.title,
+        priceMinor: typeof it.priceMinor === "number" && it.priceMinor > 0 ? it.priceMinor : null,
+        groupSlug: "other", imageUrl: it.imageUrl || undefined, inStock: true,
+      }));
+      setPool((prev) => [...injected, ...prev.filter((p) => p.id < 9_000_000)]);
+      setWorkingPack(d.items.map((it, i) => ({ itemId: 9_000_000 + i, qty: Math.max(1, Math.round(it.quantity || 1)) })));
+      setPurposeKey("custom");
+      setCustomizerOpen(true);
+      setStep("result");
+    } catch { /* ignore */ }
+  }, []);
+
   const loadPool = useCallback(async (pk: PurposeKey) => {
     const purpose = PURPOSES.find((p) => p.key === pk)!;
     const slugs = purpose.groups.length ? purpose.groups : ["nuts-local", "supermarket", "digital", "appliances"];
@@ -374,7 +395,7 @@ export function PackBuilderInteractive() {
       const seen = new Set<number>();
       const items: PackItem[] = [];
       for (const l of lists) for (const p of l.items) if (!seen.has(p.id)) { seen.add(p.id); items.push(fromProduct(p)); }
-      setPool(items);
+      setPool((prev) => { const ex = new Set(prev.map((x) => x.id)); return [...prev.filter((x) => x.id < 9_000_000), ...items.filter((x) => !ex.has(x.id))]; });
     } catch { setPool([]); } finally { setLoading(false); }
   }, []);
   useEffect(() => { loadPool(purposeKey); }, [purposeKey, loadPool]);

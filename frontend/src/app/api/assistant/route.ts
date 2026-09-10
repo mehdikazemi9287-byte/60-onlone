@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { runAssistant, type RawProduct } from "@/lib/assistant";
+import { runAssistant, buildPackDraft, type RawProduct } from "@/lib/assistant";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +38,8 @@ export async function GET(req: NextRequest) {
   try {
     const [products, categories] = await Promise.all([fetchAllProducts(), fetchCategories()]);
     const result = runAssistant(q, products, categories);
-    return NextResponse.json(result, { headers: { "cache-control": "no-store" } });
+    const packDraft = buildPackDraft(q, products, categories);
+    return NextResponse.json({ ...result, packDraft }, { headers: { "cache-control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "دریافت کاتالوگ ناموفق بود" }, { status: 502 });
   }
