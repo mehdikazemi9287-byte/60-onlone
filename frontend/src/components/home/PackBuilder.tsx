@@ -6,8 +6,8 @@ export function PackBuilder() {
       <div className="container-page"><div className="overflow-hidden rounded-[2rem] border border-amber-200/70 bg-gradient-to-br from-white via-amber-50/60 to-primary-50 shadow-soft"><div className="grid gap-8 p-6 md:p-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div>
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-100/80 px-3 py-1.5 text-xs font-bold text-amber-900"><Boxes className="h-4 w-4" aria-hidden="true" /> پک‌ساز 60Online</div>
-          <h2 id="pack-builder-title" className="text-2xl font-black leading-tight text-primary-950 md:text-3xl">پک‌ساز به کاتالوگ واقعی و سبد خرید متصل شد</h2>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-neutral-600 md:text-base">کالاهای واقعی کاتالوگ را انتخاب کنید، پک بسازید و ذخیره کنید، یک‌جا به سبد بیفزایید یا درخواست پیش‌فاکتور سازمانی ثبت کنید. جمع کل فقط از قیمت‌های تأییدشده محاسبه می‌شود و قیمت یا موجودی ساختگی نمایش داده نمی‌شود.</p>
+          <h2 id="pack-builder-title" className="text-2xl font-black leading-tight text-primary-950 md:text-3xl">پک‌ساز هوشمند ۶۰</h2>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-neutral-600 md:text-base">بر اساس بودجه و مناسبت، سه پک پیشنهادی از کالاهای واقعیِ دارای قیمت رسمی می‌سازد؛ پک سفارشی، ویرایش تعداد، جایگزینی کالا، افزودن یک‌جا به سبد، ذخیره پک و درخواست پیش‌فاکتور. هیچ کالا یا قیمت ساختگی در پیشنهادها ظاهر نمی‌شود.</p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link href="/search" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary-800"><Search className="h-5 w-5" aria-hidden="true" /> انتخاب کالا از فروشگاه</Link>
             <Link href="/category" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-primary-200 bg-white px-5 py-3 text-sm font-bold text-primary-800 transition-colors hover:bg-primary-50"><Boxes className="h-5 w-5" aria-hidden="true" /> مشاهده دسته‌بندی‌ها</Link>
