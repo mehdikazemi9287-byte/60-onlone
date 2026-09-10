@@ -284,10 +284,15 @@ export interface PackDraft {
   alternatives: { slug: string; title: string; priceMinor: number | null; note: string }[];
 }
 
+const GROUP_CONNECTORS = new Set(["و", "با", "رو", "را", "هم", "برای", "یک", "یه", "کن", "که", "این", "اون", "تا", "از", "به", "در"]);
 function catWordToSlug(w: string): string | null {
-  const n = normalize(w);
+  const n = normalize(w).trim();
+  if (n.length < 3 || GROUP_CONNECTORS.has(n)) return null;
   for (const [slug, words] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (words.some((k) => n.includes(normalize(k)) || normalize(k).includes(n))) return slug;
+    // exact keyword, or the user token *contains* a full keyword ("لپ‌تاپ‌ها" ⊇ "لپ تاپ").
+    // The reverse (keyword ⊇ token) is deliberately NOT allowed — it let connectors like
+    // "و" spuriously match "نوت بوک" → laptop.
+    if (words.some((k) => { const nk = normalize(k); return n === nk || n.includes(nk); })) return slug;
   }
   return null;
 }
