@@ -86,8 +86,8 @@ const config: Config = {
 
       // ── Typography ─────────────────────────────────────────────────────────
       fontFamily: {
-        sans: ["var(--font-vazirmatn)", "Vazirmatn", "system-ui", "sans-serif"],
-        display: ["var(--font-vazirmatn)", "Vazirmatn", "system-ui", "sans-serif"],
+        sans: ["Vazirmatn", "system-ui", "sans-serif"],
+        display: ["Vazirmatn", "system-ui", "sans-serif"],
         mono: ["Fira Code", "monospace"],
       },
       fontSize: {
