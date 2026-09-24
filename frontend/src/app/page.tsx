@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Armchair, Bot, Building2, Check, Dumbbell, Home as HomeIcon, Search, ShoppingBasket, Sparkles, Smartphone } from "lucide-react";
+import { ArrowLeft, Bot, BriefcaseBusiness, Building2, Check, CookingPot, Laptop, Router, Search, Sparkles, Smartphone } from "lucide-react";
 import { ProductGrid } from "@/components/product/ProductCard";
 import { PackBuilder } from "@/components/home/PackBuilder";
 import { catalog } from "@/lib/api";
@@ -10,11 +10,11 @@ import type { Product } from "@/lib/types";
 
 const HOME_CATEGORIES = [
   { name: "موبایل و تبلت", subtitle: "گوشی و تبلت", href: "/category/mobile", icon: Smartphone },
-  { name: "لپ‌تاپ و رایانه", subtitle: "کالای دیجیتال", href: "/category/laptop", icon: HomeIcon },
-  { name: "تجهیزات شبکه", subtitle: "روتر و سوییچ", href: "/category/network", icon: Armchair },
-  { name: "لوازم اداری", subtitle: "مبلمان و ملزومات اداری", href: "/category/office", icon: ShoppingBasket },
-  { name: "لوازم برقی", subtitle: "کالاهای برقی خانه و اداری", href: "/category/appliance", icon: Sparkles },
-  { name: "خرید سازمانی", subtitle: "درخواست‌های خرید گروهی", href: "/org", icon: Dumbbell },
+  { name: "لپ‌تاپ و رایانه", subtitle: "کالای دیجیتال", href: "/category/laptop", icon: Laptop },
+  { name: "تجهیزات شبکه", subtitle: "روتر و سوییچ", href: "/category/network", icon: Router },
+  { name: "لوازم اداری", subtitle: "مبلمان و ملزومات اداری", href: "/category/office", icon: BriefcaseBusiness },
+  { name: "لوازم برقی", subtitle: "کالاهای برقی خانه و اداری", href: "/category/appliance", icon: CookingPot },
+  { name: "خرید سازمانی", subtitle: "درخواست‌های خرید گروهی", href: "/org", icon: Building2 },
 ];
 
 function Hero() {
