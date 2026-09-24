@@ -1,17 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Vazirmatn } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/Toaster";
 import { AuthProvider } from "@/lib/auth-context";
-
-const vazirmatn = Vazirmatn({
-  subsets: ["arabic"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-vazirmatn",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -45,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fa" dir="rtl" className={vazirmatn.variable}>
+    <html lang="fa" dir="rtl">
       <body className="min-h-screen flex flex-col bg-neutral-50">
         <AuthProvider>
           <Header />
