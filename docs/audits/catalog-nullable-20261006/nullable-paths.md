@@ -1,0 +1,13 @@
+# Targeted nullable paths
+
+- SQLite master_products.unit/package_quantity: removed NOT NULL and synthetic defaults only. All other checks, columns, IDs, FKs and indexes preserved. Original table is a rollback-only archive, never queried as a second catalog. Existing products/product families/identity tables contain no additional mandatory business unit/pack fields. Request/RFQ item units were already nullable.
+- PostgreSQL matching migration: ALTER COLUMN DROP NOT NULL/DROP DEFAULT; target SQLite verified; PostgreSQL execution NOT_RUN.
+- ORM/Pydantic: app/models/__init__.py and app/schemas/__init__.py are unused scaffolding; actual path is parameterized SQLite SQL plus service validators.
+- Master creation/API: omitted unit/pack = NULL; supplied pack must be positive integer, not bool/string/float; supplied unit must be a nonblank string. API now passes these fields to the existing service.
+- Bulk CSV import: blank pack/unit = NULL; missing import fields do not erase existing populated unit/pack values on update. CSV connector no longer fabricates عدد.
+- PDF importer: nullable source fields accepted; pending mappings promoted in place, no duplicate mappings. Source revisions require exact reviewed before-image digests. Original product values are not overwritten by the 8032 provenance enrichment.
+- Identity graph, family and product resolution: strongest identifier paths do not require unit/pack; supplier SKU and name+variant/size/net_quantity rules retained. No identity fallback weakened.
+- Procurement: NULL/omitted units accepted; explicit blank/malformed strings remain rejected. Requested quantities still strictly positive integers. RFQ copies nullable units with no inference.
+- Frontend: current organization intake stops requiring/defaulting unit; operation/document types allow NULL. Shared request picker displays only real known attributes; requested quantity is separate from source package quantity. PDP/list/card normalization consumes nullable price/stock and does not require unit/pack.
+- Organization picker and existing homepage PackBuilder consume published active masters through /api/v1/catalog/selection. Public projection excludes private/draft/unpublished masters; source supplier filters use retained provenance. Selected master IDs and variants, quantities and nullable units enter the existing PR -> approval -> RFQ flow. Pack selection passes a local request draft to /org; no new Pack Builder architecture, sale offer, stock or checkout path.
+- Commerce/invoice unit_price fields are money fields, not product measurement units, and remain untouched. Synthetic mock ERP units are labeled fixtures and are outside this real-PDF path.

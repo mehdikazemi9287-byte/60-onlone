@@ -1,0 +1,54 @@
+{
+  "environment": "isolated final production-mode preview, warm local runtime, not production CWV",
+  "results": [
+    {
+      "label": "home",
+      "width": 390,
+      "lcp": 1048,
+      "cls": 0.0068836144745172525,
+      "jsBytes": 161194
+    },
+    {
+      "label": "catalog",
+      "width": 390,
+      "lcp": 212,
+      "cls": 0.5848187618708451,
+      "jsBytes": 9949
+    },
+    {
+      "label": "pdp",
+      "width": 390,
+      "lcp": 360,
+      "cls": 0,
+      "jsBytes": 6431
+    },
+    {
+      "label": "home",
+      "width": 1440,
+      "lcp": 1232,
+      "cls": 0.0005544367283950617,
+      "jsBytes": 164230
+    },
+    {
+      "label": "catalog",
+      "width": 1440,
+      "lcp": 492,
+      "cls": 0.2751148365162037,
+      "jsBytes": 21062
+    },
+    {
+      "label": "pdp",
+      "width": 1440,
+      "lcp": 736,
+      "cls": 0,
+      "jsBytes": 6431
+    }
+  ],
+  "optimizer": {
+    "status": 200,
+    "contentType": "image/webp",
+    "originalBytes": 89982,
+    "optimizedBytes": 34014,
+    "reductionPercent": 62
+  }
+}

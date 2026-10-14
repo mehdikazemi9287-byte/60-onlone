@@ -1,0 +1,138 @@
+{
+  "status": "PASS",
+  "scope": "current Source frontend; isolated candidate API; 390px/1440px; basic anonymous UI",
+  "results": [
+    {
+      "name": "homepage",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 6,
+      "brokenImages": [],
+      "title": "کالای مورد نیازتان راسریع و مطمئن پیدا کنید",
+      "pageErrors": 0
+    },
+    {
+      "name": "listing",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 24,
+      "brokenImages": [],
+      "title": "کتاب، فرهنگ و نوشت‌افزار",
+      "pageErrors": 0
+    },
+    {
+      "name": "search",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 24,
+      "brokenImages": [],
+      "title": "جستجوی کالا",
+      "pageErrors": 0
+    },
+    {
+      "name": "pdp-no-image",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 0,
+      "brokenImages": [],
+      "title": "خمیر کیلویی سفید",
+      "pageErrors": 0
+    },
+    {
+      "name": "pdp-image",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 0,
+      "brokenImages": [],
+      "title": "خمیر ژل اسلایم 150 گرم",
+      "pageErrors": 0
+    },
+    {
+      "name": "organization",
+      "width": 390,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 0,
+      "brokenImages": [],
+      "title": "تأمین سازمانی",
+      "pageErrors": 0
+    },
+    {
+      "name": "homepage",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 6,
+      "brokenImages": [],
+      "title": "کالای مورد نیازتان راسریع و مطمئن پیدا کنید",
+      "pageErrors": 0
+    },
+    {
+      "name": "listing",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 24,
+      "brokenImages": [],
+      "title": "کتاب، فرهنگ و نوشت‌افزار",
+      "pageErrors": 0
+    },
+    {
+      "name": "search",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 24,
+      "brokenImages": [],
+      "title": "جستجوی کالا",
+      "pageErrors": 0
+    },
+    {
+      "name": "pdp-no-image",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 0,
+      "brokenImages": [],
+      "title": "خمیر کیلویی سفید",
+      "pageErrors": 0
+    },
+    {
+      "name": "pdp-image",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 0,
+      "brokenImages": [],
+      "title": "خمیر ژل اسلایم 150 گرم",
+      "pageErrors": 0
+    },
+    {
+      "name": "organization",
+      "width": 1440,
+      "status": 200,
+      "overflow": false,
+      "rtl": true,
+      "cards": 0,
+      "brokenImages": [],
+      "title": "تأمین سازمانی",
+      "pageErrors": 0
+    }
+  ]
+}

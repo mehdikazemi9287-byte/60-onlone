@@ -1,0 +1,643 @@
+{
+  "status": "PASS",
+  "scope": "isolated candidate and disposable QA clone; no Production writes",
+  "all_existing_tables": {
+    "schema_migrations": {
+      "existing_rows_preserved": 37,
+      "new_rows": 0
+    },
+    "users": {
+      "existing_rows_preserved": 24,
+      "new_rows": 0
+    },
+    "addresses": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "categories": {
+      "existing_rows_preserved": 94,
+      "new_rows": 0
+    },
+    "products": {
+      "existing_rows_preserved": 560,
+      "new_rows": 0
+    },
+    "inventory": {
+      "existing_rows_preserved": 42,
+      "new_rows": 0
+    },
+    "carts": {
+      "existing_rows_preserved": 19,
+      "new_rows": 0
+    },
+    "cart_items": {
+      "existing_rows_preserved": 15,
+      "new_rows": 0
+    },
+    "order_items": {
+      "existing_rows_preserved": 11,
+      "new_rows": 0
+    },
+    "payments": {
+      "existing_rows_preserved": 10,
+      "new_rows": 0
+    },
+    "ledger_accounts": {
+      "existing_rows_preserved": 5,
+      "new_rows": 0
+    },
+    "ledger_transactions": {
+      "existing_rows_preserved": 10,
+      "new_rows": 0
+    },
+    "ledger_entries": {
+      "existing_rows_preserved": 34,
+      "new_rows": 0
+    },
+    "idempotency_keys": {
+      "existing_rows_preserved": 10,
+      "new_rows": 0
+    },
+    "audit_logs": {
+      "existing_rows_preserved": 91,
+      "new_rows": 0
+    },
+    "organizations": {
+      "existing_rows_preserved": 1,
+      "new_rows": 0
+    },
+    "organization_memberships": {
+      "existing_rows_preserved": 3,
+      "new_rows": 0
+    },
+    "credit_allocations": {
+      "existing_rows_preserved": 2,
+      "new_rows": 0
+    },
+    "credit_ledger_entries": {
+      "existing_rows_preserved": 2,
+      "new_rows": 0
+    },
+    "credit_reservations": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "payment_intent_items": {
+      "existing_rows_preserved": 11,
+      "new_rows": 0
+    },
+    "suppliers": {
+      "existing_rows_preserved": 12,
+      "new_rows": 0
+    },
+    "supplier_locations": {
+      "existing_rows_preserved": 12,
+      "new_rows": 0
+    },
+    "fulfillment_policies": {
+      "existing_rows_preserved": 5,
+      "new_rows": 0
+    },
+    "seller_offers": {
+      "existing_rows_preserved": 489,
+      "new_rows": 0
+    },
+    "fulfillment_orders": {
+      "existing_rows_preserved": 11,
+      "new_rows": 0
+    },
+    "fulfillment_order_items": {
+      "existing_rows_preserved": 11,
+      "new_rows": 0
+    },
+    "routing_audit": {
+      "existing_rows_preserved": 11,
+      "new_rows": 0
+    },
+    "fulfillment_state_log": {
+      "existing_rows_preserved": 11,
+      "new_rows": 0
+    },
+    "routing_exceptions": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "master_products": {
+      "existing_rows_preserved": 639,
+      "new_rows": 223
+    },
+    "product_identifiers_legacy": {
+      "existing_rows_preserved": 28,
+      "new_rows": 223
+    },
+    "external_product_mappings": {
+      "existing_rows_preserved": 0,
+      "new_rows": 401
+    },
+    "sync_jobs": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "sync_runs": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "freshness_policies": {
+      "existing_rows_preserved": 4,
+      "new_rows": 0
+    },
+    "purchase_requests": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "purchase_request_items": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_approvals": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "rfqs": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "rfq_items": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "rfq_suppliers": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_quotes": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_quote_items": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "purchase_orders": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "purchase_order_items": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_audit_log": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "carrier_configs": {
+      "existing_rows_preserved": 5,
+      "new_rows": 0
+    },
+    "shipment_plans": {
+      "existing_rows_preserved": 11,
+      "new_rows": 0
+    },
+    "shipment_plan_quotes": {
+      "existing_rows_preserved": 44,
+      "new_rows": 0
+    },
+    "shipment_booking_log": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "webhook_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_payable_entries": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "settlement_batches": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "settlement_batch_items": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "settlement_payments": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "shipments": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "identifier_conflicts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "inventory_sources": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "inventory_source_stock": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "price_sources": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "price_source_entries": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "erp_product_mappings": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "sync_run_items": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "import_jobs": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "import_job_rows": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "resolution_attempts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "field_provenance": {
+      "existing_rows_preserved": 266,
+      "new_rows": 0
+    },
+    "knowledge_sources": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "import_column_templates": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "exceptions": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "connector_health_log": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_orders": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_invoices": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_invoice_lines": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "three_way_matches": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "reconciliation_batches": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "reconciliation_items": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "integration_events": {
+      "existing_rows_preserved": 21,
+      "new_rows": 0
+    },
+    "event_consumers": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "tax_categories": {
+      "existing_rows_preserved": 6,
+      "new_rows": 0
+    },
+    "tax_rates": {
+      "existing_rows_preserved": 4,
+      "new_rows": 0
+    },
+    "tax_product_assignments": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "tax_org_exemptions": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "accounting_connector_accounts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "accounting_documents": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "carrier_adapter_accounts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "connector_mapping_templates": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "connector_wizard_sessions": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "product_identifiers": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "identity_resolution_queue": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "warehouse_locations": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "rfid_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "gtin_lookup_cache": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "sync_schedule": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "connector_audit_log": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "connector_accounts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "revoked_tokens": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "payment_intents": {
+      "existing_rows_preserved": 10,
+      "new_rows": 0
+    },
+    "orders": {
+      "existing_rows_preserved": 10,
+      "new_rows": 0
+    },
+    "loyalty_ledger_entries": {
+      "existing_rows_preserved": 9,
+      "new_rows": 0
+    },
+    "loyalty_tiers": {
+      "existing_rows_preserved": 3,
+      "new_rows": 0
+    },
+    "supplier_onboarding_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "offer_price_history": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_catalog_import_batches": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_catalog_import_rows": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "catalog_publications": {
+      "existing_rows_preserved": 503,
+      "new_rows": 223
+    },
+    "customer_requests": {
+      "existing_rows_preserved": 3,
+      "new_rows": 0
+    },
+    "customer_request_events": {
+      "existing_rows_preserved": 4,
+      "new_rows": 0
+    },
+    "organization_operations_grants": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "organization_operations_cases": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "organization_operations_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "organization_operations_idempotency": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_workflows": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_payment_policies": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_quotes": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_quote_decisions": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_orders": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_workflow_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_quantity_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_payment_proposals": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_payment_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_workflow_idempotency": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_quote_revisions": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "organization_procurement_policies": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_deliveries": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_receipts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_corrections": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_payment_plans": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_payment_parts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_supplier_settlements": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_finance_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "supplier_users": {
+      "existing_rows_preserved": 8,
+      "new_rows": 0
+    },
+    "role_assignment_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "payment_policy_drafts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "payment_policy_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "procurement_plan_approvals": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "product_families": {
+      "existing_rows_preserved": 511,
+      "new_rows": 0
+    },
+    "offer_price_tiers": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "offer_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "packs": {
+      "existing_rows_preserved": 27,
+      "new_rows": 0
+    },
+    "pack_items": {
+      "existing_rows_preserved": 148,
+      "new_rows": 0
+    },
+    "procurement_documents": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "pack_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "stock_alerts": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "user_notifications": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "order_return_requests": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "order_return_events": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "benefit_programs": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "benefit_selections": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    },
+    "customer_request_quotes": {
+      "existing_rows_preserved": 0,
+      "new_rows": 0
+    }
+  },
+  "new_rows": {
+    "master_products": 223,
+    "product_identifiers_legacy": 223,
+    "catalog_publications": 223,
+    "external_product_mappings": 401
+  },
+  "second_confirmed_run_insertions": 0,
+  "foreign_key_check": "PASS",
+  "quick_check": "ok",
+  "publication_PDP_API_checks": 223,
+  "all_inquiry_only": true,
+  "new_seller_offers": 0,
+  "authenticated_master_lookup_checks": 223,
+  "organization_item_validation_checks": 223,
+  "organization_UI_selection": "BLOCKED: Source form only accepts free-text; Pouya has no masters",
+  "pack_builder_selection": "BLOCKED: Source builder inactive",
+  "visibility_rollback_checks": 223,
+  "rollback_independent_edit_guard": "PASS",
+  "sample_slugs": [
+    "pdf-79490348b09404100df0",
+    "pdf-4495d69c14f2a9b537ef"
+  ],
+  "public_total": 768,
+  "new_public_products": 223,
+  "new_image_bearing": 3,
+  "new_image_less": 220,
+  "pagination_unique_ids": true,
+  "search_aria_total": 223,
+  "aria_category_check": "223/223 books-stationery"
+}

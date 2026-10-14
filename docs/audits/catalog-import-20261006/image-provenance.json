@@ -1,0 +1,35 @@
+[
+  {
+    "supplier": "آریا",
+    "sku": "4071",
+    "source_file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+    "source_page": 56,
+    "pdf_object_id": 893,
+    "sha256": "67d8b2836b729610d050d784bb7278b62f9be1c8cab677df5b0ba43034c61b1c",
+    "url": "/images/catalog/aria-pdf-67d8b2836b729610d050d784bb7278b62f9be1c8cab677df5b0ba43034c61b1c.png",
+    "bytes": 743851,
+    "method": "original embedded photograph extracted with pdfimages -png; visually verified against source SKU caption; no crop or generated content"
+  },
+  {
+    "supplier": "آریا",
+    "sku": "1010",
+    "source_file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+    "source_page": 82,
+    "pdf_object_id": 1102,
+    "sha256": "84ce314f0580d76d48921bd45f1797723b77f03a77a23f7f8e693c80965c34b7",
+    "url": "/images/catalog/aria-pdf-84ce314f0580d76d48921bd45f1797723b77f03a77a23f7f8e693c80965c34b7.png",
+    "bytes": 85966,
+    "method": "original embedded photograph extracted with pdfimages -png; visually verified against source SKU caption; no crop or generated content"
+  },
+  {
+    "supplier": "آریا",
+    "sku": "1011",
+    "source_file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+    "source_page": 83,
+    "pdf_object_id": 1115,
+    "sha256": "795957188e34f474e957d3345e55b1bd6d96d7704004124d27201368d733469f",
+    "url": "/images/catalog/aria-pdf-795957188e34f474e957d3345e55b1bd6d96d7704004124d27201368d733469f.png",
+    "bytes": 102334,
+    "method": "original embedded photograph extracted with pdfimages -png; visually verified against source SKU caption; no crop or generated content"
+  }
+]

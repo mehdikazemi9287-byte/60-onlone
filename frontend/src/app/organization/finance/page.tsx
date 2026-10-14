@@ -1,0 +1,19 @@
+"use client";
+import Link from "next/link";
+import {useEffect,useState} from "react";
+import {apiRequest} from "@/lib/api";
+import {useAuth} from "@/lib/auth-context";
+import css from "./finance.module.css";
+type Org={id:number;display_name:string;status:string;membership:{role:string;status:string}};
+type Policy={organization_id:number;configuration_status:string;policy_version:string|null;financial_actions_enabled:boolean;matrix:{code:string;status:string;requirements:string[];enabled:boolean}[]};
+const labels:Record<string,string>={cash:"نقدی",cheque:"چکی",credit:"اعتباری",bill_undertaking:"برات / تعهد",allocation:"تخصیص اعتبار",maturity:"سررسید",collection:"وصول",returns:"برگشت",settlement:"تسویه"};
+const status:Record<string,string>={TECHNICAL_GAP:"پیکربندی فنی تکمیل نشده",POLICY_REQUIRED:"نیازمند سیاست مصوب",ACCESS_REQUIRED:"نیازمند اتصال معتبر"};
+export default function OrganizationFinance(){
+ const {token,user,loading}=useAuth();const [orgs,setOrgs]=useState<Org[]>([]),[org,setOrg]=useState("");const [policy,setPolicy]=useState<Policy|null>(null),[error,setError]=useState(""),[reading,setReading]=useState(true),[retry,setRetry]=useState(0);
+ useEffect(()=>{const c=new AbortController();setOrgs([]);setOrg("");setPolicy(null);setError("");if(!token){setReading(false);return ()=>c.abort();}setReading(true);
+ apiRequest<{items:Org[]}>("/organizations",{token,signal:c.signal}).then(r=>{if(c.signal.aborted)return;const allowed=r.items.filter(o=>o.status==="active"&&o.membership.status==="active"&&["organization_admin","organization_finance"].includes(o.membership.role));setOrgs(allowed);setOrg(allowed.length?String(allowed[0].id):"");}).catch(e=>{if(!c.signal.aborted)setError(e.message);}).finally(()=>{if(!c.signal.aborted)setReading(false);});return ()=>c.abort();},[token,retry]);
+ useEffect(()=>{const c=new AbortController();setPolicy(null);if(!token||!org)return ()=>c.abort();setReading(true);setError("");apiRequest<{policy:Policy}>(`/organizations/${org}/payment-policy`,{token,signal:c.signal}).then(r=>{if(!c.signal.aborted)setPolicy(r.policy);}).catch(e=>{if(!c.signal.aborted)setError(e.message);}).finally(()=>{if(!c.signal.aborted)setReading(false);});return ()=>c.abort();},[token,org]);
+ if(loading)return <p className={css.shell} role="status">در حال بررسی حساب…</p>;
+ if(!token||!user)return <section className={css.shell} dir="rtl"><h1>مالی سازمان</h1><Link href="/login?next=/organization/finance">ورود به حساب</Link></section>;
+ return <section className={css.shell} dir="rtl"><header className={css.header}><h1>مالی سازمان</h1><p>آمادگی سیاست پرداخت سازمان</p></header>{reading&&<p role="status">در حال دریافت اطلاعات…</p>}{error&&<div role="alert" className={css.error}>{error}<button onClick={()=>setRetry(x=>x+1)}>تلاش مجدد</button></div>}{!reading&&!error&&!orgs.length&&<section className={css.card}><h2>مجوز مالی فعال ندارید</h2><p>مدیر یا مسئول مالی دارای عضویت فعال سازمان می‌تواند این صفحه را مشاهده کند.</p></section>}{!!orgs.length&&<label>سازمان<select aria-label="سازمان مالی" value={org} onChange={e=>{setPolicy(null);setOrg(e.target.value);}}>{orgs.map(o=><option key={o.id} value={o.id}>{o.display_name}</option>)}</select></label>}{policy&&<><section className={css.card}><h2>عملیات مالی در این پنل فعال نیست</h2><p>نسخه مصوب سیاست و قرارداد در این سامانه متصل نشده است. این وضعیت به معنی نبود قرارداد خارج از سامانه نیست.</p><p>دریافت چک یا تعهد به معنی وصول یا تسویه نیست.</p></section>{policy.matrix.map(row=><section className={css.card} key={row.code}><h2>{labels[row.code]??row.code}</h2><p>{status[row.status]??row.status}</p><p>{row.requirements.map(s=>status[s]??s).join("؛ ")}</p><button disabled aria-label={`اقدام ${labels[row.code]??row.code} غیرفعال`}>در انتظار تکمیل و تصویب</button></section>)}</>}<Link href="/organization/requests">درخواست‌های سازمان</Link></section>;
+}

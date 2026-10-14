@@ -1,0 +1,14 @@
+[
+  {
+    "check": "performance",
+    "exit_code": 0
+  },
+  {
+    "check": "interactions",
+    "exit_code": 0
+  },
+  {
+    "check": "capture",
+    "exit_code": 0
+  }
+]

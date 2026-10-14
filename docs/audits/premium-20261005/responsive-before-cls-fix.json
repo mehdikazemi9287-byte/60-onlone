@@ -1,0 +1,242 @@
+[
+  {
+    "label": "home",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "catalog",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "pdp",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "category",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "org",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "home",
+    "width": 430,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "catalog",
+    "width": 430,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "pdp",
+    "width": 430,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "category",
+    "width": 430,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "org",
+    "width": 430,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "home",
+    "width": 768,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "catalog",
+    "width": 768,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "pdp",
+    "width": 768,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "category",
+    "width": 768,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "org",
+    "width": 768,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "home",
+    "width": 1024,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "catalog",
+    "width": 1024,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "pdp",
+    "width": 1024,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "category",
+    "width": 1024,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "org",
+    "width": 1024,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "home",
+    "width": 1280,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "catalog",
+    "width": 1280,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "pdp",
+    "width": 1280,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "category",
+    "width": 1280,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "org",
+    "width": 1280,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "home",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "catalog",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "pdp",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "category",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  },
+  {
+    "label": "org",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0,
+    "componentOverflow": 0
+  }
+]

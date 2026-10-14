@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "base": "http://127.0.0.1:3295",
+  "results": [
+    {
+      "label": "home",
+      "width": 390,
+      "overflow": false,
+      "links": 33,
+      "broken": 0
+    },
+    {
+      "label": "aria",
+      "width": 390,
+      "overflow": false,
+      "links": 24,
+      "broken": 0
+    },
+    {
+      "label": "pouya",
+      "width": 390,
+      "overflow": false,
+      "links": 2,
+      "broken": 0
+    },
+    {
+      "label": "pdp",
+      "width": 390,
+      "overflow": false,
+      "links": 8,
+      "broken": 0
+    },
+    {
+      "width": 390,
+      "orgPicker": "PASS",
+      "rfqE2E": "PASS",
+      "existingPackSelection": "PASS",
+      "nullPrice": true,
+      "unknownStock": true,
+      "noPageErrors": true
+    },
+    {
+      "label": "home",
+      "width": 1440,
+      "overflow": false,
+      "links": 33,
+      "broken": 0
+    },
+    {
+      "label": "aria",
+      "width": 1440,
+      "overflow": false,
+      "links": 24,
+      "broken": 0
+    },
+    {
+      "label": "pouya",
+      "width": 1440,
+      "overflow": false,
+      "links": 2,
+      "broken": 0
+    },
+    {
+      "label": "pdp",
+      "width": 1440,
+      "overflow": false,
+      "links": 8,
+      "broken": 0
+    },
+    {
+      "width": 1440,
+      "orgPicker": "PASS",
+      "rfqE2E": "PASS",
+      "existingPackSelection": "PASS",
+      "nullPrice": true,
+      "unknownStock": true,
+      "noPageErrors": true
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "candidate_only": true,
+  "snapshot_before": "data/catalog-import-20261006/before-nullable.db",
+  "nullable_columns": [
+    "unit",
+    "package_quantity"
+  ],
+  "populated_values_preserved": true,
+  "no_drop_delete": true,
+  "foreign_keys": "PASS",
+  "null_insert": "PASS: synthetic isolated clone",
+  "second_migration": "no-op",
+  "constraint_rollback": "PASS before subsequent writes",
+  "rollback_after_write": "refused without data loss",
+  "postgresql": "NOT_RUN: target is SQLite"
+}

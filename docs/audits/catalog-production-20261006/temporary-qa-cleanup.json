@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "exact_fixture_rows_removed": {
+    "users": 1,
+    "organizations": 1,
+    "carts": 1,
+    "idempotency_keys": 4,
+    "audit_logs": 2,
+    "organization_memberships": 1,
+    "purchase_requests": 4,
+    "purchase_request_items": 4,
+    "procurement_approvals": 2,
+    "rfqs": 2,
+    "rfq_items": 2,
+    "procurement_audit_log": 12,
+    "routing_audit": 0,
+    "connector_audit_log": 0,
+    "revoked_tokens": 0
+  },
+  "fixture_user_absent": true,
+  "fixture_organization_absent": true,
+  "catalog_rows_deleted": 0
+}

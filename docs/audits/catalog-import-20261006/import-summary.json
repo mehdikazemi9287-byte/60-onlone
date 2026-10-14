@@ -1,0 +1,98 @@
+{
+  "environment": "isolated candidate only",
+  "production_changed": false,
+  "source_files": [
+    {
+      "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+      "bytes": 38668356,
+      "sha256": "36306e4a9aa5e267d16df8727fd2cd69e52378ee3c0c015e037d93a01052d5e7",
+      "page_count": 110,
+      "extracted_occurrences": 164
+    },
+    {
+      "file": "data/data/imports/aria/__لیست قیمت مصرف کننده شهریور 1405_.pdf",
+      "bytes": 317924,
+      "sha256": "0b0a59c0e2f133db95ab7ac1b73dced6ac741534533c7317db527a1f4834d0c2",
+      "page_count": 8,
+      "extracted_occurrences": 182
+    },
+    {
+      "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+      "bytes": 112297,
+      "sha256": "99abe36d1e5850325f9b27fddaf334d448200b0106d87412fcb63e10c8956d45",
+      "page_count": 1,
+      "extracted_occurrences": 43
+    },
+    {
+      "file": "data/data/imports/pouya-protein/gosfand.pdf",
+      "bytes": 86672,
+      "sha256": "bda6ed3e905c2ac6fab5283e53f50fc68182a8c17af9448e460b28d49c142603",
+      "page_count": 1,
+      "extracted_occurrences": 62
+    },
+    {
+      "file": "data/data/imports/pouya-protein/morgh.pdf",
+      "bytes": 65578,
+      "sha256": "522d418e33af9a8fb979723007e65a39cfa17127d87e7ccd040586008725795f",
+      "page_count": 1,
+      "extracted_occurrences": 62
+    }
+  ],
+  "first_run": {
+    "آریا": {
+      "source_rows": 346,
+      "identities": 234,
+      "create": 223,
+      "match": 0,
+      "review": 11,
+      "skip": 0
+    },
+    "پویا پروتئین": {
+      "source_rows": 167,
+      "identities": 167,
+      "create": 0,
+      "match": 0,
+      "review": 167,
+      "skip": 0
+    }
+  },
+  "second_confirmed_run": {
+    "آریا": {
+      "source_rows": 346,
+      "identities": 234,
+      "create": 0,
+      "match": 0,
+      "review": 0,
+      "skip": 234
+    },
+    "پویا پروتئین": {
+      "source_rows": 167,
+      "identities": 167,
+      "create": 0,
+      "match": 0,
+      "review": 0,
+      "skip": 167
+    }
+  },
+  "raw_consumer_prices_preserved": 176,
+  "source_currency": null,
+  "new_sale_prices": 0,
+  "new_seller_offers": 0,
+  "source_conflict_identities": [
+    "آریا:sku:8033",
+    "آریا:sku:9030"
+  ],
+  "duplicate_new_products": 0,
+  "staged_identities": 178,
+  "supplier_account_ids": {
+    "آریا": null,
+    "پویا پروتئین": null
+  },
+  "supplier_identity_mapping": "source supplier names retained per PDF_CATALOG mapping; no invented legal supplier accounts",
+  "images": {
+    "exact_native_pdf_images": 3,
+    "missing_unique_catalog_identities": 398,
+    "rejected_clipped_trial_derivatives": 3,
+    "wrong_product_matches_attached": 0
+  }
+}

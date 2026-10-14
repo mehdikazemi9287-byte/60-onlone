@@ -104,6 +104,11 @@ def create_master_product():
             subcategory=data.get("subcategory"),
             brand=data.get("brand"),
             model=data.get("model"),
+            variant=data.get("variant"),
+            size_label=data.get("size_label"),
+            unit=data.get("unit"),
+            package_quantity=data.get("package_quantity"),
+            net_quantity=data.get("net_quantity"),
             description_fa=data.get("description_fa"),
             specifications=data.get("specifications"),
             tax_category=data.get("tax_category", "standard"),
@@ -346,3 +351,15 @@ def link_legacy_product(product_id):
             metadata={"master_product_id": mid, "evidence": proof.strip()},
         )
     return jsonify({"product_id": product_id, "master_product_id": mid, "changed": True})
+
+
+@bp.get("/catalog/selection")
+def selection_catalog():
+    # Public projection of published masters, never offers or private drafts.
+    try:
+        page = int(request.args.get("page", "1"))
+        page_size = int(request.args.get("page_size", "12"))
+    except ValueError as exc:
+        raise ValidationError("صفحه نامعتبر است") from exc
+    with get_db().read_transaction() as conn:
+        return jsonify(svc.selection_catalog(conn, q=request.args.get("q", ""), category=request.args.get("category"), supplier=request.args.get("supplier"), page=page, page_size=page_size))

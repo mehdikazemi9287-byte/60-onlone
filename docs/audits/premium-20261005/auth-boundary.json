@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/api/v1/organizations",
+    "status": 401,
+    "authentication": "no credentials sent"
+  },
+  {
+    "path": "/api/v1/cart",
+    "status": 401,
+    "authentication": "no credentials sent"
+  }
+]

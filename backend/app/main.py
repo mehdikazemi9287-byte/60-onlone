@@ -20,6 +20,8 @@ from app.api.v1 import settlement as settlement_api
 from app.api.v1 import suppliers as suppliers_api
 from app.api.v1 import master_catalog as master_catalog_api
 from app.api.v1 import procurement as procurement_api
+from app.api.v1 import organization_operations as organization_operations_api
+from app.api.v1 import organization_finance_policy as organization_finance_policy_api
 
 # Phase 6 — Inventory Intelligence + Product Identifiers + ERP/Store Connector
 from app.api.v1 import identifiers as identifiers_api
@@ -107,6 +109,8 @@ def create_app(
         suppliers_api.bp,
         master_catalog_api.bp,
         procurement_api.bp,
+        organization_operations_api.bp,
+        organization_finance_policy_api.bp,
         logistics_api.bp,
         settlement_api.bp,
         # Phase 6

@@ -1,0 +1,50 @@
+{
+  "observed_date_utc": "2026-09-16",
+  "scope": "Read-only commerce audit; hashes are pre-documentation snapshot, not deployment artifacts.",
+  "worktrees": {
+    "/home/ubuntu/60online-authoritative": {
+      "head": "9d06e4dbe6cf9a065ad87834e87a761396949a86",
+      "branch": "phase234-20260906T204535Z",
+      "status": "?? AGENTS.md\n?? docs/",
+      "hashes": {
+        "frontend/src/app/page.tsx": "b8705de1f008387f083f94213666948b3ebf3b055c0a5d15fb28db3123b5034e",
+        "frontend/src/components/home/PackBuilder.tsx": "113bd7b70e87d6e6918849260cbfd5c0d003e3c47db3c73afcc8235481ad2df9",
+        "frontend/src/app/globals.css": "67d5959df0c1ad158620f4698dc2663c802577db03580d66a1fb32b75275e60e",
+        "frontend/src/app/layout.tsx": "d3a957f833b653053f3d43ca87a7b7141ec3b907aa298a12109bc1f7d330dbb7",
+        "frontend/src/components/layout/Header.tsx": "7623df10db29e0d79a239811f6c68e9152f5b4d21ca470dd224c0777157e9bdc",
+        "frontend/src/components/OrganizationPanel.tsx": "52e3d43421f7592b88fc37210d37d1a8e7e72f1a65da2a67a5a8a6b02a9477d2",
+        "frontend/src/lib/types.ts": "72315c37cc206d8c5c6c53962489ff9b8fc7729a89d7f59bebb697a28c319d7b"
+      }
+    },
+    "/home/ubuntu/60online-prod-green3": {
+      "head": "30c565ada98704da36e29b8fdee2dea678b8b813",
+      "branch": "pc-release-20260910T222828Z",
+      "status": "M frontend/src/app/cart/page.tsx\n M frontend/src/app/globals.css\n M frontend/src/app/login/page.tsx\n M frontend/src/app/page.tsx\n M frontend/src/app/products/[id]/ProductDetail.tsx\n M frontend/src/components/home/PackBuilderInteractive.tsx\n M frontend/src/components/layout/Header.tsx",
+      "hashes": {
+        "frontend/src/app/page.tsx": "5897410c56aadb94dba01973900f58ae4440c6d401908f74564dc0feba3fc5c0",
+        "frontend/src/components/home/PackBuilder.tsx": "d85cb18c350adfb8d570e563023df2dad7511355319fd674f11ca6318c1ff8dd",
+        "frontend/src/components/home/PackBuilderInteractive.tsx": "4abc5f4a5300ffa58686a9471a92e17f39f4df40baf1e3e05ec930a919a09677",
+        "frontend/src/app/globals.css": "0b5332010518d4203ce29f52089ebed0ecc0e74384769e19da36cc67cdd5fb5c",
+        "frontend/src/app/layout.tsx": "280b1ca8912e875e5993065f0cf4e00775523a18c7710195458b2d83e6f663c7",
+        "frontend/src/components/layout/Header.tsx": "a29448cab99cdd43a7510ce95271f51673eaf8617f43310effac6ede1a202aed",
+        "frontend/src/components/OrganizationPanel.tsx": "52e3d43421f7592b88fc37210d37d1a8e7e72f1a65da2a67a5a8a6b02a9477d2",
+        "frontend/src/lib/types.ts": "88b4dcaab1b528f7eca58cab4e711458c7bebb0e7d39a4942ec3dcd4c93703a0"
+      }
+    },
+    "/home/ubuntu/60online-staging-work": {
+      "head": "30c565ada98704da36e29b8fdee2dea678b8b813",
+      "branch": "staging-impl-20260909",
+      "status": "M backend/app/main.py\n M backend/app/services/audit_service.py\n M backend/app/services/catalog_service.py\n M backend/app/services/sale_eligibility.py\n M frontend/src/app/cart/page.tsx\n M frontend/src/app/globals.css\n M frontend/src/app/login/page.tsx\n M frontend/src/app/page.tsx\n M frontend/src/app/products/[id]/ProductDetail.tsx\n M frontend/src/app/register/page.tsx\n M frontend/src/components/OrganizationPanel.tsx\n M frontend/src/components/home/PackBuilderInteractive.tsx\n M frontend/src/components/layout/Header.tsx\n?? backend/app/api/v1/admin_commerce.py\n?? backend/app/api/v1/internal_pricing.py\n?? backend/app/api/v1/media.py\n?? backend/app/services/catalog_promotion_service.py\n?? backend/app/services/commerce_lifecycle_service.py\n?? backend/app/services/media_service.py\n?? backend/app/services/product_catalog_import_service.py\n?? backend/app/services/search_delegate.py\n?? backend/migrations/0030_commerce_infrastructure.sql\n?? backend/migrations/0031_data_origin_test_marker.sql\n?? backend/migrations/0032_media_assets.sql\n?? frontend/src/app/admin/commerce/\n?? frontend/src/app/ai/\n?? frontend/src/app/api/ai/\n?? frontend/src/components/admin-commerce/\n?? frontend/src/components/ai-workspace/\n?? stage2/",
+      "hashes": {
+        "frontend/src/app/page.tsx": "5897410c56aadb94dba01973900f58ae4440c6d401908f74564dc0feba3fc5c0",
+        "frontend/src/components/home/PackBuilder.tsx": "d85cb18c350adfb8d570e563023df2dad7511355319fd674f11ca6318c1ff8dd",
+        "frontend/src/components/home/PackBuilderInteractive.tsx": "4abc5f4a5300ffa58686a9471a92e17f39f4df40baf1e3e05ec930a919a09677",
+        "frontend/src/app/globals.css": "3b041218b892cc11abf5a0479f40bc6b1227924e2c7a5e47ec1d5759a40f53dd",
+        "frontend/src/app/layout.tsx": "280b1ca8912e875e5993065f0cf4e00775523a18c7710195458b2d83e6f663c7",
+        "frontend/src/components/layout/Header.tsx": "f93ab2fb40916f83f84cd9b9dfad44b0d64c8771d56a4dbf0e3d00232856343a",
+        "frontend/src/components/OrganizationPanel.tsx": "9322846fcdb588ce50f2d87a2433cf7f354b3074313843231a591fd23d719014",
+        "frontend/src/lib/types.ts": "88b4dcaab1b528f7eca58cab4e711458c7bebb0e7d39a4942ec3dcd4c93703a0"
+      }
+    }
+  }
+}

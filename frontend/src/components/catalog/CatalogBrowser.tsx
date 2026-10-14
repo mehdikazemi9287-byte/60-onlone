@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { catalog, categories } from "@/lib/api";
+import { CatalogLoading } from "./CatalogLoading";
 import { ProductGrid } from "@/components/product/ProductCard";
 import type { Product, Category } from "@/lib/types";
 export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
@@ -72,7 +73,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
   }, [q, cat, page, sort]);
   const name = cats.find((c) => c.slug === cat)?.name;
   return (
-    <div className="internal-page container-page py-8">
+    <div className="catalog-page internal-page container-page py-8">
       <nav className="mb-5 flex flex-wrap gap-4 text-sm">
         <Link href="/">خانه</Link>
         <Link href="/category">دسته‌بندی‌ها</Link>
@@ -83,7 +84,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
         {name || "جستجوی کالا"}
       </h1>
       <form
-        className="mb-6 flex flex-wrap gap-3"
+        className="catalog-toolbar mb-6 flex flex-wrap gap-3"
         onSubmit={(e) => {
           e.preventDefault();
           change({ q: query, page: "1" });
@@ -126,14 +127,14 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
         </select>
       </form>
       <p className="mb-4 text-sm" aria-live="polite">
-        {loading ? "در حال دریافت…" : total.toLocaleString("fa-IR") + " کالا"}
+        {error ? "دریافت کالاها ناموفق بود" : loading ? "در حال دریافت…" : total.toLocaleString("fa-IR") + " کالا"}
       </p>
       {error ? (
         <p role="alert" className="rounded-xl bg-red-50 p-5 text-red-800">
           {error}
         </p>
       ) : loading ? (
-        <div className="min-h-64 animate-pulse rounded-xl bg-neutral-100" />
+        <CatalogLoading />
       ) : items.length ? (
         <ProductGrid products={items} cols={3} />
       ) : (

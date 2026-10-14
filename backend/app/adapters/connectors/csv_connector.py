@@ -301,7 +301,7 @@ class CsvConnector(ConnectorAdapter):
             records.append({
                 "code": code,
                 "name": name,
-                "unit": r.get("unit", "عدد"),
+                "unit": r.get("unit") or None,
                 "price_minor": price_minor,
                 "currency": r.get("currency", self._currency),
                 "stock_quantity": stock,

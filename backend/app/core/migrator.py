@@ -229,6 +229,14 @@ def _apply_migration_sqlite(
 ) -> None:
     """Apply one migration on SQLite using executescript() with BEGIN/COMMIT."""
     conn = db.connection
+    if version == '0043' and name == 'nullable_master_unit_pack':
+        from app.core import catalog_nullable_migration
+        expected = re.search(r"implementation-sha256: ([a-f0-9]{64})", sql)
+        actual = hashlib.sha256(Path(catalog_nullable_migration.__file__).read_bytes()).hexdigest()
+        if expected is None or actual != expected.group(1):
+            raise MigrationError("Nullable migration implementation digest mismatch")
+        catalog_nullable_migration.apply(conn, checksum=checksum, now=now)
+        return
     script = (
         "BEGIN;\n"
         f"{sql}\n"

@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "scope": "current Source + disposable synthetic organization preview; 390px/1440px",
+  "results": [
+    {
+      "label": "homepage",
+      "width": 390,
+      "overflow": false,
+      "rtl": true,
+      "cards": 6,
+      "brokenImages": 0
+    },
+    {
+      "label": "pouya-list",
+      "width": 390,
+      "overflow": false,
+      "rtl": true,
+      "cards": 24,
+      "brokenImages": 0
+    },
+    {
+      "label": "aria-search",
+      "width": 390,
+      "overflow": false,
+      "rtl": true,
+      "cards": 24,
+      "brokenImages": 0
+    },
+    {
+      "width": 390,
+      "packSelection": "PASS",
+      "handoff": "PASS",
+      "supplierCategorySkuFilters": "PASS",
+      "request": "PASS",
+      "rfq": "PASS",
+      "nullUnit": true,
+      "nullEstimate": true,
+      "unknownStockSelectable": true,
+      "pdp": "PASS",
+      "pageErrors": 0
+    },
+    {
+      "label": "homepage",
+      "width": 1440,
+      "overflow": false,
+      "rtl": true,
+      "cards": 6,
+      "brokenImages": 0
+    },
+    {
+      "label": "pouya-list",
+      "width": 1440,
+      "overflow": false,
+      "rtl": true,
+      "cards": 24,
+      "brokenImages": 0
+    },
+    {
+      "label": "aria-search",
+      "width": 1440,
+      "overflow": false,
+      "rtl": true,
+      "cards": 24,
+      "brokenImages": 0
+    },
+    {
+      "width": 1440,
+      "packSelection": "PASS",
+      "handoff": "PASS",
+      "supplierCategorySkuFilters": "PASS",
+      "request": "PASS",
+      "rfq": "PASS",
+      "nullUnit": true,
+      "nullEstimate": true,
+      "unknownStockSelectable": true,
+      "pdp": "PASS",
+      "pageErrors": 0
+    }
+  ]
+}

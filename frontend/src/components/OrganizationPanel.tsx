@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
+import { Building2 } from "lucide-react";
 import PurchaseDocument from "./PurchaseDocument";
+import { RequestProductPicker, RequestSelection, PACK_REQUEST_KEY } from "./catalog/RequestProductPicker";
 import { FormEvent, useEffect, useState } from "react";
 import { apiRequest, newIdempotencyKey } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -47,6 +49,11 @@ export default function OrganizationPanel() {
     [quantity, setQuantity] = useState(1),
     [city, setCity] = useState(""),
     [province, setProvince] = useState("");
+  const [catalogItems, setCatalogItems] = useState<RequestSelection[]>([]);
+  useEffect(() => {
+    const draft = sessionStorage.getItem(PACK_REQUEST_KEY);
+    if (draft) { try { const items = JSON.parse(draft); if (Array.isArray(items) && items.length<=50) setCatalogItems(items); } catch { /* invalid local draft is not imported */ } }
+  }, []);
   const [busy, setBusy] = useState(false),
     [key, setKey] = useState(""),
     [reload, setReload] = useState(0),
@@ -103,7 +110,7 @@ export default function OrganizationPanel() {
           title,
           delivery_province: province || null,
           delivery_city: city || null,
-          items: [{ free_text_description: description, quantity }],
+          items: [...catalogItems.map(i => ({ master_product_id: i.product.id, quantity: i.quantity, unit: i.product.unit, estimated_unit_price_minor: null })), ...(description.trim() ? [{ free_text_description: description, quantity, unit: null }] : [])],
         }),
       });
       setNotice(
@@ -111,6 +118,8 @@ export default function OrganizationPanel() {
       );
       setTitle("");
       setDescription("");
+      setCatalogItems([]);
+      sessionStorage.removeItem(PACK_REQUEST_KEY);
       setKey(newIdempotencyKey());
       setReload((v) => v + 1);
     } catch (e) {
@@ -118,6 +127,14 @@ export default function OrganizationPanel() {
     } finally {
       setBusy(false);
     }
+  }
+  async function createRfq(pr: PR) {
+    setBusy(true); setError("");
+    try {
+      await apiRequest("/orgs/"+selected+"/procurement/rfqs", { token: token!, method: "POST", body: JSON.stringify({ purchase_request_id: pr.id, title: pr.title }) });
+      setNotice("پیش‌نویس استعلام تأمین ثبت شد؛ قیمت و موجودی باید در پیشنهاد تأمین‌کننده تأیید شوند.");
+      setReload(v => v+1);
+    } catch(e) { setError((e as Error).message); } finally { setBusy(false); }
   }
   async function action(id: number, op: string) {
     setBusy(true);
@@ -142,15 +159,17 @@ export default function OrganizationPanel() {
   if (loading) return <p className="p-8">در حال بررسی ورود…</p>;
   if (!user)
     return (
-      <main className="container-page py-12">
-        <h1 className="text-2xl">تأمین سازمانی</h1>
-        <p className="my-4">
-          برای مشاهده درخواست‌ها و اعتبار سازمان خود وارد شوید.
-        </p>
-        <Link className="btn-primary" href="/login">
-          ورود
-        </Link>
-      </main>
+      <section className="org-entry container-page" aria-labelledby="org-entry-title">
+        <div className="org-entry-panel">
+          <span className="org-entry-icon"><Building2 aria-hidden="true" strokeWidth={1.4} /></span>
+          <div>
+            <span className="section-kicker">60Online برای سازمان‌ها</span>
+            <h1 id="org-entry-title">تأمین سازمانی</h1>
+            <p>برای مشاهده درخواست‌ها و اعتبار سازمان خود وارد شوید.</p>
+            <Link className="org-entry-action" href="/login?next=/org">ورود</Link>
+          </div>
+        </div>
+      </section>
     );
   const admin =
     orgs.find((o) => String(o.id) === selected)?.membership.role ===
@@ -206,11 +225,12 @@ export default function OrganizationPanel() {
                     onChange={(e) => setTitle(e.target.value)}
                   />
                 </label>
+                <RequestProductPicker value={catalogItems} onChange={items => {setCatalogItems(items); setKey(newIdempotencyKey());}} />
                 <label className="block">
                   شرح دقیق کالا و گونه مورد نیاز
                   <textarea
                     className="block border rounded-xl p-3 w-full"
-                    required
+                    required={catalogItems.length===0}
                     maxLength={2000}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -269,6 +289,7 @@ export default function OrganizationPanel() {
                   {p.request_number} · {states[p.status] ?? p.status}
                 </p>
                 <div className="flex gap-3 flex-wrap">
+                  {admin && p.status === "approved" && <button disabled={busy} onClick={() => createRfq(p)}>ایجاد استعلام تأمین</button>}
                   {p.status === "draft" &&
                     (admin || p.requester_user_id === user.id) && (
                       <button

@@ -1,0 +1,16 @@
+{
+  "HEAD": "9d06e4dbe6cf9a065ad87834e87a761396949a86",
+  "owned_file_hashes": "PASS",
+  "syntax": "PASS",
+  "git_diff_check": "PASS",
+  "backend_tests": {
+    "passed": 16,
+    "failed": 0
+  },
+  "UI": "PASS: 390px/1440px, pack/picker/request/RFQ/homepage",
+  "production_changed": false,
+  "ready_for_complete_catalog_production_release": false,
+  "remaining_quarantine": [
+    "آریا:sku:9030"
+  ]
+}

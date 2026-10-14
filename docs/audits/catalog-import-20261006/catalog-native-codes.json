@@ -1,0 +1,590 @@
+[
+  {
+    "page": 6,
+    "sku": "1027",
+    "x": 241.3,
+    "y": 91.25,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 7,
+    "sku": "1026",
+    "x": 86.18,
+    "y": 137.86,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 8,
+    "sku": "1025",
+    "x": 413.63,
+    "y": 137.86,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 9,
+    "sku": "1057",
+    "x": 364.1,
+    "y": 347.8,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 9,
+    "sku": "1048",
+    "x": 63.73,
+    "y": 347.8,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 9,
+    "sku": "1047",
+    "x": 364.1,
+    "y": 71.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 9,
+    "sku": "1058",
+    "x": 63.73,
+    "y": 71.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 10,
+    "sku": "1030",
+    "x": 264.43,
+    "y": 295.54,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 10,
+    "sku": "1000",
+    "x": 436.54,
+    "y": 59.25,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 11,
+    "sku": "1028",
+    "x": 353.14,
+    "y": 195.59,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 11,
+    "sku": "1023",
+    "x": 69.06,
+    "y": 195.59,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 12,
+    "sku": "1022",
+    "x": 419.42,
+    "y": 195.59,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 12,
+    "sku": "1024",
+    "x": 419.42,
+    "y": 75.14,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 12,
+    "sku": "1021",
+    "x": 139.24,
+    "y": 272.31,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 13,
+    "sku": "1056",
+    "x": 341.55,
+    "y": 325.35,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 13,
+    "sku": "1065",
+    "x": 68.62,
+    "y": 325.35,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 13,
+    "sku": "1059",
+    "x": 58.02,
+    "y": 56.74,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 14,
+    "sku": "1069",
+    "x": 402.58,
+    "y": 325.35,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 14,
+    "sku": "1062",
+    "x": 116.05,
+    "y": 325.35,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 14,
+    "sku": "1001",
+    "x": 402.58,
+    "y": 57.88,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 14,
+    "sku": "1068",
+    "x": 114.34,
+    "y": 57.88,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 16,
+    "sku": "1088",
+    "x": 129.45,
+    "y": 324.81,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 16,
+    "sku": "1083",
+    "x": 432.56,
+    "y": 135.3,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 17,
+    "sku": "1080",
+    "x": 325.78,
+    "y": 120.91,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 18,
+    "sku": "1085",
+    "x": 424.37,
+    "y": 107.72,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 20,
+    "sku": "1081",
+    "x": 427.55,
+    "y": 89.82,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 21,
+    "sku": "1096",
+    "x": 85.15,
+    "y": 112.7,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 22,
+    "sku": "1095",
+    "x": 116.37,
+    "y": 112.7,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 25,
+    "sku": "3017",
+    "x": 74.48,
+    "y": 406.95,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 27,
+    "sku": "3007",
+    "x": 415.44,
+    "y": 393.88,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 27,
+    "sku": "3008",
+    "x": 114.41,
+    "y": 80.23,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 28,
+    "sku": "3009",
+    "x": 410.53,
+    "y": 142.52,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 31,
+    "sku": "3006",
+    "x": 85.71,
+    "y": 132.57,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 32,
+    "sku": "3002",
+    "x": 365.57,
+    "y": 282.19,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 32,
+    "sku": "3050",
+    "x": 199.15,
+    "y": 462.56,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 32,
+    "sku": "1305",
+    "x": 201.53,
+    "y": 107.92,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 33,
+    "sku": "3043",
+    "x": 181.81,
+    "y": 174.26,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 33,
+    "sku": "3042",
+    "x": 180.79,
+    "y": 381.83,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 38,
+    "sku": "9082",
+    "x": 386.22,
+    "y": 93.35,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 39,
+    "sku": "9085",
+    "x": 360.68,
+    "y": 468.11,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 40,
+    "sku": "9084",
+    "x": 115.83,
+    "y": 75.85,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 40,
+    "sku": "9081",
+    "x": 444.83,
+    "y": 374.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 41,
+    "sku": "9083",
+    "x": 87.52,
+    "y": 109.56,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 42,
+    "sku": "9080",
+    "x": 118.83,
+    "y": 109.56,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 44,
+    "sku": "2061",
+    "x": 121.18,
+    "y": 79.57,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 44,
+    "sku": "2060",
+    "x": 122.55,
+    "y": 445.81,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 45,
+    "sku": "2054",
+    "x": 379.54,
+    "y": 43.41,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 45,
+    "sku": "2051",
+    "x": 118.19,
+    "y": 43.86,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 46,
+    "sku": "2052",
+    "x": 439.56,
+    "y": 58.67,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 46,
+    "sku": "2057",
+    "x": 145.88,
+    "y": 57.96,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 47,
+    "sku": "2035",
+    "x": 366.59,
+    "y": 417.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 47,
+    "sku": "2036",
+    "x": 87.97,
+    "y": 89.85,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 48,
+    "sku": "2032",
+    "x": 131.71,
+    "y": 57.49,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 48,
+    "sku": "2019",
+    "x": 410.41,
+    "y": 361.28,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 50,
+    "sku": "5014",
+    "x": 352.95,
+    "y": 72.8,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 50,
+    "sku": "5015",
+    "x": 129.65,
+    "y": 72.8,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 51,
+    "sku": "5012",
+    "x": 381.38,
+    "y": 107.11,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 51,
+    "sku": "5013",
+    "x": 91.63,
+    "y": 107.11,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 52,
+    "sku": "5010",
+    "x": 434.83,
+    "y": 378.86,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 52,
+    "sku": "5011",
+    "x": 438.45,
+    "y": 102.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 59,
+    "sku": "4021",
+    "x": 122.56,
+    "y": 182.45,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 60,
+    "sku": "4022",
+    "x": 272.05,
+    "y": 182.45,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 70,
+    "sku": "8023",
+    "x": 139.17,
+    "y": 412.42,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 71,
+    "sku": "8045",
+    "x": 78.79,
+    "y": 61.3,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 72,
+    "sku": "9072",
+    "x": 109.83,
+    "y": 152.19,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 74,
+    "sku": "9050",
+    "x": 261.09,
+    "y": 88.45,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 75,
+    "sku": "9012",
+    "x": 79.93,
+    "y": 94.68,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 75,
+    "sku": "9003",
+    "x": 103.46,
+    "y": 94.68,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 75,
+    "sku": "9011",
+    "x": 350.28,
+    "y": 94.68,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 75,
+    "sku": "9002",
+    "x": 373.81,
+    "y": 94.68,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 76,
+    "sku": "9015",
+    "x": 137.55,
+    "y": 94.68,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 76,
+    "sku": "9006",
+    "x": 161.08,
+    "y": 94.68,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 76,
+    "sku": "9010",
+    "x": 400.24,
+    "y": 94.68,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 76,
+    "sku": "9001",
+    "x": 423.77,
+    "y": 94.68,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 79,
+    "sku": "8034",
+    "x": 360.41,
+    "y": 117.31,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 90,
+    "sku": "9049",
+    "x": 125.2,
+    "y": 123.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 99,
+    "sku": "9070",
+    "x": 54.52,
+    "y": 102.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 99,
+    "sku": "9071",
+    "x": 405.13,
+    "y": 429.86,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 100,
+    "sku": "9025",
+    "x": 376.8,
+    "y": 102.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 100,
+    "sku": "9026",
+    "x": 146.1,
+    "y": 102.71,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 103,
+    "sku": "7071",
+    "x": 91.86,
+    "y": 428.65,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 103,
+    "sku": "7072",
+    "x": 129.11,
+    "y": 101.08,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 104,
+    "sku": "7073",
+    "x": 170.17,
+    "y": 72.9,
+    "method": "native_code_baseline"
+  },
+  {
+    "page": 109,
+    "sku": "8056",
+    "x": 367.3,
+    "y": 116.97,
+    "method": "native_code_baseline"
+  }
+]

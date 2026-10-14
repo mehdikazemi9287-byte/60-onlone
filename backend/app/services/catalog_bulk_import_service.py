@@ -62,7 +62,7 @@ def parse_catalog_csv(csv_text: str) -> dict:
             item["sku"] = sku
         try:
             item["package_quantity"] = (
-                _integer(item.get("package_quantity"), field="package_quantity", minimum=1) or 1
+                _integer(item.get("package_quantity"), field="package_quantity", minimum=1)
             )
             item["vat_rate_bps"] = _integer(
                 item.get("vat_rate_bps"), field="vat_rate_bps", minimum=0
@@ -184,7 +184,7 @@ def _upsert_master(conn, item):
         item.get("model") or None,
         item.get("variant") or None,
         item.get("size_label") or None,
-        item.get("unit") or "عدد",
+        item.get("unit") or None,
         item["package_quantity"],
         item.get("net_quantity") or None,
         item.get("description_fa") or None,
@@ -197,7 +197,7 @@ def _upsert_master(conn, item):
         conn.execute(
             """UPDATE master_products SET canonical_name_fa=?,canonical_name_en=?,brand=?,
             manufacturer=?,category=?,subcategory=?,product_type=?,model=?,variant=?,
-            size_label=?,unit=?,package_quantity=?,net_quantity=?,description_fa=?,
+            size_label=?,unit=COALESCE(?,unit),package_quantity=COALESCE(?,package_quantity),net_quantity=?,description_fa=?,
             image_urls_json=COALESCE(?,image_urls_json),country_of_origin=?,vat_rate_bps=?,
             status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?""",
             (*values, master_id),

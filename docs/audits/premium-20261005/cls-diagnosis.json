@@ -1,0 +1,29 @@
+{
+  "shifts": [
+    {
+      "time": 1040.5999994277954,
+      "value": 0.7444444444444445,
+      "sources": [
+        {
+          "tag": "FOOTER",
+          "class": "bg-brand-navy text-white/70",
+          "oldY": 230,
+          "newY": 0,
+          "oldH": 670,
+          "newH": 0
+        }
+      ]
+    }
+  ],
+  "toolbar": {
+    "x": 16,
+    "y": 285.59375,
+    "width": 358,
+    "height": 228,
+    "top": 285.59375,
+    "right": 374,
+    "bottom": 513.59375,
+    "left": 16
+  },
+  "title": "جستجوی کالا"
+}

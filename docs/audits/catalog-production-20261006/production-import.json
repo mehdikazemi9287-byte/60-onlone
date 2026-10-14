@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "production_db": "/home/ubuntu/60online-authoritative/releases/20260925-canonical/data/70online.db",
+  "summary": {
+    "آریا": {
+      "source_rows": 344,
+      "identities": 233,
+      "create": 233,
+      "match": 0,
+      "review": 0,
+      "skip": 0,
+      "source_update": 0
+    },
+    "پویا پروتئین": {
+      "source_rows": 167,
+      "identities": 167,
+      "create": 167,
+      "match": 0,
+      "review": 0,
+      "skip": 0,
+      "source_update": 0
+    }
+  },
+  "quarantined_not_imported": [
+    "آریا:sku:9030"
+  ],
+  "new_offers": 0,
+  "final_sale_prices": 0,
+  "integrity_check": "ok"
+}

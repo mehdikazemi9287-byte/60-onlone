@@ -71,6 +71,8 @@ def create_purchase_request(org_id: int):
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         raise ValidationError("بدنه درخواست نامعتبر است")
+    if any(key in data for key in ("attachments", "uploads", "files", "file")):
+        raise ValidationError("بارگذاری امن فایل هنوز فعال نیست")
     key = request.headers.get("Idempotency-Key")
     if key is not None and (not key.strip() or len(key) > 128):
         raise ValidationError("شناسه درخواست نامعتبر است")
@@ -81,6 +83,7 @@ def create_purchase_request(org_id: int):
     db = get_db()
     with db.write_transaction() as conn:
         pr_svc._assert_org_member(conn, current_user()["id"], org_id)
+        pr_svc._assert_org_accepts_intake(conn, org_id)
         if key:
             old = conn.execute(
                 "SELECT * FROM idempotency_keys WHERE key=? AND user_id=? AND endpoint=?",
@@ -108,6 +111,8 @@ def create_purchase_request(org_id: int):
             urgency=data.get("urgency", "normal"),
             notes=data.get("notes"),
             items=data.get("items"),
+            destinations=data.get("destinations"),
+            substitution_policy=data.get("substitution_policy", "require_approval"),
         )
         if key:
             conn.execute(

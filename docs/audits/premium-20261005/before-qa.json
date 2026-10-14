@@ -1,0 +1,72 @@
+[
+  {
+    "label": "home",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  },
+  {
+    "label": "catalog",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  },
+  {
+    "label": "pdp",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  },
+  {
+    "label": "category",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  },
+  {
+    "label": "org",
+    "width": 390,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  },
+  {
+    "label": "home",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 1
+  },
+  {
+    "label": "catalog",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  },
+  {
+    "label": "pdp",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  },
+  {
+    "label": "category",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  },
+  {
+    "label": "org",
+    "width": 1440,
+    "overflow": false,
+    "rtl": "rtl",
+    "brokenImages": 0
+  }
+]

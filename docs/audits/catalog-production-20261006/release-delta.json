@@ -1,0 +1,16 @@
+{
+  "frontend_changed_from_live": [
+    "components/OrganizationPanel.tsx",
+    "lib/storefront.ts",
+    "components/home/PackBuilderInteractive.tsx",
+    "components/home/PackOrgRequest.tsx",
+    "app/organization/requests/page.tsx",
+    "lib/procurement/draft.ts",
+    "lib/procurement/copilot.ts"
+  ],
+  "homepage_source_unchanged": true,
+  "pack_builder": "existing PackStudio and PackBuilderInteractive retained; null-unit handoff only",
+  "new_picker": "same verified RequestProductPicker",
+  "new_backend_from_current_image": true,
+  "rollback": "400 guarded publication visibility updates + restore previous live routes; no data deletes/overwrites"
+}

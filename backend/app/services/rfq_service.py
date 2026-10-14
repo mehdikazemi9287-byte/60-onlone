@@ -25,12 +25,15 @@ from app.services.procurement_service import _assert_org_member, _can_procure, _
 # ── Number generation ──────────────────────────────────────────────────────────
 
 def _next_rfq_number(conn, organization_id: int) -> str:
+    # rfq_number is globally unique, not organization-scoped. The caller owns
+    # the serialized write transaction; preserve every previously issued value.
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
-    count = conn.execute(
-        "SELECT COUNT(*) FROM rfqs WHERE organization_id=?",
-        (organization_id,),
+    prefix = f"RFQ-{today}-"
+    highest = conn.execute(
+        "SELECT COALESCE(MAX(CAST(SUBSTR(rfq_number, ?) AS INTEGER)),0) FROM rfqs WHERE rfq_number LIKE ?",
+        (len(prefix)+1, prefix+"%"),
     ).fetchone()[0]
-    return f"RFQ-{today}-{count + 1:04d}"
+    return f"{prefix}{highest+1:04d}"
 
 
 def _next_quote_number(conn, organization_id: int) -> str:

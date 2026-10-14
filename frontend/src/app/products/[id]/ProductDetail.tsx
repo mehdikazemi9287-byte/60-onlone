@@ -7,7 +7,7 @@ import { cn, formatPrice, toPersianNum } from "@/lib/utils";
 import { catalog, cart as cartApi, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Product } from "@/lib/types";
-import { ImageOff } from "lucide-react";
+import { ProductMedia } from "@/components/product/ProductMedia";
 
 // Real product-detail integration: the [id] route segment is actually the
 // product's real slug (matches ProductCard's link and the backend's
@@ -59,7 +59,6 @@ export default function ProductDetailPage({
   const [addedToCart, setAddedToCart] = useState(false);
   const [cartError, setCartError] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
-  const [imageFailed, setImageFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +66,6 @@ export default function ProductDetailPage({
     setNotFound(false);
     setError(null);
     setQty(1);
-    setImageFailed(false);
 
     catalog
       .get(slug)
@@ -140,7 +138,7 @@ export default function ProductDetailPage({
 
   if (!product) {
     return (
-      <div className="container-page py-6 md:py-8">
+      <div className="product-detail container-page py-6 md:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           <div className="card aspect-[4/3] animate-pulse bg-neutral-100" />
           <div className="space-y-3">
@@ -160,12 +158,11 @@ export default function ProductDetailPage({
         )
       : 0;
   const stock = product.purchasable ? (product.stock ?? null) : null;
-  const hasRealImage = !!product.image_url && !imageFailed;
 
   return (
-    <div className="container-page py-6 md:py-8">
+    <div className="product-detail container-page py-6 md:py-8">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-neutral-400 mb-6">
+      <nav aria-label="مسیر صفحه" className="flex flex-wrap items-center gap-2 text-xs text-neutral-600 mb-6">
         <Link href="/" className="hover:text-primary-600 transition-colors">
           خانه
         </Link>
@@ -196,31 +193,11 @@ export default function ProductDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-10">
         {/* ── Image ──────────────────────────────────────────────────────────── */}
         <div>
-          <div className="card overflow-hidden aspect-[4/3] mb-3 flex items-center justify-center bg-white">
-            {hasRealImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={product.image_url}
-                alt={product.name}
-                onError={() => setImageFailed(true)}
-                className="w-full h-full object-contain p-7 md:p-10"
-              />
-            ) : (
-              <div
-                className="w-full h-full flex items-center justify-center bg-brand-gray"
-                aria-hidden
-              >
-                <span className="flex flex-col items-center gap-3 text-neutral-400">
-                  <ImageOff className="h-12 w-12" strokeWidth={1.3} />
-                  <span className="text-sm font-medium">تصویر موجود نیست</span>
-                </span>
-              </div>
-            )}
-          </div>
+          <ProductMedia src={product.image_url} name={product.name} priority className="product-detail-media" />
         </div>
 
         {/* ── Info ────────────────────────────────────────────────────────────── */}
-        <div className="flex flex-col gap-4">
+        <div className="product-detail-info flex flex-col gap-4">
           {/* Category / brand */}
           <div className="flex items-center gap-2 text-xs">
             {product.category && (
@@ -237,7 +214,7 @@ export default function ProductDetailPage({
           </div>
 
           {/* Name */}
-          <h1 className="text-xl md:text-2xl font-black text-neutral-900 leading-snug">
+          <h1 className="product-detail-title">
             {product.name}
           </h1>
 
@@ -252,7 +229,7 @@ export default function ProductDetailPage({
           )}
 
           {/* Price */}
-          <div className="flex items-center gap-3">
+          <div className="product-detail-price flex flex-wrap items-center gap-3">
             <span className="text-3xl font-black text-neutral-900 tabular-nums">
               {product.price_minor == null
                 ? "استعلام قیمت"
@@ -263,7 +240,7 @@ export default function ProductDetailPage({
                 <span className="text-sm text-neutral-400 line-through tabular-nums">
                   {formatPrice(product.original_price_minor!)}
                 </span>
-                <span className="text-xs font-bold text-white bg-accent-500 px-2 py-0.5 rounded-md">
+                <span className="text-xs font-bold text-brand-navy bg-accent-500 px-2 py-0.5 rounded-md">
                   ٪{discount} تخفیف
                 </span>
               </div>
@@ -294,8 +271,9 @@ export default function ProductDetailPage({
             <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
               <div className="flex items-center border border-neutral-200 rounded-xl overflow-hidden">
                 <button
+                  aria-label="کاهش تعداد"
                   onClick={() => setQty(Math.max(1, qty - 1))}
-                  className="w-10 h-11 flex items-center justify-center text-neutral-500 hover:bg-neutral-50 transition-colors"
+                  className="w-11 h-11 flex items-center justify-center text-neutral-500 hover:bg-neutral-50 transition-colors"
                 >
                   <svg
                     className="w-4 h-4"
@@ -315,10 +293,11 @@ export default function ProductDetailPage({
                   {toPersianNum(qty)}
                 </span>
                 <button
+                  aria-label="افزایش تعداد"
                   onClick={() =>
                     setQty(Math.min(stock && stock > 0 ? stock : 99, qty + 1))
                   }
-                  className="w-10 h-11 flex items-center justify-center text-neutral-500 hover:bg-neutral-50 transition-colors"
+                  className="w-11 h-11 flex items-center justify-center text-neutral-500 hover:bg-neutral-50 transition-colors"
                 >
                   <svg
                     className="w-4 h-4"
@@ -343,7 +322,7 @@ export default function ProductDetailPage({
                   "flex-1 h-11 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all",
                   addedToCart
                     ? "bg-success-500 text-white"
-                    : "bg-brand-coral text-white hover:bg-red-600 active:scale-[0.98]",
+                    : "bg-brand-navy text-white hover:bg-brand-blue",
                   (stock === 0 || addingToCart) &&
                     "opacity-50 cursor-not-allowed",
                 )}
@@ -422,7 +401,7 @@ export default function ProductDetailPage({
             </div>
           )}
 
-          {cartError && <p className="text-xs text-danger-600">{cartError}</p>}
+          {cartError && <p role="alert" className="text-sm text-danger-600">{cartError}</p>}
 
           <Link
             href={"/requests/new?slug=" + encodeURIComponent(product.slug)}
@@ -438,7 +417,7 @@ export default function ProductDetailPage({
       </div>
 
       {/* ── Description ──────────────────────────────────────────────────────── */}
-      <div className="card p-5 md:p-6 max-w-3xl">
+      <div className="product-detail-description">
         <h2 className="text-lg font-bold text-neutral-900 mb-3">
           توضیحات محصول
         </h2>

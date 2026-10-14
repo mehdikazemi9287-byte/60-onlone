@@ -1,0 +1,13 @@
+{
+  "source_rows": 513,
+  "missing_source_provenance": 0,
+  "malformed_names": 0,
+  "malformed_prices": 0,
+  "stock_invented": 0,
+  "unverified_currency_promoted": 0,
+  "foreign_key_violations_before": [],
+  "quick_check": "ok",
+  "exact_images": 3,
+  "integrity_gate": "PASS",
+  "scope": "candidate accepted rows only; required-attribute gaps and conflicting source identities quarantined"
+}

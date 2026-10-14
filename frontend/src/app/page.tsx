@@ -25,7 +25,7 @@ function Hero() {
       <h1 className="text-3xl font-black leading-tight text-white md:text-5xl">کالای مورد نیازتان را<span className="block text-amber-300">سریع و مطمئن پیدا کنید</span></h1>
       <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/70 md:text-base">جستجو کنید، دسته‌بندی‌ها را ببینید یا برای خریدهای گروهی از پک‌ساز استفاده کنید.</p>
       <form action="/search" method="get" className="relative mx-auto mt-7 max-w-2xl">
-        <input type="search" name="q" placeholder="دنبال چه کالایی هستید؟" className="h-16 w-full rounded-2xl border-2 border-white/20 bg-white pr-5 pl-16 text-base font-medium text-neutral-900 shadow-2xl placeholder:text-neutral-400 focus:border-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-300/20" />
+        <input type="search" name="q" aria-label="جستجوی کالا" placeholder="دنبال چه کالایی هستید؟" className="h-16 w-full rounded-2xl border-2 border-white/20 bg-white pr-5 pl-16 text-base font-medium text-neutral-900 shadow-2xl placeholder:text-neutral-400 focus:border-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-300/20" />
         <button type="submit" aria-label="جستجو" className="absolute left-2 top-2 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-400 text-brand-navy transition-colors hover:bg-amber-300"><Search className="h-5 w-5" strokeWidth={2.2} /></button>
       </form>
       <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-white/60"><span>پیشنهاد جستجو:</span><Link href="/search?q=برنج" className="text-white hover:text-amber-300">برنج</Link><span>•</span><Link href="/search?q=موبایل" className="text-white hover:text-amber-300">موبایل</Link><span>•</span><Link href="/search?q=لوازم اداری" className="text-white hover:text-amber-300">لوازم اداری</Link></div>
@@ -42,10 +42,11 @@ function CategorySection() {
 
 function ProductSection() {
   const [products, setProducts] = useState<Product[] | null>(null);
-  useEffect(() => { let cancelled = false; catalog.list({ page: 1, page_size: 6 }).then((r) => !cancelled && setProducts(r.items)).catch(() => !cancelled && setProducts([])); return () => { cancelled = true; }; }, []);
+  const [productError, setProductError] = useState(false);
+  useEffect(() => { let cancelled = false; catalog.list({ page: 1, page_size: 6 }).then((r) => !cancelled && setProducts(r.items)).catch(() => { if (!cancelled) { setProducts([]); setProductError(true); } }); return () => { cancelled = true; }; }, []);
   return <section className="section bg-white"><div className="container-page">
     <div className="section-heading"><div><span className="section-kicker">پیشنهادهای فروشگاه</span><h2>محصولات منتخب</h2><p>کالاهای موجود در فروشگاه را یک‌جا بررسی کنید</p></div><Link href="/search" className="section-link">مشاهده محصولات <ArrowLeft className="h-4 w-4" /></Link></div>
-    {products === null ? <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="card aspect-[3/4] animate-pulse bg-neutral-100" />)}</div> : products.length ? <ProductGrid products={products} cols={3} /> : <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 py-12 text-center text-sm text-neutral-500">در حال حاضر محصولی برای نمایش در این بخش موجود نیست.</div>}
+    {productError ? <div role="alert" className="commerce-state"><h3>دریافت محصولات ناموفق بود</h3><p>برای تلاش دوباره صفحه را تازه کنید یا به جستجوی کالا بروید.</p><Link href="/search" className="section-link">جستجوی کالا <ArrowLeft className="h-4 w-4" /></Link></div> : products === null ? <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="card aspect-[3/4] animate-pulse bg-neutral-100" />)}</div> : products.length ? <ProductGrid products={products} cols={3} /> : <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 py-12 text-center text-sm text-neutral-500">در حال حاضر محصولی برای نمایش در این بخش موجود نیست.</div>}
   </div></section>;
 }
 

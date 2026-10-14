@@ -30,11 +30,13 @@ from app.core.errors import ConflictError, PermissionError_, NotFoundError, Vali
 
 def _next_pr_number(conn, organization_id: int) -> str:
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
-    count = conn.execute(
-        "SELECT COUNT(*) FROM purchase_requests WHERE organization_id=?",
-        (organization_id,),
-    ).fetchone()[0]
-    return f"PR-{today}-{count + 1:04d}"
+    # request_number is globally UNIQUE, not scoped to an organization.
+    # Called inside the serialized SQLite write transaction.
+    candidate = conn.execute("SELECT COALESCE(MAX(id), 0) + 1 FROM purchase_requests").fetchone()[0]
+    while conn.execute("SELECT 1 FROM purchase_requests WHERE request_number=?",
+                       (f"PR-{today}-{candidate:04d}",)).fetchone():
+        candidate += 1
+    return f"PR-{today}-{candidate:04d}"
 
 
 def _next_rfq_number(conn, organization_id: int) -> str:
@@ -74,6 +76,12 @@ def _assert_org_member(conn, user_id: int, organization_id: int) -> dict:
     return _get_membership(conn, user_id, organization_id)
 
 
+def _assert_org_accepts_intake(conn, organization_id: int) -> None:
+    row = conn.execute("SELECT status FROM organizations WHERE id=?", (organization_id,)).fetchone()
+    if not row or row["status"] != "active":
+        raise PermissionError_("ثبت یا ارسال درخواست برای سازمان غیرفعال مجاز نیست")
+
+
 def _can_approve(membership: dict) -> bool:
     return (
         membership["role"] in ("organization_admin",)
@@ -86,6 +94,71 @@ def _can_procure(membership: dict) -> bool:
         membership["role"] in ("organization_admin", "procurement_agent")
         or membership["procurement_role"] == "procurement_officer"
     )
+
+
+def _can_read_org_requests(membership: dict) -> bool:
+    return (_can_approve(membership) or _can_procure(membership)
+            or membership["role"] == "organization_finance")
+
+
+def _text(value, field: str, limit: int, *, required=False):
+    if value is None and not required:
+        return None
+    if not isinstance(value, str) or len(value) > limit or (required and not value.strip()):
+        raise ValidationError(f"{field} نامعتبر است")
+    return value.strip()
+
+
+def _money(value, field: str):
+    if value is not None and (type(value) is not int or value < 0 or value > 9_000_000_000_000_000):
+        raise ValidationError(f"{field} باید مبلغ صحیح غیرمنفی باشد")
+    return value
+
+
+def _date(value):
+    if value is None:
+        return None
+    try:
+        if not isinstance(value, str) or datetime.date.fromisoformat(value).isoformat() != value:
+            raise ValueError()
+    except (ValueError, TypeError):
+        raise ValidationError("تاریخ باید به صورت YYYY-MM-DD باشد")
+    return value
+
+
+def _destinations(value, items):
+    if value is None:
+        return []
+    if not isinstance(value, list) or not 1 <= len(value) <= 20 or not items:
+        raise ValidationError("مقصدها نامعتبر است")
+    totals = [0] * len(items)
+    result = []
+    for destination in value:
+        if not isinstance(destination, dict):
+            raise ValidationError("مقصد نامعتبر است")
+        clean = {key: _text(destination.get(key), key, limit, required=True)
+                 for key, limit in (("province", 100), ("city", 100), ("address", 2000))}
+        clean["label"] = _text(destination.get("label"), "نام مقصد", 100)
+        clean["needed_by_date"] = _date(destination.get("needed_by_date"))
+        allocations = destination.get("allocations")
+        if not isinstance(allocations, list) or not 1 <= len(allocations) <= len(items):
+            raise ValidationError("تخصیص اقلام مقصد نامعتبر است")
+        seen = set()
+        clean["allocations"] = []
+        for allocation in allocations:
+            if not isinstance(allocation, dict):
+                raise ValidationError("تخصیص نامعتبر است")
+            index, qty = allocation.get("item_index"), allocation.get("quantity")
+            if (type(index) is not int or not 0 <= index < len(items) or index in seen
+                    or type(qty) is not int or not 1 <= qty <= 100000):
+                raise ValidationError("ردیف یا تعداد تخصیص نامعتبر است")
+            seen.add(index)
+            totals[index] += qty
+            clean["allocations"].append({"item_index": index, "quantity": qty})
+        result.append(clean)
+    if totals != [item.get("quantity") for item in items]:
+        raise ValidationError("جمع تخصیص هر قلم باید برابر تعداد درخواست باشد")
+    return result
 
 
 # ── Serialisation ──────────────────────────────────────────────────────────────
@@ -109,6 +182,10 @@ def _pr_dict(row) -> dict:
         "project_code": row["project_code"],
         "urgency": row["urgency"],
         "notes": row["notes"],
+        "substitution_policy": row["substitution_policy"],
+        "destinations": json.loads(row["destinations_json"]),
+        "next_action": {"draft": "submit_request", "submitted": "wait_for_review",
+                        "under_review": "wait_for_review"}.get(row["status"], "view_request"),
         "submitted_at": row["submitted_at"],
         "created_at": row["created_at"],
         "updated_at": row["updated_at"],
@@ -176,9 +253,12 @@ def create_purchase_request(
     urgency: str = "normal",
     notes: str | None = None,
     items: list[dict] | None = None,
+    destinations: list[dict] | None = None,
+    substitution_policy: str = "require_approval",
 ) -> dict:
     """Create a draft purchase request. Actor must be org member."""
     membership = _assert_org_member(conn, requester_user_id, organization_id)
+    _assert_org_accepts_intake(conn, organization_id)
     if not isinstance(title, str) or len(title) > 200:
         raise ValidationError("عنوان درخواست خرید نامعتبر است")
     if items is not None and (
@@ -192,8 +272,18 @@ def create_purchase_request(
         raise ValidationError("عنوان درخواست خرید الزامی است")
     if urgency not in ("low", "normal", "high", "urgent"):
         raise ValidationError("فوریت نامعتبر است")
-    if budget_minor is not None and budget_minor < 0:
-        raise ValidationError("بودجه نمی‌تواند منفی باشد")
+    budget_minor = _money(budget_minor, "بودجه")
+    needed_by_date = _date(needed_by_date)
+    description = _text(description, "شرح", 4000)
+    notes = _text(notes, "یادداشت", 4000)
+    delivery_province = _text(delivery_province, "استان", 100)
+    delivery_city = _text(delivery_city, "شهر", 100)
+    delivery_address = _text(delivery_address, "نشانی", 2000)
+    cost_center = _text(cost_center, "مرکز هزینه", 100)
+    project_code = _text(project_code, "کد پروژه", 100)
+    if substitution_policy not in ("disallow", "require_approval"):
+        raise ValidationError("سیاست جایگزینی نامعتبر است")
+    destinations = _destinations(destinations, items)
 
     req_number = _next_pr_number(conn, organization_id)
     cur = conn.execute(
@@ -222,6 +312,10 @@ def create_purchase_request(
         ),
     )
     pr_id = cur.lastrowid
+    conn.execute(
+        "UPDATE purchase_requests SET substitution_policy=?, destinations_json=? WHERE id=?",
+        (substitution_policy, json.dumps(destinations, ensure_ascii=False), pr_id),
+    )
 
     for item in items or []:
         _add_pr_item(conn, pr_id, item)
@@ -242,10 +336,13 @@ def create_purchase_request(
 
 
 def _add_pr_item(conn, pr_id: int, item: dict) -> None:
+    if any(key in item for key in ("attachments", "uploads", "files", "file")):
+        raise ValidationError("بارگذاری امن فایل هنوز فعال نیست")
     qty = item.get("quantity", 0)
     if isinstance(qty, bool) or not isinstance(qty, int) or qty < 1 or qty > 100000:
         raise ValidationError("تعداد باید عدد صحیح مثبت باشد")
-    if not item.get("master_product_id") and not item.get("free_text_description"):
+    description = _text(item.get("free_text_description"), "شرح قلم", 2000)
+    if not item.get("master_product_id") and not description:
         raise ValidationError("هر ردیف باید شناسه محصول یا توضیح متنی داشته باشد")
     mid = item.get("master_product_id")
     if mid is not None:
@@ -255,9 +352,11 @@ def _add_pr_item(conn, pr_id: int, item: dict) -> None:
             or not conn.execute("SELECT 1 FROM master_products WHERE id=?", (mid,)).fetchone()
         ):
             raise ValidationError("شناسه کالای مرجع نامعتبر است")
-    description = item.get("free_text_description")
-    if description is not None and (not isinstance(description, str) or len(description) > 2000):
-        raise ValidationError("شرح قلم نامعتبر است")
+    if isinstance(item.get("unit"), str) and not item["unit"].strip():
+        raise ValidationError("واحد خالی باید null باشد")
+    unit = _text(item.get("unit"), "واحد", 50)
+    notes = _text(item.get("notes"), "مشخصات قلم", 4000)
+    estimate = _money(item.get("estimated_unit_price_minor"), "قیمت تخمینی")
     conn.execute(
         """INSERT INTO purchase_request_items
            (purchase_request_id, master_product_id, free_text_description,
@@ -266,22 +365,24 @@ def _add_pr_item(conn, pr_id: int, item: dict) -> None:
         (
             pr_id,
             item.get("master_product_id"),
-            item.get("free_text_description"),
+            description,
             qty,
-            item.get("unit"),
-            item.get("estimated_unit_price_minor"),
-            item.get("notes"),
+            unit,
+            estimate,
+            notes,
         ),
     )
 
 
 def get_purchase_request(conn, pr_id: int, *, actor_user_id: int, organization_id: int) -> dict:
-    _assert_org_member(conn, actor_user_id, organization_id)
+    membership = _assert_org_member(conn, actor_user_id, organization_id)
     row = conn.execute(
         "SELECT * FROM purchase_requests WHERE id=? AND organization_id=?",
         (pr_id, organization_id),
     ).fetchone()
     if not row:
+        raise NotFoundError("درخواست خرید یافت نشد")
+    if row["requester_user_id"] != actor_user_id and not _can_read_org_requests(membership):
         raise NotFoundError("درخواست خرید یافت نشد")
     pr = _pr_dict(row)
     items = conn.execute(
@@ -300,9 +401,12 @@ def list_purchase_requests(
     status: str | None = None,
     requester_user_id: int | None = None,
 ) -> list[dict]:
-    _assert_org_member(conn, actor_user_id, organization_id)
+    membership = _assert_org_member(conn, actor_user_id, organization_id)
     where = ["organization_id=?"]
     params: list = [organization_id]
+    if not _can_read_org_requests(membership):
+        where.append("requester_user_id=?")
+        params.append(actor_user_id)
     if status:
         where.append("status=?")
         params.append(status)
@@ -318,6 +422,7 @@ def list_purchase_requests(
 
 def submit_purchase_request(conn, pr_id: int, *, actor_user_id: int, organization_id: int) -> dict:
     _assert_org_member(conn, actor_user_id, organization_id)
+    _assert_org_accepts_intake(conn, organization_id)
     row = conn.execute(
         "SELECT * FROM purchase_requests WHERE id=? AND organization_id=?",
         (pr_id, organization_id),

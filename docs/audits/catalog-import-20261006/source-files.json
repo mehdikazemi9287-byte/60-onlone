@@ -1,0 +1,32 @@
+[
+  {
+    "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+    "bytes": 38668356,
+    "sha256": "36306e4a9aa5e267d16df8727fd2cd69e52378ee3c0c015e037d93a01052d5e7",
+    "page_count": 110
+  },
+  {
+    "file": "data/data/imports/aria/__لیست قیمت مصرف کننده شهریور 1405_.pdf",
+    "bytes": 317924,
+    "sha256": "0b0a59c0e2f133db95ab7ac1b73dced6ac741534533c7317db527a1f4834d0c2",
+    "page_count": 8
+  },
+  {
+    "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+    "bytes": 112297,
+    "sha256": "99abe36d1e5850325f9b27fddaf334d448200b0106d87412fcb63e10c8956d45",
+    "page_count": 1
+  },
+  {
+    "file": "data/data/imports/pouya-protein/gosfand.pdf",
+    "bytes": 86672,
+    "sha256": "bda6ed3e905c2ac6fab5283e53f50fc68182a8c17af9448e460b28d49c142603",
+    "page_count": 1
+  },
+  {
+    "file": "data/data/imports/pouya-protein/morgh.pdf",
+    "bytes": 65578,
+    "sha256": "522d418e33af9a8fb979723007e65a39cfa17127d87e7ccd040586008725795f",
+    "page_count": 1
+  }
+]

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
+import "./premium.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/Toaster";
@@ -49,7 +50,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-neutral-50">
         <AuthProvider>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1" style={{ minBlockSize: "var(--commerce-content-min-height, 100svh)" }}>{children}</main>
           <Footer />
           <Toaster />
         </AuthProvider>

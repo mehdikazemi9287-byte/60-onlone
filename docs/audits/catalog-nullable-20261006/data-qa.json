@@ -1,0 +1,755 @@
+{
+  "supplier_counts": {
+    "آریا": {
+      "imported": 233,
+      "null_unit": 9,
+      "null_package_quantity": 9
+    },
+    "پویا پروتئین": {
+      "imported": 167,
+      "null_unit": 167,
+      "null_package_quantity": 167
+    }
+  },
+  "unrelated_tables": [
+    {
+      "table": "users",
+      "rows": 24,
+      "unchanged": true
+    },
+    {
+      "table": "addresses",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "categories",
+      "rows": 94,
+      "unchanged": true
+    },
+    {
+      "table": "products",
+      "rows": 560,
+      "unchanged": true
+    },
+    {
+      "table": "inventory",
+      "rows": 42,
+      "unchanged": true
+    },
+    {
+      "table": "carts",
+      "rows": 19,
+      "unchanged": true
+    },
+    {
+      "table": "cart_items",
+      "rows": 15,
+      "unchanged": true
+    },
+    {
+      "table": "order_items",
+      "rows": 11,
+      "unchanged": true
+    },
+    {
+      "table": "payments",
+      "rows": 10,
+      "unchanged": true
+    },
+    {
+      "table": "ledger_accounts",
+      "rows": 5,
+      "unchanged": true
+    },
+    {
+      "table": "ledger_transactions",
+      "rows": 10,
+      "unchanged": true
+    },
+    {
+      "table": "ledger_entries",
+      "rows": 34,
+      "unchanged": true
+    },
+    {
+      "table": "idempotency_keys",
+      "rows": 10,
+      "unchanged": true
+    },
+    {
+      "table": "audit_logs",
+      "rows": 91,
+      "unchanged": true
+    },
+    {
+      "table": "organizations",
+      "rows": 1,
+      "unchanged": true
+    },
+    {
+      "table": "organization_memberships",
+      "rows": 3,
+      "unchanged": true
+    },
+    {
+      "table": "credit_allocations",
+      "rows": 2,
+      "unchanged": true
+    },
+    {
+      "table": "credit_ledger_entries",
+      "rows": 2,
+      "unchanged": true
+    },
+    {
+      "table": "credit_reservations",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "payment_intent_items",
+      "rows": 11,
+      "unchanged": true
+    },
+    {
+      "table": "suppliers",
+      "rows": 12,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_locations",
+      "rows": 12,
+      "unchanged": true
+    },
+    {
+      "table": "fulfillment_policies",
+      "rows": 5,
+      "unchanged": true
+    },
+    {
+      "table": "seller_offers",
+      "rows": 489,
+      "unchanged": true
+    },
+    {
+      "table": "fulfillment_orders",
+      "rows": 11,
+      "unchanged": true
+    },
+    {
+      "table": "fulfillment_order_items",
+      "rows": 11,
+      "unchanged": true
+    },
+    {
+      "table": "routing_audit",
+      "rows": 11,
+      "unchanged": true
+    },
+    {
+      "table": "fulfillment_state_log",
+      "rows": 11,
+      "unchanged": true
+    },
+    {
+      "table": "routing_exceptions",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "sync_jobs",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "sync_runs",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "freshness_policies",
+      "rows": 4,
+      "unchanged": true
+    },
+    {
+      "table": "purchase_requests",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "purchase_request_items",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_approvals",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "rfqs",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "rfq_items",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "rfq_suppliers",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_quotes",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_quote_items",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "purchase_orders",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "purchase_order_items",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_audit_log",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "carrier_configs",
+      "rows": 5,
+      "unchanged": true
+    },
+    {
+      "table": "shipment_plans",
+      "rows": 11,
+      "unchanged": true
+    },
+    {
+      "table": "shipment_plan_quotes",
+      "rows": 44,
+      "unchanged": true
+    },
+    {
+      "table": "shipment_booking_log",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "webhook_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_payable_entries",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "settlement_batches",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "settlement_batch_items",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "settlement_payments",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "shipments",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "identifier_conflicts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "inventory_sources",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "inventory_source_stock",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "price_sources",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "price_source_entries",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "erp_product_mappings",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "sync_run_items",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "import_jobs",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "import_job_rows",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "resolution_attempts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "field_provenance",
+      "rows": 266,
+      "unchanged": true
+    },
+    {
+      "table": "knowledge_sources",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "import_column_templates",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "exceptions",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "connector_health_log",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_orders",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_invoices",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_invoice_lines",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "three_way_matches",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "reconciliation_batches",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "reconciliation_items",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "integration_events",
+      "rows": 21,
+      "unchanged": true
+    },
+    {
+      "table": "event_consumers",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "tax_categories",
+      "rows": 6,
+      "unchanged": true
+    },
+    {
+      "table": "tax_rates",
+      "rows": 4,
+      "unchanged": true
+    },
+    {
+      "table": "tax_product_assignments",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "tax_org_exemptions",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "accounting_connector_accounts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "accounting_documents",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "carrier_adapter_accounts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "connector_mapping_templates",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "connector_wizard_sessions",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "product_identifiers",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "identity_resolution_queue",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "warehouse_locations",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "rfid_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "gtin_lookup_cache",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "sync_schedule",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "connector_audit_log",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "connector_accounts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "revoked_tokens",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "payment_intents",
+      "rows": 10,
+      "unchanged": true
+    },
+    {
+      "table": "orders",
+      "rows": 10,
+      "unchanged": true
+    },
+    {
+      "table": "loyalty_ledger_entries",
+      "rows": 9,
+      "unchanged": true
+    },
+    {
+      "table": "loyalty_tiers",
+      "rows": 3,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_onboarding_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "offer_price_history",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_catalog_import_batches",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_catalog_import_rows",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_requests",
+      "rows": 3,
+      "unchanged": true
+    },
+    {
+      "table": "customer_request_events",
+      "rows": 4,
+      "unchanged": true
+    },
+    {
+      "table": "organization_operations_grants",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "organization_operations_cases",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "organization_operations_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "organization_operations_idempotency",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_workflows",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_payment_policies",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_quotes",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_quote_decisions",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_orders",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_workflow_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_quantity_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_payment_proposals",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_payment_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_workflow_idempotency",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_quote_revisions",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "organization_procurement_policies",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_deliveries",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_receipts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_corrections",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_payment_plans",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_payment_parts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_supplier_settlements",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_finance_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "supplier_users",
+      "rows": 8,
+      "unchanged": true
+    },
+    {
+      "table": "role_assignment_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "payment_policy_drafts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "payment_policy_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_plan_approvals",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "product_families",
+      "rows": 511,
+      "unchanged": true
+    },
+    {
+      "table": "offer_price_tiers",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "offer_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "packs",
+      "rows": 27,
+      "unchanged": true
+    },
+    {
+      "table": "pack_items",
+      "rows": 148,
+      "unchanged": true
+    },
+    {
+      "table": "procurement_documents",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "pack_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "stock_alerts",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "user_notifications",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "order_return_requests",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "order_return_events",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "benefit_programs",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "benefit_selections",
+      "rows": 0,
+      "unchanged": true
+    },
+    {
+      "table": "customer_request_quotes",
+      "rows": 0,
+      "unchanged": true
+    }
+  ],
+  "mapping_total": 401,
+  "new_candidate_records_this_delta": 177,
+  "new_offer_rows": 0,
+  "new_stock_rows": 0
+}

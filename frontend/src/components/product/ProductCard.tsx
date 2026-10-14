@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ImageOff } from "lucide-react";
+import { ProductMedia } from "./ProductMedia";
 import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { formatPrice, toPersianNum } from "@/lib/utils";
@@ -68,12 +68,12 @@ function AddToCartButton({ productId, onAdd }: { productId: number; onAdd?: (id:
         onClick={handle}
         disabled={loading}
         className={cn(
-          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200",
+          "product-add flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold transition-colors",
           error
             ? "bg-danger-100 text-danger-700"
             : added
             ? "bg-success-100 text-success-700"
-            : "bg-amber-400 text-brand-navy hover:bg-amber-300 active:scale-95",
+            : "bg-brand-navy text-white hover:bg-brand-blue",
           loading && "opacity-60 cursor-wait"
         )}
       >
@@ -112,37 +112,21 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const wishlist = useWishlist();
-  const [imageFailed, setImageFailed] = useState(false);
   const discountPct = product.original_price_minor
     && product.price_minor != null
     ? Math.round((1 - product.price_minor / product.original_price_minor) * 100)
     : 0;
-  const hasRealImage = !!product.image_url && !product.image_url.includes("picsum.photos") && !imageFailed;
 
   return (
-    <Link
-      href={`/products/${product.slug}`}
-      className="group card card-hover overflow-hidden flex flex-col h-full block border-neutral-200/70"
-    >
-      {/* Image — fixed-height, Fit/Contain so every card reads at a consistent scale */}
-      <div className="relative overflow-hidden bg-neutral-50 aspect-square flex-shrink-0 border-b border-neutral-100">
-        {hasRealImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={product.image_url}
-            alt={product.name}
-            onError={() => setImageFailed(true)}
-            className="w-full h-full object-contain p-6 md:p-7 group-hover:scale-[1.03] transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-brand-gray" aria-hidden>
-            <span className="flex flex-col items-center gap-2 text-neutral-400"><ImageOff className="h-8 w-8" strokeWidth={1.4} /><span className="text-[11px] font-medium">تصویر موجود نیست</span></span>
-          </div>
-        )}
+    <article className="product-card group">
+      <div className="product-card-media">
+        <Link href={`/products/${product.slug}`} aria-label={product.name}>
+          <ProductMedia src={product.image_url} name={product.name} />
+        </Link>
 
         {/* Discount badge */}
         {discountPct > 0 && (
-          <span className="absolute top-2 right-2 bg-brand-coral text-white text-2xs font-bold px-1.5 py-0.5 rounded-md">
+          <span className="absolute top-2 right-2 bg-brand-coral text-brand-navy text-2xs font-bold px-1.5 py-0.5 rounded-md">
             ٪{toPersianNum(discountPct)} تخفیف
           </span>
         )}
@@ -151,9 +135,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); wishlist.toggle(product.slug); }}
           className={cn(
-            "absolute top-2 left-2 w-8 h-8 rounded-lg bg-white/80 backdrop-blur-sm",
+            "product-wishlist",
             "flex items-center justify-center hover:text-brand-coral",
-            wishlist.has(product.slug) ? "text-brand-coral opacity-100" : "text-neutral-400 opacity-100 md:opacity-0 md:group-hover:opacity-100",
+            wishlist.has(product.slug) ? "text-brand-coral opacity-100" : "text-neutral-500",
             "transition-all duration-200"
           )}
           aria-label={wishlist.has(product.slug) ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
@@ -167,29 +151,27 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       </div>
 
       {/* Body — fixed heights on title/rating so every card ends up the same height */}
-      <div className="flex flex-col flex-1 p-4 gap-2">
+      <div className="product-card-body">
         {product.category && (
           <span className="text-[11px] font-medium text-neutral-500">
             {product.category.name}
           </span>
         )}
 
-        <h3 className="text-sm font-semibold text-neutral-900 leading-snug line-clamp-2 h-10 group-hover:text-brand-blue transition-colors">
-          {product.name}
-        </h3>
+        <h3 className="product-card-title"><Link href={`/products/${product.slug}`}>{product.name}</Link></h3>
 
-        <div className="h-4 flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
           {product.rating != null && product.rating > 0 && (
             <>
               <Stars rating={product.rating} />
-              <span className="text-2xs text-neutral-400">({toPersianNum(product.review_count ?? 0)})</span>
+              {product.review_count != null && <span className="text-xs text-neutral-600">({toPersianNum(product.review_count)})</span>}
             </>
           )}
         </div>
 
         <div className="flex-1" />
 
-        <div className="flex items-end justify-between gap-2 pt-1">
+        <div className="product-card-purchase">
           <div className="flex flex-col">
             {product.price_minor != null && product.original_price_minor && product.original_price_minor > product.price_minor && (
               <span className="text-2xs text-neutral-400 line-through tabular-nums">
@@ -203,12 +185,12 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {product.purchasable && product.stock !== 0 && <AddToCartButton productId={product.id} onAdd={onAddToCart} />}
         </div>
 
-        {product.stock != null && product.stock < 10 && product.stock > 0 && (
-          <p className="text-2xs text-brand-coral">تنها {toPersianNum(product.stock)} عدد باقی مانده</p>
+        {product.purchasable && product.stock != null && product.stock < 10 && product.stock > 0 && (
+          <p className="text-xs text-brand-blue">تنها {toPersianNum(product.stock)} عدد باقی مانده</p>
         )}
-        {product.stock === 0 && <p className="rounded-lg bg-neutral-100 px-2 py-1 text-center text-xs font-bold text-neutral-500">در حال حاضر ناموجود</p>}
+        {product.purchasable && product.stock === 0 && <p className="rounded-lg bg-neutral-100 px-2 py-1 text-center text-xs font-bold text-neutral-500">در حال حاضر ناموجود</p>}
       </div>
-    </Link>
+    </article>
   );
 }
 
@@ -261,7 +243,7 @@ export function ProductGrid({
 }) {
   const gridCols = {
     2: "grid-cols-1 sm:grid-cols-2",
-    3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+    3: "grid-cols-2 lg:grid-cols-3",
     4: "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
   }[cols];
 

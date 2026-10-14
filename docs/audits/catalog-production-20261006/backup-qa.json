@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "full_frontend_members": 26751,
+  "database_restore_check": "PASS: disposable restore from online backup",
+  "files": {
+    "production-before.db": {
+      "bytes": 3133440,
+      "sha256": "0d55872e552568449988edba28daf6e6ba019e372d9909a986e2730ae8ed6722"
+    },
+    "frontend-service-before.conf": {
+      "bytes": 626,
+      "sha256": "aaac88b8188793c7d7d0a87749233d17358dcc5b9c88f73fe19525008329087c"
+    },
+    "container-before.json": {
+      "bytes": 10118,
+      "sha256": "6fc91483d4692b3dd38bb8181b754650b989efa79f064d24bf540071b24ee06e"
+    },
+    "frontend-before.tar.gz": {
+      "bytes": 275796925,
+      "sha256": "1cc53e86ffe19e585d5d6ce4e8285aab901f6d6f326765699048d6f1cee36189"
+    },
+    "api-image-before.tar.gz": {
+      "bytes": 49418141,
+      "sha256": "761c59e373f116b7842fe58c4b548c8b050c9e718ca6d3dd1e8b1c65fc74ab18"
+    },
+    "nginx-before.conf": {
+      "bytes": 1654,
+      "sha256": "3fe4143eff1d716aea20184abb0e869e38706495e1c7a455d4a7a5c1d997db5d"
+    },
+    "production-immediate-before.db": {
+      "bytes": 3133440,
+      "sha256": "0d55872e552568449988edba28daf6e6ba019e372d9909a986e2730ae8ed6722"
+    }
+  }
+}
