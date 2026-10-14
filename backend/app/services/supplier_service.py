@@ -66,7 +66,7 @@ def get_supplier(conn: sqlite3.Connection, *, supplier_id: int) -> dict:
     row = conn.execute("SELECT * FROM suppliers WHERE id = ?", (supplier_id,)).fetchone()
     if row is None:
         raise NotFoundError("تأمین‌کننده یافت نشد", code="supplier_not_found")
-    return dict(row)
+    return dict(row) | {"is_demo": row["provenance"] != "real"}
 
 
 def update_supplier_status(
@@ -101,9 +101,9 @@ def list_suppliers(
     if supplier_type:
         sql += " AND supplier_type = ?"
         params.append(supplier_type)
-    sql += " ORDER BY display_name ASC LIMIT ? OFFSET ?"
+    sql += " ORDER BY provenance = 'real' DESC, display_name ASC LIMIT ? OFFSET ?"
     params += [limit, offset]
-    return [dict(r) for r in conn.execute(sql, params).fetchall()]
+    return [dict(r) | {"is_demo": r["provenance"] != "real"} for r in conn.execute(sql, params).fetchall()]
 
 
 # ---------------------------------------------------------------------------
@@ -201,8 +201,10 @@ def create_offer(
     prep_time_minutes: int | None = None,
     shipping_days: int | None = None,
 ) -> dict:
+    selling_price_minor = exact_nonnegative_integer(selling_price_minor, "قیمت")
     if selling_price_minor < 0:
         raise ValidationError("قیمت نمی‌تواند منفی باشد")
+    stock_quantity = exact_nonnegative_integer(stock_quantity, "موجودی")
     if stock_quantity < 0:
         raise ValidationError("موجودی نمی‌تواند منفی باشد")
 
@@ -241,7 +243,10 @@ def get_offer(conn: sqlite3.Connection, *, offer_id: int) -> dict:
     row = conn.execute("SELECT * FROM seller_offers WHERE id = ?", (offer_id,)).fetchone()
     if row is None:
         raise NotFoundError("آفر یافت نشد")
-    return dict(row)
+    d=dict(row)
+    from app.services.product_channel_policy import offer_fields
+    d.update(offer_fields(conn,d["product_id"],d["channel"]))
+    return d
 
 
 def list_offers(
@@ -274,7 +279,8 @@ def list_offers(
         params.append(status)
     sql += " ORDER BY so.updated_at DESC LIMIT ? OFFSET ?"
     params += [limit, offset]
-    return [dict(r) for r in conn.execute(sql, params).fetchall()]
+    from app.services.product_channel_policy import offer_fields
+    return [{**dict(r),**offer_fields(conn,r["product_id"],r["channel"])} for r in conn.execute(sql, params).fetchall()]
 
 
 def update_offer_stock(
@@ -291,6 +297,7 @@ def update_offer_stock(
     ).fetchone()
     if row is None:
         raise NotFoundError("آفر یافت نشد")
+    stock_quantity = exact_nonnegative_integer(stock_quantity, "موجودی")
     if stock_quantity < 0:
         raise ValidationError("موجودی نمی‌تواند منفی باشد")
     if stock_quantity < int(row["stock_reserved"]):
@@ -318,6 +325,7 @@ def update_offer_price(
     ).fetchone()
     if row is None:
         raise NotFoundError("آفر یافت نشد")
+    selling_price_minor = exact_nonnegative_integer(selling_price_minor, "قیمت")
     if selling_price_minor < 0:
         raise ValidationError("قیمت نمی‌تواند منفی باشد")
     old_price = int(row["selling_price_minor"])
@@ -409,3 +417,20 @@ def list_onboarding_events(conn: sqlite3.Connection, *, supplier_id: int) -> lis
             (supplier_id,),
         ).fetchall()
     ]
+
+
+def exact_nonnegative_integer(value, name):
+    """Preserve exact minor units/quantities across HTTP and importer callers."""
+    import re
+    if type(value) is int:
+        result = value
+    elif isinstance(value, str) and re.fullmatch(r"[+-]?\d+", value.strip()):
+        try:
+            result = int(value.strip())
+        except ValueError:
+            raise ValidationError(f"{name} باید عدد صحیح معتبر باشد")
+    else:
+        raise ValidationError(f"{name} باید عدد صحیح معتبر باشد")
+    if not 0 <= result <= 9223372036854775807:
+        raise ValidationError(f"{name} خارج از محدوده مجاز است")
+    return result

@@ -122,7 +122,8 @@ function OfferEditor({
     </article>
   );
 }
-export default function SupplierPanel() {
+export default function SupplierPanel() { const {user}=useAuth(); return <SupplierPanelBody key={user?.id??"guest"}/>; }
+function SupplierPanelBody() {
   const { user, token, loading } = useAuth();
   const [offers, setOffers] = useState<Offer[]>([]),
     [orders, setOrders] = useState<Order[]>([]),
@@ -135,6 +136,7 @@ export default function SupplierPanel() {
   useEffect(() => {
     if (!token || user?.role !== "supplier") return;
     setError("");
+    setOffers([]); setOrders([]); setSummary(null); setName("");
     let active = true;
     setBusy(true);
     Promise.all([
@@ -174,7 +176,7 @@ export default function SupplierPanel() {
     return (
       <main className="container-page py-12">
         <h1 className="text-2xl">پنل تأمین‌کننده</h1>
-        <Link href="/login" className="btn-primary inline-block mt-5">
+        <Link href="/login?next=/supplier" className="btn-primary inline-block mt-5">
           ورود به حساب تأمین‌کننده
         </Link>
       </main>
@@ -190,7 +192,7 @@ export default function SupplierPanel() {
     <main className="container-page py-8 space-y-6">
       <h1 className="text-2xl font-bold">پنل تأمین‌کننده {name}</h1>
       <Link href="/account">حساب من</Link>
-      {error && <p role="alert">{error}</p>}
+      {error && <div role="alert" className="rounded-xl bg-red-50 p-4 text-red-800">{error}<button type="button" className="mr-4 underline" onClick={()=>setReload(v=>v+1)}>تلاش مجدد</button></div>}
       {busy && <p role="status">در حال دریافت…</p>}
       {summary && (
         <section className="border rounded-2xl p-4 space-y-2">

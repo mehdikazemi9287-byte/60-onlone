@@ -105,6 +105,10 @@ def create_request():
                     "این شناسه قبلاً برای درخواست دیگری استفاده شده است", code="idempotency_conflict"
                 )
             return jsonify({"request": _view(old), "created": False}), 200
+        from app.services.product_channel_policy import require_master,require_sku
+        for entry in (items if kind!="support" else []):
+            if entry["product_id"]>0:require_sku(conn,entry["product_id"],"organization" if org_id else "retail")
+            else:require_master(conn,entry["master_product_id"],"organization" if org_id else "retail")
         cursor = conn.execute(
             "INSERT INTO customer_requests(user_id,organization_id,kind,subject,message,items_json,idempotency_key,payload_hash,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
             (
@@ -175,7 +179,10 @@ def request_detail(request_id):
         "SELECT status,message,created_at FROM customer_request_events WHERE request_id=? ORDER BY id",
         (request_id,),
     )
-    return jsonify({"request": _view(row), "events": [dict(x) for x in events]})
+    from app.services import request_quote_service as rq
+    with db.read_transaction() as conn:
+        quotes = rq.list_for_request(conn, request_id)
+    return jsonify({"request": _view(row), "events": [dict(x) for x in events], "quotes": quotes})
 
 
 @bp.patch("/admin/requests/<int:request_id>")
@@ -203,3 +210,21 @@ def update_request(request_id):
                 (request_id, current_user()["id"], status, message, now),
             )
     return request_detail(request_id)
+
+
+@bp.post("/admin/requests/<int:request_id>/quotes")
+@require_auth("admin")
+def create_request_quote(request_id):
+    from app.services import request_quote_service as rq
+    body = request.get_json(silent=True) or {}
+    with get_db().write_transaction() as conn:
+        return jsonify({"quote": rq.create(conn, request_id=request_id, actor=current_user()["id"], data=body)}), 201
+
+
+@bp.post("/requests/<int:request_id>/quotes/<int:quote_id>/accept")
+@require_auth()
+def accept_request_quote(request_id, quote_id):
+    from app.services import request_quote_service as rq
+    body = request.get_json(silent=True) or {}
+    with get_db().write_transaction() as conn:
+        return jsonify(rq.accept(conn, user_id=current_user()["id"], request_id=request_id, quote_id=quote_id, address=body.get("address")))

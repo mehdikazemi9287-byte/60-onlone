@@ -9,7 +9,7 @@ type Supplier = {
   legal_name: string;
   status: string;
   supplier_type: string;
-  onboarding_status?: string;
+  onboarding_stage?: string;
 };
 export default function AdminSuppliers() {
   const { user, token, loading } = useAuth();
@@ -94,6 +94,7 @@ export default function AdminSuppliers() {
       <nav className="flex flex-wrap gap-5">
         <Link href="/admin">مخزن کالا</Link>
         <Link href="/crm">پیگیری مشتریان</Link>
+        <Link href="/admin/catalog/sources">منابع PDF و کالاهای آریا / پویا</Link>
       </nav>
       <p>
         وجود نام یا وضعیت در سامانه به‌تنهایی مدرک قرارداد، قیمت معتبر یا آمادگی
@@ -171,11 +172,12 @@ export default function AdminSuppliers() {
         {rows.map((s) => (
           <article key={s.id} className="border rounded-xl p-4 space-y-2">
             <h3 className="font-bold">{s.display_name}</h3>
+            <Link className="btn-primary inline-flex" href={`/admin/suppliers/${s.id}`}>پرونده، محصولات و منابع</Link>
             <p>{s.legal_name}</p>
             <p>
               شناسه سامانه: {s.id} · وضعیت ثبت‌شده: {s.status}
             </p>
-            <p>مرحله پذیرش ثبت‌شده: {s.onboarding_status || "ثبت نشده"}</p>
+            <p>مرحله پذیرش ثبت‌شده: {s.onboarding_stage || "ثبت نشده"}</p>
           </article>
         ))}
       </section>

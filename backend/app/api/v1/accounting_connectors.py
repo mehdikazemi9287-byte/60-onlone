@@ -57,7 +57,7 @@ def _get_caller_supplier_id(db) -> int | None:
         return None
     with db.read_transaction() as conn:
         row = conn.execute(
-            "SELECT id FROM suppliers WHERE user_id = ?", (g.current_user["id"],)
+            "SELECT supplier_id AS id FROM supplier_access WHERE user_id = ? ORDER BY role='owner' DESC, supplier_id LIMIT 1", (g.current_user["id"],)
         ).fetchone()
     return int(row["id"]) if row else None
 

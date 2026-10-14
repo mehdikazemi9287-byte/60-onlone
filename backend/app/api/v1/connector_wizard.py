@@ -303,7 +303,7 @@ def start_session():
     if role == "supplier":
         with db.read_transaction() as conn:
             row = conn.execute(
-                "SELECT id FROM suppliers WHERE user_id=?", (uid,)
+                "SELECT supplier_id AS id FROM supplier_access WHERE user_id = ? ORDER BY role='owner' DESC, supplier_id LIMIT 1", (uid,)
             ).fetchone()
         supplier_id = int(row["id"]) if row else None
     else:

@@ -1,0 +1,3 @@
+import type {PageContent} from './content-types';
+export async function publishedContent(slug:string){try{const origin=process.env.BACKEND_INTERNAL_URL||'http://127.0.0.1:8000';const r=await fetch(new URL('/api/v1/content/pages/'+encodeURIComponent(slug),origin),{cache:'no-store',signal:AbortSignal.timeout(10000)});if(!r.ok)return null;return await r.json() as {content:PageContent;kind:string}}catch{return null}}
+export function contentMetadata(d:{content:PageContent}|null,fallback:string,path:string){const seo=d?.content.seo;return {title:seo?.title||d?.content.title||fallback,description:seo?.description||undefined,alternates:{canonical:seo?.canonical||path},robots:seo?.noindex?{index:false,follow:true}:undefined}}

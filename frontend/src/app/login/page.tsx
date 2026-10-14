@@ -20,7 +20,7 @@ function LoginPageInner() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
   const [tab, setTab] = useState<"password" | "otp">("password");
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ function LoginPageInner() {
     setError(null);
     setLoading(true);
     try {
-      await login(phone, password);
+      await login(email, password);
       const requested = searchParams.get("next") || "/";
       const destination =
         requested.startsWith("/") &&
@@ -82,7 +82,7 @@ function LoginPageInner() {
                     : "text-neutral-500 hover:text-neutral-700",
                 )}
               >
-                {t === "password" ? "رمز عبور" : "کد یک‌بار مصرف"}
+                {t === "password" ? "رمز عبور" : "کد یک‌بار مصرف (به‌زودی)"}
               </button>
             ))}
           </div>
@@ -98,11 +98,12 @@ function LoginPageInner() {
               <div>
                 <label className="form-label">ایمیل</label>
                 <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   required
+                  autoComplete="email"
                   className="form-input mt-1"
                   dir="ltr"
                 />
@@ -124,6 +125,7 @@ function LoginPageInner() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="رمز عبور"
                     required
+                    autoComplete="current-password"
                     className="form-input pl-10"
                     dir="ltr"
                   />

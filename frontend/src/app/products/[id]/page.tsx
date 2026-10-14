@@ -1,47 +1,50 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ProductDetail from "./ProductDetail";
-import { serverProduct, site } from "@/lib/server-catalog";
+import { serverStorefrontProduct, site } from "@/lib/server-catalog";
 export const dynamic = "force-dynamic";
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const p = await serverProduct((await params).id);
-  if (!p) return { title: "کالا یافت نشد", robots: { index: false } };
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const d = await serverStorefrontProduct((await params).id);
+  if (!d) return { title: "کالا یافت نشد", robots: { index: false } };
+  const p = d.product;
   return {
-    title: p.name + " | شصت‌آنلاین",
-    description: p.description || "مشخصات و استعلام شرایط تأمین " + p.name,
+    title: p.title_fa + " | شصت‌آنلاین",
+    description: p.description_fa || "مشخصات، فروشندگان و استعلام شرایط تأمین " + p.title_fa,
     alternates: { canonical: site + "/products/" + encodeURIComponent(p.slug) },
   };
 }
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const p = await serverProduct((await params).id);
-  if (!p) notFound();
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const d = await serverStorefrontProduct((await params).id);
+  if (!d) notFound();
+  const p = d.product;
+  const breadcrumb = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "خانه", item: site },
+      ...d.breadcrumbs.map((b, i) => ({ "@type": "ListItem", position: i + 2, name: b.name_fa, item: site + "/category/" + encodeURIComponent(b.slug) })),
+      { "@type": "ListItem", position: d.breadcrumbs.length + 2, name: p.title_fa, item: site + "/products/" + encodeURIComponent(p.slug) },
+    ],
+  };
+  // Offers/price only when a verified offer exists; never an estimated price in structured data.
+  const priced = d.offers.filter((o) => o.price_minor != null);
   const structured = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: p.name,
-    description: p.description || undefined,
+    name: p.title_fa,
+    description: p.description_fa || undefined,
     url: site + "/products/" + encodeURIComponent(p.slug),
-    image: p.image_url ? new URL(p.image_url, site).href : undefined,
-    sku: p.sku || undefined,
-    brand: p.brand ? { "@type": "Brand", name: p.brand } : undefined,
+    image: p.images[0] ? new URL(p.images[0], site).href : undefined,
+    sku: p.sku,
+    brand: p.brand_fa ? { "@type": "Brand", name: p.brand_fa } : undefined,
+    offers: priced.length ? priced.map((o) => ({ "@type": "Offer", priceCurrency: "IRR", price: o.price_minor! / 10, seller: { "@type": "Organization", name: o.seller },
+      availability: o.stock_state === "in_stock" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" })) : undefined,
   };
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structured).replace(/</g, "\\u003c"),
-        }}
-      />
-      <ProductDetail initialProduct={p} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb).replace(/</g, "\\u003c") }} />
+      <ProductDetail key={p.slug} initial={d} />
     </>
   );
 }

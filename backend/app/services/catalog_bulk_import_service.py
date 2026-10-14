@@ -127,9 +127,9 @@ def _find_master(conn, item):
 def _upsert_category(conn, item):
     slug = item["category_slug"]
     name = item.get("category_name_fa") or slug
-    row = conn.execute("SELECT id FROM categories WHERE slug=?", (slug,)).fetchone()
+    row = conn.execute("SELECT id,admin_managed FROM categories WHERE slug=?", (slug,)).fetchone()
     if row:
-        if item.get("category_name_fa"):
+        if item.get("category_name_fa") and not row["admin_managed"]:
             conn.execute("UPDATE categories SET name_fa=? WHERE id=?", (name, row["id"]))
         return int(row["id"])
     cursor = conn.execute(
@@ -191,7 +191,7 @@ def _upsert_master(conn, item):
         image_urls_json,
         item.get("country_of_origin") or None,
         item["vat_rate_bps"] if item["vat_rate_bps"] is not None else 1000,
-        "active" if item.get("publish_status", "draft").lower() == "active" else "draft",
+        existing["status"] if existing and conn.execute("SELECT 1 FROM direct_product_profiles WHERE master_product_id=?",(master_id,)).fetchone() else ("active" if item.get("publish_status", "draft").lower() == "active" else "draft"),
     )
     if master_id:
         conn.execute(
@@ -259,7 +259,10 @@ def _upsert_storefront(conn, item, master_id, category_id):
         return -master_id
     sku = item["sku"]
     row = conn.execute("SELECT id FROM products WHERE sku=?", (sku,)).fetchone()
-    slug = item.get("slug") or sku.lower().replace("_", "-")
+    if not row:row=conn.execute("SELECT a.product_id AS id FROM product_code_aliases a JOIN products p ON p.id=a.product_id WHERE a.code=? AND p.master_product_id=?",(sku,master_id)).fetchone()
+    if row and conn.execute("SELECT 1 FROM direct_product_profiles WHERE master_product_id=?",(master_id,)).fetchone():
+        slug=conn.execute("SELECT slug FROM products WHERE id=?",(row["id"],)).fetchone()[0]
+    else:slug = item.get("slug") or sku.lower().replace("_", "-")
     values = (
         slug,
         item["canonical_name_fa"],

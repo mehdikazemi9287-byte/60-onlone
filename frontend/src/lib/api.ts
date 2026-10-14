@@ -27,10 +27,15 @@ async function request<T>(
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(rest.headers as Record<string, string>),
   };
+  // Users with several supplier accounts pick one; the API verifies membership.
+  if (path.startsWith("/supplier") && typeof window !== "undefined") {
+    try { const sid = window.localStorage.getItem("60online_supplier"); if (sid) headers["X-Supplier-Id"] = sid; } catch {}
+  }
 
   const res = await fetch(`${BASE}/api/v1${path}`, { ...rest, headers });
 
   if (!res.ok) {
+    if (res.status===401 && token && typeof window!=="undefined") window.dispatchEvent(new CustomEvent("60online:session-invalid",{detail:token}));
     // Real backend error shape: {"error": {"code": "...", "message": "...", "details": {...}}}
     let code = "UNKNOWN";
     let message = res.statusText;
@@ -116,10 +121,21 @@ export const auth = {
 // didn't send; every value flows straight through.
 
 type BackendProductRow = {
+  variant_count?: number;
+  variant_labels?: string[];
+  availability?: "purchasable" | "quote" | "no_offer";
+  family_slug?: string | null;
+  price_from?: boolean;
+  master_product_id?: number | null;
+  list_price_minor?: number | null;
+  list_price_at?: string | null;
+  org_only?: boolean;
+  allowed_channels?:string[];supply_channel?:string;
   id: number;
   slug: string;
   title_fa: string;
   description_fa?: string;
+  specifications?: import("./types").ProductSpecs | null;
   price_minor: number | null;
   purchasable?: boolean;
   price_status?: "verified" | "pending";
@@ -135,6 +151,8 @@ type BackendProductRow = {
 };
 
 type BackendProductList = {
+  packs?: import("./storefront").PackSummary[];
+  facets?: import("./storefront").Facets;
   items: BackendProductRow[];
   total: number;
   page: number;
@@ -153,6 +171,10 @@ export function normalizeProduct(
     price_minor: row.price_minor,
     purchasable: row.purchasable === true,
     price_status: row.price_status,
+    list_price_minor: row.list_price_minor ?? null,
+    list_price_at: row.list_price_at ?? null,
+    org_only: row.org_only === true,
+    allowed_channels:row.allowed_channels,supply_channel:row.supply_channel,
     image_url: row.image_url ?? undefined,
     category: row.category_slug
       ? {
@@ -171,6 +193,13 @@ export function normalizeProduct(
     // data, so it is left undefined rather than invented.
     stock: row.in_stock === false ? 0 : row.quantity_available,
     sku: row.sku,
+    master_product_id: row.master_product_id ?? null,
+    specifications: row.specifications ?? undefined,
+    variant_count: row.variant_count,
+    variant_labels: row.variant_labels,
+    availability: row.availability,
+    family_slug: row.family_slug,
+    price_from: row.price_from,
   };
 }
 
@@ -183,22 +212,32 @@ export const catalog = {
     sort?: string;
     available_only?: string;
     price_max?: number;
+    group?: "sku" | "family";
+    brand?: string;
+    availability?: string;
+    size?: string;
+    min_price?: number;
+    max_price?: number;
   }) => {
+    // Precise SKUs by default (requests, composer, pack builder); browsing passes group: "family".
     const qs = new URLSearchParams(
       Object.fromEntries(
-        Object.entries(params ?? {})
+        Object.entries({ group: "sku", ...(params ?? {}) })
           .filter(([, v]) => v != null)
           .map(([k, v]) => [k, String(v)]),
       ),
     ).toString();
+    // Marketplace storefront: REAL products only, grouped by product family, typed results.
     const res = await request<BackendProductList>(
-      `/products${qs ? `?${qs}` : ""}`,
+      `/storefront/products${qs ? `?${qs}` : ""}`,
     );
     return {
       items: res.items.map(normalizeProduct),
       total: res.total,
       page: res.page,
       pages: res.total_pages,
+      packs: res.packs ?? [],
+      facets: res.facets,
     };
   },
 
@@ -213,26 +252,16 @@ export const catalog = {
 // ── Categories ────────────────────────────────────────────────────────────────
 
 export const categories = {
+  /** Category-level nodes of the real taxonomy that contain REAL products (empty nodes are never listed). */
   list: async () => {
-    const res = await request<{
-      items: {
-        id: number;
-        slug: string;
-        name_fa: string;
-        parent_id: number | null;
-        product_count: number;
-        sort_order: number;
-      }[];
-    }>("/categories");
-    return res.items.map((c) => ({
-      id: c.id,
-      slug: c.slug,
-      name: c.name_fa,
-      icon: null,
-      parent_id: c.parent_id,
-      product_count: c.product_count,
-    })) as import("./types").Category[];
+    const res = await request<{ items: import("./storefront").TaxNode[] }>("/storefront/taxonomy");
+    const out: import("./types").Category[] = [];
+    for (const dept of res.items)
+      for (const c of dept.children)
+        out.push({ id: c.id, slug: c.slug, name: c.name_fa, icon: null, parent_id: dept.id, product_count: c.product_count });
+    return out;
   },
+  tree: () => request<{ items: import("./storefront").TaxNode[] }>("/storefront/taxonomy").then((r) => r.items),
 };
 
 // ── Cart ─────────────────────────────────────────────────────────────────────
@@ -349,3 +378,75 @@ export const org = {
 };
 
 export { ApiError, request as apiRequest };
+
+// ── Smart Pack Builder ───────────────────────────────────────────────────────
+export interface PackLine {
+  product_id: number;
+  slug: string | null;
+  title: string;
+  brand: string | null;
+  category_slug: string | null;
+  category_name: string | null;
+  quantity: number;
+  image_url: string | null;
+  price_status: "verified" | "unpriced" | "unavailable";
+  purchase_status: "purchasable" | "inquiry-only" | "unavailable";
+  in_stock: boolean;
+  unit_price: number | null;
+  line_total: number | null;
+}
+export interface PackSummary {
+  verified_subtotal: number | null;
+  unpriced_item_count: number;
+  has_unpriced: boolean;
+  all_purchasable: boolean;
+  currency: string;
+  note: string;
+}
+export interface Pack {
+  id: number;
+  name: string;
+  kind: string;
+  created_at: string;
+  updated_at: string;
+  items: PackLine[];
+  item_count: number;
+  summary: PackSummary;
+}
+export interface PackRow {
+  id: number;
+  name: string;
+  kind: string;
+  item_count: number;
+  updated_at: string;
+}
+export interface PackCartResult {
+  pack_id: number;
+  added: { product_id: number; title: string; quantity: number }[];
+  skipped: { product_id: number; title: string; reason: string }[];
+  cart_updated: boolean;
+}
+
+export const packs = {
+  list: (token: string) => request<{ packs: PackRow[] }>("/packs", { token }),
+  get: (token: string, id: number) => request<{ pack: Pack }>(`/packs/${id}`, { token }),
+  create: (token: string, name: string, kind = "custom") =>
+    request<{ pack: Pack }>("/packs", { method: "POST", token, body: JSON.stringify({ name, kind }) }),
+  rename: (token: string, id: number, name: string) =>
+    request<{ pack: Pack }>(`/packs/${id}`, { method: "PATCH", token, body: JSON.stringify({ name }) }),
+  remove: (token: string, id: number) =>
+    request<{ deleted: number }>(`/packs/${id}`, { method: "DELETE", token }),
+  setItem: (token: string, id: number, product_id: number, quantity: number) =>
+    request<{ pack: Pack }>(`/packs/${id}/items`, {
+      method: "PUT", token, body: JSON.stringify({ product_id, quantity }),
+    }),
+  removeItem: (token: string, id: number, product_id: number) =>
+    request<{ pack: Pack }>(`/packs/${id}/items/${product_id}`, { method: "DELETE", token }),
+  addToCart: (token: string, id: number) =>
+    request<PackCartResult>(`/packs/${id}/add-to-cart`, { method: "POST", token, body: "{}" }),
+  proforma: (token: string, id: number, message: string, organization_id?: number) =>
+    request<{ request_id: number; status: string; subject: string }>(
+      `/packs/${id}/proforma`,
+      { method: "POST", token, body: JSON.stringify({ message, organization_id }) },
+    ),
+};

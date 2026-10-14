@@ -19,6 +19,7 @@ from app.core.deps import get_db, require_auth
 from app.core.errors import NotFoundError, ValidationError
 from app.services import identifier_service
 
+# Admin-operated: supplier self-service is disabled until per-supplier ownership is enforced (no supplier UI uses it).
 bp = Blueprint("identifiers", __name__, url_prefix="/api/v1")
 
 
@@ -47,7 +48,7 @@ def _is_admin() -> bool:
 # ---------------------------------------------------------------------------
 
 @bp.post("/identifiers")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def add_identifier():
     """Add a product identifier (barcode, GTIN, SKU, …)."""
     db   = get_db()
@@ -80,7 +81,7 @@ def add_identifier():
 
 
 @bp.get("/identifiers")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_identifiers():
     """List identifiers with optional filters."""
     db = get_db()
@@ -99,7 +100,7 @@ def list_identifiers():
 
 
 @bp.delete("/identifiers/<int:identifier_id>")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def delete_identifier(identifier_id: int):
     """Delete an identifier. Suppliers may only delete their own."""
     db = get_db()
@@ -114,13 +115,12 @@ def delete_identifier(identifier_id: int):
             conn,
             identifier_id=identifier_id,
             supplier_id=supplier_id,
-            actor_user_id=g.current_user["id"],
         )
     return jsonify({"data": {"deleted": True}})
 
 
 @bp.get("/identifiers/resolve")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def resolve_identifier():
     """Resolve an identifier value to a product."""
     db = get_db()

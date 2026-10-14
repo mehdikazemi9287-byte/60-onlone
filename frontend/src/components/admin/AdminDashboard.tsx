@@ -1,0 +1,26 @@
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, RefreshCw, Clock3, ShieldCheck } from "lucide-react";
+import { apiRequest } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import { toPersianNum } from "@/lib/utils";
+import s from "./admin.module.css";
+type Dashboard={environment:string;as_of:string;timezone:string;metrics:Record<string,number>;attention:{id:number;title:string;kind:string;status:string;href:string}[];operations:{scope_count:number;items:{id:number;title:string;organization_id:number}[];has_more:boolean};integrations:{sepidar:string}};
+const cards=[['personal_today','استعلام شخصی امروز','/admin/inquiries','در بازهٔ روزِ منطقه زمانی انتخاب‌شده'],['org_waiting','درخواست سازمانی منتظر بررسی','/admin/cases','ارسال‌شده یا در حال بررسی'],['quotes_submitted','Quote ارسال‌شده','/admin/cases','پیشنهاد تأمین‌کننده در وضعیت ارسال‌شده'],['missing_images','کالای بدون تصویر','/admin/catalog-review','کالای مرجع واقعی و فعال، بدون URL تصویر'],['suppliers_inactive','تأمین‌کننده غیرفعال','/admin/suppliers','حساب واقعی با وضعیت غیر فعال'],['settlements_pending','تسویه منتظر ثبت پرداخت','/admin/settlements','صورت تسویهٔ واقعی در انتظار پرداخت']] as const;
+const kinds:Record<string,string>={customer_request:'استعلام شخصی',catalog_image:'تصویر کاتالوگ',supplier:'وضعیت تأمین‌کننده'};
+export default function AdminDashboard(){const {token}=useAuth();const [data,setData]=useState<Dashboard|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(true),[retry,setRetry]=useState(0),[zone,setZone]=useState('UTC');
+ useEffect(()=>setZone(Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'),[]);
+ useEffect(()=>{const c=new AbortController();setData(null);setError('');setBusy(true);if(!token)return()=>c.abort();apiRequest<Dashboard>('/admin/dashboard?timezone='+encodeURIComponent(zone),{token,signal:c.signal}).then(r=>{if(!c.signal.aborted)setData(r)}).catch(e=>{if(!c.signal.aborted)setError(e.message)}).finally(()=>{if(!c.signal.aborted)setBusy(false)});return()=>c.abort()},[token,retry,zone]);
+ return <div className={s.dashboard}>
+  <section className={s.heading}><div><p className={s.eyebrow}>60Online · اداره روزانه کسب‌وکار</p><h1>امروز چه چیزی نیاز به رسیدگی دارد؟</h1><p>استعلام‌ها، تأمین، کیفیت کاتالوگ و کارهای مالی را از همین‌جا پیگیری کنید.</p></div><button className={s.secondary} disabled={busy} onClick={()=>setRetry(x=>x+1)}><RefreshCw size={16}/>به‌روزرسانی</button></section>
+  <div className={s.context}><span><Clock3 size={15}/>{data?'آخرین دریافت: '+new Intl.DateTimeFormat('fa-IR',{hour:'2-digit',minute:'2-digit',timeZone:zone}).format(new Date(data.as_of)):'دریافت از Backend'}</span><label>منطقه زمانی <select value={zone} onChange={e=>setZone(e.target.value)}>{[...new Set([zone,'Asia/Tehran','UTC'])].map(z=><option key={z} value={z}>{z}</option>)}</select></label></div>
+  {data?.environment==='test'&&<p className={s.warning} role="status">محیط آزمایشی · حساب‌ها و اسناد این پیش‌نمایش آزمایشی‌اند و اثر مالی واقعی ندارند.</p>}
+  {error?<div className={s.error} role="alert"><b>اطلاعات پیشخوان دریافت نشد</b><p>{error}</p><button className={s.secondary} onClick={()=>setRetry(x=>x+1)}>تلاش دوباره</button></div>:<>
+  <section className={s.metrics} aria-label="شاخص‌های عملیاتی">{cards.map(([key,title,href,note])=><Link key={key} href={href} className={s.metric}><span>{title}</span><strong>{data?toPersianNum(data.metrics[key]):'—'}</strong><small>{busy?'در حال دریافت…':note}</small><span className={s.metricLink}>مشاهده و رسیدگی<ArrowLeft size={14}/></span></Link>)}</section>
+  <div className={s.columns}><section className={s.panel}><div className={s.panelHead}><h2>صف رسیدگی</h2><span>نمونهٔ موارد باز هر حوزه</span></div>{busy?<p role="status" className={s.empty}>در حال دریافت کارهای باز…</p>:data?.attention.length?<div className={s.queue}>{data.attention.map(x=><Link key={x.kind+':'+x.id} href={x.href}><div><small>{kinds[x.kind]??x.kind} · شناسه {toPersianNum(x.id)}</small><b>{x.title}</b></div><span>رسیدگی<ArrowLeft size={16}/></span></Link>)}</div>:<div className={s.empty}><ShieldCheck size={30}/><h3>مورد بازی در این صف نیست</h3><p>برای بررسی همهٔ سوابق، بخش مربوط را از منو باز کنید.</p></div>}</section>
+  <div className={s.sidePanels}><section className={s.panel}><div className={s.panelHead}><h2>عملیات سازمانی من</h2></div>{data?.operations.items.length?<div className={s.queue}>{data.operations.items.map(x=><Link key={x.id+':'+x.organization_id} href={'/operations/cases/'+x.organization_id+'/'+x.id}><b>{x.title}</b><ArrowLeft size={16}/></Link>)}</div>:<div className={s.empty}><p>{data?.operations.scope_count?'در محدودهٔ مجاز شما پرونده‌ای در صف نیست.':'برای نمایش صف، مجوز عملیات مستقل هر سازمان لازم است.'}</p></div>}<Link className={s.textLink} href="/operations/requests">میز کار عملیات<ArrowLeft size={15}/></Link></section>
+   <section className={s.panel}><div className={s.panelHead}><h2>اتصال‌های مالی</h2></div><div className={s.integration}><b>سپیدار</b><span>وصل نیست</span></div><p className={s.caption}>ثبت و ارسال خودکار اسناد سپیدار فعال نشده است.</p><Link className={s.textLink} href="/admin/access">بررسی سیاست‌ها و دسترسی‌ها<ArrowLeft size={15}/></Link></section></div></div>
+  </>}
+ </div>;
+}

@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig = { distDir: process.env.REVIEW_DIST_DIR || ".next", experimental: {cpus: 1},
+  webpack(config) { config.cache = false; return config; },
+  async redirects() {
+    return [{ source: "/favicon.ico", destination: "/icon.svg", permanent: true }];
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
@@ -37,6 +41,7 @@ const nextConfig = {
           { key: "Content-Security-Policy", value: csp },
         ],
       },
+      {source:"/admin/content/preview",headers:[{key:"X-Frame-Options",value:"SAMEORIGIN"},{key:"Content-Security-Policy",value:csp.replace("frame-ancestors 'none'","frame-ancestors 'self'")}]} 
     ];
   },
 };

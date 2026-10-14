@@ -16,7 +16,7 @@ type PO = {
     master_product_id?: number;
     free_text_description?: string;
     quantity: number;
-    unit: string | null;
+    unit: string;
     unit_price_minor: number;
     total_price_minor: number;
     vat_amount_minor: number;

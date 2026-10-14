@@ -13,9 +13,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: site },
     { url: site + "/category" },
-    ...categories
-      .filter((c) => c.product_count > 0)
-      .map((c) => ({ url: site + "/category/" + encodeURIComponent(c.slug) })),
+    ...categories.map((c) => ({ url: site + "/category/" + encodeURIComponent(c.slug) })),
+    { url: site + "/assistant" },
+    { url: site + "/pack-builder" },
+    { url: site + "/help/buying" },
+    { url: site + "/help/faq" },
     ...products.map((p) => ({
       url: site + "/products/" + encodeURIComponent(p.slug),
     })),

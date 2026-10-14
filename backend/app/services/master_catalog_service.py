@@ -32,6 +32,7 @@ def _mp_dict(row) -> dict:
     return {
         "id": row["id"],
         "public_product_id": row["public_product_id"],
+        "provenance": row["provenance"],
         "canonical_name_fa": row["canonical_name_fa"],
         "canonical_name_en": row["canonical_name_en"],
         "brand": row["brand"],
@@ -103,15 +104,19 @@ def create_master_product(
     created_by_user_id: int | None = None,
 ) -> dict:
     """Create a canonical master product. Returns the created record."""
+    if not isinstance(canonical_name_fa, str):
+        raise ValidationError("canonical_name_fa باید متن باشد")
     canonical_name_fa = (canonical_name_fa or "").strip()
     if not canonical_name_fa:
         raise ValidationError("canonical_name_fa نمی‌تواند خالی باشد")
     if unit is not None and (not isinstance(unit, str) or not unit.strip() or len(unit) > 50):
         raise ValidationError("unit باید رشته معتبر یا null باشد")
-    if package_quantity is not None and (isinstance(package_quantity, bool) or not isinstance(package_quantity, int) or package_quantity < 1):
+    if package_quantity is not None and (isinstance(package_quantity, bool) or not isinstance(package_quantity, int) or not 1 <= package_quantity <= 9223372036854775807):
         raise ValidationError("package_quantity باید حداقل ۱ باشد")
-    if vat_rate_bps < 0:
-        raise ValidationError("vat_rate_bps نمی‌تواند منفی باشد")
+    if type(vat_applicable) is not bool:
+        raise ValidationError("vat_applicable باید مقدار بولی باشد")
+    if type(vat_rate_bps) is not int or not 0 <= vat_rate_bps <= 9223372036854775807:
+        raise ValidationError("vat_rate_bps باید عدد صحیح نامنفی در محدوده ذخیره‌سازی باشد")
 
     public_id = str(uuid.uuid4())
     cur = conn.execute(
@@ -519,7 +524,7 @@ def selection_catalog(conn, *, q='', category=None, supplier=None, page=1, page_
     if page < 1 or not 1 <= page_size <= 48:
         raise ValidationError('صفحه یا اندازه صفحه نامعتبر است')
     source = "json_extract(m.specifications_json, '$.pdf_catalog.sources[0].supplier')"
-    where = ['m.status=\'active\'', 'p.is_visible=1']
+    where = ['m.status=\'active\'', 'p.is_visible=1', "NOT EXISTS(SELECT 1 FROM direct_product_profiles dp WHERE dp.master_product_id=m.id AND dp.supply_channel='retail')"]
     params = []
     if q.strip():
         where.append("(m.canonical_name_fa LIKE ? OR m.brand LIKE ? OR EXISTS (SELECT 1 FROM product_identifiers_legacy i WHERE i.master_product_id=m.id AND i.is_active=1 AND i.identifier_value LIKE ?))")

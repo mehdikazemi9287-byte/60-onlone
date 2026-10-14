@@ -8,6 +8,7 @@ from app.core.db import Database
 from app.core.errors import NotFoundError, ValidationError
 from app.core.money import format_minor
 from app.services import sale_eligibility
+from app.services import product_channel_policy as policy
 
 MAX_PAGE_SIZE = 48
 DEFAULT_PAGE_SIZE = 12
@@ -41,6 +42,8 @@ def _product_dict(row, exponent: int, verified_offer=None) -> dict:
     return {
         "id": row["id"],
         "master_product_id": row["master_product_id"],
+        "supply_channel":row["policy_channel"] or "both",
+        "allowed_channels":list(policy.channels(row["policy_channel"] or "both")),
         "slug": row["slug"],
         "sku": row["sku"],
         "title_fa": row["title_fa"],
@@ -70,8 +73,10 @@ def _publication_dict(row, exponent: int) -> dict:
     return {
         "id": -int(row["master_product_id"]),
         "master_product_id": row["master_product_id"],
+        "supply_channel":row["policy_channel"] or "both",
+        "allowed_channels":list(policy.channels(row["policy_channel"] or "both")),
         "slug": row["slug"],
-        "sku": None,
+        "sku": row["profile_sku"],
         "title_fa": row["canonical_name_fa"],
         "brand_fa": row["brand"],
         "category_slug": row["category_slug"],
@@ -94,11 +99,12 @@ def list_categories(db: Database) -> list[dict]:
     rows = db.query(
         """
         SELECT c.id, c.slug, c.name_fa, c.parent_id, c.sort_order,
-               ((SELECT COUNT(*) FROM products p WHERE p.category_id = c.id AND p.is_active = 1) +
+               ((SELECT COUNT(*) FROM products p WHERE p.category_id = c.id AND p.is_active = 1 AND (p.master_product_id IS NULL OR EXISTS(SELECT 1 FROM master_products cm WHERE cm.id=p.master_product_id AND cm.status='active'))) +
                 (SELECT COUNT(*) FROM catalog_publications cp
-                 WHERE cp.category_slug = c.slug AND cp.is_visible = 1
+                 WHERE cp.category_slug = c.slug AND cp.is_visible = 1 AND EXISTS(SELECT 1 FROM master_products cm WHERE cm.id=cp.master_product_id AND cm.status='active')
                  AND NOT EXISTS (SELECT 1 FROM products linked WHERE linked.master_product_id=cp.master_product_id AND linked.is_active=1))) AS product_count
         FROM categories c
+        WHERE c.level = 'category'  -- legacy flat list; the full taxonomy is /storefront/taxonomy
         ORDER BY c.sort_order, c.id
         """
     )
@@ -123,7 +129,7 @@ def search_products(
     if sort not in {"newest", "price_asc", "price_desc", "rating"}:
         raise ValidationError("مقدار sort نامعتبر است")
 
-    where = ["p.is_active = 1"]
+    where = ["p.is_active = 1", "(mp.id IS NULL OR mp.status='active')"]
     params: list = []
     if q and q.strip():
         # LIKE with escaped wildcards; parameterised, so no injection surface.
@@ -142,17 +148,17 @@ def search_products(
         f"""
         SELECT p.*, c.slug AS category_slug, c.name_fa AS category_name_fa,
                COALESCE(i.quantity_available, 0) AS quantity_available,
-               mp.image_urls_json AS image_urls_json
+               mp.image_urls_json AS image_urls_json, dp.supply_channel AS policy_channel
         FROM products p
         JOIN categories c ON c.id = p.category_id
         LEFT JOIN inventory i ON i.product_id = p.id
-        LEFT JOIN master_products mp ON mp.id = p.master_product_id
+        LEFT JOIN master_products mp ON mp.id = p.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
         WHERE {clause}
         """,
         params,
     )
     publication_where = [
-        "cp.is_visible = 1",
+        "cp.is_visible = 1", "mp.status='active'",
         "NOT EXISTS (SELECT 1 FROM products linked WHERE linked.master_product_id=cp.master_product_id AND linked.is_active=1)",
     ]
     publication_params: list = []
@@ -169,9 +175,9 @@ def search_products(
     publication_rows = db.query(
         f"""
         SELECT cp.*, mp.canonical_name_fa, mp.brand, mp.description_fa,
-               mp.image_urls_json, c.name_fa AS category_name_fa
+               mp.image_urls_json, dp.supply_channel AS policy_channel,dp.sku AS profile_sku, c.name_fa AS category_name_fa
         FROM catalog_publications cp
-        JOIN master_products mp ON mp.id = cp.master_product_id
+        JOIN master_products mp ON mp.id = cp.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
         JOIN categories c ON c.slug = cp.category_slug
         WHERE {' AND '.join(publication_where)}
         """,
@@ -210,12 +216,12 @@ def get_product_by_slug(db: Database, slug: str, *, exponent: int) -> dict:
         """
         SELECT p.*, c.slug AS category_slug, c.name_fa AS category_name_fa,
                COALESCE(i.quantity_available, 0) AS quantity_available,
-               mp.image_urls_json AS image_urls_json
+               mp.image_urls_json AS image_urls_json, dp.supply_channel AS policy_channel
         FROM products p
         JOIN categories c ON c.id = p.category_id
         LEFT JOIN inventory i ON i.product_id = p.id
-        LEFT JOIN master_products mp ON mp.id = p.master_product_id
-        WHERE p.slug = ? AND p.is_active = 1
+        LEFT JOIN master_products mp ON mp.id = p.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
+        WHERE p.slug = ? AND p.is_active = 1 AND (mp.id IS NULL OR mp.status='active')
         """,
         (slug,),
     )
@@ -223,11 +229,11 @@ def get_product_by_slug(db: Database, slug: str, *, exponent: int) -> dict:
         publication = db.query_one(
             """
             SELECT cp.*, mp.canonical_name_fa, mp.brand, mp.description_fa,
-                   mp.image_urls_json, c.name_fa AS category_name_fa
+                   mp.image_urls_json, dp.supply_channel AS policy_channel,dp.sku AS profile_sku, c.name_fa AS category_name_fa
             FROM catalog_publications cp
-            JOIN master_products mp ON mp.id = cp.master_product_id
+            JOIN master_products mp ON mp.id = cp.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
             JOIN categories c ON c.slug = cp.category_slug
-            WHERE cp.slug = ? AND cp.is_visible = 1
+            WHERE cp.slug = ? AND cp.is_visible = 1 AND mp.status='active'
             """,
             (slug,),
         )

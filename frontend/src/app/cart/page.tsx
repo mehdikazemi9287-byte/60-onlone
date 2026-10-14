@@ -284,6 +284,14 @@ export default function CartPage() {
               >
                 ادامه خرید
               </Link>
+              {/* 60AI contextual entry point — additive only, no change to
+                  the existing cart/summary logic or numbers. */}
+              <Link
+                href="/assistant"
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 py-2.5 text-xs font-medium text-primary-700 hover:border-primary-300 transition-colors"
+              >
+                <span className="text-sm">✦</span> هزینه را با 60AI کمتر کن
+              </Link>
             </div>
           </div>
         </div>

@@ -35,7 +35,11 @@ type Credit = {
     organization_name?: string;
   }[];
 };
-export default function AccountPanel({
+export default function AccountPanel(props: {section?: string}) {
+ const {user}=useAuth();
+ return <AccountPanelBody key={user?.id ?? "guest"} {...props}/>;
+}
+function AccountPanelBody({
   section = "account",
 }: {
   section?: string;
@@ -87,22 +91,25 @@ export default function AccountPanel({
     return (
       <main className="container-page py-12">
         <h1 className="text-2xl">{titles[section]}</h1>
-        <Link className="btn-primary mt-5 inline-block" href="/login">
+        <Link className="btn-primary mt-5 inline-block" href={"/login?next="+encodeURIComponent("/"+section)}>
           ورود به حساب
         </Link>
       </main>
     );
   return (
-    <main className="container-page max-w-5xl py-8">
+    <main className="container-page max-w-5xl py-8" dir="rtl">
       <h1 className="text-2xl font-bold">{titles[section]}</h1>
-      <nav className="flex flex-wrap gap-4 my-6">
+      <nav aria-label="بخش‌های حساب کاربری" className="my-6 flex flex-wrap gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
         {Object.entries(titles).map(([path, title]) => (
-          <Link key={path} href={"/" + path}>
+          <Link key={path} href={"/" + path} aria-current={path===section?"page":undefined} className={path===section?"rounded-lg bg-brand-navy px-3 py-2 text-sm font-bold text-white":"rounded-lg bg-neutral-50 px-3 py-2 text-sm text-brand-navy"}>
             {title}
           </Link>
         ))}
         <Link href="/requests">درخواست‌ها</Link>
         <Link href="/orders">سفارش‌ها</Link>
+        <Link href="/notifications">اعلان‌ها</Link>
+        <Link href="/benefits">مزایای کارکنان</Link>
+        <Link href="/pack-builder">پک‌ساز</Link>
         <Link href="/org">سازمان</Link>
         {user.role === "supplier" && (
           <Link href="/supplier">پنل تأمین‌کننده</Link>
@@ -119,17 +126,11 @@ export default function AccountPanel({
           {error}
         </p>
       )}
-      {section === "account" && (
-        <div className="space-y-5">
-          <p>{user.full_name}</p>
-          <Link className="btn-primary inline-block" href="/search">
-            مشاهده کالاها
-          </Link>
-          <button className="block underline" onClick={logout}>
-            خروج از حساب
-          </button>
-        </div>
-      )}
+      {section === "account" && <div className="space-y-6">
+        <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#edf2eb] p-6"><div><p className="text-xs font-bold text-[#52616a]">حساب کاربری شما</p><h2 className="mt-2 text-xl font-black text-brand-navy">{user.full_name}</h2><p className="mt-2 text-sm text-neutral-600" dir="ltr">{user.email}</p></div><button type="button" className="min-h-11 rounded-xl border border-neutral-300 bg-white px-4 text-sm font-bold" onClick={logout}>خروج از حساب</button></section>
+        <section className="rounded-2xl bg-brand-navy p-6 text-white"><p className="text-xs text-white/70">ویژه اعضای سازمان‌ها و شرکت‌ها</p><h2 className="mt-2 text-xl font-black">درخواست خرید برای چند مجموعه و چند شهر</h2><p className="mt-3 text-sm leading-7 text-white/80">از کاتالوگ چند مجموعه انتخاب کنید، مقصدها را مشخص کنید و وضعیت درخواست‌های سازمان خود را پیگیری کنید.</p><div className="mt-5 flex flex-wrap gap-3"><Link href="/business/catalog" className="inline-flex min-h-12 items-center rounded-xl bg-white px-5 text-sm font-bold text-brand-navy">انتخاب کالا و ثبت درخواست</Link><Link href="/org" className="inline-flex min-h-12 items-center rounded-xl border border-white/30 px-5 text-sm font-bold">میز کار سازمانی</Link></div></section>
+        <div className="grid gap-4 sm:grid-cols-2">{[{href:"/orders",title:"سفارش‌های شخصی",description:"شماره سفارش، وضعیت پرداخت و پیگیری سفارش‌های مجاز حساب شما."},{href:"/requests",title:"درخواست‌های تأمین",description:"استعلام‌ها و درخواست‌های شخصی ثبت‌شده برای این حساب."},{href:"/wallet",title:"اعتبار سازمانی",description:"اعتبار و تخصیص‌های ثبت‌شده؛ نمایش مانده واقعی پس از دریافت از سرور."},{href:"/notifications",title:"اعلان‌ها",description:"پیام‌ها و تغییرات مربوط به حساب شما."}].map(i=><Link key={i.href} href={i.href} className="rounded-2xl border border-neutral-200 bg-white p-5 hover:border-brand-blue"><h3 className="text-base font-bold text-brand-navy">{i.title}</h3><p className="mt-2 text-sm leading-7 text-neutral-600">{i.description}</p><span className="mt-3 block text-xs font-bold text-brand-blue">مشاهده و پیگیری ←</span></Link>)}</div>
+      </div>}
       {section === "wallet" &&
         (user.role !== "customer" ? (
           <p>اعتبار کارکنان برای حساب مشتری قابل مشاهده است.</p>

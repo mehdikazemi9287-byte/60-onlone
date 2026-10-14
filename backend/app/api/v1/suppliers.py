@@ -41,10 +41,19 @@ def _get_supplier_or_404(user_id: int, db) -> dict:
 
 
 def _int(val, name: str) -> int:
-    try:
-        return int(val)
-    except (TypeError, ValueError):
+    import re
+    if type(val) is int:
+        result = val
+    elif isinstance(val, str) and re.fullmatch(r"[+-]?\d+", val.strip()):
+        try:
+            result = int(val.strip())
+        except ValueError:
+            raise ValidationError(f"مقدار «{name}» باید عدد صحیح معتبر باشد")
+    else:
         raise ValidationError(f"مقدار «{name}» باید عدد صحیح باشد")
+    if not -9223372036854775808 <= result <= 9223372036854775807:
+        raise ValidationError(f"مقدار «{name}» خارج از محدودهٔ عدد صحیح است")
+    return result
 
 
 def _bool(val) -> bool:
@@ -268,7 +277,9 @@ def supplier_catalog_import():
     it never creates a new product."""
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
-    body = request.get_json(silent=True) or {}
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise ValidationError("بدنه درخواست باید یک شیء باشد")
     location_id = _int(body.get("supplier_location_id"), "supplier_location_id")
     rows = body.get("rows")
     if not isinstance(rows, list):
@@ -281,6 +292,8 @@ def supplier_catalog_import():
             submitted_by_user_id=g.current_user["id"],
             rows=rows,
         )
+        from app.services import catalog_structure_service
+        summary["structure"] = catalog_structure_service.apply(conn, create_skus=False)  # new variants → families + hidden SKUs
     return jsonify(summary), 201
 
 
@@ -293,8 +306,22 @@ def supplier_catalog_import():
 @require_auth("admin")
 def admin_create_supplier():
     db = get_db()
-    body = request.get_json(silent=True) or {}
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise ValidationError("بدنه درخواست باید شیء باشد")
     with db.write_transaction() as conn:
+        from app.api.v1.admin_content import assert_admin
+        from app.api.v1.admin_supplier_profile import audit
+        assert_admin(conn)
+        for field in ("legal_name", "display_name", "national_id", "supplier_type", "status"):
+            if field in body and not isinstance(body[field], str):
+                raise ValidationError("متن مشخصات تأمین‌کننده نامعتبر است")
+        for field in ("phone", "email", "bank_name", "bank_account", "sheba", "notes"):
+            if body.get(field) is not None and not isinstance(body[field], str):
+                raise ValidationError("اطلاعات تماس یا منبع نامعتبر است")
+        rating = body.get("rating_x10", 0)
+        if type(rating) is not int:
+            raise ValidationError("امتیاز باید عدد صحیح باشد")
         sup = supplier_service.create_supplier(
             conn,
             legal_name=body.get("legal_name", ""),
@@ -311,6 +338,7 @@ def admin_create_supplier():
             user_id=body.get("user_id"),
             notes=body.get("notes"),
         )
+        audit(conn, sup["id"], "supplier.created", None, sup, body.get("notes") or "منبع در فراخوان قبلی ثبت نشده است")
     return jsonify({"supplier": sup}), 201
 
 
@@ -346,9 +374,15 @@ def admin_update_supplier_status(supplier_id: int):
     db = get_db()
     body = request.get_json(silent=True) or {}
     with db.write_transaction() as conn:
+        from app.api.v1.admin_content import assert_admin
+        from app.api.v1.admin_supplier_profile import audit
+        assert_admin(conn)
+        before = supplier_service.get_supplier(conn, supplier_id=supplier_id)
         sup = supplier_service.update_supplier_status(
             conn, supplier_id=supplier_id, status=body.get("status", "")
         )
+        if before != sup:
+            audit(conn, supplier_id, "supplier.status_updated", before, sup, body.get("reason"))
     return jsonify({"supplier": sup})
 
 
@@ -388,8 +422,12 @@ def admin_link_supplier_user(supplier_id: int):
     """Link a users.id to a supplier so they can use the portal."""
     db = get_db()
     body = request.get_json(silent=True) or {}
+    if "user_id" not in body:
+        raise ValidationError("فیلد «user_id» الزامی است (برای قطع اتصال، مقدار null را صریحاً ارسال کنید)")
     user_id = body.get("user_id")
     with db.write_transaction() as conn:
+        if not conn.execute("SELECT 1 FROM suppliers WHERE id = ?", (supplier_id,)).fetchone():
+            raise NotFoundError("تأمین‌کننده یافت نشد")
         # Verify user exists
         if user_id is not None:
             row = conn.execute("SELECT id, role FROM users WHERE id = ?", (user_id,)).fetchone()
@@ -402,6 +440,10 @@ def admin_link_supplier_user(supplier_id: int):
             "UPDATE suppliers SET user_id = ?, updated_at = datetime('now') WHERE id = ?",
             (user_id, supplier_id),
         )
+        if user_id is not None:
+            conn.execute("""INSERT INTO supplier_users (supplier_id, user_id, role, status) VALUES (?,?,'owner','active')
+                            ON CONFLICT(supplier_id, user_id) DO UPDATE SET role='owner', status='active'""",
+                         (supplier_id, user_id))
         sup = supplier_service.get_supplier(conn, supplier_id=supplier_id)
     return jsonify({"supplier": sup})
 

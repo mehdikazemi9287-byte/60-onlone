@@ -6,8 +6,8 @@ export type RequestProduct = { id: number; name: string; category: string; brand
 export type RequestSelection = { product: RequestProduct; quantity: number };
 export const PACK_REQUEST_KEY = "60online_pack_request_v1";
 type Result = { items: RequestProduct[]; total_pages: number; total: number; suppliers: string[] };
-export function RequestProductPicker({ value, onChange }: { value: RequestSelection[]; onChange: (value: RequestSelection[]) => void }) {
-  const [q, setQ] = useState(""), [category, setCategory] = useState(""), [supplier, setSupplier] = useState(""), [page, setPage] = useState(1);
+export function RequestProductPicker({ value, onChange, initialSupplier = "", initialQuery = "" }: { initialSupplier?: string; initialQuery?: string; value: RequestSelection[]; onChange: (value: RequestSelection[]) => void }) {
+  const [q, setQ] = useState(initialQuery), [category, setCategory] = useState(""), [supplier, setSupplier] = useState(initialSupplier), [page, setPage] = useState(1);
   const [categories, setCategories] = useState<{slug: string; name_fa: string}[]>([]), [result, setResult] = useState<Result | null>(null), [error, setError] = useState(""), [loading, setLoading] = useState(false);
   useEffect(() => { apiRequest<{ items: {slug: string; name_fa: string}[] }>("/categories").then(r => setCategories(r.items)).catch(e => setError(e.message)); }, []);
   useEffect(() => {

@@ -16,6 +16,7 @@ from app.core.deps import get_db, require_auth
 from app.core.errors import NotFoundError
 from app.services import sync_engine_service
 
+# Admin-operated: supplier self-service is disabled until per-supplier ownership is enforced (no supplier UI uses it).
 bp = Blueprint("sync_runs", __name__, url_prefix="/api/v1")
 
 
@@ -24,7 +25,7 @@ bp = Blueprint("sync_runs", __name__, url_prefix="/api/v1")
 # ---------------------------------------------------------------------------
 
 @bp.get("/sync-runs")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_sync_runs():
     """List sync runs, optionally filtered by connector account."""
     db                   = get_db()
@@ -36,14 +37,13 @@ def list_sync_runs():
         results = sync_engine_service.list_sync_runs(
             conn,
             connector_account_id=connector_account_id,
-            limit=limit,
-            offset=offset,
+            limit=limit + offset,
         )
-    return jsonify({"data": results})
+    return jsonify({"data": results[offset:]})
 
 
 @bp.get("/sync-runs/<int:run_id>")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def get_sync_run(run_id: int):
     """Get the full detail of a single sync run."""
     db = get_db()
@@ -55,7 +55,7 @@ def get_sync_run(run_id: int):
 
 
 @bp.get("/sync-runs/<int:run_id>/items")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_sync_run_items(run_id: int):
     """List individual line-item results for a sync run."""
     db     = get_db()

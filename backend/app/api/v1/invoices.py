@@ -26,7 +26,7 @@ def _get_caller_supplier_id(db) -> int | None:
         return None
     with db.read_transaction() as conn:
         sup_row = conn.execute(
-            "SELECT id FROM suppliers WHERE user_id = ?", (g.current_user["id"],)
+            "SELECT supplier_id AS id FROM supplier_access WHERE user_id = ? ORDER BY role='owner' DESC, supplier_id LIMIT 1", (g.current_user["id"],)
         ).fetchone()
     return int(sup_row["id"]) if sup_row else None
 
@@ -124,7 +124,7 @@ def get_invoice(invoice_id: int):
         # BLOCKER 4: supplier ownership check — 404 not 403 (no existence leakage)
         if g.current_user["role"] == "supplier":
             sup_row = conn.execute(
-                "SELECT id FROM suppliers WHERE user_id = ?", (g.current_user["id"],)
+                "SELECT supplier_id AS id FROM supplier_access WHERE user_id = ? ORDER BY role='owner' DESC, supplier_id LIMIT 1", (g.current_user["id"],)
             ).fetchone()
             caller_sid = int(sup_row["id"]) if sup_row else None
             if caller_sid is None or int(inv["supplier_id"]) != caller_sid:

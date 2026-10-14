@@ -1,8 +1,9 @@
 "use client";
 
+import { addProductToOrgDraft } from "@/lib/procurement/draft";
+
 import Link from "next/link";
 import { useState } from "react";
-import { ProductMedia } from "./ProductMedia";
 import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { formatPrice, toPersianNum } from "@/lib/utils";
@@ -68,12 +69,12 @@ function AddToCartButton({ productId, onAdd }: { productId: number; onAdd?: (id:
         onClick={handle}
         disabled={loading}
         className={cn(
-          "product-add flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold transition-colors",
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200",
           error
             ? "bg-danger-100 text-danger-700"
             : added
             ? "bg-success-100 text-success-700"
-            : "bg-brand-navy text-white hover:bg-brand-blue",
+            : "bg-amber-400 text-brand-navy hover:bg-amber-300 active:scale-95",
           loading && "opacity-60 cursor-wait"
         )}
       >
@@ -105,28 +106,53 @@ function AddToCartButton({ productId, onAdd }: { productId: number; onAdd?: (id:
 
 // ── Product card ──────────────────────────────────────────────────────────────
 
+/** Source images under 200px (e.g. 40×40 supplier thumbnails) look broken when scaled up; show the no-image state instead. */
+export const isTinyImage = (el: HTMLImageElement) => el.naturalWidth > 0 && Math.min(el.naturalWidth, el.naturalHeight) < 200;
+
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (id: number) => void;
 }
 
+/** Unpriced catalog item: add it to the organizational order draft (not a sale). */
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const wishlist = useWishlist();
+  const [imageFailed, setImageFailed] = useState(false);
   const discountPct = product.original_price_minor
     && product.price_minor != null
     ? Math.round((1 - product.price_minor / product.original_price_minor) * 100)
     : 0;
+  const hasRealImage = !!product.image_url && !product.image_url.includes("picsum.photos") && !imageFailed;
 
   return (
-    <article className="product-card group">
-      <div className="product-card-media">
-        <Link href={`/products/${product.slug}`} aria-label={product.name}>
-          <ProductMedia src={product.image_url} name={product.name} />
-        </Link>
+    <Link
+      href={`/products/${product.slug}`}
+      className="group card card-hover overflow-hidden flex flex-col h-full block border-neutral-200/70"
+    >
+      {/* Image — fixed-height, Fit/Contain so every card reads at a consistent scale */}
+      <div className={`relative overflow-hidden bg-neutral-50 flex-shrink-0 border-b border-neutral-100 ${hasRealImage ? "aspect-square" : "aspect-[5/2]"}`}>
+        {hasRealImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image_url}
+            alt={product.name}
+            onError={() => setImageFailed(true)}
+            onLoad={(e) => { if (isTinyImage(e.currentTarget)) setImageFailed(true); }}
+            className="w-full h-full object-contain p-6 md:p-7 group-hover:scale-[1.03] transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#fff7e6,#eef3f7_70%)]" aria-hidden>
+            {/* No verified photo: a compact brand/category band instead of a large empty box. */}
+            <span className="flex items-center gap-2 px-3 text-right">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-base font-black text-brand-navy shadow-sm ring-1 ring-neutral-200/70">{(product.brand || product.name).slice(0, 1)}</span>
+              <span className="min-w-0"><span className="block truncate text-xs font-black text-brand-navy">{product.brand || ""}</span><span className="block truncate text-[11px] text-neutral-500">{product.category?.name ?? ""}</span></span>
+            </span>
+          </div>
+        )}
 
         {/* Discount badge */}
         {discountPct > 0 && (
-          <span className="absolute top-2 right-2 bg-brand-coral text-brand-navy text-2xs font-bold px-1.5 py-0.5 rounded-md">
+          <span className="absolute top-2 right-2 bg-brand-coral text-white text-2xs font-bold px-1.5 py-0.5 rounded-md">
             ٪{toPersianNum(discountPct)} تخفیف
           </span>
         )}
@@ -135,9 +161,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); wishlist.toggle(product.slug); }}
           className={cn(
-            "product-wishlist",
+            "absolute top-2 left-2 w-8 h-8 rounded-lg bg-white/80 backdrop-blur-sm",
             "flex items-center justify-center hover:text-brand-coral",
-            wishlist.has(product.slug) ? "text-brand-coral opacity-100" : "text-neutral-500",
+            wishlist.has(product.slug) ? "text-brand-coral opacity-100" : "text-neutral-400 opacity-100 md:opacity-0 md:group-hover:opacity-100",
             "transition-all duration-200"
           )}
           aria-label={wishlist.has(product.slug) ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
@@ -151,46 +177,64 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       </div>
 
       {/* Body — fixed heights on title/rating so every card ends up the same height */}
-      <div className="product-card-body">
+      <div className="flex flex-col flex-1 p-4 gap-2">
         {product.category && (
           <span className="text-[11px] font-medium text-neutral-500">
             {product.category.name}
           </span>
         )}
 
-        <h3 className="product-card-title"><Link href={`/products/${product.slug}`}>{product.name}</Link></h3>
+        <h3 className="text-sm font-semibold text-neutral-900 leading-snug line-clamp-2 h-10 group-hover:text-brand-blue transition-colors">
+          {product.name}
+        </h3>
 
-        <div className="flex items-center gap-1.5">
+        {(product.variant_count ?? 0) > 1 && (
+          <span className="w-fit rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-bold text-sky-800 ring-1 ring-sky-100">
+            {toPersianNum(product.variant_count!)} مدل/اندازه{product.variant_labels?.length ? `: ${product.variant_labels[0]} تا ${product.variant_labels[product.variant_labels.length - 1]}` : ""}
+          </span>
+        )}
+        <div className="h-4 flex items-center gap-1.5">
           {product.rating != null && product.rating > 0 && (
             <>
               <Stars rating={product.rating} />
-              {product.review_count != null && <span className="text-xs text-neutral-600">({toPersianNum(product.review_count)})</span>}
+              <span className="text-2xs text-neutral-400">({toPersianNum(product.review_count ?? 0)})</span>
             </>
           )}
         </div>
 
         <div className="flex-1" />
 
-        <div className="product-card-purchase">
+        <div className="flex items-end justify-between gap-2 pt-1">
           <div className="flex flex-col">
             {product.price_minor != null && product.original_price_minor && product.original_price_minor > product.price_minor && (
               <span className="text-2xs text-neutral-400 line-through tabular-nums">
                 {formatPrice(product.original_price_minor)}
               </span>
             )}
-            <span className="text-base font-black text-brand-navy tabular-nums">
-              {product.price_minor == null ? "استعلام قیمت" : formatPrice(product.price_minor)}
-            </span>
+            {product.price_minor == null && product.list_price_minor ? (
+              <>
+                <span className="text-[10px] font-bold text-neutral-500">آخرین قیمت اعلامی تأمین‌کننده</span>
+                <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from || (product.variant_count ?? 1) > 1 ? "از " : ""}{formatPrice(product.list_price_minor)}</span>
+              </>
+            ) : product.price_minor == null ? (
+              <span className="inline-flex w-fit items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 ring-1 ring-amber-200">قیمت با استعلام</span>
+            ) : (
+              <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from ? "از " : ""}{formatPrice(product.price_minor)}</span>
+            )}
           </div>
-          {product.purchasable && product.stock !== 0 && <AddToCartButton productId={product.id} onAdd={onAddToCart} />}
+          {product.purchasable && product.stock !== 0 && (product.variant_count ?? 1) <= 1 && <AddToCartButton productId={product.id} onAdd={onAddToCart} />}
+          {product.purchasable && (product.variant_count ?? 1) > 1 && <span className="rounded-lg bg-brand-navy px-2.5 py-1.5 text-xs font-bold text-white">انتخاب اندازه</span>}
         </div>
-
-        {product.purchasable && product.stock != null && product.stock < 10 && product.stock > 0 && (
-          <p className="text-xs text-brand-blue">تنها {toPersianNum(product.stock)} عدد باقی مانده</p>
+        {product.price_minor == null && (
+          <span className="flex min-h-10 items-center justify-center rounded-lg bg-[#C4461C] px-2 text-center text-xs font-bold text-white">{product.org_only ? "ویژه خرید سازمانی" : product.list_price_minor ? "انتخاب و استعلام" : "درخواست قیمت روز"}</span>
         )}
-        {product.purchasable && product.stock === 0 && <p className="rounded-lg bg-neutral-100 px-2 py-1 text-center text-xs font-bold text-neutral-500">در حال حاضر ناموجود</p>}
+
+        {product.stock != null && product.stock < 10 && product.stock > 0 && (
+          <p className="text-2xs text-brand-coral">تنها {toPersianNum(product.stock)} عدد باقی مانده</p>
+        )}
+        {product.stock === 0 && product.price_minor != null && <p className="rounded-lg bg-neutral-100 px-2 py-1 text-center text-xs font-bold text-neutral-500">در حال حاضر ناموجود</p>}
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -224,7 +268,7 @@ export function CategoryCard({ name, href, count, icon, color = "bg-brand-blueLi
       </div>
       <div>
         <p className="text-sm font-semibold text-neutral-900 group-hover:text-brand-blue transition-colors">{name}</p>
-        {count != null && <p className="text-2xs text-neutral-400 mt-0.5">{count} محصول</p>}
+        {count != null && <p className={cn("text-2xs mt-0.5", count > 0 ? "text-neutral-400" : "text-amber-600")}>{count > 0 ? `${count} محصول` : "در حال تکمیل محصولات"}</p>}
       </div>
     </Link>
   );
@@ -239,12 +283,14 @@ export function ProductGrid({
 }: {
   products: Product[];
   onAddToCart?: (id: number) => void;
-  cols?: 2 | 3 | 4;
+  cols?: 2 | 3 | 4 | 5 | 6;
 }) {
   const gridCols = {
     2: "grid-cols-1 sm:grid-cols-2",
     3: "grid-cols-2 lg:grid-cols-3",
     4: "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+    5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+    6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6",
   }[cols];
 
   return (

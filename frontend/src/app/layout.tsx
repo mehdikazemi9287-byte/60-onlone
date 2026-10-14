@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Vazirmatn } from "next/font/google";
 import "./globals.css";
-import "./premium.css";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+import { PublicChrome } from "@/components/layout/PublicChrome";
 import { Toaster } from "@/components/ui/Toaster";
 import { AuthProvider } from "@/lib/auth-context";
 
@@ -15,6 +13,8 @@ const vazirmatn = Vazirmatn({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://60online.ir"),
+  alternates: { canonical: "/" },
   title: {
     default: "60Online | بازار جامع خرید ایران",
     template: "%s | 60Online",
@@ -48,10 +48,21 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body className="min-h-screen flex flex-col bg-neutral-50">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                { "@type": "Organization", "@id": "https://60online.ir/#org", name: "شصت‌آنلاین", alternateName: "60Online", url: "https://60online.ir" },
+                { "@type": "WebSite", "@id": "https://60online.ir/#website", url: "https://60online.ir", name: "شصت‌آنلاین", inLanguage: "fa-IR", publisher: { "@id": "https://60online.ir/#org" }, potentialAction: { "@type": "SearchAction", target: "https://60online.ir/search?q={search_term_string}", "query-input": "required name=search_term_string" } }
+              ]
+            }).replace(/</g, "\\u003c"),
+          }}
+        />
+
         <AuthProvider>
-          <Header />
-          <main className="flex-1" style={{ minBlockSize: "var(--commerce-content-min-height, 100svh)" }}>{children}</main>
-          <Footer />
+          <PublicChrome>{children}</PublicChrome>
           <Toaster />
         </AuthProvider>
       </body>

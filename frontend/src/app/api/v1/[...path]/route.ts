@@ -5,6 +5,7 @@ async function proxy(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
+  if (!["GET", "HEAD", "OPTIONS"].includes(request.method) && !(request.method==="POST" && request.nextUrl.pathname==="/api/v1/storefront/pack-builder")) return Response.json({error:{code:"preview_read_only",message:"پیش‌نمایش فقط خواندنی است."}},{status:405});
   const origin = process.env.BACKEND_INTERNAL_URL || "http://127.0.0.1:8000";
   const url = new URL(
     "/api/v1/" + (await params).path.map(encodeURIComponent).join("/"),
@@ -15,6 +16,7 @@ async function proxy(
   for (const name of [
     "content-type",
     "authorization",
+    "x-supplier-id",
     "idempotency-key",
     "accept",
   ]) {

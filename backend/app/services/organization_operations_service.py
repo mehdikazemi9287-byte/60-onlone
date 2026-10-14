@@ -181,6 +181,10 @@ def mutate(conn, org_id, user_id, action, data, key, case_id=None):
             status = data['status']
             if not isinstance(status, str) or status not in TRANSITIONS[before['status']]:
                 raise ConflictError('تغییر وضعیت مجاز نیست')
+        if status == 'closed':
+            commercial = conn.execute('SELECT status FROM customer_orders WHERE case_id=?',(case_id,)).fetchone()
+            if commercial and commercial['status'] not in ('closed','cancelled'):
+                raise ConflictError('سفارش مشتری باز است؛ ابتدا گردش سفارش را تکمیل کنید')
         changed = conn.execute(
             """UPDATE organization_operations_cases SET assignee_user_id=?,status=?,version=version+1,
                updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id=? AND version=?""",
@@ -199,3 +203,47 @@ def mutate(conn, org_id, user_id, action, data, key, case_id=None):
         (org_id, user_id, key, digest, case_id, _json(response)),
     )
     return response
+
+
+def queue(conn, user_id, *, org=None, q=None, stage=None, ops_status=None, assignee=None):
+    """Cross-organization work queue for operations staff.
+
+    Commercial state comes from the authoritative procurement records (enterprise list_cases);
+    only ownership / coordination status comes from organization_operations_cases.
+    """
+    from app.services import enterprise_procurement_service as ent
+    scopes = list_scopes(conn, user_id)
+    if org is not None:
+        scopes = [s for s in scopes if s['id'] == org]
+        if not scopes:
+            raise PermissionError_('مجوز فعال عملیات داخلی این سازمان لازم است')
+    items, staff = [], {}
+    for scope in scopes:
+        caps = set(scope['capabilities'])
+        cases = {r['purchase_request_id']: dict(r) for r in conn.execute(
+            """SELECT c.*, u.full_name AS assignee FROM organization_operations_cases c
+               LEFT JOIN users u ON u.id=c.assignee_user_id WHERE c.organization_id=?""", (scope['id'],))}
+        staff[scope['id']] = [dict(r) for r in conn.execute(
+            """SELECT DISTINCT u.id, u.full_name, g.capability FROM organization_operations_grants g
+               JOIN users u ON u.id=g.user_id AND u.is_active=1
+               WHERE g.organization_id=? AND g.status='active' ORDER BY u.full_name""", (scope['id'],))]
+        for row in ent.list_cases(conn, organization_id=scope['id'], actor_user_id=user_id, q=q, stage=stage,
+                                  platform=True)['items']:
+            case = cases.get(row['id'])
+            if 'case_manager' not in caps and (not case or case['assignee_user_id'] != user_id):
+                continue
+            status = case['status'] if case else 'none'
+            if ops_status and status != ops_status:
+                continue
+            if assignee == 'me' and (not case or case['assignee_user_id'] != user_id):
+                continue
+            if assignee == 'none' and case and case['assignee_user_id']:
+                continue
+            row['operations'] = {'case_id': case['id'] if case else None, 'status': status,
+                                 'assignee_user_id': case['assignee_user_id'] if case else None,
+                                 'assignee': case['assignee'] if case else None,
+                                 'version': case['version'] if case else None,
+                                 'updated_at': case['updated_at'] if case else None}
+            row['capabilities'] = sorted(caps)
+            items.append(row)
+    return {'items': items, 'scopes': scopes, 'staff': staff}

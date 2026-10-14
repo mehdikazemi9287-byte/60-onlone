@@ -19,6 +19,7 @@ from app.core.deps import get_db, require_auth
 from app.core.errors import ValidationError
 from app.services import inventory_source_service
 
+# Admin-operated: supplier self-service is disabled until per-supplier ownership is enforced (no supplier UI uses it).
 bp = Blueprint("inventory_sources", __name__, url_prefix="/api/v1")
 
 
@@ -51,7 +52,7 @@ def _bool_arg(val) -> bool:
 # ---------------------------------------------------------------------------
 
 @bp.post("/inventory-sources")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def create_inventory_source():
     """Create a new inventory source."""
     db   = get_db()
@@ -81,7 +82,7 @@ def create_inventory_source():
 
 
 @bp.get("/inventory-sources")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_inventory_sources():
     """List inventory sources, optionally filtered."""
     db          = get_db()
@@ -98,7 +99,7 @@ def list_inventory_sources():
 
 
 @bp.get("/inventory-sources/<int:source_id>")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def get_inventory_source(source_id: int):
     """Get a single inventory source by ID."""
     db = get_db()
@@ -108,7 +109,7 @@ def get_inventory_source(source_id: int):
 
 
 @bp.post("/inventory-sources/<int:source_id>/stock")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def update_stock(source_id: int):
     """Report updated stock from this source for a specific offer."""
     db   = get_db()
@@ -132,19 +133,17 @@ def update_stock(source_id: int):
 
 
 @bp.get("/inventory-sources/<int:source_id>/stock")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_stock_by_source(source_id: int):
     """List all stock records reported by this inventory source."""
     db = get_db()
     with db.read_transaction() as conn:
-        results = inventory_source_service.list_stock_by_source(
-            conn, source_id=source_id
-        )
+        results = inventory_source_service.list_stock_by_source(conn, source_id)
     return jsonify({"data": results})
 
 
 @bp.get("/inventory-sources/authoritative-stock/<int:offer_id>")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def get_authoritative_stock(offer_id: int):
     """Return the winning (authoritative) stock level for an offer."""
     db = get_db()

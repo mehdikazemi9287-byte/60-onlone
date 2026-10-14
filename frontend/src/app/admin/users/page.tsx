@@ -1,0 +1,1 @@
+import PlatformUsers from "@/components/admin/PlatformUsers";export default function Page(){return <PlatformUsers/>;}

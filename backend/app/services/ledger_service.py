@@ -74,13 +74,17 @@ def post_transaction(
     if len(entries) < 2:
         raise ValidationError("a double-entry transaction needs at least two entries")
 
-    debits = sum(e.amount_minor for e in entries if e.direction == "debit")
-    credits = sum(e.amount_minor for e in entries if e.direction == "credit")
+    maximum = 9223372036854775807
     for entry in entries:
         if entry.direction not in ("debit", "credit"):
             raise ValidationError(f"invalid direction {entry.direction!r}")
-        if entry.amount_minor <= 0:
-            raise ValidationError("ledger entry amounts must be strictly positive")
+        if type(entry.amount_minor) is not int or not 1 <= entry.amount_minor <= maximum:
+            raise ValidationError("ledger amounts must be positive integers within database range")
+    debits = sum(e.amount_minor for e in entries if e.direction == "debit")
+    credits = sum(e.amount_minor for e in entries if e.direction == "credit")
+    if debits > maximum or credits > maximum:
+        raise ValidationError("ledger transaction total exceeds database range")
+
     if debits != credits:
         raise ValidationError(
             f"unbalanced transaction: debits={debits} credits={credits}"

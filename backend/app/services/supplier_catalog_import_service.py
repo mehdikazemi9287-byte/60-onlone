@@ -96,6 +96,8 @@ def import_catalog_batch(
 ) -> dict:
     """Process a batch of supplier catalog rows within the caller's
     transaction. Returns the batch summary (also persisted)."""
+    if not isinstance(rows, list):
+        raise ValidationError("rows باید آرایه‌ای از ردیف‌ها باشد")
     if not rows:
         raise ValidationError("هیچ ردیفی برای وارد کردن ارسال نشده است")
 
@@ -143,11 +145,6 @@ def _import_one_row(
     batch_id: int, row: dict,
 ) -> str:
     """Returns one of: matched | duplicate_sku | unresolved | rejected."""
-    barcode = (row.get("barcode") or "").strip()
-    supplier_sku = (row.get("supplier_sku") or row.get("sku") or "").strip()
-    price_minor = row.get("selling_price_minor")
-    stock_quantity = row.get("stock_quantity", 0)
-
     def _log(match_status: str, **kw) -> None:
         conn.execute(
             """INSERT INTO supplier_catalog_import_rows
@@ -159,8 +156,23 @@ def _import_one_row(
              kw.get("resolution_queue_id"), kw.get("error_message")),
         )
 
-    if price_minor is None or int(price_minor) < 0:
-        _log("rejected", error_message="قیمت نامعتبر است")
+    if not isinstance(row, dict):
+        _log("rejected", error_message="ردیف باید یک شیء باشد")
+        return "rejected"
+    barcode = row.get("barcode")
+    supplier_sku = row.get("supplier_sku") or row.get("sku")
+    if any(value is not None and not isinstance(value, str) for value in (barcode, row.get("supplier_sku"), row.get("sku"))):
+        _log("rejected", error_message="بارکد و کد کالا باید متن باشند")
+        return "rejected"
+    barcode = (barcode or "").strip()
+    supplier_sku = (supplier_sku or "").strip()
+    price_minor = row.get("selling_price_minor")
+    stock_quantity = row.get("stock_quantity", 0)
+    try:
+        price_minor = supplier_service.exact_nonnegative_integer(price_minor, "قیمت")
+        stock_quantity = supplier_service.exact_nonnegative_integer(stock_quantity, "موجودی")
+    except ValidationError as exc:
+        _log("rejected", error_message=str(exc))
         return "rejected"
     if not barcode and not supplier_sku:
         _log("rejected", error_message="بارکد یا کد کالای تأمین‌کننده الزامی است")
@@ -197,11 +209,16 @@ def _import_one_row(
         return "duplicate_sku"
 
     already = conn.execute(
-        """SELECT id FROM seller_offers
+        """SELECT id, stock_reserved FROM seller_offers
                WHERE product_id = ? AND supplier_id = ? AND supplier_location_id = ?""",
         (product_id, supplier_id, supplier_location_id),
     ).fetchone()
     if already:
+        # Reject the complete row before touching price/history when stock is invalid.
+        if stock_quantity < int(already["stock_reserved"]):
+            _log("rejected", matched_product_id=product_id,
+                 error_message="موجودی جدید کمتر از موجودی رزرو شده است")
+            return "rejected"
         supplier_service.update_offer_price(
             conn, offer_id=int(already["id"]), supplier_id=supplier_id,
             selling_price_minor=int(price_minor),

@@ -16,6 +16,7 @@ falling back to the existing base_price_minor display exactly as today.
 from __future__ import annotations
 
 import sqlite3
+from app.services import product_channel_policy as policy
 
 
 def _availability_state(offer_row: dict, supplier_status: str) -> str:
@@ -49,7 +50,10 @@ def list_offers_for_product(conn: sqlite3.Connection, *, product_id: int) -> lis
     result = []
     for r in rows:
         d = dict(r)
-        d["availability_state"] = _availability_state(d, d["supplier_status"])
+        d.update(policy.offer_fields(conn,product_id,d["channel"]))
+        d["availability_state"] = _availability_state(d, d["supplier_status"]) if d["effective_channel"] else "product_disabled"
+        if d["effective_channel"] is None:continue
+        d["channel"]=d["effective_channel"]
         result.append(d)
     return result
 
@@ -60,7 +64,7 @@ def get_best_offer(conn: sqlite3.Connection, *, product_id: int) -> dict | None:
     substitute a fabricated price in that case, only fall back to whatever
     the product's own base_price_minor already shows today."""
     offers = list_offers_for_product(conn, product_id=product_id)
-    eligible = [o for o in offers if o["availability_state"] == "available"]
+    eligible = [o for o in offers if o["availability_state"] == "available" and "retail" in o["allowed_channels"]]
     if not eligible:
         return None
     # Already sorted by selling_price_minor ASC; tie-break deterministically
@@ -76,7 +80,7 @@ def get_offer_summary(conn: sqlite3.Connection, *, product_id: int) -> dict:
     best = get_best_offer(conn, product_id=product_id)
     return {
         "offer_count": len(offers),
-        "available_offer_count": sum(1 for o in offers if o["availability_state"] == "available"),
+        "available_offer_count": sum(1 for o in offers if o["availability_state"] == "available" and "retail" in o["allowed_channels"]),
         "best_offer": best,
         "offers": offers,
     }

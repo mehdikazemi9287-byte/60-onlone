@@ -56,6 +56,12 @@ import app.services.purchase_order_service as po_svc
 import app.services.connector_service as conn_svc
 import app.services.freshness_service as fresh_svc
 
+
+def _acting_supplier(conn, user_id):
+    from app.services.access_admin_service import current_supplier_id
+    sid = current_supplier_id(conn, user_id)
+    return {"id": sid} if sid else None
+
 bp = Blueprint("procurement", __name__, url_prefix="/api/v1")
 
 
@@ -331,10 +337,24 @@ def get_rfq_comparison(org_id: int, rfq_id: int):
 # ── Purchase Orders ───────────────────────────────────────────────────────────
 
 
+def _quote_id(value):
+    if isinstance(value,bool) or not isinstance(value,(str,int)) or (isinstance(value,str) and (len(value)>19 or not value.isascii() or not value.isdigit())):raise ValidationError('شناسه قیمت‌نامه نامعتبر است')
+    number=int(value)
+    if not 0<number<2**63:raise ValidationError('شناسه قیمت‌نامه نامعتبر است')
+    return number
+
+@bp.get('/orgs/<int:org_id>/procurement/purchase-orders/allocation-preview')
+@require_auth()
+def allocation_preview(org_id):
+    qid=_quote_id(request.args.get('supplier_quote_id'))
+    with get_db().read_transaction() as conn:
+        return jsonify(po_svc.allocation_preview(conn,organization_id=org_id,actor_user_id=current_user()['id'],supplier_quote_id=qid))
+
 @bp.post("/orgs/<int:org_id>/procurement/purchase-orders")
 @require_auth()
 def create_purchase_order(org_id: int):
     data = request.get_json(silent=True) or {}
+    if not isinstance(data,dict):raise ValidationError('بدنه درخواست نامعتبر است')
     supplier_quote_id = data.get("supplier_quote_id")
     if not supplier_quote_id:
         raise ValidationError("شناسه قیمت‌نامه الزامی است")
@@ -344,10 +364,11 @@ def create_purchase_order(org_id: int):
             conn,
             organization_id=org_id,
             actor_user_id=current_user()["id"],
-            supplier_quote_id=int(supplier_quote_id),
+            supplier_quote_id=_quote_id(supplier_quote_id),
             delivery_address=data.get("delivery_address"),
             notes=data.get("notes"),
             vat_bps=data.get("vat_bps", 900),
+            destination_allocations=data.get('destination_allocations'),
         )
     return jsonify({"purchase_order": po}), 201
 
@@ -449,7 +470,7 @@ def supplier_list_rfqs():
     user_id = current_user()["id"]
     with db.read_transaction() as conn:
         # Find supplier id associated with this user
-        sup_row = conn.execute("SELECT id FROM suppliers WHERE user_id=?", (user_id,)).fetchone()
+        sup_row = _acting_supplier(conn, user_id)
         if not sup_row:
             return jsonify({"items": [], "total": 0})
         rfqs = rfq_svc.list_supplier_invited_rfqs(conn, sup_row["id"])
@@ -463,7 +484,7 @@ def supplier_get_quote(quote_id: int):
     user_id = current_user()["id"]
     db = get_db()
     with db.read_transaction() as conn:
-        sup_row = conn.execute("SELECT id FROM suppliers WHERE user_id=?", (user_id,)).fetchone()
+        sup_row = _acting_supplier(conn, user_id)
         if not sup_row:
             raise PermissionError_("حساب تأمین‌کننده برای این کاربر یافت نشد")
         quote = conn.execute(
@@ -497,7 +518,7 @@ def supplier_submit_quote(rfq_id: int):
     user_id = current_user()["id"]
     db = get_db()
     with db.write_transaction() as conn:
-        sup_row = conn.execute("SELECT id FROM suppliers WHERE user_id=?", (user_id,)).fetchone()
+        sup_row = _acting_supplier(conn, user_id)
         if not sup_row:
             raise ValidationError("حساب تأمین‌کننده برای این کاربر یافت نشد")
         if key:
@@ -513,6 +534,7 @@ def supplier_submit_quote(rfq_id: int):
             items=data.get("items", []),
             shipping_cost_minor=data.get("shipping_cost_minor", 0),
             payment_terms=data.get("payment_terms"),
+            warranty_terms=data.get("warranty_terms"),
             delivery_lead_days=data.get("delivery_lead_days"),
             validity_days=data.get("validity_days"),
             notes=data.get("notes"),

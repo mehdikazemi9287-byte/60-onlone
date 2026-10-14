@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn, formatPrice, toPersianNum } from "@/lib/utils";
-import { cart as cartApi, checkout as checkoutApi, newIdempotencyKey, ApiError } from "@/lib/api";
+import { cart as cartApi, checkout as checkoutApi, newIdempotencyKey, ApiError, apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Address, Cart, CheckoutQuote, PaymentMethod } from "@/lib/types";
 
@@ -232,8 +232,31 @@ function ConfirmStep({
   const [placing, setPlacing] = useState(false);
   const [placedOrderNumber, setPlacedOrderNumber] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [boundary, setBoundary] = useState(false);
+  const [requestKey] = useState(() => newIdempotencyKey());
   const [idempotencyKey, setIdempotencyKey] = useState(() => newIdempotencyKey());
   const router = useRouter();
+
+  // Payment boundary: no online gateway is connected, so no payment is attempted or simulated.
+  // The same cart can be submitted as a tracked purchase request instead.
+  const submitRequest = async () => {
+    setPlacing(true);
+    setError(null);
+    try {
+      const lines = (cart.items as unknown as { slug: string; quantity: number }[]).map((i) => ({ slug: i.slug, quantity: i.quantity }));
+      const a = address as unknown as Record<string, string>;
+      const r = await apiRequest<{ request: { id: number } }>("/requests", {
+        token, method: "POST", headers: { "Idempotency-Key": requestKey },
+        body: JSON.stringify({ kind: "procurement", subject: "درخواست خرید از سبد", items: lines,
+          message: `تحویل: ${a.province ?? ""}، ${a.city ?? ""}، ${a.line1 ?? ""} — گیرنده: ${a.recipient_name ?? ""} (${a.recipient_phone ?? ""})` }),
+      });
+      router.push(`/requests/${r.request.id}`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "ثبت درخواست ناموفق بود");
+    } finally {
+      setPlacing(false);
+    }
+  };
 
   const handlePlace = async () => {
     setPlacing(true);
@@ -242,7 +265,9 @@ function ConfirmStep({
       const { order } = await checkoutApi.place(token, idempotencyKey, address, method);
       setPlacedOrderNumber(order.order_number);
     } catch (err) {
-      if (err instanceof ApiError) {
+      if (err instanceof ApiError && err.code === "payment_gateway_unavailable") {
+        setBoundary(true);
+      } else if (err instanceof ApiError) {
         setError(err.message);
         // A genuine rejection (validation, stock, PSP decline) means the
         // next attempt is a real new request, not a retry of this one.
@@ -290,6 +315,15 @@ function ConfirmStep({
       <h2 className="text-lg font-bold text-neutral-900">تأیید نهایی سفارش</h2>
 
       {error && <p className="text-sm text-center text-danger-600 bg-danger-50 rounded-xl p-3">{error}</p>}
+      {boundary && (
+        <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900">
+          <b className="block">پرداخت آنلاین هنوز فعال نیست</b>
+          درگاه پرداخت به فروشگاه متصل نشده است؛ هیچ مبلغی دریافت یا ثبت نشد. می‌توانید همین سبد را به‌صورت «درخواست خرید» ثبت کنید تا کارشناسان
+          قیمت نهایی، موجودی و روش پرداخت را هماهنگ کنند و وضعیت را در «درخواست‌های من» پیگیری کنید.
+          <button type="button" onClick={submitRequest} disabled={placing} className="mt-3 block w-full rounded-xl bg-brand-navy py-2.5 font-bold text-white disabled:opacity-60">
+            {placing ? "در حال ثبت…" : "ثبت درخواست خرید با همین سبد"}</button>
+        </div>
+      )}
 
       <div className="card p-4 space-y-3">
         {cart.items.map((item) => (
@@ -348,7 +382,7 @@ function ConfirmStep({
         </button>
         <button
           onClick={handlePlace}
-          disabled={placing}
+          disabled={placing || boundary}
           className="flex-[2] py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
         >
           {placing ? (

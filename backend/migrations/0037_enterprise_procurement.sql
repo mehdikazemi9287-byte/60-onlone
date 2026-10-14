@@ -1,0 +1,99 @@
+-- Enterprise procurement: additive only. No existing row is changed or removed.
+-- Line detail for organizational requests.
+ALTER TABLE purchase_request_items ADD COLUMN target_specification TEXT;
+ALTER TABLE purchase_request_items ADD COLUMN acceptable_alternative TEXT;
+
+-- Supplier quote revisions: one current row per supplier (existing UNIQUE);
+-- every submitted revision is kept in the append-only revisions table.
+ALTER TABLE supplier_quotes ADD COLUMN revision INTEGER NOT NULL DEFAULT 1 CHECK (revision > 0);
+CREATE TABLE supplier_quote_revisions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    supplier_quote_id INTEGER NOT NULL REFERENCES supplier_quotes(id),
+    revision INTEGER NOT NULL CHECK (revision > 0),
+    snapshot_json TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    UNIQUE (supplier_quote_id, revision)
+);
+CREATE TRIGGER supplier_quote_revisions_no_update BEFORE UPDATE ON supplier_quote_revisions
+BEGIN SELECT RAISE(ABORT, 'supplier_quote_revisions is append-only'); END;
+CREATE TRIGGER supplier_quote_revisions_no_delete BEFORE DELETE ON supplier_quote_revisions
+BEGIN SELECT RAISE(ABORT, 'supplier_quote_revisions is append-only'); END;
+ALTER TABLE supplier_quotes ADD COLUMN warranty_terms TEXT;
+ALTER TABLE supplier_quote_items ADD COLUMN alternative_description TEXT;
+ALTER TABLE supplier_quote_items ADD COLUMN delivery_date TEXT;
+
+-- RFQ invitation lifecycle timestamps.
+ALTER TABLE rfq_suppliers ADD COLUMN viewed_at TEXT;
+ALTER TABLE rfq_suppliers ADD COLUMN responded_at TEXT;
+ALTER TABLE rfq_suppliers ADD COLUMN decline_reason TEXT;
+
+-- Configurable organization procurement policy (submit rights, approval chain).
+CREATE TABLE organization_procurement_policies (
+    organization_id INTEGER PRIMARY KEY REFERENCES organizations(id),
+    employee_submit_allowed INTEGER NOT NULL DEFAULT 1 CHECK (employee_submit_allowed IN (0, 1)),
+    approval_chain_json TEXT NOT NULL DEFAULT '[]',
+    version INTEGER NOT NULL DEFAULT 1 CHECK (version > 0),
+    updated_by_user_id INTEGER REFERENCES users(id),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+-- Immutable procurement timeline (append-only).
+CREATE TABLE procurement_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    organization_id INTEGER NOT NULL REFERENCES organizations(id),
+    purchase_request_id INTEGER REFERENCES purchase_requests(id),
+    actor_user_id INTEGER REFERENCES users(id),
+    event_type TEXT NOT NULL CHECK (length(event_type) BETWEEN 1 AND 60),
+    visibility TEXT NOT NULL DEFAULT 'organization' CHECK (visibility IN ('organization', 'internal')),
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX idx_procurement_events_request ON procurement_events(purchase_request_id, id);
+CREATE TRIGGER procurement_events_no_update BEFORE UPDATE ON procurement_events
+BEGIN SELECT RAISE(ABORT, 'procurement_events is append-only'); END;
+CREATE TRIGGER procurement_events_no_delete BEFORE DELETE ON procurement_events
+BEGIN SELECT RAISE(ABORT, 'procurement_events is append-only'); END;
+
+-- Per-destination fulfillment state for purchase orders.
+CREATE TABLE procurement_deliveries (
+    purchase_order_id INTEGER NOT NULL REFERENCES purchase_orders(id),
+    destination_index INTEGER NOT NULL CHECK (destination_index >= 0),
+    status TEXT NOT NULL DEFAULT 'confirmed' CHECK (status IN (
+        'confirmed', 'preparing', 'ready', 'shipped', 'partially_delivered', 'delivered')),
+    tracking_reference TEXT,
+    updated_by_user_id INTEGER REFERENCES users(id),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    PRIMARY KEY (purchase_order_id, destination_index)
+);
+
+-- Receipts are evidence: append-only.
+CREATE TABLE procurement_receipts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    purchase_order_id INTEGER NOT NULL REFERENCES purchase_orders(id),
+    destination_index INTEGER NOT NULL CHECK (destination_index >= 0),
+    kind TEXT NOT NULL CHECK (kind IN ('full', 'partial', 'shortage', 'damaged', 'mismatch')),
+    receiver_name TEXT NOT NULL CHECK (length(trim(receiver_name)) BETWEEN 1 AND 200),
+    quantities_json TEXT NOT NULL DEFAULT '[]',
+    notes TEXT,
+    created_by_user_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE TRIGGER procurement_receipts_no_update BEFORE UPDATE ON procurement_receipts
+BEGIN SELECT RAISE(ABORT, 'procurement_receipts is append-only'); END;
+CREATE TRIGGER procurement_receipts_no_delete BEFORE DELETE ON procurement_receipts
+BEGIN SELECT RAISE(ABORT, 'procurement_receipts is append-only'); END;
+
+-- Returns / corrections linked to the same order and receipt.
+CREATE TABLE procurement_corrections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    purchase_order_id INTEGER NOT NULL REFERENCES purchase_orders(id),
+    receipt_id INTEGER REFERENCES procurement_receipts(id),
+    kind TEXT NOT NULL CHECK (kind IN ('return', 'correction')),
+    reason TEXT NOT NULL CHECK (length(trim(reason)) BETWEEN 1 AND 2000),
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'resolved')),
+    resolution TEXT,
+    created_by_user_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    resolved_by_user_id INTEGER REFERENCES users(id),
+    resolved_at TEXT
+);

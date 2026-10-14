@@ -50,6 +50,24 @@ export interface Product {
   review_count?: number;
   stock?: number;
   sku?: string;
+  specifications?: ProductSpecs;
+  master_product_id?: number | null; // catalog identity (organization RFQ)
+  variant_count?: number;
+  variant_labels?: string[];
+  availability?: "purchasable" | "quote" | "no_offer";
+  family_slug?: string | null;
+  price_from?: boolean;
+  /** Latest known supplier/list price (IRR) with its date — informational, never a sale price. */
+  list_price_minor?: number | null;
+  list_price_at?: string | null;
+  /** Bulk/B2B item: organizational purchasing only. */
+  org_only?: boolean;
+  allowed_channels?:string[];supply_channel?:string;
+}
+
+export interface ProductSpecs {
+  groups: { title: string; items: { label: string; value: string }[] }[];
+  source: { url: string; type: string; retrieved_at?: string; note?: string };
 }
 
 export interface CartItem {

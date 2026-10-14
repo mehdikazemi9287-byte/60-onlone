@@ -13,6 +13,8 @@ Key invariant: PO financial values are IMMUTABLE historical snapshots.
 """
 from __future__ import annotations
 
+import json
+
 import datetime
 from typing import Any
 
@@ -91,6 +93,24 @@ def _poi_dict(row) -> dict:
 
 # ── Create PO from awarded quote ───────────────────────────────────────────────
 
+def allocation_preview(conn, *, organization_id, actor_user_id, supplier_quote_id):
+    membership=_assert_org_member(conn,actor_user_id,organization_id)
+    if not _can_procure(membership):raise PermissionError_('دسترسی ایجاد سفارش خرید ندارید')
+    quote=conn.execute('SELECT q.*,r.purchase_request_id FROM supplier_quotes q JOIN rfqs r ON r.id=q.rfq_id WHERE q.id=? AND r.organization_id=?',(supplier_quote_id,organization_id)).fetchone()
+    if not quote:raise NotFoundError('قیمت‌نامه یافت نشد')
+    if quote['status']!='awarded':raise ConflictError('فقط پیشنهاد منتخب قابل سفارش است')
+    if not quote['purchase_request_id']:return {'requirements':[],'suggested':[]}
+    from app.services.procurement_coverage import allocation_requirements,quote_destinations,proposal
+    proposal(conn,quote['purchase_request_id'],supplier_quote_id,orders=True)
+    _,requirements=allocation_requirements(conn,quote['purchase_request_id'],supplier_quote_id)
+    try:
+        destinations=quote_destinations(conn,quote['purchase_request_id'],supplier_quote_id)
+        suggested=[{'purchase_request_item_id':r['purchase_request_item_id'],'destination_index':i,'quantity':a['quantity']} for i,d in enumerate(destinations) for a in d['allocations'] for r in requirements if r['item_index']==a['item_index']]
+    except ConflictError as e:
+        if e.code!='partial_destination_allocation_required':raise
+        suggested=None
+    return {'requirements':requirements,'suggested':suggested}
+
 def create_purchase_order(
     conn,
     *,
@@ -100,6 +120,7 @@ def create_purchase_order(
     delivery_address: str | None = None,
     notes: str | None = None,
     vat_bps: int | None = None,  # DEPRECATED: ignored; VAT is copied from the quote snapshot
+    destination_allocations: list | None = None,
 ) -> dict:
     """
     Create a PO from an awarded supplier quote.
@@ -131,6 +152,17 @@ def create_purchase_order(
     if existing_po:
         raise ConflictError("سفارش خرید برای این قیمت‌نامه قبلاً ایجاد شده است")
 
+    pr_row = conn.execute("SELECT destinations_json FROM purchase_requests WHERE id=?", (rfq_row["purchase_request_id"],)).fetchone() \
+        if rfq_row["purchase_request_id"] else None
+    if pr_row and pr_row["destinations_json"]:
+        from app.services.procurement_service import unallocated
+        items = [dict(r) for r in conn.execute("SELECT quantity FROM purchase_request_items WHERE purchase_request_id=? ORDER BY id",
+                                               (rfq_row["purchase_request_id"],))]
+        missing = unallocated(json.loads(pr_row["destinations_json"]), items)
+        if missing:
+            raise ConflictError("تخصیص مقصد برخی اقلام ناقص است؛ پیش از صدور سفارش مقصد همه مقادیر را مشخص کنید",
+                                code="destinations_incomplete", details={"unallocated": missing})
+
     # Load quote items — SNAPSHOT
     quote_items = conn.execute(
         """SELECT qi.*, ri.master_product_id, ri.free_text_description, ri.unit,
@@ -143,6 +175,14 @@ def create_purchase_order(
 
     if not quote_items:
         raise ValidationError("قیمت‌نامه هیچ ردیفی ندارد")
+
+    from app.services.product_channel_policy import require_master
+    for qi in quote_items:require_master(conn,qi["master_product_id"],"organization")
+    destination_snapshot=None
+    if rfq_row['purchase_request_id']:
+        from app.services.procurement_coverage import proposal,quote_destinations
+        proposal(conn,rfq_row['purchase_request_id'],supplier_quote_id,orders=True)
+        destination_snapshot=json.dumps(quote_destinations(conn,rfq_row['purchase_request_id'],supplier_quote_id,destination_allocations),ensure_ascii=False)
 
     # Financial snapshot: copy from the AUTHORITATIVE quote values, never recompute.
     # quote.grand_total_minor was set at submission time with correct VAT (items + shipping VAT).
@@ -192,6 +232,7 @@ def create_purchase_order(
         ),
     )
     po_id = cur.lastrowid
+    conn.execute('UPDATE purchase_orders SET destinations_json_snapshot=? WHERE id=?',(destination_snapshot,po_id))
 
     # Insert IMMUTABLE line items
     for qi in quote_items:
@@ -222,7 +263,7 @@ def create_purchase_order(
     _audit(conn, organization_id=organization_id, actor_user_id=actor_user_id,
            event_type="pr_created", entity_type="purchase_order", entity_id=po_id,
            details={"po_number": po_number, "grand_total_minor": grand_total,
-                    "supplier_quote_id": supplier_quote_id})
+                    "supplier_quote_id": supplier_quote_id,"destinations":json.loads(destination_snapshot) if destination_snapshot is not None else None})
 
     return get_purchase_order(conn, po_id, actor_user_id=actor_user_id, organization_id=organization_id)
 
@@ -294,6 +335,8 @@ def confirm_purchase_order(conn, po_id: int, *, actor_user_id: int, organization
         raise NotFoundError("سفارش خرید یافت نشد")
     if row["status"] != "draft":
         raise ConflictError(f"وضعیت فعلی '{row['status']}' — انتظار 'draft'")
+    from app.services.product_channel_policy import require_references
+    require_references(conn,"purchase_order_items","purchase_order_id",po_id)
     now = _now()
     conn.execute(
         "UPDATE purchase_orders SET status='confirmed', confirmed_at=?, updated_at=? WHERE id=?",

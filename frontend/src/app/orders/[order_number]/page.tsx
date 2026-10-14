@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { cn, formatPrice, toPersianNum } from "@/lib/utils";
 import { orders as ordersApi, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { OrderReturns } from "@/components/OrderReturns";
 import { Package } from "lucide-react";
 import type { FulfillmentOrder, Order } from "@/lib/types";
 
@@ -148,6 +149,8 @@ export default function OrderDetailPage() {
           <span className="text-primary-700 text-base tabular-nums">{formatPrice(order.total_minor)}</span>
         </div>
       </div>
+      {token && <OrderReturns token={token} orderNumber={order.order_number} status={order.status}
+        items={(order.items as unknown as { product_id: number; title_fa: string; quantity: number }[])} />}
     </div>
   );
 }

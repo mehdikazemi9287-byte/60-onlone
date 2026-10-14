@@ -20,7 +20,19 @@ from app.api.v1 import settlement as settlement_api
 from app.api.v1 import suppliers as suppliers_api
 from app.api.v1 import master_catalog as master_catalog_api
 from app.api.v1 import procurement as procurement_api
+from app.api.v1 import enterprise_procurement as enterprise_procurement_api
+from app.api.v1 import admin_product_content as admin_product_content_api
+from app.api.v1 import admin_product_identity as admin_product_identity_api
+from app.api.v1 import admin_taxonomy as admin_taxonomy_api
+from app.api.v1 import admin_console as admin_console_api
+from app.api.v1 import admin_media as admin_media_api
+from app.api.v1 import admin_content as admin_content_api
+from app.api.v1 import admin_dashboard as admin_dashboard_api
+from app.api.v1 import access_admin as access_admin_api
+from app.api.v1 import marketplace as marketplace_api
+from app.api.v1 import commerce_ops as commerce_ops_api
 from app.api.v1 import organization_operations as organization_operations_api
+from app.api.v1 import customer_workflow as customer_workflow_api
 from app.api.v1 import organization_finance_policy as organization_finance_policy_api
 
 # Phase 6 — Inventory Intelligence + Product Identifiers + ERP/Store Connector
@@ -47,6 +59,7 @@ from app.api.v1 import connector_wizard as connector_wizard_api
 
 # Loyalty foundation — 60Coin (structurally separate from credit/ledger)
 from app.api.v1 import loyalty as loyalty_api
+from app.api.v1 import admin_supplier_profile, admin_image_review, saved_pack_drafts, admin_catalog_sources
 from app.core.config import Settings, load_settings
 from app.core.db import Database, DatabaseBackend, make_backend
 from app.core.errors import ApiError
@@ -81,6 +94,15 @@ def create_app(
     app.config["TEST_SALES_OVERRIDE"] = settings.app_env == "test"
     app.extensions["settings"] = settings
     app.extensions["db"] = database
+
+    @app.after_request
+    def _private_cache_control(response):
+        if request.headers.get("Authorization") or request.path.startswith("/api/v1/admin/"):
+            response.headers["Cache-Control"]="no-store"
+            response.headers["Pragma"]="no-cache"
+            response.vary.add("Authorization")
+        return response
+
     app.extensions["secret_resolver"] = secret_resolver
 
     # ---- Metrics collector -----------------------------------------------
@@ -109,7 +131,23 @@ def create_app(
         suppliers_api.bp,
         master_catalog_api.bp,
         procurement_api.bp,
+        enterprise_procurement_api.bp,
+        access_admin_api.bp,
+        admin_dashboard_api.bp,
+        admin_supplier_profile.bp,
+        admin_image_review.bp,
+        saved_pack_drafts.bp,
+        admin_catalog_sources.bp,
+        admin_content_api.bp,
+        admin_media_api.bp,
+        admin_console_api.bp,
+        admin_taxonomy_api.bp,
+        admin_product_content_api.bp,
+        admin_product_identity_api.bp,
+        marketplace_api.bp,
+        commerce_ops_api.bp,
         organization_operations_api.bp,
+        customer_workflow_api.bp,
         organization_finance_policy_api.bp,
         logistics_api.bp,
         settlement_api.bp,
@@ -175,7 +213,9 @@ def create_app(
     def _enforce_content_type():
         if request.method in ("POST", "PUT", "PATCH") and request.content_length:
             ct = request.content_type or ""
-            if not ct.startswith("application/json"):
+            # Order documents / delivery evidence are the only multipart uploads.
+            upload = request.method == "POST" and request.path.endswith("/documents") and ct.startswith("multipart/form-data")
+            if not ct.startswith("application/json") and not upload:
                 return (
                     jsonify(
                         {
@@ -191,13 +231,15 @@ def create_app(
     # ---- Request-size limits for import/upload endpoints ----------------
     _IMPORT_SIZE_LIMIT = 10 * 1024 * 1024  # 10 MB
     _DEFAULT_SIZE_LIMIT = 1 * 1024 * 1024  # 1 MB
+    _DOCUMENT_SIZE_LIMIT = 6 * 1024 * 1024  # 5 MB file + multipart overhead
 
     @app.before_request
     def _enforce_request_size():
         cl = request.content_length
         if cl is None:
             return
-        limit = _IMPORT_SIZE_LIMIT if "/import" in request.path else _DEFAULT_SIZE_LIMIT
+        limit = _IMPORT_SIZE_LIMIT if "/import" in request.path else (
+            _DOCUMENT_SIZE_LIMIT if request.path.endswith("/documents") else _DEFAULT_SIZE_LIMIT)
         if cl > limit:
             return (
                 jsonify(
@@ -219,7 +261,7 @@ def create_app(
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"
             response.headers["Access-Control-Allow-Headers"] = (
-                "Authorization, Content-Type, Idempotency-Key, X-Request-ID"
+                "Authorization, Content-Type, Idempotency-Key, X-Request-ID, X-Supplier-Id"
             )
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
             response.headers["Access-Control-Max-Age"] = "600"

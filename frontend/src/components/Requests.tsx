@@ -59,7 +59,8 @@ export default function Requests({
       catalog
         .get(slug)
         .then(({ product: p }) => {
-          setItems([{ slug: p.slug, name: p.name, quantity: 1 }]);
+          const requestedQuantity = Number(params.get("quantity") ?? 1);
+          setItems([{ slug: p.slug, name: p.name, quantity: Number.isInteger(requestedQuantity) && requestedQuantity > 0 && requestedQuantity <= 100000 ? requestedQuantity : 1 }]);
           setSubject("استعلام " + p.name);
         })
         .catch((e) => setError(e.message));
@@ -115,7 +116,7 @@ export default function Requests({
               create
                 ? "/requests/new" +
                     (params.get("slug")
-                      ? "?slug=" + encodeURIComponent(params.get("slug")!)
+                      ? "?slug=" + encodeURIComponent(params.get("slug")!) + "&quantity=" + encodeURIComponent(params.get("quantity") ?? "1")
                       : "")
                 : "/requests",
             )

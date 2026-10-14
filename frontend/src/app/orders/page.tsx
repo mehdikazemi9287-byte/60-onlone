@@ -17,7 +17,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string; dot
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_MAP[status] ?? STATUS_MAP.pending;
+  const s = STATUS_MAP[status] ?? {label: status, color:"text-neutral-700", bg:"bg-neutral-100", dot:"bg-neutral-400"};
   return (
     <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold", s.color, s.bg)}>
       <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
@@ -60,18 +60,20 @@ function DashboardNav({ active }: { active: string }) {
   );
 }
 
-export default function OrdersPage() {
+export default function OrdersPage() { const {user}=useAuth(); return <OrdersBody key={user?.id??"guest"}/>; }
+function OrdersBody() {
   const { token, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    if (authLoading || !token) return;
-    ordersApi
-      .list(token)
-      .then((res) => setOrders(res.items))
-      .catch((e) => setError(e instanceof ApiError ? e.message : "خطا در دریافت سفارش‌ها"));
-  }, [token, authLoading]);
+    let live=true; setOrders(null); setError(null);
+    if (!authLoading && token) ordersApi.list(token)
+      .then(res=>{if(live)setOrders(res.items);})
+      .catch(e=>{if(live)setError(e instanceof ApiError?e.message:"خطا در دریافت سفارش‌ها");});
+    return ()=>{live=false};
+  }, [token, authLoading, retry]);
 
   if (!authLoading && !token) {
     return (
@@ -103,9 +105,9 @@ export default function OrdersPage() {
             {orders && <span className="text-sm text-neutral-500">{toPersianNum(orders.length)} سفارش</span>}
           </div>
 
-          {error && <p className="text-sm text-danger-600 bg-danger-50 rounded-xl p-3">{error}</p>}
+          {error && <div role="alert" className="text-sm text-danger-600 bg-danger-50 rounded-xl p-3">{error}<button type="button" onClick={()=>setRetry(v=>v+1)} className="mr-4 underline">تلاش مجدد</button></div>}
 
-          {orders === null ? (
+          {error ? null : orders === null ? (
             <div className="space-y-3">
               {[0, 1, 2].map((i) => <div key={i} className="card h-20 animate-pulse bg-neutral-100" />)}
             </div>

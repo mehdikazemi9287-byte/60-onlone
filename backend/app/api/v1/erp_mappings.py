@@ -19,6 +19,7 @@ from app.core.deps import get_db, require_auth
 from app.core.errors import NotFoundError, ValidationError
 from app.services import mapping_service as erp_mapping_service
 
+# Admin-operated: supplier self-service is disabled until per-supplier ownership is enforced (no supplier UI uses it).
 bp = Blueprint("erp_mappings", __name__, url_prefix="/api/v1")
 
 _VALID_STATUSES = {"active", "rejected", "pending_review"}
@@ -45,7 +46,7 @@ def _int_field(body: dict, name: str, required: bool = True, default=None):
 # ---------------------------------------------------------------------------
 
 @bp.post("/erp-mappings")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def create_erp_mapping():
     """Create a new ERP product code → local product mapping."""
     db   = get_db()
@@ -61,20 +62,19 @@ def create_erp_mapping():
         raise ValidationError("فیلد «erp_product_code» الزامی است")
 
     with db.write_transaction() as conn:
-        result = erp_mapping_service.create_erp_mapping(
+        result = erp_mapping_service.create_mapping(
             conn,
             connector_account_id=connector_account_id,
             erp_product_code=erp_product_code,
             product_id=product_id,
             supplier_id=supplier_id,
             match_method=match_method,
-            actor_user_id=g.current_user["id"],
         )
     return jsonify({"data": result}), 201
 
 
 @bp.get("/erp-mappings")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_erp_mappings():
     """List ERP mappings with optional filters."""
     db                   = get_db()
@@ -85,26 +85,22 @@ def list_erp_mappings():
     offset               = int(request.args.get("offset", "0"))
 
     with db.read_transaction() as conn:
-        results = erp_mapping_service.list_erp_mappings(
+        results = erp_mapping_service.list_mappings(
             conn,
             connector_account_id=connector_account_id,
             supplier_id=supplier_id,
             status=status,
-            limit=limit,
-            offset=offset,
         )
-    return jsonify({"data": results})
+    return jsonify({"data": results[offset:offset + limit]})
 
 
 @bp.get("/erp-mappings/<int:mapping_id>")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def get_erp_mapping(mapping_id: int):
     """Get a single ERP mapping by ID."""
     db = get_db()
     with db.read_transaction() as conn:
-        result = erp_mapping_service.get_erp_mapping(conn, mapping_id=mapping_id)
-    if result is None:
-        raise NotFoundError("نگاشت ERP یافت نشد")
+        result = erp_mapping_service.get_mapping(conn, mapping_id)  # raises NotFoundError
     return jsonify({"data": result})
 
 
@@ -122,12 +118,12 @@ def review_erp_mapping(mapping_id: int):
         raise ValidationError("مقدار «new_status» باید active یا rejected باشد")
 
     with db.write_transaction() as conn:
-        result = erp_mapping_service.review_erp_mapping(
+        result = erp_mapping_service.review_mapping(
             conn,
             mapping_id=mapping_id,
             new_status=new_status,
             product_id=product_id,
-            actor_user_id=g.current_user["id"],
+            reviewed_by=g.current_user["id"],
         )
     return jsonify({"data": result})
 
@@ -138,16 +134,12 @@ def delete_erp_mapping(mapping_id: int):
     """Delete an ERP mapping (admin only)."""
     db = get_db()
     with db.write_transaction() as conn:
-        erp_mapping_service.delete_erp_mapping(
-            conn,
-            mapping_id=mapping_id,
-            actor_user_id=g.current_user["id"],
-        )
+        erp_mapping_service.delete_mapping(conn, mapping_id)  # raises NotFoundError
     return jsonify({"data": {"deleted": True}})
 
 
 @bp.get("/erp-mappings/resolve")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def resolve_erp_mapping():
     """Resolve an ERP product code to its mapped local product."""
     db                   = get_db()
@@ -160,7 +152,7 @@ def resolve_erp_mapping():
         raise ValidationError("پارامتر «erp_product_code» الزامی است")
 
     with db.read_transaction() as conn:
-        result = erp_mapping_service.resolve_erp_mapping(
+        result = erp_mapping_service.resolve_erp_code(
             conn,
             connector_account_id=connector_account_id,
             erp_product_code=erp_product_code,

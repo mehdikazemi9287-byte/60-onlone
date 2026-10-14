@@ -194,7 +194,9 @@ def _begin_attempt(
                 """,
                 (item["quantity"], item["quantity"], item["product_id"], item["quantity"]),
             )
-            if result.rowcount != 1:
+            has_legacy_stock = conn.execute("SELECT 1 FROM inventory WHERE product_id=?", (item["product_id"],)).fetchone()
+            if result.rowcount != 1 and (has_legacy_stock or not item.get("offer_id")):
+                # Offer-bound SKUs without a legacy inventory row are reserved on the seller offer below.
                 raise OutOfStockError(
                     f"موجودی «{item['title_fa']}» کافی نیست",
                     details={"product_id": item["product_id"]},
@@ -570,6 +572,12 @@ def _fail_attempt(
 
 
 # -------------------------------------------------------------------- entry
+def _mock_payments_allowed() -> bool:
+    """Mock captures exist only for the automated unit-test harness (APP_ENV=test)."""
+    from app.services.sale_eligibility import _test_override_enabled
+    return _test_override_enabled()
+
+
 def checkout(
     db: Database,
     *,
@@ -596,6 +604,15 @@ def checkout(
     payload_hash = _request_hash({
         "address": cleaned_address, "method": payment_method, "redeem_coins": redeem_coins,
     })
+    if payment_provider_name == "mock" and not _mock_payments_allowed():
+        # Payment boundary: without a real gateway no charge, capture or paid order is ever simulated.
+        # Cart problems (unverified/ineligible items) are reported first, as they would be at a real gateway.
+        with db.write_transaction() as conn:
+            cart_service.read_cart(conn, user_id, exponent)
+        raise ConflictError(
+            "درگاه پرداخت آنلاین هنوز متصل نیست؛ پرداخت انجام نشد. می‌توانید سبد را به‌صورت درخواست خرید ثبت کنید.",
+            code="payment_gateway_unavailable", details={"alternative": "purchase_request"},
+        )
     provider = get_payment_provider(payment_provider_name)
 
     # ---- phase one (committed) -------------------------------------------

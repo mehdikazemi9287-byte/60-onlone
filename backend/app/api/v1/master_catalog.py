@@ -89,13 +89,67 @@ def get_product_by_public_id(public_product_id: str):
 @bp.post("/admin/catalog/products")
 @require_auth("admin")
 def create_master_product():
-    data = request.get_json(silent=True) or {}
-    canonical_name_fa = (data.get("canonical_name_fa") or "").strip()
+    from app.api.v1.admin_content import body, assert_admin
+    data = body()
+    raw_name = data.get("canonical_name_fa")
+    if not isinstance(raw_name, str):
+        raise ValidationError("نام فارسی کالا باید متن باشد")
+    canonical_name_fa = raw_name.strip()
     if not canonical_name_fa:
         raise ValidationError("نام فارسی کالا الزامی است")
 
+    import hashlib, json, re
+    from app.api.v1.admin_content import text, now
+    from app.core.errors import ConflictError
+    manual = data.get("manual_review", False)
+    if type(manual) is not bool:
+        raise ValidationError("manual_review باید بولی باشد")
+    source = text(data.get("source_reference", ""), 500)
+    reason = text(data.get("reason", ""), 500)
+    key = data.get("creation_request_key")
+    if key is not None and (not isinstance(key, str) or not re.fullmatch(r"[A-Za-z0-9_-]{8,100}", key)):
+        raise ValidationError("کلید درخواست ایجاد نامعتبر است")
+    if manual:
+        allowed = {"canonical_name_fa","canonical_name_en","category","brand","model","unit","package_quantity","description_fa","specifications","tax_category","vat_applicable","vat_rate_bps","manual_review","source_reference","reason","creation_request_key","confirm_real_source","direct_form","sku","identifiers","source_kind","source_supplier_id","status","supply_channel","media_ids","confirm_image_identity"}
+        if set(data) - allowed:
+            raise ValidationError("فیلد ایجاد دستی غیرمجاز است")
+        if len(source) < 3 or len(reason) < 3 or data.get("confirm_real_source") is not True or key is None:
+            raise ValidationError("منبع واقعی، دلیل، تأیید منبع و کلید درخواست لازم است")
+        for name in ("brand", "unit", "category"):
+            if not isinstance(data.get(name), str) or not data[name].strip():
+                raise ValidationError("برند، واحد و دسته صریح لازم است")
+        for name, limit in (("brand",150),("unit",50),("category",150),("canonical_name_fa",300),("canonical_name_en",300),("model",300),("description_fa",10000)):
+            if name in data and data[name] is not None:
+                text(data[name], limit)
+        if data.get("specifications") is not None and not isinstance(data["specifications"], dict):
+            raise ValidationError("مشخصات باید شیء باشد")
+        for name in ("vat_applicable", "vat_rate_bps", "tax_category"):
+            if name not in data:
+                raise ValidationError("تنظیمات مالیاتی باید صریح ارسال شوند")
+        if not isinstance(data["tax_category"], str) or not data["tax_category"].strip() or len(data["tax_category"]) > 100:
+            raise ValidationError("طبقه مالیاتی نامعتبر است")
+    if data.get("direct_form") is not None and (not manual or data["direct_form"] is not True):
+        raise ValidationError("فرم مستقیم نیازمند قرارداد ایجاد دستی است")
+    payload_hash = hashlib.sha256(json.dumps(data, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     db = get_db()
     with db.write_transaction() as conn:
+        assert_admin(conn)
+        actor = current_user()["id"]
+        if key is not None:
+            prior = conn.execute("SELECT entity_id, metadata_json FROM audit_logs WHERE actor_user_id=? AND action='catalog.master_created' AND json_valid(metadata_json) AND json_extract(metadata_json,'$.creation_request_key')=? ORDER BY id LIMIT 1", (actor, key)).fetchone()
+            if prior:
+                metadata = json.loads(prior["metadata_json"])
+                if metadata.get("payload_hash") != payload_hash:
+                    raise ConflictError("این کلید قبلاً برای درخواست متفاوت استفاده شده است")
+                return jsonify(svc.get_master_product(conn, int(prior["entity_id"]))), 201
+        from app.services import catalog_structure_service
+        if data.get("direct_form"):
+            from app.api.v1.direct_product_form import validate
+            validate(conn, data)
+        if manual:
+            if not conn.execute("SELECT 1 FROM categories WHERE slug=? AND level='category'", (data["category"],)).fetchone():
+                raise ValidationError("دسته موجود سطح category لازم است")
+            catalog_structure_service.initialize_family_keys(conn)
         product = svc.create_master_product(
             conn,
             canonical_name_fa=canonical_name_fa,
@@ -104,11 +158,8 @@ def create_master_product():
             subcategory=data.get("subcategory"),
             brand=data.get("brand"),
             model=data.get("model"),
-            variant=data.get("variant"),
-            size_label=data.get("size_label"),
             unit=data.get("unit"),
             package_quantity=data.get("package_quantity"),
-            net_quantity=data.get("net_quantity"),
             description_fa=data.get("description_fa"),
             specifications=data.get("specifications"),
             tax_category=data.get("tax_category", "standard"),
@@ -116,6 +167,21 @@ def create_master_product():
             vat_rate_bps=data.get("vat_rate_bps", 900),
             created_by_user_id=current_user()["id"],
         )
+        # Group the new variant into its family and give it a (hidden) SKU until it is reviewed and published.
+        if manual:
+            row = conn.execute("SELECT * FROM master_products WHERE id=?", (product["id"],)).fetchone()
+            catalog_structure_service.reconcile_family_groups(conn, {catalog_structure_service.family_group_key(row)})
+        else:
+            catalog_structure_service.apply(conn, create_skus=False)
+        if data.get("direct_form"):
+            from app.api.v1.direct_product_form import save
+            product = save(conn, data, product["id"])
+        metadata = {"source_reference": source or None, "reason": reason or None,
+                    "channel": "reviewed_manual" if manual else "existing_admin_api",
+                    "creation_request_key": key, "payload_hash": payload_hash,
+                    "name": product["canonical_name_fa"], "provenance": product["provenance"],
+                    "created_fields": {k:v for k,v in data.items() if k not in ("creation_request_key","confirm_real_source")}}
+        conn.execute("INSERT INTO audit_logs(actor_user_id,action,entity_type,entity_id,metadata_json,created_at) VALUES (?,'catalog.master_created','master_product',?,?,?)", (actor, str(product["id"]), json.dumps(metadata, ensure_ascii=False), now()))
     return jsonify(product), 201
 
 
@@ -277,7 +343,10 @@ def import_catalog():
                 raise ValidationError("نام دسته با taxonomy موجود مطابقت ندارد")
         result = import_catalog_csv(conn, csv_text, confirm=confirm)
         if confirm and result["confirmed"]:
-            from app.services import audit_service
+            from app.services import audit_service, catalog_structure_service
+
+            # Imported variants join their families and get hidden SKUs until reviewed and published.
+            result["structure"] = catalog_structure_service.apply(conn, create_skus=False)
 
             audit_service.record(
                 conn,
@@ -363,3 +432,6 @@ def selection_catalog():
         raise ValidationError("صفحه نامعتبر است") from exc
     with get_db().read_transaction() as conn:
         return jsonify(svc.selection_catalog(conn, q=request.args.get("q", ""), category=request.args.get("category"), supplier=request.args.get("supplier"), page=page, page_size=page_size))
+
+from app.api.v1.direct_product_form import register as register_direct_product_form
+register_direct_product_form(bp)

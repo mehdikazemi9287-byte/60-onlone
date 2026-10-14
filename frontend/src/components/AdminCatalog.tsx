@@ -10,6 +10,7 @@ type Master = {
   brand?: string;
   category?: string;
   status: string;
+  provenance: string;
 };
 type Preview = {
   total: number;
@@ -98,8 +99,16 @@ export default function AdminCatalog() {
   return (
     <main className="container-page py-8 space-y-6">
       <h1 className="text-2xl font-bold">مدیریت مخزن کالا</h1>
-      <nav className="flex gap-5">
+      <nav className="flex flex-wrap gap-x-5 gap-y-2">
         <Link href="/admin/suppliers">تأمین‌کنندگان</Link>
+        <Link href="/admin/cases">پرونده‌های خرید سازمان‌ها</Link>
+        <Link href="/admin/access">دسترسی‌ها و سیاست پرداخت</Link>
+        <Link href="/admin/catalog/new">ایجاد مستقیم کالا</Link>
+        <Link href="/admin/catalog-review">بازبینی و انتشار کاتالوگ</Link>
+        <Link href="/admin/packs">مدیریت پک‌ها</Link>
+        <Link href="/admin/returns">مرجوعی‌ها</Link>
+        <Link href="/admin/settlements">تسویه تأمین‌کنندگان</Link>
+        <Link href="/admin/inquiries">استعلام‌های مشتریان</Link>
         <Link href="/crm">درخواست‌های مشتریان</Link>
         <Link href="/account">حساب من</Link>
         <Link href="/search">کاتالوگ عمومی</Link>
@@ -126,10 +135,11 @@ export default function AdminCatalog() {
         {rows.map((p) => (
           <article key={p.id} className="border rounded-xl p-4">
             <h2 className="font-bold">{p.canonical_name_fa}</h2>
-            <p>شناسه مرجع: {p.id}</p>
+            <p>شناسه مرجع: {p.id} · منشأ: {({real:"واقعی",demo:"نمایشی",test:"آزمایشی"} as Record<string,string>)[p.provenance]??p.provenance}</p>
             <p>
               {p.brand} · {p.category} · {p.status}
             </p>
+            {p.provenance==="real"&&p.status!=="merged"&&<Link className="inline-flex mt-3 text-sm underline" href={`/admin/catalog/${p.id}/edit`}>ویرایش توضیحات و مشخصات</Link>}
           </article>
         ))}
       </div>
