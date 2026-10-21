@@ -2,3 +2,20 @@
 @media(max-width:1150px){.shell{grid-template-columns:220px minmax(0,1fr)}.content{padding:24px}.columns{grid-template-columns:minmax(0,1fr)}.sidePanels{display:grid;grid-template-columns:1fr 1fr}.heading h1{font-size:23px}}
 @media(max-width:900px){.shell{display:block}.sidebar{position:fixed;inset-inline-start:0;top:0;width:260px;transform:translateX(100%);transition:transform .2s}.sidebar.open{transform:translateX(0)}.mobile{display:inline-flex}.scrim{display:block;position:fixed;inset:0;background:#0006;z-index:35}.topbar{padding:0 20px;height:64px}.content{padding:24px 20px}.metrics{gap:12px}}
 @media(max-width:600px){.content{padding:20px 16px}.heading{align-items:flex-start;flex-direction:column;gap:14px}.heading h1{font-size:23px}.heading p:not(.eyebrow){font-size:12px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.metric{padding:14px}.metric>span:first-child{font-size:11px;min-height:38px}.metric strong{font-size:27px}.metric small{min-height:54px}.columns,.sidePanels{display:flex;flex-direction:column}.sidePanels,.panel{width:100%}.panel{padding:16px}.context{align-items:flex-start;flex-direction:column}.panelHead{align-items:flex-start;flex-direction:column;gap:5px}.identity{display:none}.queue a>span{font-size:0}.queue a>span svg{width:17px}}
+
+/* Admin-only additions: Figma 213:219 / 213:220. No storefront selectors. */
+.brand .brandLink{display:flex;align-items:center;gap:10px;font-size:16px;letter-spacing:0;line-height:1.6}
+.brand .brandLink img{display:block;flex:none;width:52px;height:52px;object-fit:contain}
+.brand .brandName{font-size:16px;font-weight:800;color:var(--ink);margin:0}
+.entryLinks{display:flex;flex-wrap:wrap;gap:8px}
+.dashboardContext{padding:16px;background:#fff;border:1px solid #e5e7eb;border-radius:16px;flex-wrap:wrap}
+.dashboardContext label{max-width:100%}
+.queueFilters{display:flex;gap:8px;margin-bottom:16px}
+.queueFilters button{flex:1;min-width:0;min-height:40px;padding:8px;border-radius:10px;background:#fafcfc;font-size:12px;line-height:1.7}
+.queueFilters button[aria-pressed="true"]{background:#f5f7fa;box-shadow:inset 0 -2px var(--action);font-weight:700}
+.queueFilterMobile{display:none}
+.queueState{min-height:220px;background:#fafcfc;border-radius:16px}
+.shortcuts h2{font-size:16px;font-weight:700;margin-bottom:12px}
+.shortcuts>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.shortcuts a{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:54px;padding:12px;border:1px solid #e5e7eb;border-radius:10px;background:white;font-size:13px}
+@media(max-width:600px){.entryLinks{display:grid;grid-template-columns:1fr;width:100%}.entryLinks a{justify-content:space-between}.dashboardContext{width:100%}.queueFilters{display:none}.queueFilterMobile{display:flex;align-items:center;gap:12px;margin-bottom:12px;font-size:12px}.queueFilterMobile select{min-width:0;flex:1;min-height:44px;border:1px solid #e5e7eb;border-radius:10px;padding:8px;background:#fafcfc}.shortcuts>div{grid-template-columns:1fr;gap:12px}}

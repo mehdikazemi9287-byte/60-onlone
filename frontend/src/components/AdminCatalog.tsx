@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
 import LegacyMatch from "./LegacyMatch";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useAdminEditorState } from "./admin/AdminShell";
+import { CATALOG_CSV_TEMPLATE, readCatalogCsv } from "./admin/catalog-file";
 type Master = {
   id: number;
   canonical_name_fa: string;
@@ -33,7 +35,7 @@ export default function AdminCatalog() {
   const [q, setQ] = useState(""),
     [query, setQuery] = useState(""),
     [page, setPage] = useState(1),
-    [total, setTotal] = useState(0),
+    [total, setTotal] = useState<number | null>(null),
     [rows, setRows] = useState<Master[]>([]);
   const [csv, setCsv] = useState(""),
     [source, setSource] = useState(""),
@@ -41,9 +43,40 @@ export default function AdminCatalog() {
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [refresh, setRefresh] = useState(0);
+  const setDirty = useAdminEditorState();
+  const fileSequence = useRef(0);
+  const importInFlight = useRef(false);
+  const [reading, setReading] = useState(false);
+  const [listBusy, setListBusy] = useState(true);
+  const [listError, setListError] = useState("");
+  const hasUnsavedImport = reading || busy || Boolean((csv || source.trim()) && !preview?.confirmed);
+  useEffect(() => {
+    setDirty(hasUnsavedImport);
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasUnsavedImport) { event.preventDefault(); event.returnValue = ""; }
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    return () => { window.removeEventListener("beforeunload", beforeUnload); setDirty(false); };
+  }, [hasUnsavedImport, setDirty]);
+  useEffect(() => () => { fileSequence.current += 1; }, []);
+  async function selectFile(file: File | undefined) {
+    const selection = ++fileSequence.current;
+    setPreview(null); setCsv(""); setError(""); setReading(Boolean(file));
+    if (!file) return;
+    try {
+      const text = await readCatalogCsv(file);
+      // A slow, previously selected file must not replace the current selection.
+      if (selection === fileSequence.current) setCsv(text);
+    } catch (cause: unknown) {
+      if (selection === fileSequence.current) setError(cause instanceof Error ? cause.message : "خواندن فایل انجام نشد.");
+    } finally {
+      if (selection === fileSequence.current) setReading(false);
+    }
+  }
   useEffect(() => {
     if (!token || user?.role !== "admin") return;
     let live = true;
+    setListBusy(true); setListError(""); setRows([]); setTotal(null);
     apiRequest<{ items: Master[]; total: number }>(
       "/admin/catalog/products?status=&page_size=25&page=" +
         page +
@@ -58,13 +91,17 @@ export default function AdminCatalog() {
         }
       })
       .catch((e) => {
-        if (live) setError(e.message);
-      });
+        if (live) setListError(e instanceof Error ? e.message : "فهرست کالاها دریافت نشد.");
+      })
+      .finally(() => { if (live) setListBusy(false); });
     return () => {
       live = false;
     };
   }, [token, user?.role, page, query, refresh]);
   async function upload(confirm: boolean) {
+    if (importInFlight.current || reading || !token || !csv || !source.trim()) return;
+    if (confirm && (!preview?.preview_token || preview.confirmed || preview.invalid > 0 || preview.valid < 1)) return;
+    importInFlight.current = true;
     setBusy(true);
     setError("");
     try {
@@ -84,6 +121,7 @@ export default function AdminCatalog() {
       setError((e as Error).message);
       setPreview(null);
     } finally {
+      importInFlight.current = false;
       setBusy(false);
     }
   }
@@ -113,7 +151,7 @@ export default function AdminCatalog() {
         <Link href="/account">حساب من</Link>
         <Link href="/search">کاتالوگ عمومی</Link>
       </nav>
-      {error && <p role="alert">{error}</p>}
+      {listError && <div role="alert"><p>{listError}</p><button type="button" className="underline" onClick={() => setRefresh(v => v + 1)}>دریافت دوباره فهرست</button></div>}
       <form
         className="flex gap-3"
         onSubmit={(e: FormEvent) => {
@@ -130,7 +168,7 @@ export default function AdminCatalog() {
         />
         <button className="btn-primary">جست‌وجو</button>
       </form>
-      <p>{total} کالای مرجع مطابق جست‌وجو</p>
+      <p role="status">{listBusy ? "در حال دریافت کالاها…" : total === null ? "تعداد کالاها در دسترس نیست." : `${total} کالای مرجع مطابق جست‌وجو`}</p>
       <div className="grid gap-3 sm:grid-cols-2">
         {rows.map((p) => (
           <article key={p.id} className="border rounded-xl p-4">
@@ -144,20 +182,27 @@ export default function AdminCatalog() {
         ))}
       </div>
       <nav className="flex justify-between">
-        <button disabled={page <= 1} onClick={() => setPage((v) => v - 1)}>
+        <button disabled={listBusy || page <= 1} onClick={() => setPage((v) => v - 1)}>
           قبلی
         </button>
         <span>{page}</span>
         <button
-          disabled={page * 25 >= total}
+          disabled={listBusy || total === null || page * 25 >= total}
           onClick={() => setPage((v) => v + 1)}
         >
           بعدی
         </button>
       </nav>
       <LegacyMatch token={token!} masters={rows} />
-      <section className="border rounded-2xl p-5 space-y-4">
-        <h2 className="text-xl font-bold">ورود گروهی با پیش‌نمایش</h2>
+      <section id="catalog-import" aria-labelledby="catalog-import-title" aria-busy={reading || busy} className="border rounded-2xl p-5 space-y-4 scroll-mt-24">
+        <h2 id="catalog-import-title" className="text-xl font-bold">ورود گروهی با پیش‌نمایش</h2>
+        <div className="flex flex-wrap gap-4">
+          <a className="underline" href={"data:text/csv;charset=utf-8," + encodeURIComponent(CATALOG_CSV_TEMPLATE)} download="60online-products-template.csv">دریافت قالب خالی CSV</a>
+          <Link className="underline" href="/admin/taxonomy">بررسی دسته‌بندی‌ها</Link>
+        </div>
+        <p className="text-sm">قالب فقط سرستون دارد؛ نام کالا و شناسهٔ دسته را از اطلاعات واقعی تکمیل کنید. ابتدا پیش‌نمایش بگیرید؛ ثبت فقط با تأیید همین فایل انجام می‌شود.</p>
+        {error && <p role="alert">{error}</p>}
+        {reading && <p role="status">در حال خواندن و بررسی فایل…</p>}
         <p>
           فایل UTF-8 با ستون‌های canonical_name_fa و category_slug لازم است.
           مقدار active در publish_status درخواست انتشار کاتالوگ است؛ قیمت و
@@ -170,18 +215,7 @@ export default function AdminCatalog() {
             type="file"
             accept=".csv,text/csv"
             disabled={busy}
-            onChange={async (e) => {
-              const f = e.target.files?.[0];
-              setPreview(null);
-              setCsv("");
-              if (f) {
-                if (f.size > 2000000) {
-                  setError("حداکثر حجم فایل دو مگابایت است");
-                  return;
-                }
-                setCsv(await f.text());
-              }
-            }}
+            onChange={(e) => { void selectFile(e.target.files?.[0]); }}
           />
         </label>
         <label className="block">
@@ -199,7 +233,7 @@ export default function AdminCatalog() {
         </label>
         <button
           className="btn-primary"
-          disabled={busy || !csv || !source.trim()}
+          disabled={busy || reading || !csv || !source.trim()}
           onClick={() => upload(false)}
         >
           بررسی و پیش‌نمایش
@@ -228,7 +262,7 @@ export default function AdminCatalog() {
             ) : (
               <button
                 className="btn-primary"
-                disabled={busy || !preview.preview_token || preview.invalid > 0}
+                disabled={busy || reading || !preview.preview_token || preview.invalid > 0 || preview.valid < 1}
                 onClick={() => upload(true)}
               >
                 تأیید ورود همین فایل
