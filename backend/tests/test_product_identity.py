@@ -39,7 +39,9 @@ class ProductIdentityTest(AppTestCase):
             for k,v in publication.items():
                 if k not in ('category_slug','updated_at'):self.assertEqual(pub[k],v,k)
             self.assertEqual(pub['category_slug'],'laptop')
-            self.assertEqual(dict(c.execute('SELECT * FROM seller_offers WHERE id=?',(offer['id'],)).fetchone()),offer)
+            stored=dict(c.execute('SELECT * FROM seller_offers WHERE id=?',(offer['id'],)).fetchone())
+            # create_offer also returns derived channel-policy fields; compare the stored columns only.
+            self.assertEqual(stored,{k:offer[k] for k in stored})
             self.assertEqual(tuple(c.execute('SELECT * FROM master_products WHERE id=?',(other,)).fetchone()),untouched)
             self.assertEqual(c.execute('SELECT family_id FROM master_products WHERE id=?',(b,)).fetchone()[0],family)
         same={**self.proposed()};review=self.preview(a,same)
