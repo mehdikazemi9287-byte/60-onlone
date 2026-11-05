@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, request
+from urllib.parse import urlencode
+
+from flask import Blueprint, jsonify, redirect, request
 
 from app.core.deps import client_ip, current_user, get_db, get_settings, require_auth
 from app.core.errors import ValidationError
@@ -33,8 +35,36 @@ def checkout():
         exponent=settings.currency_exponent,
         ip_address=client_ip(),
         redeem_coins=redeem_coins,
+        callback_url=_callback_url(settings),
     )
+    if status == 202:  # pay on the bank page first; the order is created on return
+        return jsonify(payload), status
     return jsonify({"order": payload}), status
+
+
+def _callback_url(settings) -> str | None:
+    if not settings.public_base_url:
+        return None
+    return f"{settings.public_base_url}/api/v1/payments/{settings.payment_provider}/callback"
+
+
+@bp.route("/payments/<provider>/callback", methods=["GET", "POST"])
+def payment_callback(provider: str):
+    """The bank returns the customer's browser here (no auth header on this hop)."""
+    settings = get_settings()
+    if provider != settings.payment_provider or provider == "mock":
+        return redirect("/checkout?" + urlencode({"payment": "failed", "reason": "unknown_gateway"}), 303)
+    callback = {**request.args.to_dict(), **request.form.to_dict()}
+    outcome = checkout_service.complete_redirect_payment(
+        get_db(), provider_name=provider, callback=callback,
+        exponent=settings.currency_exponent, ip_address=client_ip(),
+    )
+    if outcome.get("ok") and outcome.get("order_number"):
+        return redirect(f"/orders/{outcome['order_number']}?" + urlencode({"payment": "success"}), 303)
+    params = {"payment": "failed", "reason": outcome.get("reason", "payment_failed")}
+    if outcome.get("reference"):
+        params["ref"] = outcome["reference"]
+    return redirect("/checkout?" + urlencode(params), 303)
 
 
 @bp.get("/orders")

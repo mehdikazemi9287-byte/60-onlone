@@ -63,3 +63,50 @@ class PaymentProvider(abc.ABC):
     @abc.abstractmethod
     def refund(self, provider_ref: str, amount_minor: int, idempotency_key: str) -> RefundResult:
         """Refund a previous charge. MUST be idempotent on idempotency_key."""
+
+
+@dataclass(frozen=True)
+class RedirectInstruction:
+    """Where the browser must go to pay: a URL plus the form fields to POST (or GET) there."""
+    url: str
+    method: str
+    fields: dict
+    provider: str
+    provider_ref: str  # the gateway's session handle (e.g. a token), kept on the intent
+
+    def to_dict(self) -> dict:
+        return {"url": self.url, "method": self.method, "fields": dict(self.fields),
+                "provider": self.provider}
+
+
+class GatewayError(Exception):
+    """The gateway could not be reached or refused the request. No money moved."""
+
+
+class RedirectPaymentProvider(PaymentProvider):
+    """A gateway where the customer pays on the bank's page (every Iranian IPG / Shaparak PSP).
+
+    Flow: ``initiate`` (server→gateway, get a session) → browser goes to the gateway →
+    gateway returns the browser to our callback → ``verify`` (server→gateway) settles it.
+    Money moves only on the gateway page; ``verify`` is what makes it final for us.
+    """
+
+    def charge(self, request: PaymentRequest) -> PaymentResult:  # pragma: no cover - contract
+        raise NotImplementedError(f"{self.name} is a redirect gateway; use initiate/verify")
+
+    @abc.abstractmethod
+    def initiate(self, request: PaymentRequest, *, invoice_id: int, callback_url: str) -> RedirectInstruction:
+        """Open a payment session. Raises GatewayError if the gateway refuses."""
+
+    @abc.abstractmethod
+    def verify(self, callback: dict, *, expected_amount_minor: int, currency: str) -> PaymentResult:
+        """Check a callback with the gateway and confirm the exact amount. Never trusts the callback alone."""
+
+    @abc.abstractmethod
+    def reverse(self, callback: dict) -> bool:
+        """Return money already taken for a payment we cannot honour. True if the gateway confirmed it."""
+
+    @staticmethod
+    @abc.abstractmethod
+    def invoice_id_of(callback: dict) -> int | None:
+        """Our invoice id (the payment intent id) as echoed back by the gateway, or None."""

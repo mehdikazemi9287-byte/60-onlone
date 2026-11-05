@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn, formatPrice, toPersianNum } from "@/lib/utils";
-import { cart as cartApi, checkout as checkoutApi, newIdempotencyKey, ApiError, apiRequest } from "@/lib/api";
+import { cart as cartApi, checkout as checkoutApi, newIdempotencyKey, ApiError, apiRequest, goToPaymentGateway } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Address, Cart, CheckoutQuote, PaymentMethod } from "@/lib/types";
 
@@ -233,6 +233,7 @@ function ConfirmStep({
   const [placedOrderNumber, setPlacedOrderNumber] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [boundary, setBoundary] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [requestKey] = useState(() => newIdempotencyKey());
   const [idempotencyKey, setIdempotencyKey] = useState(() => newIdempotencyKey());
   const router = useRouter();
@@ -262,8 +263,14 @@ function ConfirmStep({
     setPlacing(true);
     setError(null);
     try {
-      const { order } = await checkoutApi.place(token, idempotencyKey, address, method);
-      setPlacedOrderNumber(order.order_number);
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method);
+      if (placed.payment_redirect) {
+        // Pay on the bank page; the bank sends the customer back to the order or here with the result.
+        setRedirecting(true);
+        goToPaymentGateway(placed.payment_redirect);
+        return;
+      }
+      setPlacedOrderNumber(placed.order.order_number);
     } catch (err) {
       if (err instanceof ApiError && err.code === "payment_gateway_unavailable") {
         setBoundary(true);
@@ -315,6 +322,11 @@ function ConfirmStep({
       <h2 className="text-lg font-bold text-neutral-900">تأیید نهایی سفارش</h2>
 
       {error && <p className="text-sm text-center text-danger-600 bg-danger-50 rounded-xl p-3">{error}</p>}
+      {redirecting && (
+        <p role="status" className="text-sm text-center text-primary-700 bg-primary-50 rounded-xl p-3">
+          در حال انتقال به درگاه بانک…
+        </p>
+      )}
       {boundary && (
         <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900">
           <b className="block">پرداخت آنلاین هنوز فعال نیست</b>
@@ -409,6 +421,16 @@ function ConfirmStep({
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+const REFUND_NOTE = "اگر مبلغی از حسابتان کسر شده باشد، به‌صورت خودکار به حسابتان برمی‌گردد.";
+const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
+  payment_failed: `پرداخت انجام نشد یا لغو شد. ${REFUND_NOTE}`,
+  payment_expired: `مهلت پرداخت تمام شده بود و سفارش ثبت نشد. ${REFUND_NOTE}`,
+  verify_unavailable: `تأیید پرداخت از بانک ممکن نشد و سفارش ثبت نشد. ${REFUND_NOTE}`,
+  order_failed: `پرداخت انجام شد ولی ثبت سفارش ممکن نشد؛ مبلغ برگشت داده می‌شود. ${REFUND_NOTE}`,
+  unknown_payment: `این پرداخت شناخته نشد. ${REFUND_NOTE}`,
+  unknown_gateway: "درگاه پرداخت شناخته نشد.",
+};
+
 export default function CheckoutPage() {
   const { token, loading: authLoading } = useAuth();
   const [step, setStep] = useState(0);
@@ -417,6 +439,14 @@ export default function CheckoutPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [quote, setQuote] = useState<CheckoutQuote | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [paymentResult, setPaymentResult] = useState<string | null>(null);
+
+  // The bank returns here with ?payment=failed&reason=… when no order could be created.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") !== "failed") return;
+    setPaymentResult(PAYMENT_FAILURE_MESSAGES[params.get("reason") ?? ""] ?? PAYMENT_FAILURE_MESSAGES.payment_failed);
+  }, []);
 
   useEffect(() => {
     if (authLoading || !token) return;
@@ -473,6 +503,11 @@ export default function CheckoutPage() {
       </nav>
 
       <h1 className="text-2xl font-black text-neutral-900 mb-6">تکمیل خرید</h1>
+      {paymentResult && (
+        <div role="alert" className="mb-6 rounded-xl border border-red-200 bg-danger-50 p-4 text-sm leading-7 text-danger-700">
+          {paymentResult}
+        </div>
+      )}
       <StepBar step={step} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

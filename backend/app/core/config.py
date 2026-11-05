@@ -104,6 +104,10 @@ class Settings:
     rate_limit_per_minute: int = 0
     # DEMO_MODE: allow mock providers in production (must be explicitly enabled)
     demo_mode: bool = False
+    # Sepehr IPG (PAYMENT_PROVIDER=sepehr): terminal id issued by the PSP
+    sepehr_terminal_id: str = ""
+    # Public https origin the bank returns the browser to, e.g. https://60online.ir
+    public_base_url: str = ""
 
     @property
     def is_production(self) -> bool:
@@ -124,6 +128,17 @@ class Settings:
 
 
 MIN_SECRET_KEY_LENGTH = 32
+
+
+def _validate_payment_config(payment_provider: str, sepehr_terminal_id: str, public_base_url: str) -> None:
+    """A real gateway is useless without its terminal id and a public callback origin."""
+    if payment_provider == "sepehr":
+        if not sepehr_terminal_id.strip():
+            raise ConfigError("PAYMENT_PROVIDER=sepehr requires SEPEHR_TERMINAL_ID")
+        if not public_base_url.startswith("https://"):
+            raise ConfigError("PAYMENT_PROVIDER=sepehr requires PUBLIC_BASE_URL starting with https://")
+    elif payment_provider != "mock":
+        raise ConfigError(f"Unknown PAYMENT_PROVIDER={payment_provider!r}. Supported: mock, sepehr")
 
 
 def _validate_production_config(
@@ -185,6 +200,9 @@ def load_settings() -> Settings:
     demo_mode = _bool("DEMO_MODE", False)
 
     _validate_production_config(secret_key, app_env, payment_provider, credit_provider, demo_mode)
+    sepehr_terminal_id = _optional("SEPEHR_TERMINAL_ID", "")
+    public_base_url = _optional("PUBLIC_BASE_URL", "").rstrip("/")
+    _validate_payment_config(payment_provider, sepehr_terminal_id, public_base_url)
 
     # Production: SEED_ON_START is always False, regardless of env var.
     if app_env == "production":
@@ -206,4 +224,6 @@ def load_settings() -> Settings:
         seed_on_start=seed_on_start,
         rate_limit_per_minute=_int("RATE_LIMIT_PER_MINUTE", 0),
         demo_mode=demo_mode,
+        sepehr_terminal_id=sepehr_terminal_id,
+        public_base_url=public_base_url,
     )

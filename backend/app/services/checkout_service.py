@@ -35,9 +35,9 @@ import json
 import logging
 import secrets
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from app.adapters.payment.base import PaymentRequest
+from app.adapters.payment.base import GatewayError, PaymentRequest, RedirectPaymentProvider
 from app.adapters.payment.registry import get_payment_provider
 from app.core.db import Database
 from app.services.freshness_service import enforce_freshness_for_checkout
@@ -156,6 +156,10 @@ def _begin_attempt(
             # otherwise refuse, because two live attempts on one key would
             # double-charge.
             intent_row = payment_service.get_intent(conn, int(stored["payment_intent_id"]))
+            if (int(stored["status_code"]) == 202 and intent_row["status"] == "authorized"
+                    and not payment_service.is_stale(intent_row)):
+                # Waiting on the bank page: hand back the same redirect, never open a second session.
+                return None, (202, json.loads(stored["response_json"]))
             if not payment_service.is_stale(intent_row):
                 raise ConflictError(
                     "پرداخت قبلی با همین کلید هنوز در جریان است. لطفاً چند لحظه صبر کنید.",
@@ -590,8 +594,13 @@ def checkout(
     exponent: int = 0,
     ip_address: str | None = None,
     redeem_coins: int = 0,
+    callback_url: str | None = None,
 ) -> tuple[int, dict]:
-    """Returns (http_status, response_body)."""
+    """Returns (http_status, response_body).
+
+    With a redirect gateway (Sepehr) and cash to pay, returns 202 with ``payment_redirect``:
+    the order is created later by ``complete_redirect_payment`` when the bank returns.
+    """
     if not idempotency_key or not idempotency_key.strip():
         raise ValidationError("هدر Idempotency-Key الزامی است", code="idempotency_key_required")
     idempotency_key = idempotency_key.strip()
@@ -614,6 +623,11 @@ def checkout(
             code="payment_gateway_unavailable", details={"alternative": "purchase_request"},
         )
     provider = get_payment_provider(payment_provider_name)
+    if isinstance(provider, RedirectPaymentProvider):
+        try:  # cheap housekeeping so abandoned bank visits never strand stock or credit
+            release_abandoned_redirects(db, limit=20)
+        except Exception:
+            log.warning("release_abandoned_redirects failed", exc_info=True)
 
     # ---- phase one (committed) -------------------------------------------
     intent_id, quote_or_replay = _begin_attempt(
@@ -626,6 +640,13 @@ def checkout(
 
     quote = quote_or_replay
     cash_minor = int(quote["cash_due_minor"])
+
+    if cash_minor > 0 and isinstance(provider, RedirectPaymentProvider):
+        return _start_redirect(
+            db, provider=provider, intent_id=intent_id, quote=quote, user_id=user_id,
+            user_email=user_email, idempotency_key=idempotency_key, payload_hash=payload_hash,
+            payment_method=payment_method, ip_address=ip_address, callback_url=callback_url,
+        )
 
     # ---- external call, deliberately outside every transaction ------------
     payment_result = None
@@ -670,6 +691,11 @@ def checkout(
         exponent=exponent, ip_address=ip_address,
     )
 
+    _after_capture(db, body=body, created_fo_ids=created_fo_ids, user_id=user_id)
+    return status, body
+
+
+def _after_capture(db: Database, *, body: dict, created_fo_ids: list[int], user_id: int) -> None:
     # BLOCKER 1: trigger carrier shipment planning AFTER payment commits,
     # deliberately OUTSIDE any DB transaction — logistics failure must NOT
     # re-charge or roll back a successful payment.
@@ -695,4 +721,174 @@ def checkout(
         db, order_id=body["id"], user_id=user_id, redeem_coins=body.get("redeem_coins", 0),
     )
 
-    return status, body
+
+# ------------------------------------------------------------ redirect gateway
+def _start_redirect(
+    db: Database, *, provider: RedirectPaymentProvider, intent_id: int, quote: dict, user_id: int,
+    user_email: str, idempotency_key: str, payload_hash: str, payment_method: str,
+    ip_address: str | None, callback_url: str | None,
+) -> tuple[int, dict]:
+    """Phase one is committed; open a bank session and send the browser there."""
+    cash_minor = int(quote["cash_due_minor"])
+    failure: ApiError | None = None
+    instruction = None
+    if not callback_url:
+        failure = PaymentFailedError("نشانی بازگشت از درگاه تنظیم نشده است", code="payment_gateway_unavailable")
+    else:
+        try:
+            instruction = provider.initiate(
+                PaymentRequest(
+                    amount_minor=cash_minor, currency=quote["currency"],
+                    order_reference=f"intent:{intent_id}", idempotency_key=f"{user_id}:{idempotency_key}",
+                    customer_email=user_email, method=payment_method,
+                    metadata={"payment_intent_id": intent_id, "credit_minor": quote["credit_to_use_minor"]},
+                ),
+                invoice_id=intent_id, callback_url=callback_url,
+            )
+        except GatewayError as exc:
+            log.warning("checkout: gateway initiate failed for intent %s: %s", intent_id, exc)
+            failure = PaymentFailedError(
+                "درگاه پرداخت در دسترس نیست؛ پولی کسر نشد. لطفاً دوباره تلاش کنید.",
+                code="payment_gateway_unavailable",
+            )
+    if failure is not None:
+        _fail_attempt(
+            db, intent_id=intent_id, user_id=user_id, error=failure,
+            idempotency_key=idempotency_key, payload_hash=payload_hash, ip_address=ip_address,
+        )
+        raise failure
+
+    with db.write_transaction() as conn:
+        intent = payment_service.get_intent(conn, intent_id)
+        conn.execute(
+            "UPDATE payment_intents SET provider = ?, provider_ref = ? WHERE id = ?",
+            (instruction.provider, instruction.provider_ref, intent_id),
+        )
+        body = {
+            "status": "payment_redirect",
+            "payment_intent_id": intent_id,
+            "reference": intent["reference"],
+            "cash_due_minor": cash_minor,
+            "credit_minor": int(quote["credit_to_use_minor"]),
+            "currency": quote["currency"],
+            "payment_redirect": instruction.to_dict(),
+        }
+        conn.execute(
+            "UPDATE idempotency_keys SET status_code = 202, response_json = ? "
+            "WHERE key = ? AND user_id = ? AND endpoint = ?",
+            (json.dumps(body, ensure_ascii=False), idempotency_key, user_id, ENDPOINT),
+        )
+        audit_service.record(
+            conn, action="payment.redirected", entity_type="payment_intent", entity_id=intent_id,
+            actor_user_id=user_id, metadata={"provider": instruction.provider, "cash_minor": cash_minor},
+            ip_address=ip_address,
+        )
+    return 202, body
+
+
+def complete_redirect_payment(
+    db: Database, *, provider_name: str, callback: dict, exponent: int = 0, ip_address: str | None = None,
+) -> dict:
+    """Run phase two when the bank returns the browser. Safe to call twice for one payment.
+
+    Returns {"ok": True, "order_number": ...} or {"ok": False, "reason": ..., "reference": ...}.
+    Any money taken for a payment we cannot honour is given back through the gateway.
+    """
+    provider = get_payment_provider(provider_name)
+    if not isinstance(provider, RedirectPaymentProvider):
+        return {"ok": False, "reason": "unsupported_provider"}
+
+    invoice_id = provider.invoice_id_of(callback)
+    intent = None
+    if invoice_id:
+        with db.write_transaction() as conn:
+            intent = conn.execute("SELECT * FROM payment_intents WHERE id = ?", (invoice_id,)).fetchone()
+    if intent is None or intent["provider"] != provider.name:
+        log.warning("payment callback for unknown intent %r (provider %s)", invoice_id, provider.name)
+        provider.reverse(callback)
+        return {"ok": False, "reason": "unknown_payment"}
+
+    reference = intent["reference"]
+    if intent["status"] == "captured":
+        with db.write_transaction() as conn:
+            row = conn.execute(
+                "SELECT order_number FROM orders WHERE payment_intent_id = ?", (intent["id"],)
+            ).fetchone()
+        return {"ok": True, "order_number": row["order_number"] if row else None, "reference": reference}
+    if intent["status"] != "authorized":
+        # Expired or released meanwhile: the stock/credit holds are gone, so the money must go back.
+        reversed_ok = provider.reverse(callback)
+        audit_kwargs = {"reversed": reversed_ok, "status": intent["status"]}
+        with db.write_transaction() as conn:
+            audit_service.record(
+                conn, action="payment.late_callback_reversed", entity_type="payment_intent",
+                entity_id=intent["id"], actor_user_id=intent["user_id"], metadata=audit_kwargs,
+                ip_address=ip_address,
+            )
+        return {"ok": False, "reason": "payment_expired", "reference": reference}
+
+    try:
+        result = provider.verify(
+            callback, expected_amount_minor=int(intent["cash_minor"]), currency=intent["currency"],
+        )
+    except GatewayError as exc:
+        # The bank never got our confirmation, so it returns the money by itself. Keep the
+        # holds until the stale-intent reclaim releases them; do not create an order.
+        log.error("payment verify unreachable for intent %s: %s", intent["id"], exc)
+        return {"ok": False, "reason": "verify_unavailable", "reference": reference}
+
+    user_id = int(intent["user_id"])
+    common = dict(intent_id=int(intent["id"]), user_id=user_id,
+                  idempotency_key=intent["idempotency_key"], payload_hash=intent["request_hash"],
+                  ip_address=ip_address)
+    if not result.succeeded:
+        provider.reverse(callback)
+        _fail_attempt(db, error=PaymentFailedError(
+            f"پرداخت ناموفق بود: {result.failure_reason or 'نامشخص'}", details={"provider": provider.name},
+        ), **common)
+        return {"ok": False, "reason": "payment_failed", "reference": reference}
+
+    try:
+        _status, body, created_fo_ids = _complete_attempt(
+            db, payment_result=result, exponent=exponent,
+            payment_method="split" if int(intent["credit_minor"]) else "card", **common,
+        )
+    except Exception as exc:  # the order could not be created: the money must not stay with us
+        log.exception("order creation failed after verified payment, intent %s", intent["id"])
+        provider.reverse(callback)
+        error = exc if isinstance(exc, ApiError) else PaymentFailedError("ثبت سفارش پس از پرداخت ناموفق بود")
+        _fail_attempt(db, error=error, **common)
+        return {"ok": False, "reason": "order_failed", "reference": reference}
+
+    _after_capture(db, body=body, created_fo_ids=created_fo_ids, user_id=user_id)
+    return {"ok": True, "order_number": body.get("order_number"), "reference": reference}
+
+
+# How long a customer may stay on the bank page. Longer than the gateway's own session,
+# so a slow but successful payment is never released under it; a later callback is reversed anyway.
+REDIRECT_ABANDON_AFTER_SECONDS = 1800
+
+
+def release_abandoned_redirects(db: Database, *, now: datetime | None = None, limit: int = 100) -> int:
+    """Free the stock and credit held by customers who left the bank page. Returns how many were released."""
+    now = now or datetime.now(timezone.utc)
+    cutoff = (now - timedelta(seconds=REDIRECT_ABANDON_AFTER_SECONDS)).strftime("%Y-%m-%d %H:%M:%S")
+    with db.read_transaction() as conn:
+        rows = conn.execute(
+            "SELECT id, user_id, idempotency_key, request_hash FROM payment_intents "
+            "WHERE status = 'authorized' AND provider_ref IS NOT NULL AND provider IS NOT NULL "
+            "AND provider != 'mock' AND created_at < ? ORDER BY id LIMIT ?",
+            (cutoff, limit),
+        ).fetchall()
+    released = 0
+    for row in rows:
+        try:
+            _fail_attempt(
+                db, intent_id=int(row["id"]), user_id=int(row["user_id"]),
+                error=PaymentFailedError("مهلت پرداخت در درگاه بانک تمام شد", code="payment_expired"),
+                idempotency_key=row["idempotency_key"], payload_hash=row["request_hash"], ip_address=None,
+            )
+            released += 1
+        except Exception:  # a concurrent callback may have just completed it
+            log.warning("release_abandoned_redirects: intent %s not released", row["id"], exc_info=True)
+    return released

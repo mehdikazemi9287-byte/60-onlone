@@ -95,6 +95,11 @@ def create_app(
     app.extensions["settings"] = settings
     app.extensions["db"] = database
 
+    if settings.payment_provider == "sepehr":
+        from app.adapters.payment import registry as payment_registry
+        from app.adapters.payment.sepehr import SepehrPaymentProvider
+        payment_registry.register(SepehrPaymentProvider(settings.sepehr_terminal_id))
+
     @app.after_request
     def _private_cache_control(response):
         if request.headers.get("Authorization") or request.path.startswith("/api/v1/admin/"):
@@ -215,7 +220,11 @@ def create_app(
             ct = request.content_type or ""
             # Order documents / delivery evidence are the only multipart uploads.
             upload = request.method == "POST" and request.path.endswith("/documents") and ct.startswith("multipart/form-data")
-            if not ct.startswith("application/json") and not upload:
+            # The bank posts the customer's browser back as an ordinary HTML form.
+            bank_return = (request.method == "POST" and request.path.startswith("/api/v1/payments/")
+                           and request.path.endswith("/callback")
+                           and ct.startswith("application/x-www-form-urlencoded"))
+            if not ct.startswith("application/json") and not upload and not bank_return:
                 return (
                     jsonify(
                         {

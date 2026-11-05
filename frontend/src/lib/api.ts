@@ -327,6 +327,48 @@ export const cart = {
 // transaction, so a stale/tampered quote can never be exploited (see the
 // backend's own /checkout/quote docstring).
 
+/** Where the browser must go to pay at the bank (redirect gateways such as Sepehr). */
+export interface PaymentRedirect {
+  url: string;
+  method: "POST" | "GET";
+  fields: Record<string, string>;
+  provider: string;
+}
+
+/** 201 → `order` is the paid order. 202 → pay at the bank first via `payment_redirect`. */
+export type CheckoutPlaced =
+  | { order: import("./types").Order; payment_redirect?: undefined }
+  | {
+      order?: undefined;
+      status: "payment_redirect";
+      payment_intent_id: number;
+      reference: string;
+      cash_due_minor: number;
+      payment_redirect: PaymentRedirect;
+    };
+
+/** Leave for the bank's payment page. The bank returns the browser to our callback. */
+export function goToPaymentGateway(redirect: PaymentRedirect): void {
+  if (redirect.method === "GET") {
+    const url = new URL(redirect.url);
+    Object.entries(redirect.fields).forEach(([k, v]) => url.searchParams.set(k, v));
+    window.location.assign(url.toString());
+    return;
+  }
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = redirect.url;
+  Object.entries(redirect.fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
 export const checkout = {
   quote: (token: string) =>
     request<import("./types").CheckoutQuote>("/checkout/quote", { token }),
@@ -337,7 +379,7 @@ export const checkout = {
     shipping_address: import("./types").Address,
     payment_method: import("./types").PaymentMethod = "card",
   ) =>
-    request<{ order: import("./types").Order }>("/checkout", {
+    request<CheckoutPlaced>("/checkout", {
       method: "POST",
       token,
       body: JSON.stringify({ shipping_address, payment_method }),
