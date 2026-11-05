@@ -14,6 +14,8 @@ Debt sale: the seller holding the receivable sells the unpaid remainder to the p
 """
 from __future__ import annotations
 
+import json
+
 import secrets
 from datetime import datetime, timedelta
 
@@ -122,12 +124,37 @@ def agreement_dict(conn, row) -> dict:
     return data
 
 
+SELLER_VISIBLE_FIELDS = ("id", "reference", "order_id", "supplier_id", "months", "principal_minor",
+                         "down_payment_minor", "financed_minor", "fee_total_minor", "total_payable_minor",
+                         "creditor_kind", "status", "created_at", "updated_at", "schedules", "remaining_minor")
+
+
 def get_agreement(conn, agreement_id: int, *, user: dict | None = None, supplier_id: int | None = None) -> dict:
     row = _agreement_row(conn, agreement_id)
-    if user is not None and user["role"] != "admin" and int(row["user_id"]) != user["id"] and (
-            supplier_id is None or row["supplier_id"] is None or int(row["supplier_id"]) != supplier_id):
+    if user is None or user["role"] == "admin" or int(row["user_id"]) == user["id"]:
+        return agreement_dict(conn, row)
+    if supplier_id is None or row["supplier_id"] is None or int(row["supplier_id"]) != supplier_id:
         raise NotFoundError("قرارداد اقساط یافت نشد", code="installment_not_found")
-    return agreement_dict(conn, row)
+    # Seller (creditor) view: repayment progress only — no buyer identity/contact, no debt-sale terms.
+    data = agreement_dict(conn, row)
+    return {k: data[k] for k in SELLER_VISIBLE_FIELDS if k in data}
+
+
+def _order_suppliers(conn, order_id: int) -> set[int]:
+    """Sellers of an order, from its own fulfillment orders / stored fulfillment plan (never the request)."""
+    found = {int(r[0]) for r in conn.execute("SELECT DISTINCT supplier_id FROM fulfillment_orders WHERE order_id = ?",
+                                             (order_id,)).fetchall()}
+    plans = [r[0] for r in conn.execute("SELECT fulfillment_plan_json FROM order_sources WHERE order_id = ?",
+                                        (order_id,)).fetchall()]
+    plans += [r[0] for r in conn.execute("SELECT fulfillment_plan_json FROM payment_intents WHERE order_id = ?",
+                                         (order_id,)).fetchall()]
+    for raw in plans:
+        try:
+            items = (json.loads(raw) or {}).get("items", []) if raw else []
+        except (TypeError, ValueError):
+            items = []
+        found |= {int(i["supplier_id"]) for i in items if isinstance(i, dict) and i.get("supplier_id") is not None}
+    return found
 
 
 def list_for_user(conn, user_id: int) -> list[dict]:
@@ -138,20 +165,48 @@ def list_for_user(conn, user_id: int) -> list[dict]:
 
 def create_agreement(conn, *, order_id: int, plan_id: int, actor: dict, idempotency_key: str,
                      supplier_id: int | None = None, now: datetime | None = None) -> tuple[bool, dict]:
-    """Put an order on installments. Principal = order total. Idempotent."""
+    """Put an order on installments. Principal = order total. Idempotent.
+
+    The creditor (supplier_id) is derived from the order's own lines; the `supplier_id` argument is
+    accepted only for backward compatibility and must match it if given. One seller per contract:
+    multi-seller orders are refused.
+    """
     if not idempotency_key:
         raise ValidationError("هدر Idempotency-Key لازم است", code="idempotency_key_required")
+    order = conn.execute("SELECT id, user_id, status, total_minor, payment_intent_id FROM orders WHERE id = ?",
+                         (order_id,)).fetchone()
+    if order is None or (actor["role"] != "admin" and int(order["user_id"]) != actor["id"]):
+        raise NotFoundError("سفارش یافت نشد", code="order_not_found")
     existing = conn.execute("SELECT * FROM installment_agreements WHERE idempotency_key = ?",
                             (idempotency_key,)).fetchone()
     if existing is not None:
+        if actor["role"] != "admin" and int(existing["user_id"]) != actor["id"]:
+            raise ConflictError("کلید یکتایی با درخواست دیگری استفاده شده است", code="idempotency_conflict")
         if int(existing["order_id"]) != order_id or int(existing["plan_id"]) != plan_id:
             raise ConflictError("کلید یکتایی با درخواست دیگری استفاده شده است", code="idempotency_conflict")
         return False, agreement_dict(conn, existing)
-    order = conn.execute("SELECT id, user_id, status, total_minor FROM orders WHERE id = ?", (order_id,)).fetchone()
-    if order is None or (actor["role"] != "admin" and int(order["user_id"]) != actor["id"]):
-        raise NotFoundError("سفارش یافت نشد", code="order_not_found")
     if order["status"] in ("cancelled", "refunded"):
         raise ConflictError("سفارش لغوشده قابل اقساط نیست", code="order_not_eligible")
+    intent = None
+    if order["payment_intent_id"] is not None:
+        intent = conn.execute("SELECT status, provider FROM payment_intents WHERE id = ?",
+                              (order["payment_intent_id"],)).fetchone()
+    if intent is not None and intent["status"] == "captured":
+        raise ConflictError("مبلغ این سفارش قبلاً به‌طور کامل پرداخت شده و قابل اقساط نیست",
+                            code="order_already_paid")
+    sellers = _order_suppliers(conn, order_id)
+    if len(sellers) > 1:
+        raise ConflictError("این سفارش از چند فروشنده است؛ قرارداد اقساط فقط برای سفارش تک‌فروشنده ثبت می‌شود. "
+                            "لطفاً سفارش را به تفکیک فروشنده ثبت کنید",
+                            code="multi_seller_order", details={"supplier_ids": sorted(sellers)})
+    if not sellers:
+        raise ConflictError("فروشندهٔ این سفارش مشخص نیست و قرارداد اقساط قابل ثبت نیست",
+                            code="order_seller_unknown")
+    derived = next(iter(sellers))
+    if supplier_id is not None and int(supplier_id) != derived:
+        raise ValidationError("فروشندهٔ قرارداد از ردیف‌های سفارش تعیین می‌شود و با مقدار ارسالی مطابقت ندارد",
+                              code="supplier_mismatch")
+    supplier_id = derived
     if conn.execute("SELECT 1 FROM installment_agreements WHERE order_id = ? AND status <> 'cancelled'",
                     (order_id,)).fetchone():
         raise ConflictError("این سفارش قبلاً اقساطی شده است", code="installment_exists")

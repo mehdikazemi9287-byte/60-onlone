@@ -271,6 +271,20 @@ def complete_settlement_batch(
         )
 
     net_minor = int(b["net_minor"])
+    if net_minor == 0 and conn.execute(
+            "SELECT 1 FROM seller_advance_entries WHERE entry_type='recovery' AND supplier_id=? "
+            "AND settlement_reference=?", (int(b["supplier_id"]), b["idempotency_key"])).fetchone():
+        # The whole payout was absorbed by an outstanding seller advance: nothing to wire, but the
+        # payables are settled (by the advance) and must not stay stuck in 'batched'.
+        conn.execute("UPDATE supplier_payable_entries SET status = 'settled' WHERE settlement_batch_id = ?",
+                     (batch_id,))
+        conn.execute(
+            "UPDATE settlement_batches SET status='completed', payment_reference=?, external_reference=?, "
+            "updated_at=datetime('now') WHERE id=?",
+            (payment_reference or f"advance-netted:{b['idempotency_key']}", external_reference, batch_id))
+        log.info("complete_settlement_batch: batch_id=%s settled entirely by advance netting", batch_id)
+        return {"batch": dict(conn.execute("SELECT * FROM settlement_batches WHERE id = ?", (batch_id,)).fetchone()),
+                "payment": None, "settled_by_advance": True}
     if net_minor <= 0:
         raise ValidationError(
             f"Cannot complete settlement with net_minor={net_minor}",

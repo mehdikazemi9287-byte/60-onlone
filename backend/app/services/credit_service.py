@@ -475,6 +475,47 @@ def release(
     return _reservation_dict(fresh)
 
 
+def reverse_capture(
+    conn: sqlite3.Connection, *, payment_intent_id: int, order_id: int, actor_user_id: int | None,
+    reason: str = "",
+) -> int:
+    """Give back captured credit for a cancelled order by APPENDING a signed adjustment.
+
+    The capture row is never edited. The reversal carries order_id so usage reports can net it
+    out. Idempotent per payment intent (reference CREV-<intent>). Returns the amount restored.
+    """
+    row = conn.execute(
+        "SELECT * FROM credit_reservations WHERE payment_intent_id = ?", (payment_intent_id,)
+    ).fetchone()
+    if row is None:
+        return 0
+    if row["status"] == "reserved":
+        release(conn, payment_intent_id=payment_intent_id, actor_user_id=actor_user_id, reason=reason)
+        return int(row["amount_minor"])
+    if row["status"] != "captured":
+        return 0
+    reference = f"CREV-{payment_intent_id}"
+    if conn.execute("SELECT 1 FROM credit_ledger_entries WHERE reference = ?", (reference,)).fetchone():
+        return 0
+    allocation = conn.execute(
+        "SELECT * FROM credit_allocations WHERE id = ?", (row["allocation_id"],)
+    ).fetchone()
+    amount = int(row["amount_minor"])
+    _post_entry(
+        conn, allocation=allocation, entry_type=ENTRY_ADJUSTMENT, amount_minor=amount,
+        reference=reference, actor_user_id=actor_user_id, order_id=order_id,
+        payment_intent_id=payment_intent_id, reservation_id=int(row["id"]),
+        note=reason or "برگشت برداشت اعتبار سفارش لغوشده",
+    )
+    audit_service.record(
+        conn, action="credit.capture_reversed", entity_type="credit_reservation", entity_id=int(row["id"]),
+        actor_user_id=actor_user_id,
+        metadata={"allocation_id": int(row["allocation_id"]), "order_id": order_id, "amount_minor": amount,
+                  "reason": reason},
+    )
+    return amount
+
+
 # ------------------------------------------------------------- projections
 def _reservation_dict(row: sqlite3.Row, exponent: int = 0) -> dict:
     return {
@@ -692,16 +733,22 @@ def _normalized_ts_sql(column: str) -> str:
 
 def organization_usage_minor(conn: sqlite3.Connection, *, organization_id: int,
                              period_start: str, period_end: str) -> int:
-    """Credit consumed (captured) by an organization's members in [period_start, period_end).
+    """NET credit consumed by an organization's members in [period_start, period_end).
 
-    Bounds are UTC 'YYYY-MM-DD HH:MM:SS'. Folded from credit_ledger_entries — the
-    statement can never disagree with the credit ledger.
+    captures − order-linked adjustments (capture reversals / refunds of cancelled orders).
+    Releases only undo reservations (never captured money) so they are already excluded;
+    plain allocation adjustments (no order_id) change limits, not usage. May be negative in a
+    period where an earlier capture was reversed. Bounds are UTC 'YYYY-MM-DD HH:MM:SS'.
+    Folded from credit_ledger_entries — the statement can never disagree with the credit ledger.
     """
     ts = _normalized_ts_sql("created_at")
     row = conn.execute(
         f"""
-        SELECT COALESCE(SUM(amount_minor), 0) AS n FROM credit_ledger_entries
-        WHERE organization_id = ? AND entry_type = 'capture' AND {ts} >= ? AND {ts} < ?
+        SELECT COALESCE(SUM(CASE WHEN entry_type = 'capture' THEN amount_minor
+                                 WHEN entry_type = 'adjustment' AND order_id IS NOT NULL THEN -amount_minor
+                                 ELSE 0 END), 0) AS n
+        FROM credit_ledger_entries
+        WHERE organization_id = ? AND entry_type IN ('capture', 'adjustment') AND {ts} >= ? AND {ts} < ?
         """,
         (organization_id, period_start, period_end),
     ).fetchone()

@@ -35,7 +35,7 @@ class Phase4Base(AppTestCase):
                 (f"T-{uuid.uuid4().hex[:8]}", employee["allocation"]["id"], org_id, employee["user_id"], amount, at),
             )
 
-    def make_order(self, user_id: int, total: int) -> int:
+    def make_order(self, user_id: int, total: int, suppliers: list[dict] | None = None) -> int:
         with self.db.write_transaction() as conn:
             cur = conn.execute(
                 "INSERT INTO orders (order_number, user_id, status, subtotal_minor, shipping_fee_minor, tax_minor, "
@@ -43,6 +43,9 @@ class Phase4Base(AppTestCase):
                 "VALUES (?,?, 'paid', ?, 0, 0, ?, 'x', '0912', 'تهران', 'تهران', 'x')",
                 (f"O-{uuid.uuid4().hex[:8]}", user_id, total, total),
             )
+            for sup in suppliers or []:  # the order's own lines name its seller(s)
+                conn.execute("INSERT INTO fulfillment_orders (order_id, supplier_id, supplier_location_id) "
+                             "VALUES (?,?,?)", (cur.lastrowid, sup["supplier_id"], sup["location_id"]))
             return int(cur.lastrowid)
 
 
@@ -178,10 +181,9 @@ class InstallmentTests(Phase4Base):
         _, headers = self.new_customer()
         me = self.client.get("/api/v1/auth/me", headers=headers).get_json()
         user_id = (me.get("user") or me)["id"]
-        order_id = self.make_order(user_id, 12_000_000)
+        order_id = self.make_order(user_id, 12_000_000, suppliers=[sup])
         plan = self.db.query_one("SELECT id FROM installment_plans WHERE code='m3'")
-        r = self.client.post("/api/v1/installments", json={"order_id": order_id, "plan_id": plan["id"],
-                                                            "supplier_id": sup["supplier_id"]},
+        r = self.client.post("/api/v1/installments", json={"order_id": order_id, "plan_id": plan["id"]},
                              headers={**headers, "Idempotency-Key": "i1"})
         self.assertEqual(r.status_code, 201, r.get_json())
         a = r.get_json()["installment"]

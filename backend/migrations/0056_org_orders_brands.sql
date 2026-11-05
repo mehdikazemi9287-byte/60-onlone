@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS order_sources (
     prepayment_bps        INTEGER NOT NULL DEFAULT 0 CHECK (prepayment_bps BETWEEN 0 AND 10000),
     credit_minor          INTEGER NOT NULL DEFAULT 0 CHECK (credit_minor >= 0),
     cash_due_minor        INTEGER NOT NULL DEFAULT 0 CHECK (cash_due_minor >= 0),
-    cash_status           TEXT    NOT NULL DEFAULT 'none' CHECK (cash_status IN ('none', 'due', 'paid')),
+    cash_status           TEXT    NOT NULL DEFAULT 'none' CHECK (cash_status IN ('none', 'due', 'paid', 'cancelled')),
     cash_reference        TEXT,
     payment_intent_id     INTEGER REFERENCES payment_intents(id),
     fulfillment_plan_json TEXT    NOT NULL,

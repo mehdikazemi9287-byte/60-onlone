@@ -500,6 +500,18 @@ def approve_purchase_request(
     reason: str | None = None,
 ) -> dict:
     membership = _assert_org_member(conn, actor_user_id, organization_id)
+    # Phase-3 amount-band rules take precedence: a band that requires N approvals must never be
+    # satisfied by this single-step endpoint. Delegate to the rule-based (multi-approver) flow.
+    from app.services import org_order_service as _org
+    ruled = conn.execute(
+        "SELECT * FROM purchase_requests WHERE id=? AND organization_id=?", (pr_id, organization_id)
+    ).fetchone()
+    if ruled is not None:
+        rule = _org.matching_rule(conn, organization_id, _org.estimated_total(conn, ruled))
+        if rule is not None and rule["decision"] == "require_approvals":
+            _org.approve_with_rules(conn, organization_id=organization_id, pr_id=pr_id,
+                                    actor_user_id=actor_user_id, action=action, reason=reason)
+            return get_purchase_request(conn, pr_id, actor_user_id=actor_user_id, organization_id=organization_id)
     from app.services import enterprise_procurement_service as ent
     chain = ent.get_policy(conn, organization_id)["approval_chain"]
     if chain:

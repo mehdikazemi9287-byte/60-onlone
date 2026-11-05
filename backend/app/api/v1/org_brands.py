@@ -67,6 +67,15 @@ def confirm_org_payment(org_id: int, order_id: int):
                                                           actor_user_id=_uid(), reference=_body().get("reference"))})
 
 
+@bp.post("/api/v1/orgs/<int:org_id>/orders/<int:order_id>/cancel")
+@require_auth()
+def cancel_org_order(org_id: int, order_id: int):
+    body = request.get_json(silent=True) or {}
+    with get_db().write_transaction() as conn:
+        return jsonify({"order": svc.cancel_org_order(conn, organization_id=org_id, order_id=order_id,
+                                                      actor_user_id=_uid(), reason=body.get("reason"))})
+
+
 @bp.get("/api/v1/orgs/<int:org_id>/statement")
 @require_auth()
 def org_statement(org_id: int):

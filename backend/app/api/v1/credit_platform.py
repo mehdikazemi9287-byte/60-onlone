@@ -201,7 +201,7 @@ def create_installment():
     with get_db().write_transaction() as conn:
         created, agreement = installments.create_agreement(
             conn, order_id=body.get("order_id"), plan_id=body.get("plan_id"), actor=current_user(),
-            idempotency_key=_key(), supplier_id=body.get("supplier_id"))
+            idempotency_key=_key())  # creditor is derived from the order's lines, never the body
     return _created(created, {"installment": agreement})
 
 

@@ -638,7 +638,8 @@ def finalize_paid(conn, *, order_id: int, actor_user_id: int, provider: str, pro
 
 
 def _choose_allocation(conn, *, organization_id: int, user_id: int, amount_minor: int, lines: list[dict],
-                       shipping_minor: int, tax_minor: int, allocation_id=None):
+                       shipping_minor: int, tax_minor: int, allocation_id=None, actor_membership=None,
+                       actor_user_id=None):
     from app.services.quote_service import _period_consumed
     sql = """SELECT a.*, o.status AS organization_status, m.status AS membership_status, m.role AS membership_role
              FROM credit_allocations a JOIN organizations o ON o.id=a.organization_id
@@ -649,6 +650,11 @@ def _choose_allocation(conn, *, organization_id: int, user_id: int, amount_minor
         rows = conn.execute(sql.format(cond="a.id=?"), (organization_id, allocation_id)).fetchall()
         if not rows:
             raise NotFoundError("تخصیص اعتبار در این سازمان یافت نشد", code="allocation_not_found")
+        privileged = actor_membership is not None and (_is_finance(actor_membership) or _is_admin(actor_membership))
+        owner = actor_user_id if actor_user_id is not None else user_id
+        if not privileged and int(rows[0]["user_id"]) != int(owner):
+            raise PermissionError_("فقط تخصیص اعتبار خودتان را می‌توانید انتخاب کنید؛ انتخاب تخصیص دیگران با مالی/مدیر است",
+                                   code="allocation_not_owned")
     else:
         rows = conn.execute(sql.format(cond="a.user_id=?"), (organization_id, user_id)).fetchall()
     cart_lines = []
@@ -830,6 +836,28 @@ def _write_allocations(conn, *, order_id: int, pr_row, pr_items: list, lines: li
                               requested - allocated))
 
 
+def approval_tolerance_bps() -> int:
+    import os
+    try:
+        return max(0, int(os.environ.get("ORG_APPROVAL_TOLERANCE_BPS", "0")))
+    except ValueError:
+        return 0
+
+
+def _assert_within_approved(conn, pr_row, total_minor: int) -> None:
+    """The order total may not exceed the amount that was approved (estimate, else budget) + tolerance."""
+    approved = estimated_total(conn, pr_row)
+    if approved is None:
+        return  # nothing priced at approval; band rules already forced the strictest approval path
+    limit = approved + approved * approval_tolerance_bps() // 10000
+    if total_minor > limit:
+        raise ConflictError(
+            f"مبلغ سفارش ({total_minor:,} ریال) از مبلغ تأییدشده ({approved:,} ریال) بیشتر است؛ "
+            "درخواست را با مبلغ جدید دوباره برای تأیید بفرستید",
+            code="exceeds_approved_amount",
+            details={"total_minor": total_minor, "approved_minor": approved, "limit_minor": limit})
+
+
 def convert_purchase_request(conn, *, organization_id: int, actor_user_id: int, data: dict,
                              idempotency_key) -> tuple[int, dict]:
     """Approved PR (+ chosen offers or awarded quote) → order. Returns (http_status, body)."""
@@ -889,6 +917,13 @@ def convert_purchase_request(conn, *, organization_id: int, actor_user_id: int, 
     total = subtotal + shipping_minor + tax_minor
     if total <= 0:
         raise ValidationError("جمع سفارش باید بیشتر از صفر باشد")
+    _assert_within_approved(conn, pr_row, total)
+    # Free-text rows (no master_product_id) are not bound to a catalogue product, so the offer chosen for
+    # them must be picked by someone allowed to approve (never the requester) — an explicit approver choice.
+    if quote_id is None and any(i["master_product_id"] is None for i in pr_items):
+        if not pr_svc._can_approve(membership) or int(pr_row["requester_user_id"]) == actor_user_id:
+            raise ConflictError("برای ردیف بدون کالای مرجع، پیشنهاد فروش باید توسط تأییدکنندهٔ سازمان انتخاب شود",
+                                code="offer_choice_requires_approver")
 
     method, bps = _resolve_payment(conn, organization_id, data.get("payment_method"))
     cash_minor = {"credit": 0, "cash": total, "prepayment": total * bps // 10000}[method]
@@ -900,7 +935,8 @@ def convert_purchase_request(conn, *, organization_id: int, actor_user_id: int, 
     if credit_minor > 0:
         allocation = _choose_allocation(conn, organization_id=organization_id, user_id=int(pr_row["requester_user_id"]),
                                         amount_minor=credit_minor, lines=order_lines, shipping_minor=shipping_minor,
-                                        tax_minor=tax_minor, allocation_id=data.get("allocation_id"))
+                                        tax_minor=tax_minor, allocation_id=data.get("allocation_id"),
+                                        actor_membership=membership, actor_user_id=actor_user_id)
     address = _address_for(pr_row, data)
     po_ref = _po_reference(data.get("po_reference")) if data.get("po_reference") is not None else pr_row["po_reference"]
 
@@ -965,6 +1001,81 @@ def confirm_cash_payment(conn, *, organization_id: int, order_id: int, actor_use
     ref = pr_svc._text(reference, "شمارهٔ پیگیری پرداخت", 100, required=True)
     conn.execute("UPDATE order_sources SET cash_reference=? WHERE order_id=?", (ref, order_id))
     finalize_paid(conn, order_id=order_id, actor_user_id=actor_user_id, provider="org_transfer", provider_ref=ref)
+    return order_view(conn, order_id)
+
+
+# ── unpaid cash share: expiry and explicit cancellation ───────────────────────
+
+
+def cash_due_hours() -> int:
+    import os
+    try:
+        return max(1, int(os.environ.get("ORG_CASH_DUE_HOURS", "72")))
+    except ValueError:
+        return 72
+
+
+def _cancel_unpaid(conn, *, order_id: int, actor_user_id: int | None, reason: str, action: str) -> bool:
+    """Release reserved stock, give back captured credit (append-only), cancel the order.
+
+    Only for orders whose cash share is still 'due' and whose fulfillment was never released.
+    Returns False when the order is not in that state (idempotent no-op).
+    """
+    src = conn.execute("SELECT * FROM order_sources WHERE order_id=?", (order_id,)).fetchone()
+    order = conn.execute("SELECT * FROM orders WHERE id=?", (order_id,)).fetchone()
+    if src is None or order is None or src["cash_status"] != "due" or src["fulfillment_released"] \
+            or order["status"] != "pending":
+        return False
+    fulfillment_service.release_supplier_stock_for_plan(conn, plan_json=src["fulfillment_plan_json"])
+    restored = 0
+    if int(src["credit_minor"] or 0) > 0 and src["payment_intent_id"] is not None:
+        restored = credit_service.reverse_capture(conn, payment_intent_id=int(src["payment_intent_id"]),
+                                                  order_id=order_id, actor_user_id=actor_user_id, reason=reason)
+    conn.execute("UPDATE orders SET status='cancelled' WHERE id=?", (order_id,))
+    conn.execute("UPDATE order_sources SET cash_status='cancelled' WHERE order_id=?", (order_id,))
+    intent = conn.execute("SELECT status FROM payment_intents WHERE id=?", (order["payment_intent_id"],)).fetchone()
+    if intent is not None and intent["status"] in ("pending", "authorized"):
+        from app.services.payment_service import transition
+        transition(conn, int(order["payment_intent_id"]), "cancelled", failure_reason=reason[:200])
+    if src["preorder_id"] is not None:
+        conn.execute("UPDATE preorders SET status='cancelled', updated_at=? WHERE id=? AND status='converted'",
+                     (_now(), int(src["preorder_id"])))
+    audit_service.record(conn, action=action, entity_type="order", entity_id=order_id, actor_user_id=actor_user_id,
+                         metadata={"reason": reason, "credit_restored_minor": restored,
+                                   "cash_due_minor": int(src["cash_due_minor"])})
+    return True
+
+
+def expire_unpaid(conn, now: datetime | None = None) -> dict:
+    """Cron body: cancel orders whose cash/prepayment share stayed 'due' longer than ORG_CASH_DUE_HOURS."""
+    from datetime import timedelta
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    cutoff = (now - timedelta(hours=cash_due_hours())).strftime("%Y-%m-%dT%H:%M:%S")
+    rows = conn.execute("SELECT order_id FROM order_sources WHERE cash_status='due' AND fulfillment_released=0 "
+                        "AND SUBSTR(REPLACE(created_at, ' ', 'T'), 1, 19) < ? ORDER BY order_id",
+                        (cutoff,)).fetchall()
+    expired = [int(r["order_id"]) for r in rows
+               if _cancel_unpaid(conn, order_id=int(r["order_id"]), actor_user_id=None,
+                                 reason="مهلت پرداخت سهم نقدی به پایان رسید", action="org_order.expired")]
+    return {"expired": len(expired), "order_ids": expired}
+
+
+def cancel_org_order(conn, *, organization_id: int, order_id: int, actor_user_id: int, reason=None) -> dict:
+    """Finance/admin (or the procurement officer who placed it) cancels an org order before fulfillment."""
+    m = _membership(conn, actor_user_id, organization_id)
+    src = conn.execute("SELECT * FROM order_sources WHERE order_id=? AND organization_id=?",
+                       (order_id, organization_id)).fetchone()
+    if src is None:
+        raise NotFoundError("سفارش سازمانی یافت نشد", code="order_not_found")
+    if not (_is_finance(m) or (pr_svc._can_procure(m) and int(src["created_by_user_id"]) == actor_user_id)):
+        raise PermissionError_("فقط مالی/مدیر سازمان یا ثبت‌کنندهٔ سفارش می‌تواند آن را لغو کند")
+    text = pr_svc._text(reason, "دلیل لغو", 500) or "لغو توسط سازمان"
+    if not _cancel_unpaid(conn, order_id=order_id, actor_user_id=actor_user_id, reason=text,
+                          action="org_order.cancelled"):
+        raise ConflictError("این سفارش پرداخت شده یا ارسال آن آغاز شده و قابل لغو نیست",
+                            code="order_not_cancellable")
     return order_view(conn, order_id)
 
 

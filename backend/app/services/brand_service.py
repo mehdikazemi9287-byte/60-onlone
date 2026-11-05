@@ -254,6 +254,9 @@ def convert(conn, *, preorder_id: int, actor_user_id: int, supplier_id: int | No
     if row["status"] != "deposit_paid":
         raise ConflictError("پیش‌سفارش تنها پس از پرداخت بیعانه قابل تبدیل است", code="deposit_not_paid")
     offer = orders._offer_row(conn, int(row["offer_id"]))
+    # The offer may have been deactivated / the seller suspended since the pre-order was taken.
+    # Price is the pre-order snapshot, so only availability is re-checked.
+    orders.assert_offer_sellable(conn, offer, channel="retail", check_price=False)
     unit, qty = int(row["unit_price_minor"]), int(row["quantity"])
     plan = {"customer_province": row["shipping_province"], "customer_city": row["shipping_city"],
             "items": [orders.plan_item(offer, quantity=qty, selling_price_minor=unit)]}

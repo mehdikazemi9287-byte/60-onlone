@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS credit_statements (
     period_start        TEXT    NOT NULL,
     period_end          TEXT    NOT NULL,
     opening_minor BIGINT NOT NULL,
-    usage_minor BIGINT NOT NULL CHECK (usage_minor >= 0),
+    usage_minor BIGINT NOT NULL,  -- net of capture reversals; may be negative
     payments_minor BIGINT NOT NULL CHECK (payments_minor >= 0),
     closing_minor BIGINT NOT NULL,
     due_at              TEXT    NOT NULL,

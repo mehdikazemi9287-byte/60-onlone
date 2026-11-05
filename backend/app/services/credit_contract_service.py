@@ -249,6 +249,12 @@ def record_payment(conn, contract_id: int, *, amount_minor: int, idempotency_key
     amount_minor = _int(amount_minor, "amount_minor")
     stamp = fmt(_utc(now))
     received = fmt(parse_ts(received_at)) if received_at else stamp
+    last_end = conn.execute("SELECT MAX(period_end) AS e FROM credit_statements WHERE contract_id = ?",
+                            (contract_id,)).fetchone()["e"]
+    if last_end is not None and received < last_end:
+        # A back-dated payment would fall inside an already-issued (immutable) period and never be counted.
+        raise ValidationError("تاریخ دریافت وجه نمی‌تواند پیش از پایان آخرین صورت‌حساب صادرشده باشد",
+                              code="received_at_before_statement", details={"latest_period_end": last_end})
     cursor = conn.execute(
         """
         INSERT INTO credit_contract_payments
@@ -339,11 +345,18 @@ def refresh_statements(conn, contract_id: int, now: datetime | None = None) -> N
     """Re-derive open/overdue/paid for every unpaid statement (FIFO against payments)."""
     stamp = fmt(_utc(now))
     paid_total = total_payments(conn, contract_id)
-    cumulative = 0
     rows = conn.execute("SELECT * FROM credit_statements WHERE contract_id = ? ORDER BY period_start",
                         (contract_id,)).fetchall()
+    # usage_minor is NET (captures − reversals). A later reversal also clears earlier debt, so the
+    # amount that must be paid to settle statement i is the minimum cumulative from i onwards.
+    cumulatives, running = [], 0
     for st in rows:
-        cumulative += int(st["usage_minor"])
+        running += int(st["usage_minor"])
+        cumulatives.append(running)
+    required = cumulatives[:]
+    for i in range(len(required) - 2, -1, -1):
+        required[i] = min(required[i], required[i + 1])
+    for st, cumulative in zip(rows, required):
         if st["status"] == "paid":
             continue
         if paid_total >= cumulative:

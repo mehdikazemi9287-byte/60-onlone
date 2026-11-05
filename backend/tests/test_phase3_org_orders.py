@@ -41,12 +41,12 @@ class Phase3Base(AppTestCase):
                             (pid, sid, lid, PRICE, stock, now, now)).lastrowid
         return sid, oid
 
-    def _approved_pr(self, qty=3, destinations=None):
+    def _approved_pr(self, qty=3, destinations=None, est=2 * PRICE):
         with self.db.write_transaction() as c:
             pr = pr_svc.create_purchase_request(
                 c, organization_id=self.org_id, requester_user_id=self.emp_uid, title="کاغذ اداری",
                 items=[{"free_text_description": "کاغذ A4", "quantity": qty, "unit": "کارتن",
-                        "estimated_unit_price_minor": PRICE}],
+                        "estimated_unit_price_minor": est}],  # approved amount must cover tax + shipping
                 delivery_province="تهران", delivery_city="تهران", delivery_address="خیابان آزادی ۱",
                 destinations=destinations)
             pr_svc.submit_purchase_request(c, pr["id"], actor_user_id=self.emp_uid, organization_id=self.org_id)
