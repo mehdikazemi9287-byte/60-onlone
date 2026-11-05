@@ -60,6 +60,7 @@ from app.api.v1 import connector_wizard as connector_wizard_api
 # Loyalty foundation — 60Coin (structurally separate from credit/ledger)
 from app.api.v1 import loyalty as loyalty_api
 from app.api.v1 import admin_supplier_profile, admin_image_review, saved_pack_drafts, admin_catalog_sources
+from app.api.v1 import seller_shops as seller_shops_api
 from app.core.config import Settings, load_settings
 from app.core.db import Database, DatabaseBackend, make_backend
 from app.core.errors import ApiError
@@ -178,6 +179,8 @@ def create_app(
         # Loyalty
         loyalty_api.bp,
         customer_requests_api.bp,
+        # Marketplace roadmap
+        seller_shops_api.bp,
     ):
         app.register_blueprint(blueprint)
 
