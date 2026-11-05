@@ -269,3 +269,23 @@ def cart_add_pack(slug: str):
     count = (request.get_json(silent=True) or {}).get("count", 1)
     return jsonify(cart_service.add_pack(get_db(), user_id=current_user()["id"], slug=slug, count=count,
                                          idempotency_key=request.headers.get("Idempotency-Key"), endpoint=request.path))
+
+
+# ── Phase 2: Buy Box — all seller offers for a product and the winner ──
+
+@bp.get("/storefront/products/<slug>/offers")
+def product_offers_buy_box(slug: str):
+    from app.core.errors import NotFoundError
+    from app.services import cashier_service
+    orgs = _viewer_orgs()
+    org_id = _opt_int("organization_id")
+    quantity = _int("quantity", 1)
+    with get_db().read_transaction() as conn:
+        row = conn.execute("SELECT id FROM products WHERE slug=? AND is_active=1", (slug,)).fetchone()
+        if row is None:
+            raise NotFoundError("کالا یافت نشد")
+        ctx = None
+        if org_id is not None and org_id in orgs:
+            ctx = cashier_service.buyer_context(conn, user_id=g.current_user["id"], organization_id=org_id,
+                                                use_credit=False)
+        return jsonify(cashier_service.buy_box(conn, int(row["id"]), ctx, quantity=quantity))

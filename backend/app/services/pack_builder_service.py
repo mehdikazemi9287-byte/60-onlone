@@ -111,3 +111,28 @@ def suggest(conn, data: dict) -> dict:
         })
     return {"people": people, "budget_per_person_minor": budget, "occasion": occasion, "categories": list(cats),
             "sales_enabled": se.sales_enabled(), "options": out}
+
+
+def basket_quote(conn, items: list, buyer_ctx: dict | None = None, *, now=None) -> dict:
+    """Phase 2: price a built multi-shop basket (pack builder / جهیزیه‌ساز / gift basket) through the
+    cashier. Each item goes to its own seller (pinned offer_id or buy-box winner) and commission is
+    computed per seller. Items may name `slug` instead of `product_id`. Read-only; no cart writes."""
+    from app.services import cashier_service
+    if not isinstance(items, list) or not items:
+        raise ValidationError("سبد خالی است")
+    resolved = []
+    for it in items:
+        if not isinstance(it, dict):
+            raise ValidationError("قلم سبد نامعتبر است")
+        it = dict(it)
+        slug = it.pop("slug", None)
+        if slug is not None and it.get("product_id") is None:
+            row = conn.execute("SELECT id FROM products WHERE slug=? AND is_active=1", (slug,)).fetchone() \
+                if isinstance(slug, str) else None
+            if row is None:
+                raise ValidationError("کالای سبد یافت نشد", details={"slug": slug})
+            it["product_id"] = int(row["id"])
+        resolved.append({k: it.get(k) for k in ("product_id", "offer_id", "quantity") if k in it})
+    result = cashier_service.quote(conn, resolved, buyer_ctx, now=now)
+    result["seller_count"] = len(result["sellers"])
+    return result
