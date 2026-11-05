@@ -100,7 +100,9 @@ def admin_create_settlement_batch():
     except (TypeError, ValueError):
         raise ValidationError("تمام مقادیر 'payable_entry_ids' باید عدد صحیح باشند")
 
-    commission_rate_bps = _int_body(data, "commission_rate_bps", required=False, default=1000)
+    # Omit to use each sale's snapshotted commission (category/channel rules).
+    commission_rate_bps = _int_body(data, "commission_rate_bps", required=False, default=None) if "commission_rate_bps" in data else None
+    release_held = data.get("release_held") is True
     shipping_charge_minor = _int_body(data, "shipping_charge_minor", required=False, default=0)
     shipping_payer = (data.get("shipping_payer") or "customer").strip()
 
@@ -113,6 +115,7 @@ def admin_create_settlement_batch():
             commission_rate_bps=commission_rate_bps,
             shipping_charge_minor=shipping_charge_minor,
             shipping_payer=shipping_payer,
+            release_held=release_held,
         )
     return jsonify({"batch": batch}), 201
 

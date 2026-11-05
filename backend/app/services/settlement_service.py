@@ -46,7 +46,8 @@ def create_settlement_batch(
     supplier_id: int,
     payable_entry_ids: list[int],
     idempotency_key: str,
-    commission_rate_bps: int = DEFAULT_COMMISSION_RATE_BPS,
+    commission_rate_bps: int | None = None,
+    release_held: bool = False,
     shipping_charge_minor: int = 0,
     shipping_payer: str = "customer",
 ) -> dict:
@@ -67,7 +68,7 @@ def create_settlement_batch(
     """
     if not idempotency_key or not idempotency_key.strip():
         raise ValidationError("idempotency_key is required for settlement batch")
-    if not isinstance(commission_rate_bps, int) or commission_rate_bps < 0:
+    if commission_rate_bps is not None and (not isinstance(commission_rate_bps, int) or commission_rate_bps < 0):
         raise ValidationError("commission_rate_bps must be a non-negative integer")
     if not isinstance(shipping_charge_minor, int) or shipping_charge_minor < 0:
         raise ValidationError("shipping_charge_minor must be a non-negative integer")
@@ -121,9 +122,33 @@ def create_settlement_batch(
                 code="entry_already_batched",
             )
 
+    # Escrow: entries still inside the buyer's protection window are not settleable,
+    # nor is anything owed to a seller whose account health is suspended.
+    if not release_held:
+        from app.services import seller_shop_service
+        import datetime as _dt
+        stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        held = [eid for eid in payable_entry_ids
+                if entries_by_id[eid].get("available_at") and entries_by_id[eid]["available_at"] > stamp]
+        if held:
+            raise ConflictError("این مبالغ هنوز در دورهٔ امانت (بعد از تحویل) هستند",
+                                code="payable_on_hold", details={"entry_ids": held})
+        health = conn.execute("SELECT health_status FROM suppliers WHERE id = ?", (supplier_id,)).fetchone()
+        if health is not None and health["health_status"] == "suspended":
+            raise ConflictError("تسویهٔ این فروشنده به دلیل وضعیت سلامت حساب متوقف است",
+                                code="seller_suspended")
+
     # Compute financials — integer arithmetic only (BLOCKER 5)
     gross_minor = sum(entries_by_id[eid]["gross_minor"] for eid in payable_entry_ids)
-    commission_minor = (gross_minor * commission_rate_bps) // 10_000  # integer floor division
+    if commission_rate_bps is None:
+        # Per-entry snapshots (category/channel rules); legacy entries fall back to the default rate.
+        commission_minor = sum(
+            entries_by_id[eid]["commission_minor"] if entries_by_id[eid].get("commission_minor") is not None
+            else (entries_by_id[eid]["gross_minor"] * DEFAULT_COMMISSION_RATE_BPS) // 10_000
+            for eid in payable_entry_ids)
+        commission_rate_bps = (commission_minor * 10_000) // gross_minor if gross_minor else 0
+    else:
+        commission_minor = (gross_minor * commission_rate_bps) // 10_000  # integer floor division
     # Shipping charge only deducted if supplier pays
     effective_shipping = shipping_charge_minor if shipping_payer == "supplier" else 0
     net_minor = gross_minor - commission_minor - effective_shipping
