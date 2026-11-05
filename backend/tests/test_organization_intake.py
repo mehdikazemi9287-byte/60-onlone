@@ -25,8 +25,9 @@ class OrganizationIntakeTest(AppTestCase):
                                 headers=self.member if headers is None else headers)
 
     def snapshot(self):
+        # The approver's in-app notice is expected; it is not a business side effect.
         allowed = {'purchase_requests', 'purchase_request_items', 'procurement_audit_log',
-                   'idempotency_keys', 'sqlite_sequence'}
+                   'idempotency_keys', 'sqlite_sequence', 'user_notifications'}
         with self.db.read_transaction() as conn:
             names = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
             return {r['name']: [tuple(row) for row in conn.execute('SELECT * FROM "' + r['name'] + '"')]
@@ -144,7 +145,8 @@ class OrganizationIntakeTest(AppTestCase):
             body = deepcopy(self.body)
             body['items'][0][field] = value
             invalid.append(body)
-        for field, value in [('quantity', 1), ('quantity', True), ('item_index', 99), ('item_index', False)]:
+        # Partial allocation is allowed (completed before a PO); over-allocation is not.
+        for field, value in [('quantity', 4), ('quantity', True), ('item_index', 99), ('item_index', False)]:
             body = deepcopy(self.body)
             body['destinations'][0]['allocations'][0][field] = value
             invalid.append(body)
