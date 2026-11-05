@@ -113,8 +113,9 @@ def resolve_commission_bps(conn: sqlite3.Connection, *, supplier_id: int,
     for k, cat in candidates:
         for ch in (channel, "any"):
             row = conn.execute(
-                "SELECT rate_bps FROM commission_rules WHERE seller_kind IS ? AND category_id IS ? AND channel=? "
-                "ORDER BY id DESC LIMIT 1", (k, cat, ch)).fetchone()
+                "SELECT rate_bps FROM commission_rules WHERE (seller_kind = ? OR (seller_kind IS NULL AND ? IS NULL)) "
+                "AND (category_id = ? OR (category_id IS NULL AND ? IS NULL)) AND channel=? "
+                "ORDER BY id DESC LIMIT 1", (k, k, cat, cat, ch)).fetchone()
             if row:
                 # An organization-channel rule for any kind beats the kind's retail default.
                 if ch == "any" and channel == "organization" and k == kind and cat is None:
