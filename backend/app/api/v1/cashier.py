@@ -47,7 +47,8 @@ def _ctx(conn, body: dict, user: dict | None) -> dict:
 def cashier_quote():
     body, user = _body(), _optional_user()
     with get_db().read_transaction() as conn:
-        return jsonify({"quote": cashier.quote(conn, body.get("items"), _ctx(conn, body, user))})
+        q = cashier.quote(conn, body.get("items"), _ctx(conn, body, user))
+        return jsonify({"quote": q if user and user["role"] == "admin" else cashier.public_view(q)})
 
 
 @bp.post("/cashier/basket")
@@ -55,7 +56,8 @@ def cashier_basket():
     """Pack builder / جهیزیه‌ساز / gift basket: items from several shops, split per seller."""
     body, user = _body(), _optional_user()
     with get_db().read_transaction() as conn:
-        return jsonify({"quote": pack_builder_service.basket_quote(conn, body.get("items"), _ctx(conn, body, user))})
+        q = pack_builder_service.basket_quote(conn, body.get("items"), _ctx(conn, body, user))
+        return jsonify({"quote": q if user and user["role"] == "admin" else cashier.public_view(q)})
 
 
 # ── recurring delivery lists ──

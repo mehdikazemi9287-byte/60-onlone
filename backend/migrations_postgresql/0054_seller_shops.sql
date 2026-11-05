@@ -30,6 +30,9 @@ ALTER TABLE suppliers ADD COLUMN terms_accepted_at TEXT;
 ALTER TABLE suppliers ADD COLUMN health_status TEXT NOT NULL DEFAULT 'good'
     CHECK (health_status IN ('good', 'at_risk', 'suspended'));
 
+-- 1 after a payout-account (Sheba) change until an admin re-verifies it; settlement refuses meanwhile.
+ALTER TABLE suppliers ADD COLUMN payout_hold INTEGER NOT NULL DEFAULT 0 CHECK (payout_hold IN (0, 1));
+
 CREATE UNIQUE INDEX IF NOT EXISTS ux_suppliers_shop_slug ON suppliers(shop_slug);
 
 -- Commission resolution, most specific first:

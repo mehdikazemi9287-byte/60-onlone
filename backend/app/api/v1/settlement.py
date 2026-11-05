@@ -103,6 +103,11 @@ def admin_create_settlement_batch():
     # Omit to use each sale's snapshotted commission (category/channel rules).
     commission_rate_bps = _int_body(data, "commission_rate_bps", required=False, default=None) if "commission_rate_bps" in data else None
     release_held = data.get("release_held") is True
+    if release_held:
+        from app.core.deps import current_user
+        with db.write_transaction() as conn:
+            conn.execute("INSERT INTO audit_logs(actor_user_id, action, entity_type, entity_id, metadata_json) VALUES (?,?,?,?,?)",
+                         (current_user()["id"], "settlement_release_held", "supplier", str(supplier_id), "{}"))
     shipping_charge_minor = _int_body(data, "shipping_charge_minor", required=False, default=0)
     shipping_payer = (data.get("shipping_payer") or "customer").strip()
 

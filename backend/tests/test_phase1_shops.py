@@ -69,6 +69,12 @@ class ShopFlowTest(AppTestCase):
         mine = self.client.get("/api/v1/supplier/shop", headers=seller).get_json()
         self.assertEqual(mine["balance"]["ready_minor"], 0)
         upd = self.client.put("/api/v1/supplier/shop", json={"shop_bio": "دست‌ساز"}, headers=seller)
+        sheba = self.client.put("/api/v1/supplier/shop", json={"sheba": "IR820540102680020817909002"}, headers=seller)
+        self.assertEqual(sheba.status_code, 200, sheba.get_json())
+        self.assertTrue(sheba.get_json()["shop"]["payout_hold"])  # payouts wait for admin re-verification
+        sid = sheba.get_json()["shop"]["id"]
+        ok = self.client.post(f"/api/v1/admin/shops/{sid}/verify-payout", headers=admin)
+        self.assertFalse(ok.get_json()["shop"]["payout_hold"])
         self.assertEqual(upd.get_json()["shop"]["bio"], "دست‌ساز")
         self.assertEqual(self.client.put("/api/v1/supplier/shop", json={"commission_rate_bps": 0},
                                          headers=seller).status_code, 422)
@@ -88,6 +94,9 @@ class CommissionAndEscrowTest(AppTestCase):
         with self.db.write_transaction() as conn:
             self.assertEqual(shops.resolve_commission_bps(conn, supplier_id=supplier_id, category_id=None,
                                                           channel="retail"), 1000)
+            self.assertEqual(shops.resolve_commission_bps(conn, supplier_id=supplier_id, category_id=None,
+                                                          channel="organization"), 1000)  # contract rate kept
+            conn.execute("UPDATE suppliers SET seller_kind='shop' WHERE id=?", (supplier_id,))
             self.assertEqual(shops.resolve_commission_bps(conn, supplier_id=supplier_id, category_id=None,
                                                           channel="organization"), 500)
             conn.execute("UPDATE suppliers SET seller_kind='brand' WHERE id=?", (supplier_id,))

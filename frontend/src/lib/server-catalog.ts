@@ -42,3 +42,9 @@ export async function allPublicProducts() {
   }
   throw new Error("Catalog exceeds sitemap page limit");
 }
+export async function serverShop(slug: string): Promise<{ shop: import("./shops").Shop } | null> {
+  const res = await fetch(origin + "/api/v1/shops/" + encodeURIComponent(slug), { cache: "no-store", signal: AbortSignal.timeout(10000) });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("دریافت اطلاعات غرفه ناموفق بود");
+  return res.json();
+}

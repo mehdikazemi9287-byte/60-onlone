@@ -67,7 +67,7 @@ export const shops = {
 
 export const KIND_LABEL: Record<string, string> = {
   shop: "غرفه‌دار",
-  brand: "برند رسمی",
+  brand: "برند",
   partner: "شریک",
   supplier: "تأمین‌کننده",
 };
@@ -77,3 +77,13 @@ export const HEALTH_LABEL: Record<string, string> = {
   at_risk: "در خطر",
   suspended: "متوقف",
 };
+
+/** Persian/Arabic digits → Latin, for numeric fields typed on a Persian keyboard. */
+export function latinDigits(v: string): string {
+  return v.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+}
+
+/** Only https or same-site logo URLs are rendered. */
+export function safeLogo(url: string | null): string | null {
+  return url && (url.startsWith("https://") || url.startsWith("/")) ? url : null;
+}

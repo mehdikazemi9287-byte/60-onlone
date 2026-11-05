@@ -57,7 +57,7 @@ HEALTH_RANK = {"good": 0, "at_risk": 1}
 
 # ── time helpers ─────────────────────────────────────────────────────────────
 
-def _utcnow() -> _dt.datetime:
+def _now_utc() -> _dt.datetime:
     return _dt.datetime.now(_dt.timezone.utc)
 
 
@@ -142,7 +142,7 @@ def update_rule(conn, *, rule_key: str, data: dict, actor: int) -> dict:
         """UPDATE cashier_rules SET step_order=?, enabled=?, mode=?, percent_bps=?, cap_bps=?, min_items=?,
                funded_by=?, note=?, updated_by_user_id=?, updated_at=? WHERE rule_key=?""",
         (new["step_order"], new["enabled"], new["mode"], new["percent_bps"], new["cap_bps"], new["min_items"],
-         new["funded_by"], new["note"], actor, _utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z"), rule_key))
+         new["funded_by"], new["note"], actor, _now_utc().strftime("%Y-%m-%dT%H:%M:%S.000Z"), rule_key))
     return dict(conn.execute("SELECT * FROM cashier_rules WHERE rule_key=?", (rule_key,)).fetchone())
 
 
@@ -185,7 +185,7 @@ def _credit_available(conn, *, user_id: int, organization_id: int) -> int:
     """Largest single active allocation (checkout funds an order from exactly one allocation)."""
     from app.services.credit_service import allocation_state
     best = 0
-    now = _utcnow()
+    now = _now_utc()
     for a in conn.execute(
             """SELECT a.id, a.valid_from, a.expires_at FROM credit_allocations a
                JOIN organization_memberships m ON m.id=a.membership_id AND m.status='active'
@@ -339,7 +339,7 @@ def buy_box(conn, product_id: int, buyer_ctx: dict | None = None, *, quantity: i
     """Winner among sellers: suspended never wins; 'good' health beats 'at_risk'; then lowest landed
     line price (after tier/contract and partner discount); then official brand; then lead time; then id."""
     ctx = buyer_ctx or _retail_ctx()
-    now = now or _utcnow()
+    now = now or _now_utc()
     if isinstance(quantity, bool) or not isinstance(quantity, int) or not 1 <= quantity <= MAX_QTY:
         raise ValidationError("تعداد نامعتبر است")
     rules = load_rules(conn)
@@ -431,6 +431,7 @@ def compute(lines: list[dict], ctx: dict, rules: dict) -> dict:
     line_steps.sort(key=lambda r: (int(r["step_order"]), r["rule_key"]))
 
     out_lines = []
+    discount_used: dict = {}  # partner discount id → amount used so far in this order (cap is per order)
     for idx, src in enumerate(lines):
         q = int(src["quantity"])
         base_line = src["base_unit_minor"] * q
@@ -454,7 +455,7 @@ def compute(lines: list[dict], ctx: dict, rules: dict) -> dict:
                 for d in src["partner_discounts"]:
                     amt = current * int(d["percent_bps"]) // BPS
                     if d["max_discount_minor"] is not None:
-                        amt = min(amt, int(d["max_discount_minor"]))
+                        amt = min(amt, max(0, int(d["max_discount_minor"]) - discount_used.get(d["id"], 0)))
                     if best is None or amt > best[0]:
                         best = (amt, d)
                 if best is None:
@@ -473,6 +474,10 @@ def compute(lines: list[dict], ctx: dict, rules: dict) -> dict:
                 meta = {"rule_key": key, "percent_bps": int(rule["percent_bps"])}
             capped = _cap(raw, priced, rule["cap_bps"])
             amount = max(0, min(capped, current - floor))
+            if funder == "seller":
+                # The seller keeps price − commission − own promos; never below cost (or zero).
+                own_floor = (src["cost_unit_minor"] * q) if src["cost_unit_minor"] is not None else 0
+                amount = max(0, min(amount, priced - commission - funded["seller"] - own_floor))
             if amount <= 0 and raw <= 0:
                 continue
             adj = {"step": "partner_discount" if key == "partner_discount" else "recurring_discount",
@@ -486,6 +491,7 @@ def compute(lines: list[dict], ctx: dict, rules: dict) -> dict:
             funded[funder] += amount
             if key == "partner_discount":
                 partner_total += amount
+                discount_used[d["id"]] = discount_used.get(d["id"], 0) + amount
                 if funder == "partner" and amount:
                     partner_liab.append({"partner_discount_id": d["id"], "partner_name": d["partner_name"],
                                          "partner_supplier_id": d["partner_supplier_id"], "amount_minor": amount})
@@ -601,7 +607,7 @@ def quote(conn, items, buyer_ctx: dict | None = None, *, now: _dt.datetime | Non
     """Price a cart. Items name an offer (pinned seller) or a product (buy-box winner).
     Items that cannot be sold are returned under `unavailable` with reasons, never priced."""
     ctx = buyer_ctx or _retail_ctx()
-    now = now or _utcnow()
+    now = now or _now_utc()
     clean = _clean_items(items)
     rules = load_rules(conn)
     cat_cache: dict = {}
@@ -717,7 +723,7 @@ def update_partner_discount(conn, *, discount_id: int, data: dict) -> dict:
     current = get_partner_discount(conn, discount_id)
     d = _clean_discount(conn, data, current)
     conn.execute(f"UPDATE partner_discounts SET {', '.join(c + '=?' for c in _DISCOUNT_COLS)}, updated_at=? WHERE id=?",
-                 tuple(d.get(c) for c in _DISCOUNT_COLS) + (_utcnow().strftime("%Y-%m-%dT%H:%M:%S.000Z"), discount_id))
+                 tuple(d.get(c) for c in _DISCOUNT_COLS) + (_now_utc().strftime("%Y-%m-%dT%H:%M:%S.000Z"), discount_id))
     return get_partner_discount(conn, discount_id)
 
 
@@ -735,3 +741,18 @@ def list_partner_discounts(conn, *, status: str | None = None) -> list[dict]:
     if status:
         sql, args = sql + " WHERE status=?", (status,)
     return [dict(r) for r in conn.execute(sql + " ORDER BY id DESC", args)]
+
+
+# Fields only staff may see: seller cost floors, commissions and the platform/seller split.
+_INTERNAL_KEYS = {"seller_net_floor_minor", "commission_bps", "commission_minor", "seller_share_minor",
+                  "platform_net_minor", "platform_funded_minor", "partner_funded_minor", "seller_funded_minor",
+                  "partner_liabilities", "cost_unit_minor"}
+
+
+def public_view(value):
+    """Strip internal economics from a quote before it leaves for a buyer."""
+    if isinstance(value, dict):
+        return {k: public_view(v) for k, v in value.items() if k not in _INTERNAL_KEYS and not k.startswith("_")}
+    if isinstance(value, list):
+        return [public_view(v) for v in value]
+    return value

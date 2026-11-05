@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { shops, KIND_LABEL, type Shop } from "@/lib/shops";
+import { shops, KIND_LABEL, safeLogo, type Shop } from "@/lib/shops";
 
 export default function ShopsPage() {
   const [kind, setKind] = useState<string>("");
@@ -10,8 +10,13 @@ export default function ShopsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     setItems(null);
-    shops.list(kind || undefined).then((r) => setItems(r.items)).catch((e) => setError(e.message));
+    setError(null);
+    shops.list(kind || undefined)
+      .then((r) => { if (!cancelled) setItems(r.items.filter((s) => s.slug)); })
+      .catch((e) => { if (!cancelled) setError(e.message); });
+    return () => { cancelled = true; };
   }, [kind]);
 
   return (
@@ -22,10 +27,10 @@ export default function ShopsPage() {
           غرفه‌ات را بساز
         </Link>
       </div>
-      <div className="flex gap-2 mb-6" role="tablist">
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {[["", "همه"], ["brand", "برندهای رسمی"], ["shop", "غرفه‌دارها"], ["partner", "شرکا"]].map(([k, label]) => (
-          <button key={k} role="tab" aria-selected={kind === k} onClick={() => setKind(k)}
-            className={`rounded-full px-4 py-1.5 text-sm ${kind === k ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-700"}`}>
+          <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)}
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm ${kind === k ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-700"}`}>
             {label}
           </button>
         ))}
@@ -36,13 +41,13 @@ export default function ShopsPage() {
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items?.map((s) => (
           <li key={s.id}>
-            <Link href={s.url ?? "#"} className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4 hover:border-neutral-400">
-              {s.logo_url ? <img src={s.logo_url} alt="" className="h-12 w-12 rounded-xl object-cover" />
+            <Link href={`/shops/${encodeURIComponent(s.slug!)}`} className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4 hover:border-neutral-400">
+              {safeLogo(s.logo_url) ? <img src={safeLogo(s.logo_url)!} alt="" referrerPolicy="no-referrer" loading="lazy" className="h-12 w-12 rounded-xl object-cover" />
                 : <span className="grid h-12 w-12 place-items-center rounded-xl bg-neutral-100 text-lg font-black">{s.title.slice(0, 1)}</span>}
               <span className="min-w-0">
                 <span className="block truncate font-bold text-neutral-900">{s.title}</span>
                 <span className="block text-xs text-neutral-500">
-                  {s.official ? "✓ برند رسمی" : KIND_LABEL[s.kind]} {s.city ? `· ${s.city}` : ""}
+                  {s.official ? <><span aria-hidden="true">✓ </span>برند رسمی</> : KIND_LABEL[s.kind]} {s.city ? `· ${s.city}` : ""}
                 </span>
               </span>
             </Link>

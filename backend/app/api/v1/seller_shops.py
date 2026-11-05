@@ -69,14 +69,15 @@ def my_shop():
 @require_auth()
 def update_my_shop():
     with get_db().write_transaction() as conn:
-        return jsonify({"shop": shops.update_profile(conn, supplier_id=_my_supplier(conn), data=_body())})
+        return jsonify({"shop": shops.update_profile(conn, supplier_id=_my_supplier(conn), data=_body(),
+                                                     user_id=current_user()["id"])})
 
 
 @bp.get("/api/v1/supplier/shop/health")
 @require_auth()
 def my_health():
     with get_db().write_transaction() as conn:
-        return jsonify({"health": shops.compute_health(conn, supplier_id=_my_supplier(conn), enforce=False)})
+        return jsonify({"health": shops.compute_health(conn, supplier_id=_my_supplier(conn), enforce=False, record=False)})
 
 
 # ── admin ─────────────────────────────────────────────────────────────────────
@@ -144,4 +145,16 @@ def admin_shop_commission(supplier_id: int):
         raise ValidationError("کارمزد باید بین ۰ تا ۵۰۰۰ باشد یا null")
     with get_db().write_transaction() as conn:
         conn.execute("UPDATE suppliers SET commission_rate_bps=? WHERE id=?", (rate, supplier_id))
+        conn.execute("INSERT INTO audit_logs(actor_user_id, action, entity_type, entity_id, metadata_json) VALUES (?,?,?,?,?)",
+                     (current_user()["id"], "shop_commission_override", "supplier", str(supplier_id), f'{{"rate_bps": {rate if rate is not None else "null"}}}'))
+        return jsonify({"shop": shops.shop_view(conn, supplier_id, private=True)})
+
+
+@bp.post("/api/v1/admin/shops/<int:supplier_id>/verify-payout")
+@require_auth("admin")
+def admin_verify_payout(supplier_id: int):
+    with get_db().write_transaction() as conn:
+        conn.execute("UPDATE suppliers SET payout_hold=0 WHERE id=?", (supplier_id,))
+        conn.execute("INSERT INTO audit_logs(actor_user_id, action, entity_type, entity_id, metadata_json) "
+                     "VALUES (?, 'shop_sheba_verified', 'supplier', ?, '{}')", (current_user()["id"], str(supplier_id)))
         return jsonify({"shop": shops.shop_view(conn, supplier_id, private=True)})

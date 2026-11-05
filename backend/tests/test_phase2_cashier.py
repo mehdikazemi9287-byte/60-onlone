@@ -148,8 +148,11 @@ class CashierDbTest(AppTestCase):
             "title_fa": "هدیهٔ گیفت‌آسان", "partner_name": "گیفت‌آسان", "scope": "seller", "seller_supplier_id": b,
             "percent_bps": 500, "funded_by": "partner"})
         self.assertEqual(r.status_code, 201, r.get_json())
-        r = self.client.post("/api/v1/cashier/basket", json={"items": [
-            {"slug": self.p1["slug"], "quantity": 1}, {"product_id": self.p2["id"], "quantity": 1}]})
+        items = {"items": [{"slug": self.p1["slug"], "quantity": 1}, {"product_id": self.p2["id"], "quantity": 1}]}
+        public = self.client.post("/api/v1/cashier/basket", json=items).get_json()["quote"]
+        self.assertNotIn("commission_minor", public["sellers"][0])          # economics stay internal
+        self.assertNotIn("seller_net_floor_minor", public["lines"][0])
+        r = self.client.post("/api/v1/cashier/basket", json=items, headers=self.admin_headers())
         self.assertEqual(r.status_code, 200, r.get_json())
         q = r.get_json()["quote"]
         self.assertEqual(q["seller_count"], 2)

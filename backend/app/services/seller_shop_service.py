@@ -30,7 +30,7 @@ SUSPEND_MIN_ORDERS = 10
 
 _SLUG = re.compile(r"^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$")
 _MOBILE = re.compile(r"^09\d{9}$")
-_RESERVED = {"admin", "api", "shop", "shops", "supplier", "seller", "60online", "official", "support"}
+_RESERVED = {"admin", "api", "shop", "shops", "supplier", "seller", "60online", "official", "support", "terms", "apply"}
 
 
 def _now() -> _dt.datetime:
@@ -94,7 +94,7 @@ def _slug(value: str | None, fallback_id: int | None = None) -> str:
         return f"shop-{fallback_id}"
     v = value.strip().lower()
     if not _SLUG.fullmatch(v) or "--" in v or v in _RESERVED:
-        raise ValidationError("آدرس غرفه فقط حروف لاتین کوچک، عدد و خط تیره، ۳ تا ۴۰ نویسه")
+        raise ValidationError("آدرس غرفه فقط حروف لاتین کوچک، عدد و خط تیره، ۳ تا ۴۰ نویسه", details={"field": "shop_slug"})
     return v
 
 
@@ -118,7 +118,8 @@ def resolve_commission_bps(conn: sqlite3.Connection, *, supplier_id: int,
                 "ORDER BY id DESC LIMIT 1", (k, k, cat, cat, ch)).fetchone()
             if row:
                 # An organization-channel rule for any kind beats the kind's retail default.
-                if ch == "any" and channel == "organization" and k == kind and cat is None:
+                # Contracted suppliers keep their contract rate on every channel.
+                if ch == "any" and channel == "organization" and k == kind and cat is None and kind != "supplier":
                     org = conn.execute(
                         "SELECT rate_bps FROM commission_rules WHERE seller_kind IS NULL AND category_id IS NULL "
                         "AND channel='organization' ORDER BY id DESC LIMIT 1").fetchone()
@@ -160,27 +161,29 @@ def apply(conn: sqlite3.Connection, *, user_id: int, data: dict) -> dict:
     kind = data.get("seller_kind", "shop")
     if kind not in SELLER_KINDS:
         raise ValidationError("نوع فروشنده باید غرفه‌دار، برند رسمی یا شریک باشد")
+    if conn.execute("SELECT 1 FROM organization_memberships WHERE user_id=? AND status='active'", (user_id,)).fetchone():
+        raise ConflictError("عضو فعال یک سازمان نمی‌تواند هم‌زمان غرفه‌دار باشد", code="org_member_cannot_sell")
     if conn.execute("SELECT 1 FROM supplier_users WHERE user_id=? AND status='active'", (user_id,)).fetchone():
         raise ConflictError("این حساب قبلاً غرفه دارد", code="shop_exists")
     legal = _text(data, "legal_name", 200, required=True)
     title = _text(data, "shop_title", 120, required=True)
     nid = _text(data, "national_id", 11, required=True)
     if not valid_national_id(nid):
-        raise ValidationError("کد ملی یا شناسهٔ ملی نامعتبر است")
+        raise ValidationError("کد ملی یا شناسهٔ ملی نامعتبر است", details={"field": "national_id"})
     mobile = _text(data, "mobile", 11, required=True)
     if not _MOBILE.fullmatch(mobile):
-        raise ValidationError("شمارهٔ همراه باید ۱۱ رقم و با ۰۹ شروع شود")
+        raise ValidationError("شمارهٔ همراه باید ۱۱ رقم و با ۰۹ شروع شود", details={"field": "mobile"})
     sheba = _text(data, "sheba", 34)
     if sheba is not None:
         sheba = sheba.replace(" ", "").upper()
         if not valid_sheba(sheba):
-            raise ValidationError("شمارهٔ شبا نامعتبر است")
+            raise ValidationError("شمارهٔ شبا نامعتبر است", details={"field": "sheba"})
     province = _text(data, "province", 100, required=True)
     city = _text(data, "city", 100, required=True)
     address = _text(data, "address", 1000)
     slug = _slug(data.get("shop_slug"))
     if conn.execute("SELECT 1 FROM suppliers WHERE shop_slug=?", (slug,)).fetchone():
-        raise ConflictError("این آدرس غرفه قبلاً گرفته شده است", code="shop_slug_taken")
+        raise ConflictError("این آدرس غرفه قبلاً گرفته شده است", code="shop_slug_taken", details={"field": "shop_slug"})
     if conn.execute("SELECT 1 FROM suppliers WHERE national_id=?", (nid,)).fetchone():
         raise ConflictError("با این شناسه قبلاً فروشنده ثبت شده است", code="supplier_national_id_duplicate")
     stamp = _iso(_now())
@@ -226,7 +229,7 @@ def review(conn: sqlite3.Connection, *, admin_id: int, supplier_id: int, decisio
     return shop_view(conn, supplier_id, private=True)
 
 
-def update_profile(conn: sqlite3.Connection, *, supplier_id: int, data: dict) -> dict:
+def update_profile(conn: sqlite3.Connection, *, supplier_id: int, data: dict, user_id: int | None = None) -> dict:
     allowed = {"shop_title", "shop_bio", "shop_logo_url", "sheba", "bank_name"}
     extra = set(data) - allowed
     if extra:
@@ -243,11 +246,23 @@ def update_profile(conn: sqlite3.Connection, *, supplier_id: int, data: dict) ->
         sets.append("shop_logo_url=?")
         args.append(url)
     if "sheba" in data:
+        # Payout account: owner of a self-registered shop only; audited; payouts pause until an admin re-verifies.
+        s = conn.execute("SELECT seller_kind, sheba FROM suppliers WHERE id=?", (supplier_id,)).fetchone()
+        owner = user_id is not None and conn.execute(
+            "SELECT 1 FROM supplier_users WHERE supplier_id=? AND user_id=? AND role='owner' AND status='active'",
+            (supplier_id, user_id)).fetchone()
+        if s["seller_kind"] == "supplier" or not owner:
+            from app.core.errors import PermissionError_
+            raise PermissionError_("فقط مالک غرفه می‌تواند شبا را تغییر دهد؛ تأمین‌کنندهٔ قراردادی از طریق ادمین")
         sheba = (_text(data, "sheba", 34) or "").replace(" ", "").upper()
         if not valid_sheba(sheba):
             raise ValidationError("شمارهٔ شبا نامعتبر است")
-        sets.append("sheba=?")
-        args.append(sheba)
+        if sheba != s["sheba"]:
+            sets += ["sheba=?", "payout_hold=1"]
+            args.append(sheba)
+            conn.execute("INSERT INTO audit_logs(actor_user_id, action, entity_type, entity_id, metadata_json) "
+                         "VALUES (?, 'shop_sheba_changed', 'supplier', ?, '{\"needs_review\": true}')",
+                         (user_id, str(supplier_id)))
     if sets:
         conn.execute(f"UPDATE suppliers SET {', '.join(sets)}, updated_at=datetime('now') WHERE id=?",
                      (*args, supplier_id))
@@ -263,15 +278,25 @@ def shop_view(conn: sqlite3.Connection, supplier_id: int, *, private: bool = Fal
     out = {"id": s["id"], "slug": s["shop_slug"], "title": s["shop_title"] or s["display_name"],
            "bio": s["shop_bio"], "logo_url": s["shop_logo_url"], "kind": s["seller_kind"],
            "province": s["shop_province"], "city": s["shop_city"], "rating_x10": s["rating_x10"],
-           "official": s["seller_kind"] == "brand" and s["status"] == "active",
+           "official": _official(conn, s),
            "url": f"/shops/{s['shop_slug']}" if s["shop_slug"] else None}
     if private:
         out.update({"status": s["status"], "onboarding_stage": s["onboarding_stage"],
                     "health_status": s["health_status"], "legal_name": s["legal_name"],
-                    "sheba_on_file": bool(s["sheba"]), "terms_version": s["terms_version"],
+                    "sheba_on_file": bool(s["sheba"]), "payout_hold": bool(s["payout_hold"]), "terms_version": s["terms_version"],
                     "commission_rate_bps": resolve_commission_bps(conn, supplier_id=supplier_id,
                                                                   category_id=None, channel="retail")})
     return out
+
+
+def _official(conn, s) -> bool:
+    if s["seller_kind"] != "brand" or s["status"] != "active":
+        return False
+    try:
+        from app.services import brand_service
+        return brand_service.is_official(conn, int(s["id"]))
+    except Exception:  # brand tables absent on an old schema
+        return False
 
 
 def public_shop(conn: sqlite3.Connection, slug: str, *, page: int = 1, size: int = 24) -> dict:
@@ -328,8 +353,8 @@ def balance(conn: sqlite3.Connection, *, supplier_id: int, now: _dt.datetime | N
             ready += net
         else:
             held += net
-    health = conn.execute("SELECT health_status FROM suppliers WHERE id=?", (supplier_id,)).fetchone()
-    if health and health["health_status"] == "suspended":
+    health = conn.execute("SELECT health_status, payout_hold FROM suppliers WHERE id=?", (supplier_id,)).fetchone()
+    if health and (health["health_status"] == "suspended" or health["payout_hold"]):
         held, ready = held + ready, 0
     settled = conn.execute("SELECT COALESCE(SUM(net_minor),0) FROM settlement_batches WHERE supplier_id=? "
                            "AND status='completed'", (supplier_id,)).fetchone()[0]
@@ -339,7 +364,7 @@ def balance(conn: sqlite3.Connection, *, supplier_id: int, now: _dt.datetime | N
 # ── account health ────────────────────────────────────────────────────────────
 
 def compute_health(conn: sqlite3.Connection, *, supplier_id: int, window_days: int = 60,
-                   now: _dt.datetime | None = None, enforce: bool = True) -> dict:
+                   now: _dt.datetime | None = None, enforce: bool = True, record: bool = True) -> dict:
     t = now or _now()
     since = (t - _dt.timedelta(days=window_days)).strftime("%Y-%m-%d %H:%M:%S")
     stamp = t.strftime("%Y-%m-%d %H:%M:%S")
@@ -370,10 +395,11 @@ def compute_health(conn: sqlite3.Connection, *, supplier_id: int, window_days: i
         status = "at_risk"
     if n >= SUSPEND_MIN_ORDERS and any(rate[k] >= 2 * HEALTH_TARGETS[k] for k in rate):
         status = "suspended"
-    conn.execute(
-        """INSERT INTO seller_health_snapshots (supplier_id, window_days, orders_count, defect_count, cancel_count,
-               late_count, defect_bps, cancel_bps, late_bps, status) VALUES (?,?,?,?,?,?,?,?,?,?)""",
-        (supplier_id, window_days, n, defect, cancel, late, rate["defect"], rate["cancel"], rate["late"], status))
+    if record:
+        conn.execute(
+            """INSERT INTO seller_health_snapshots (supplier_id, window_days, orders_count, defect_count,
+                   cancel_count, late_count, defect_bps, cancel_bps, late_bps, status) VALUES (?,?,?,?,?,?,?,?,?,?)""",
+            (supplier_id, window_days, n, defect, cancel, late, rate["defect"], rate["cancel"], rate["late"], status))
     if enforce:
         conn.execute("UPDATE suppliers SET health_status=? WHERE id=?", (status, supplier_id))
     return {"supplier_id": supplier_id, "orders": n, "defect_bps": rate["defect"], "cancel_bps": rate["cancel"],
