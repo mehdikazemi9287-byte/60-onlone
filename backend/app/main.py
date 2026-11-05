@@ -62,6 +62,8 @@ from app.api.v1 import loyalty as loyalty_api
 from app.api.v1 import admin_supplier_profile, admin_image_review, saved_pack_drafts, admin_catalog_sources
 from app.api.v1 import seller_shops as seller_shops_api
 from app.api.v1 import cashier as cashier_api
+from app.api.v1 import org_brands as org_brands_api
+from app.api.v1 import credit_platform as credit_platform_api
 from app.core.config import Settings, load_settings
 from app.core.db import Database, DatabaseBackend, make_backend
 from app.core.errors import ApiError
@@ -183,6 +185,8 @@ def create_app(
         # Marketplace roadmap
         seller_shops_api.bp,
         cashier_api.bp,
+        org_brands_api.bp,
+        credit_platform_api.bp,
     ):
         app.register_blueprint(blueprint)
 

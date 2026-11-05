@@ -133,7 +133,10 @@ def create_settlement_batch(
         if held:
             raise ConflictError("این مبالغ هنوز در دورهٔ امانت (بعد از تحویل) هستند",
                                 code="payable_on_hold", details={"entry_ids": held})
-        health = conn.execute("SELECT health_status FROM suppliers WHERE id = ?", (supplier_id,)).fetchone()
+        health = conn.execute("SELECT health_status, payout_hold FROM suppliers WHERE id = ?", (supplier_id,)).fetchone()
+        if health is not None and health["payout_hold"]:
+            raise ConflictError("شبای این فروشنده تازه تغییر کرده و منتظر تأیید ادمین است",
+                                code="payout_account_unverified")
         if health is not None and health["health_status"] == "suspended":
             raise ConflictError("تسویهٔ این فروشنده به دلیل وضعیت سلامت حساب متوقف است",
                                 code="seller_suspended")
@@ -152,6 +155,17 @@ def create_settlement_batch(
     # Shipping charge only deducted if supplier pays
     effective_shipping = shipping_charge_minor if shipping_payer == "supplier" else 0
     net_minor = gross_minor - commission_minor - effective_shipping
+
+    # Phase 4: an advance already paid to the seller is netted out of this payout (idempotent per batch key).
+    advance_recovered = 0
+    if net_minor > 0:
+        try:
+            from app.services import seller_advance_service
+            advance_recovered = seller_advance_service.recover_from_settlement(
+                conn, supplier_id=supplier_id, available_minor=net_minor, settlement_reference=idempotency_key)
+        except ImportError:  # pragma: no cover
+            advance_recovered = 0
+        net_minor -= advance_recovered
 
     if net_minor < 0:
         raise ValidationError(
@@ -211,7 +225,7 @@ def create_settlement_batch(
     batch = conn.execute(
         "SELECT * FROM settlement_batches WHERE id = ?", (batch_id,)
     ).fetchone()
-    return {**dict(batch), "items": [dict(i) for i in items]}
+    return {**dict(batch), "items": [dict(i) for i in items], "advance_recovered_minor": advance_recovered}
 
 
 # ---------------------------------------------------------------------------

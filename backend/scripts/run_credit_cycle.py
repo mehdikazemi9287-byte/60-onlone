@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+"""Phase 4 credit cycle: issue weekly statements, freeze/unfreeze overdue contracts,
+flag late installments. Idempotent; safe to run hourly.
+
+cron (hourly):  0 * * * *  cd /srv/backend && python3 -m scripts.run_credit_cycle
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from app.core.config import load_settings  # noqa: E402
+from app.core.db import Database  # noqa: E402
+from app.services import credit_contract_service, installment_service  # noqa: E402
+
+
+def main() -> int:
+    db = Database(load_settings().sqlite_path)
+    with db.write_transaction() as conn:
+        statements = credit_contract_service.run_weekly_statements(conn)
+        overdue = credit_contract_service.enforce_overdue(conn)
+        late = installment_service.mark_late(conn)
+    print(f"statements={statements} overdue={overdue} installments_late={late}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

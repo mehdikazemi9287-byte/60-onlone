@@ -365,6 +365,12 @@ def reserve(
             details={"available_minor": state["available_minor"], "requested_minor": amount_minor},
         )
 
+    # A frozen credit contract (overdue weekly statement) blocks new spending with a clear message;
+    # the database trigger stays as the last line of defence.
+    if organization_credit_frozen(conn, int(allocation["organization_id"])):
+        raise ConflictError("اعتبار سازمان به دلیل صورتحساب پرداخت‌نشده موقتاً متوقف است",
+                            code="credit_contract_frozen")
+
     reference = _ref("RES")
     cursor = conn.execute(
         """
@@ -674,3 +680,43 @@ def expire_due_allocations(db: Database) -> int:
             """
         )
         return cursor.rowcount
+
+
+# ------------------------------------------------- Phase 4 (additive, read-only)
+# Used by credit_contract_service for Samar-style weekly statements. Nothing above
+# calls these, so existing reserve/capture/release behaviour is unchanged.
+def _normalized_ts_sql(column: str) -> str:
+    """Compare timestamps written as 'YYYY-MM-DD HH:MM:SS' (SQLite) or ISO-8601 with 'T' (PostgreSQL)."""
+    return f"REPLACE(SUBSTR({column}, 1, 19), 'T', ' ')"
+
+
+def organization_usage_minor(conn: sqlite3.Connection, *, organization_id: int,
+                             period_start: str, period_end: str) -> int:
+    """Credit consumed (captured) by an organization's members in [period_start, period_end).
+
+    Bounds are UTC 'YYYY-MM-DD HH:MM:SS'. Folded from credit_ledger_entries — the
+    statement can never disagree with the credit ledger.
+    """
+    ts = _normalized_ts_sql("created_at")
+    row = conn.execute(
+        f"""
+        SELECT COALESCE(SUM(amount_minor), 0) AS n FROM credit_ledger_entries
+        WHERE organization_id = ? AND entry_type = 'capture' AND {ts} >= ? AND {ts} < ?
+        """,
+        (organization_id, period_start, period_end),
+    ).fetchone()
+    return int(row["n"])
+
+
+def organization_credit_frozen(conn: sqlite3.Connection, organization_id: int) -> bool:
+    """True when the organization's credit contract is frozen (Phase 4).
+
+    Integration point for quote_service / credit_rules: a frozen contract should show
+    as a BLOCK restriction at quote time. The storage-level trigger
+    credit_reservations_block_frozen (migration 0057) already refuses reservations.
+    """
+    row = conn.execute(
+        "SELECT 1 FROM credit_contracts WHERE organization_id = ? AND status = 'frozen'",
+        (organization_id,),
+    ).fetchone()
+    return row is not None
