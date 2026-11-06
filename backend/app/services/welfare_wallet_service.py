@@ -262,3 +262,30 @@ def best_membership(conn, user_id: int, cart_lines, now: datetime | None = None)
         if allowed > best[1]:
             best = (int(m["id"]), allowed)
     return best
+
+
+def restore_partial(conn, *, spend_key: str, amount_minor: int, restore_key: str, now: datetime | None = None) -> int:
+    """Give back up to amount_minor of a spend (refund of a returned order). Idempotent on restore_key.
+    Plans are refilled newest-spend first and never above what was spent on them for this order."""
+    prior = conn.execute("SELECT COALESCE(SUM(amount_minor),0) FROM welfare_ledger_entries WHERE idempotency_key = ?",
+                         (restore_key,)).fetchone()[0]
+    if prior:
+        return int(prior)
+    left, stamp, done = max(0, int(amount_minor)), fmt(_utc(now)), 0
+    spends = conn.execute("SELECT plan_id, membership_id, amount_minor, order_id FROM welfare_ledger_entries "
+                          "WHERE idempotency_key = ? AND entry_type = 'spend' ORDER BY id DESC", (spend_key,)).fetchall()
+    for sp in spends:
+        if left <= 0:
+            break
+        given = conn.execute("SELECT COALESCE(SUM(amount_minor),0) FROM welfare_ledger_entries WHERE plan_id = ? "
+                             "AND membership_id = ? AND entry_type = 'reversal' AND (idempotency_key = ? OR idempotency_key LIKE ?)",
+                             (sp["plan_id"], sp["membership_id"], f"{spend_key}:reversal", f"{spend_key}:restore:%")).fetchone()[0]
+        take = min(left, int(sp["amount_minor"]) - int(given))
+        if take <= 0:
+            continue
+        conn.execute("INSERT INTO welfare_ledger_entries (plan_id, membership_id, entry_type, amount_minor, order_id, "
+                     "idempotency_key, created_at) VALUES (?,?, 'reversal', ?,?,?,?)",
+                     (sp["plan_id"], sp["membership_id"], take, sp["order_id"], restore_key, stamp))
+        left -= take
+        done += take
+    return done

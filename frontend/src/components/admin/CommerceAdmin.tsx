@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/auth-context";
 import type { PackDetail } from "@/lib/storefront";
 import type { Product } from "@/lib/types";
 import { formatJalaliDateTime } from "@/lib/procurement/jalali";
+import { formatPrice } from "@/lib/utils";
 import { Chip, Drawer, Empty, Notice, cx, n } from "@/components/procurement/ui";
 import s from "@/components/procurement/proc.module.css";
 
@@ -162,7 +163,7 @@ export function AdminCatalogReview() {
 // ── Returns ──
 
 type Ret = { id: number; order_number: string; status: string; status_fa: string; reason: string; order_total_minor: number; refund_amount_minor: number | null;
-  refund_reference: string | null; items: { title_fa: string; quantity: number }[]; events: { status: string; note: string | null; created_at: string; actor: string }[] };
+  welfare_restored_minor?: number; bank_refund_minor?: number; refund_reference: string | null; items: { title_fa: string; quantity: number }[]; events: { status: string; note: string | null; created_at: string; actor: string }[] };
 const NEXT: Record<string, [string, string][]> = { requested: [["approve", "تأیید"], ["reject", "رد"]], approved: [["receive", "دریافت کالا"]],
   received: [["refund_pending", "ارسال به مالی"]], refund_pending: [["refund", "ثبت بازپرداخت"]] };
 
@@ -183,7 +184,7 @@ export function AdminReturns() {
           <tbody>{d!.items.map((r) => (
             <tr key={r.id}><td className={s.full}><b>{r.order_number}</b><div className={s.small}>{formatJalaliDateTime(r.events[0]?.created_at)}</div></td>
               <td data-label="اقلام" className={s.small}>{r.items.map((i) => `${i.title_fa} ×${n(i.quantity)}`).join("، ")}<div style={{ color: "var(--muted)" }}>{r.reason}</div></td>
-              <td data-label="وضعیت"><Chip tone={r.status === "refunded" ? "ok" : r.status === "rejected" ? "bad" : "info"} dot>{r.status_fa}</Chip>{r.refund_reference && <div className={s.small}>{r.refund_reference}</div>}</td>
+              <td data-label="وضعیت"><Chip tone={r.status === "refunded" ? "ok" : r.status === "rejected" ? "bad" : "info"} dot>{r.status_fa}</Chip>{r.refund_reference && <div className={s.small}>{r.refund_reference}</div>}{!!r.welfare_restored_minor && <div className={s.small}>به کیف پول رفاهی: {formatPrice(r.welfare_restored_minor)} · واریز بانکی: {formatPrice(r.bank_refund_minor ?? 0)}</div>}</td>
               <td><div className={s.row}>{(NEXT[r.status] ?? []).map(([a, l]) => <button key={a} className={cx(s.btn, s.sm, a === "reject" ? s.danger : undefined)} onClick={() => setAct({ r, action: a, label: l })}>{l}</button>)}</div></td></tr>))}</tbody>
         </table></div>)}
       {act && token && <ReturnAction token={token} {...act} onClose={() => setAct(null)} onDone={() => { setAct(null); load(); }} />}

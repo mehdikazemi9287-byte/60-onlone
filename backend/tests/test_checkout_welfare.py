@@ -78,3 +78,31 @@ class CheckoutWelfareTest(AppTestCase):
         self.assertEqual(self.remaining(emp), self.subtotal - 1013)
         with self.db.read_transaction() as conn:
             self.assertEqual(conn.execute("SELECT COUNT(*) FROM orders").fetchone()[0], 0)
+
+
+class WelfareRefundTest(CheckoutWelfareTest):
+    def _return(self, order_id, amount, admin_id):
+        from app.services import commerce_ops_service as ops
+        with self.db.write_transaction() as conn:
+            rid = conn.execute("INSERT INTO order_return_requests (order_id, user_id, items_json, reason, status) "
+                               "SELECT id, user_id, '[]', 'خراب بود', 'refund_pending' FROM orders WHERE id=?", (order_id,)).lastrowid
+            return ops.admin_transition(conn, actor=admin_id, return_id=rid, action="refund",
+                                        data={"amount_minor": amount, "reference": "REF-123"})
+
+    def test_refund_refills_wallet_in_proportion(self):
+        org, emp, total = self.setup_cart()
+        self.plan(org["id"], 100_000)
+        oid = self.pay(emp).get_json()["order"]["id"]
+        admin_id = self.client.get("/api/v1/auth/me", headers=self.admin_headers()).get_json()["user"]["id"]
+        half = total // 2
+        v = self._return(oid, half, admin_id)
+        self.assertEqual(v["welfare_restored_minor"], half * 100_000 // total)
+        self.assertEqual(v["bank_refund_minor"], half - v["welfare_restored_minor"])
+        self.assertEqual(self.remaining(emp), v["welfare_restored_minor"])
+        v2 = self._return(oid, total - half, admin_id)  # final refund returns whatever is still out
+        self.assertEqual(v["welfare_restored_minor"] + v2["welfare_restored_minor"], 100_000)
+        self.assertEqual(self.remaining(emp), 100_000)
+
+
+for _n in [n for n in vars(CheckoutWelfareTest) if n.startswith("test_")]:
+    setattr(WelfareRefundTest, _n, None)

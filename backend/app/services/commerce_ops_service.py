@@ -91,6 +91,8 @@ def _return_view(conn, row) -> dict:
                                                     JOIN users u ON u.id=e.actor_user_id WHERE e.return_id=? ORDER BY e.id""", (d["id"],))]
     o = conn.execute("SELECT order_number, total_minor FROM orders WHERE id=?", (d["order_id"],)).fetchone()
     d["order_number"], d["order_total_minor"] = o["order_number"], o["total_minor"]
+    if d.get("refund_amount_minor"):  # what the bank must actually return after the welfare wallet is refilled
+        d["bank_refund_minor"] = int(d["refund_amount_minor"]) - int(d.get("welfare_restored_minor") or 0)
     return d
 
 
@@ -186,11 +188,31 @@ def admin_transition(conn, *, actor: int, return_id: int, action: str, data: dic
         total = conn.execute("SELECT total_minor FROM orders WHERE id=?", (r["order_id"],)).fetchone()[0]
         refunded = conn.execute("SELECT COALESCE(SUM(refund_amount_minor),0) FROM order_return_requests WHERE order_id=? AND status='refunded'",
                                 (r["order_id"],)).fetchone()[0]
+        _restore_welfare(conn, order_id=r["order_id"], return_id=return_id, amount=amount, total=total, refunded=refunded)
         if refunded >= total:
             conn.execute("UPDATE orders SET status='refunded' WHERE id=?", (r["order_id"],))
     view = _return_view(conn, conn.execute("SELECT * FROM order_return_requests WHERE id=?", (return_id,)).fetchone())
     notify(conn, r["user_id"], "return_status", f"مرجوعی سفارش {view['order_number']}: {RETURN_FA[to]}", note, f"/orders/{view['order_number']}")
     return view
+
+
+def _restore_welfare(conn, *, order_id: int, return_id: int, amount: int, total: int, refunded: int) -> None:
+    """The welfare share of a refund goes back to the wallet (same proportion it paid); the bank refunds the rest.
+    The last refund that brings the order to fully refunded returns whatever welfare share is still out."""
+    from app.services import welfare_wallet_service
+    o = conn.execute("SELECT welfare_minor, payment_intent_id FROM orders WHERE id=?", (order_id,)).fetchone()
+    welfare = int(o["welfare_minor"] or 0) if o is not None and "welfare_minor" in o.keys() else 0
+    if welfare <= 0 or not o["payment_intent_id"]:
+        return
+    already = conn.execute("SELECT COALESCE(SUM(welfare_restored_minor),0) FROM order_return_requests WHERE order_id=? AND id<>?",
+                           (order_id, return_id)).fetchone()[0]
+    share = welfare - already if refunded >= total else min(welfare - already, amount * welfare // total)
+    if share <= 0:
+        return
+    restored = welfare_wallet_service.restore_partial(
+        conn, spend_key=f"intent:{o['payment_intent_id']}", amount_minor=share,
+        restore_key=f"intent:{o['payment_intent_id']}:restore:{return_id}")
+    conn.execute("UPDATE order_return_requests SET welfare_restored_minor=? WHERE id=?", (restored, return_id))
 
 
 # ── Employee benefits ──

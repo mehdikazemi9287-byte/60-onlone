@@ -1,5 +1,6 @@
 """In-person: store locator, collect-in-store, visit appointments (مراجعهٔ حضوری)."""
 import json
+import re
 
 from flask import Blueprint, jsonify, request
 
@@ -58,6 +59,46 @@ def confirm_pickup(fo_id: int):
                                           fulfillment_order_id=fo_id, code=_body().get("code")))
 
 
+_DAYS = ("sat", "sun", "mon", "tue", "wed", "thu", "fri")
+_SPAN = re.compile(r"^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$")
+
+
+def _check_hours(hours) -> None:
+    """{"sat": "09:00-18:00", "fri": "closed", ...}; up to two spans per day ("09:00-13:00,16:00-20:00")."""
+    if hours is None:
+        return
+    if not isinstance(hours, dict) or set(hours) - set(_DAYS):
+        raise ValidationError("ساعت کاری باید برای روزهای sat تا fri باشد، مثل {\"sat\": \"09:00-18:00\"}")
+    for day, v in hours.items():
+        if v == "closed":
+            continue
+        spans = v.split(",") if isinstance(v, str) else []
+        if not 1 <= len(spans) <= 2 or not all(_SPAN.match(x.strip()) and x.strip()[:5] < x.strip()[6:] for x in spans):
+            raise ValidationError(f"ساعت «{day}» نامعتبر است (مثل 09:00-18:00 یا closed)", code="invalid_hours")
+
+
+@bp.get("/supplier/locations/in-person")
+@require_auth()
+def my_locations():
+    with get_db().read_transaction() as conn:
+        sid = _supplier(conn)
+        rows = conn.execute("SELECT id, province, city, district, address, status, can_pickup, accepts_walk_in, "
+                            "accepts_appointments, public_title, public_phone, operating_hours_json FROM supplier_locations "
+                            "WHERE supplier_id=? ORDER BY id", (sid,)).fetchall()
+        out = []
+        for r in rows:
+            d = dict(r)
+            raw = d.pop("operating_hours_json")
+            try:
+                d["opening_hours"] = json.loads(raw) if raw else None
+            except ValueError:
+                d["opening_hours"] = None
+            for k in ("can_pickup", "accepts_walk_in", "accepts_appointments"):
+                d[k] = bool(d[k])
+            out.append(d)
+        return jsonify({"items": out})
+
+
 @bp.put("/supplier/locations/<int:location_id>/in-person")
 @require_auth()
 def set_in_person(location_id: int):
@@ -82,8 +123,7 @@ def set_in_person(location_id: int):
                     raise ValidationError(f"«{k}» نامعتبر است")
                 sets.append(f"{k}=?"); args.append(v.strip() if isinstance(v, str) else None)
         if "opening_hours" in d:
-            if not isinstance(d["opening_hours"], (dict, type(None))):
-                raise ValidationError("ساعت کاری باید شیء باشد، مثل {\"sat\": \"09:00-18:00\"}")
+            _check_hours(d["opening_hours"])
             sets.append("operating_hours_json=?")
             args.append(json.dumps(d["opening_hours"], ensure_ascii=False) if d["opening_hours"] else None)
         if sets:
