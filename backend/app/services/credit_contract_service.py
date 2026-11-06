@@ -333,9 +333,16 @@ def issue_due_statements(conn, contract_id: int, now: datetime | None = None) ->
             (_ref("CST"), contract_id, org_id, start, end, opening, usage, payments, closing, due_at,
              status, stamp if status == "paid" else None, stamp, stamp),
         )
-        issued.append(statement_dict(conn.execute(
+        stmt = statement_dict(conn.execute(
             "SELECT * FROM credit_statements WHERE contract_id = ? AND period_start = ?",
-            (contract_id, start)).fetchone()))
+            (contract_id, start)).fetchone())
+        issued.append(stmt)
+        from app.services import partner_webhook_service
+        partner_webhook_service.emit(
+            conn, "credit.statement_issued",
+            {"statement": stmt["reference"], "organization_id": org_id, "period_start": start, "period_end": end,
+             "closing_minor": closing, "due_at": due_at},
+            organization_ids=(org_id,), event_key=f"credit.statement_issued:{stmt['reference']}")
         opening, cursor_dt = closing, boundary
         boundary = next_statement_boundary(cursor_dt, weekday)
     return issued

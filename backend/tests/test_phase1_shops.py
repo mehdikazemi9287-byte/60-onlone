@@ -152,3 +152,16 @@ class HealthTest(AppTestCase):
             self.assertEqual(h["status"], "suspended")
             self.assertEqual(conn.execute("SELECT health_status FROM suppliers WHERE id=?",
                                           (supplier_id,)).fetchone()[0], "suspended")
+
+
+class WebhookEmittersTest(AppTestCase):
+    def test_settlement_completed_event_emitted_once(self):
+        supplier_id, entry = _make_delivered_payable(self)
+        with self.db.write_transaction() as conn:
+            b = settlement_service.create_settlement_batch(conn, supplier_id=supplier_id,
+                                                           payable_entry_ids=[entry["id"]], idempotency_key="wh1")
+            settlement_service.complete_settlement_batch(conn, batch_id=b["id"])
+            settlement_service.complete_settlement_batch(conn, batch_id=b["id"])  # idempotent replay
+            rows = conn.execute("SELECT event_key FROM partner_webhook_events WHERE event_type='settlement.completed'"
+                                ).fetchall()
+        self.assertEqual([r[0] for r in rows], [f"settlement.completed:{b['id']}"])

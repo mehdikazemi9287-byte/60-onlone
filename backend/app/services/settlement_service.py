@@ -283,6 +283,7 @@ def complete_settlement_batch(
             "updated_at=datetime('now') WHERE id=?",
             (payment_reference or f"advance-netted:{b['idempotency_key']}", external_reference, batch_id))
         log.info("complete_settlement_batch: batch_id=%s settled entirely by advance netting", batch_id)
+        _emit_settled(conn, b, batch_id, 0, settled_by_advance=True)
         return {"batch": dict(conn.execute("SELECT * FROM settlement_batches WHERE id = ?", (batch_id,)).fetchone()),
                 "payment": None, "settled_by_advance": True}
     if net_minor <= 0:
@@ -343,6 +344,7 @@ def complete_settlement_batch(
     batch_updated = conn.execute(
         "SELECT * FROM settlement_batches WHERE id = ?", (batch_id,)
     ).fetchone()
+    _emit_settled(conn, batch_updated, batch_id, int(batch_updated["net_minor"]))
     payment = conn.execute(
         "SELECT * FROM settlement_payments WHERE id = ?", (payment_id,)
     ).fetchone()
@@ -401,3 +403,13 @@ def list_settlement_batches(
     sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
     params += [limit, offset]
     return [dict(r) for r in conn.execute(sql, params).fetchall()]
+
+
+def _emit_settled(conn, batch, batch_id: int, net_minor: int, *, settled_by_advance: bool = False) -> None:
+    """Partner webhook: settlement.completed for the seller (and platform clients). Same transaction."""
+    from app.services import partner_webhook_service
+    partner_webhook_service.emit(
+        conn, "settlement.completed",
+        {"batch_id": batch_id, "supplier_id": int(batch["supplier_id"]), "net_minor": net_minor,
+         "settled_by_advance": settled_by_advance},
+        supplier_ids=(int(batch["supplier_id"]),), event_key=f"settlement.completed:{batch_id}")
