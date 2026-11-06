@@ -20,7 +20,8 @@ AGGREGATOR_UA = re.compile(r"torob|emalls|basalam|digikala|snappshop|snapp\s*mar
 _PRICE_ARGS = ("min_price", "max_price")
 # Public catalog surfaces only — a buyer's own cart, orders and invoices are never redacted.
 PUBLIC_CATALOG = ("/api/v1/storefront", "/api/v1/products", "/api/v1/catalog", "/api/v1/categories", "/api/v1/brands",
-                  "/api/v1/shops", "/api/v1/stores", "/api/v1/offers", "/api/v1/content", "/api/v1/preorders")
+                  "/api/v1/shops", "/api/v1/stores", "/api/v1/offers", "/api/v1/content", "/api/v1/preorders",
+                  "/api/v1/vambi")
 
 
 def mode() -> str:

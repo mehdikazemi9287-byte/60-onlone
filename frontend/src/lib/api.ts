@@ -24,7 +24,7 @@ async function request<T>(
   const { token: explicit, ...rest } = options;
   // Catalog prices may be members-only: send the stored session on catalog reads too.
   let token = explicit;
-  if (!token && typeof window !== "undefined" && /^\/(storefront|products|shops|stores|brands|categories|offers)\b/.test(path)) {
+  if (!token && typeof window !== "undefined" && /^\/(storefront|products|shops|stores|brands|categories|offers|vambi)\b/.test(path)) {
     try { token = window.localStorage.getItem("60online_token") ?? undefined; } catch {}
   }
   const headers: Record<string, string> = {
