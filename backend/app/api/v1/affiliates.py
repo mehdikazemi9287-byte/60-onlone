@@ -59,3 +59,86 @@ def admin_rate():
         conn.execute("INSERT INTO audit_logs(actor_user_id, action, entity_type, entity_id, metadata_json) VALUES (?,?,?,?,?)",
                      (current_user()["id"], "affiliate_rate_set", "category", str(cat), f'{{"rate_bps": {rate}}}'))
         return jsonify({"ok": True}), 201
+
+
+# ── payouts ──
+
+def _payout_body() -> dict:
+    d = request.get_json(silent=True)
+    return d if isinstance(d, dict) else {}
+
+
+@bp.put("/me/affiliate/sheba")
+@require_auth()
+def my_sheba():
+    from app.services import affiliate_payout_service as aps
+    d = _payout_body()
+    with get_db().write_transaction() as conn:
+        return jsonify(aps.set_sheba(conn, user_id=current_user()["id"], sheba=d.get("sheba"), holder=d.get("holder")))
+
+
+@bp.get("/me/affiliate/payouts")
+@require_auth()
+def my_payouts():
+    from app.services import affiliate_payout_service as aps
+    with get_db().write_transaction() as conn:
+        return jsonify(aps.my_payouts(conn, user_id=current_user()["id"]))
+
+
+@bp.get("/admin/affiliate-payouts/preview")
+@require_auth("admin")
+def payout_preview():
+    from app.services import affiliate_payout_service as aps
+    with get_db().write_transaction() as conn:
+        return jsonify({**aps.preview(conn), "unverified": aps.unverified(conn), "batches": aps.list_batches(conn)})
+
+
+@bp.post("/admin/affiliates/<int:affiliate_id>/verify-sheba")
+@require_auth("admin")
+def verify_sheba(affiliate_id: int):
+    from app.services import affiliate_payout_service as aps
+    with get_db().write_transaction() as conn:
+        return jsonify(aps.verify_sheba(conn, affiliate_id=affiliate_id, actor_user_id=current_user()["id"]))
+
+
+@bp.post("/admin/affiliate-payouts/batches")
+@require_auth("admin")
+def payout_batch_create():
+    from app.services import affiliate_payout_service as aps
+    with get_db().write_transaction() as conn:
+        return jsonify(aps.create_batch(conn, actor_user_id=current_user()["id"])), 201
+
+
+@bp.get("/admin/affiliate-payouts/batches/<int:batch_id>")
+@require_auth("admin")
+def payout_batch(batch_id: int):
+    from app.services import affiliate_payout_service as aps
+    with get_db().read_transaction() as conn:
+        return jsonify(aps.batch(conn, batch_id))
+
+
+@bp.get("/admin/affiliate-payouts/batches/<int:batch_id>/export.csv")
+@require_auth("admin")
+def payout_batch_export(batch_id: int):
+    from flask import Response
+    from app.services import affiliate_payout_service as aps
+    with get_db().write_transaction() as conn:
+        body = aps.export_csv(conn, batch_id=batch_id, actor_user_id=current_user()["id"])
+    return Response(body, mimetype="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f"attachment; filename=affiliate-payouts-{batch_id}.csv",
+                             "Cache-Control": "no-store"})
+
+
+@bp.post("/admin/affiliate-payouts/<int:payout_id>/<action>")
+@require_auth("admin")
+def payout_settle(payout_id: int, action: str):
+    from app.core.errors import NotFoundError
+    from app.services import affiliate_payout_service as aps
+    d = _payout_body()
+    with get_db().write_transaction() as conn:
+        if action == "paid":
+            return jsonify(aps.mark_paid(conn, payout_id=payout_id, bank_reference=d.get("bank_reference"),
+                                         actor_user_id=current_user()["id"]))
+        if action == "failed":
+            return jsonify(aps.mark_failed(conn, payout_id=payout_id, reason=d.get("reason"), actor_user_id=current_user()["id"]))
+    raise NotFoundError("عملیات نامعتبر است")

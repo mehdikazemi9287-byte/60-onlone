@@ -140,8 +140,9 @@ def _returns_for_part(conn: sqlite3.Connection, fulfillment_order_id: int, order
 def settle_returns(conn: sqlite3.Connection, r) -> tuple[int, str]:
     """Apply refunded returns of this part to the earning, in proportion, and persist it. Returns (amount, state)."""
     total = int(r["platform_paid_minor"]) + int(r["seller_paid_minor"])
-    if r["status"] != "pending":
-        return max(0, total - int(r["reversed_minor"] or 0)), r["status"]
+    if r["status"] != "pending" or ("payout_id" in r.keys() and r["payout_id"] is not None):
+        # settled, or frozen inside a payout batch (amount was fixed when the batch was made)
+        return max(0, total - int(r["reversed_minor"] or 0)), ("in_payout" if r["status"] == "pending" else r["status"])
     held, refunded_gross = _returns_for_part(conn, r["fulfillment_order_id"], r["order_id"])
     gross = int(r["gross_minor"])
     reversed_amt = total if gross <= 0 else min(total, total * min(refunded_gross, gross) // gross)
@@ -174,8 +175,9 @@ def dashboard(conn: sqlite3.Connection, *, user_id: int, now: _dt.datetime | Non
             paid += amount
         items.append({"id": r["id"], "reference": r["reference"] or f"AF-{r['id']}", "amount_minor": amount, "state": state,
                       "available_at": r["available_at"]})  # neither buyer identity nor order id is shown to the referrer
-    return {"code": a["code"], "status": a["status"], "link_path": f"/?ref={a['code']}",
-            "pending_minor": pending, "available_minor": available, "paid_minor": paid, "items": items}
+    from app.services.affiliate_payout_service import balances  # totals over every earning, not only the listed 200
+    return {"code": a["code"], "status": a["status"], "link_path": f"/?ref={a['code']}", **balances(conn, int(a["id"]), stamp),
+            "items": items}
 
 
 def set_seller_bonus(conn: sqlite3.Connection, *, supplier_id: int, bonus_bps: int) -> int:
