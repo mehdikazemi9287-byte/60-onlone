@@ -4,6 +4,7 @@ Blueprint `catalog_schema` (url_prefix /api/v1):
   Public   GET  /categories/<slug>/schema                 effective schema + theme + policy + SEO (seller forms, filters)
            GET  /catalog/units
   Seller   POST /supplier/catalog/validate                attributes → errors, score, checklist, suggested title
+           GET|PUT /supplier/catalog/products/<mid>/attributes  read / save typed values (own offers only) → values + quality
   Admin    /admin/catalog/attributes[/<id>], /attributes/<id>/options, /options/<id>,
            /admin/catalog/categories/<id>/attributes[/<code>], /policy, /themes[/<code>], /mappings,
            /admin/catalog/products/<mid>/attributes, /products/<mid>/quality, /quality, /families/<fid>/variation-check,
@@ -106,6 +107,62 @@ def supplier_validate():
                           images=images, description=_str(d, "description", 20000), attributes=attrs)
         out["valid"] = not out["errors"] and not out["missing_required"]
         out["enforced"] = cq.enforce_required()
+        return jsonify(out)
+
+
+def _seller_owns_master(conn, supplier_id: int, mid: int) -> bool:
+    """Seller may edit a master's attributes if they have an offer on one of its SKUs or are its recorded source."""
+    if conn.execute("""SELECT 1 FROM seller_offers o JOIN products p ON p.id=o.product_id
+                       WHERE o.supplier_id=? AND p.master_product_id=? LIMIT 1""", (supplier_id, mid)).fetchone():
+        return True
+    return bool(conn.execute("SELECT 1 FROM direct_product_profiles WHERE master_product_id=? AND source_supplier_id=?",
+                             (mid, supplier_id)).fetchone())
+
+
+def _seller_master(conn, mid: int) -> int:
+    sid = current_supplier_id(conn, current_user()["id"])
+    if not sid:
+        raise PermissionError_("حساب تأمین‌کننده برای این کاربر یافت نشد")
+    if not conn.execute("SELECT 1 FROM master_products WHERE id=?", (mid,)).fetchone() or not _seller_owns_master(conn, sid, mid):
+        raise NotFoundError("محصول یافت نشد یا متعلق به شما نیست", code="product_not_found")
+    return sid
+
+
+@bp.get("/supplier/catalog/products/<int:mid>/attributes")
+@require_auth()
+def supplier_product_values_get(mid: int):
+    """Seller read: current typed values + category slug (to fetch the schema) + quality."""
+    with get_db().write_transaction() as conn:
+        _seller_master(conn, mid)
+        cid = cs.category_of_master(conn, mid)
+        slug = conn.execute("SELECT slug FROM categories WHERE id=?", (cid,)).fetchone()["slug"] if cid else None
+        m = conn.execute("SELECT canonical_name_fa, brand, model, description_fa, image_urls_json FROM master_products WHERE id=?", (mid,)).fetchone()
+        try:
+            images = [u for u in json.loads(m["image_urls_json"] or "[]") if isinstance(u, str)]
+        except ValueError:
+            images = []
+        product = {"title": m["canonical_name_fa"], "brand": m["brand"], "model": m["model"], "description": m["description_fa"], "images": images}
+        return jsonify({"master_product_id": mid, "category_slug": slug, "product": product, "values": cs.get_values(conn, mid),
+                        "quality": cq.master_quality(conn, mid, store=False)})
+
+
+@bp.put("/supplier/catalog/products/<int:mid>/attributes")
+@require_auth()
+def supplier_product_values_put(mid: int):
+    """Seller write path: typed attribute values for a master they sell → stored values + quality score/checklist."""
+    d = _body()
+    values = d.get("attributes")
+    if not isinstance(values, dict):
+        raise ValidationError("«attributes» باید شیء کلید/مقدار باشد", code="attributes_required")
+    user = current_user()
+    with get_db().write_transaction() as conn:
+        sid = _seller_master(conn, mid)
+        out = cs.set_values(conn, mid, values, source="seller")
+        out["quality"] = cq.master_quality(conn, mid)
+        conn.execute("INSERT INTO audit_logs (actor_user_id, action, entity_type, entity_id, metadata_json, ip_address) VALUES (?,?,?,?,?,?)",
+                     (user["id"], "supplier.catalog.attributes_set", "master_product", str(mid),
+                      json.dumps({"supplier_id": sid, "written": out["written"], "score": out["quality"]["score"]}, ensure_ascii=False),
+                      request.remote_addr))
         return jsonify(out)
 
 

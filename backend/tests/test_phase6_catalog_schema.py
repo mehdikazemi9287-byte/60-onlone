@@ -91,7 +91,7 @@ class SchemaTest(Phase6Base):
         self.assertIn("آفتابگردان", [o["label_fa"] for o in codes["oil_type"]["options"]])
         self.assertEqual(d["variation_theme"]["axes"], ["volume_ml", "pack_count"])
         self.assertEqual(d["policy"]["tax_category"], "FOOD_BASIC")
-        self.assertEqual(d["seo"]["canonical_path"], "/c/dept-supermarket/supermarket/supermarket--oil/supermarket--oil--liquid")
+        self.assertEqual(d["seo"]["canonical_path"], "/category/supermarket--oil--liquid")  # matches the storefront route
         self.assertEqual(self.client.get("/api/v1/categories/no-such/schema").status_code, 404)
 
 

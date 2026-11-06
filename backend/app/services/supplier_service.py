@@ -260,7 +260,7 @@ def list_offers(
 ) -> list[dict]:
     sql = """
         SELECT so.*, p.title_fa AS product_name, s.display_name AS supplier_name,
-               sl.city, sl.province
+               sl.city, sl.province, p.master_product_id, p.slug AS product_slug
         FROM seller_offers so
         JOIN products           p  ON p.id  = so.product_id
         JOIN suppliers          s  ON s.id  = so.supplier_id

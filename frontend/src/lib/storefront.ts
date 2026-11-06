@@ -4,6 +4,14 @@ import { apiRequest } from "./api";
 export type TaxNode = { id: number; slug: string; name_fa: string; level: string; product_count: number; children: TaxNode[] };
 export type Facets = { brands: { value: string; count: number }[]; categories: { slug: string; name_fa: string; count: number }[]; availability: { value: string; count: number }[];
   sizes?: { value: string; count: number }[]; price_range?: { min: number; max: number } | null };
+/** Phase 6 typed attribute facet (counts ignore the facet's own filter). Numeric facets carry Latin-digit min/max. */
+export type AttributeFacet = { code: string; name_fa: string; data_type: string; display_group_fa: string; unit: string | null;
+  min?: string; max?: string; values: { value: string; label_fa: string; count: number; selected: boolean }[] };
+export type SpecGroup = { group_fa: string; items: { code: string; label_fa: string; value_fa: string }[] };
+export type UnitPrice = { basis: "kg" | "l" | "pcs"; label_fa: string; price_minor: number; quantity_milli: number };
+export type ProductSeo = { meta_title: string; meta_description: string; canonical_path: string; category_canonical_path: string;
+  breadcrumb_list: { itemListElement: { position: number; name: string; item: string }[] };
+  product_jsonld: { additionalProperty?: { "@type": "PropertyValue"; name: string; value: string }[] } & Record<string, unknown> };
 export type Tier = { min_qty: number; max_qty: number | null; unit_price_minor: number; contract?: boolean };
 export type Offer = {
   declared_channel?:string;allowed_channels?:string[];
@@ -24,6 +32,7 @@ export type ProductPage = {
     provenance: string; master_product_id: number; unit?: string | null; package_quantity?: number | null };
   breadcrumbs: { slug: string; name_fa: string; level: string }[];
   variants: Variant[]; offers: Offer[]; availability: string; price_minor: number | null; price_incl_vat_minor?: number | null; vat_bps?: number; cta: "add_to_cart" | "request_quote";
+  spec_groups?: SpecGroup[]; unit_price?: UnitPrice | null; seo?: ProductSeo;
   sale_blocker: string | null; sales_enabled: boolean; list_price_minor?: number | null; list_price_at?: string | null; org_only?: boolean; related: Card[]; alternatives: Card[];
 };
 export type PackItem = { allowed_channels?:string[]; master_product_id: number; sku_id: number | null; slug: string | null; title_fa: string; brand_fa: string | null;

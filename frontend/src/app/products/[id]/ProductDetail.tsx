@@ -12,7 +12,7 @@ import { addProductToOrgDraft } from "@/lib/procurement/draft";
 import { apiRequest, cart as cartApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useOrganization } from "@/components/organization/Dashboard";
-import { PRICING_MODE_FA, SALE_BLOCKER_FA, storefront, type Card, type Offer, type ProductPage } from "@/lib/storefront";
+import { PRICING_MODE_FA, SALE_BLOCKER_FA, storefront, type Card, type Offer, type ProductPage, type SpecGroup } from "@/lib/storefront";
 import { cn, faDate, formatPrice, toPersianNum } from "@/lib/utils";
 import { isTinyImage } from "@/components/product/ProductCard";
 import { BuyBoxOffers } from "@/components/product/BuyBoxOffers";
@@ -116,11 +116,13 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
     finally { setBusy(false); }
   };
 
+  const specGroups = (d.spec_groups ?? []).filter((g) => g.items.length > 0);
   return (
     <div className="container-page py-6" dir="rtl">
       <nav aria-label="مسیر" className="mb-4 flex flex-wrap items-center gap-1 text-xs text-neutral-500">
         <Link href="/" className="hover:text-brand-blue">خانه</Link>
         {d.breadcrumbs.map((b) => <span key={b.slug} className="flex items-center gap-1">/<Link href={`/category/${b.slug}`} className="hover:text-brand-blue">{b.name_fa}</Link></span>)}
+        <span className="flex min-w-0 items-center gap-1">/<span aria-current="page" className="max-w-[16rem] truncate text-neutral-700">{p.title_fa}</span></span>
       </nav>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
         <section ref={gallery} aria-label="تصاویر" className="min-w-0">
@@ -161,6 +163,7 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
             {d.price_minor != null ? (
               <>
                 <p className="text-2xl font-black text-brand-navy">{formatPrice(d.price_incl_vat_minor ?? d.price_minor)}</p>
+                {d.unit_price && <p className="mt-0.5 text-xs font-bold text-neutral-600 tabular-nums">{d.unit_price.label_fa}: {formatPrice(Math.round(d.unit_price.price_minor * (1 + (d.vat_bps ?? 0) / 10000)))}</p>}
                 {d.vat_bps ? <p className="text-[11px] text-neutral-500">با احتساب {toPersianNum(d.vat_bps / 100)}٪ مالیات بر ارزش افزوده</p> : null}
                 <p className="mt-1 flex items-center gap-1 text-xs text-emerald-700"><CheckCircle2 className="h-4 w-4" /> قیمت و موجودی تأییدشده فروشنده (۲۴ ساعت اخیر)</p>
               </>
@@ -246,10 +249,10 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
         </section>
       </div>
 
-      {(p.description_fa || p.specs.length > 0) && (
+      {(p.description_fa || p.specs.length > 0 || specGroups.length > 0) && (
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
           {p.description_fa && <div className="rounded-2xl border border-neutral-200 bg-white p-5"><h2 className="mb-2 text-base font-black text-brand-navy">معرفی کالا</h2><p className="text-sm leading-8 text-neutral-700">{p.description_fa}</p></div>}
-          {p.specs.length > 0 && <div className="rounded-2xl border border-neutral-200 bg-white p-5"><h2 className="mb-2 text-base font-black text-brand-navy">مشخصات</h2>
+          {specGroups.length > 0 ? <SpecTable groups={specGroups} /> : p.specs.length > 0 && <div className="rounded-2xl border border-neutral-200 bg-white p-5"><h2 className="mb-2 text-base font-black text-brand-navy">مشخصات</h2>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">{p.specs.map((s) => <div key={s.label} className="contents"><dt className="text-neutral-500">{s.label}</dt><dd className="font-bold text-neutral-800">{typeof s.value === "object" ? JSON.stringify(s.value) : String(s.value)}</dd></div>)}</dl></div>}
         </section>
       )}
@@ -259,6 +262,25 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{d.alternatives.slice(0, 8).map((c) => <MiniCard key={c.slug} c={c} />)}</div></section>}
       {d.related.length > 0 && <section className="mt-8"><h2 className="mb-3 text-lg font-black text-brand-navy">کالاهای مرتبط</h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{d.related.slice(0, 8).map((c) => <MiniCard key={c.slug} c={c} />)}</div></section>}
+    </div>
+  );
+}
+
+/** Phase 6 grouped specification table (display groups as headings). */
+function SpecTable({ groups }: { groups: SpecGroup[] }) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-5">
+      <h2 className="mb-3 text-base font-black text-brand-navy">مشخصات فنی</h2>
+      {groups.map((g) => (
+        <table key={g.group_fa} className="mb-4 w-full table-fixed border-collapse text-sm last:mb-0">
+          <caption className="mb-1 text-right text-xs font-black text-brand-blue">{g.group_fa}</caption>
+          <tbody>{g.items.map((i) => (
+            <tr key={i.code} className="border-t border-neutral-100">
+              <th scope="row" className="w-2/5 py-2 pl-3 text-right align-top font-normal text-neutral-500">{i.label_fa}</th>
+              <td className="break-words py-2 font-bold text-neutral-800">{i.value_fa}</td>
+            </tr>))}</tbody>
+        </table>
+      ))}
     </div>
   );
 }

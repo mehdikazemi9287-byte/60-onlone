@@ -153,6 +153,7 @@ type BackendProductRow = {
 type BackendProductList = {
   packs?: import("./storefront").PackSummary[];
   facets?: import("./storefront").Facets;
+  attribute_facets?: import("./storefront").AttributeFacet[];
   items: BackendProductRow[];
   total: number;
   page: number;
@@ -218,12 +219,16 @@ export const catalog = {
     size?: string;
     min_price?: number;
     max_price?: number;
+    in_stock?: string;
+    official?: string;
+    /** Phase 6 attribute filters, e.g. {"attr.oil_type": "sunflower,canola", "attr.volume_ml": "1..2"}. */
+    attrs?: Record<string, string>;
   }) => {
     // Precise SKUs by default (requests, composer, pack builder); browsing passes group: "family".
     const qs = new URLSearchParams(
       Object.fromEntries(
-        Object.entries({ group: "sku", ...(params ?? {}) })
-          .filter(([, v]) => v != null)
+        Object.entries({ group: "sku", ...(params ?? {}), attrs: undefined, ...(params?.attrs ?? {}) })
+          .filter(([, v]) => v != null && v !== "")
           .map(([k, v]) => [k, String(v)]),
       ),
     ).toString();
@@ -238,6 +243,7 @@ export const catalog = {
       pages: res.total_pages,
       packs: res.packs ?? [],
       facets: res.facets,
+      attribute_facets: res.attribute_facets ?? [],
     };
   },
 

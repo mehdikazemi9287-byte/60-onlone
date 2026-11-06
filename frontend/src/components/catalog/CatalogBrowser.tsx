@@ -7,15 +7,11 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { catalog, categories } from "@/lib/api";
 import { ProductGrid } from "@/components/product/ProductCard";
 import type { Product } from "@/lib/types";
-import type { Facets, PackSummary, TaxNode } from "@/lib/storefront";
-import { formatPrice, toPersianNum } from "@/lib/utils";
+import type { AttributeFacet, Facets, PackSummary, TaxNode } from "@/lib/storefront";
+import { toPersianNum } from "@/lib/utils";
+import { ActiveFilterChips, FilterPanel, readAttrParams, type FilterState } from "./AttributeFilters";
 
 type Flat = { slug: string; name: string; depth: number };
-// Price inputs are in Toman (Persian or Latin digits); the API filters on Rial minor units.
-const tomanToMinor = (v: string) => {
-  const n = Number(v.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[,،٬\s]/g, ""));
-  return v.trim() && Number.isFinite(n) && n >= 0 ? String(Math.round(n * 10)) : "";
-};
 const flatten = (nodes: TaxNode[], depth = 0, out: Flat[] = []) => {
   for (const n of nodes) { out.push({ slug: n.slug, name: n.name_fa, depth }); flatten(n.children, depth + 1, out); }
   return out;
@@ -26,13 +22,15 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
   const q = params.get("q") || "", cat = categorySlug || params.get("cat") || "";
   const brand = params.get("brand") || "", avail = params.get("availability") || "", size = params.get("size") || "";
   const minPrice = params.get("min_price") || "", maxPrice = params.get("max_price") || "";
+  const inStock = params.get("in_stock") === "1", official = params.get("official") === "1";
+  const attrKey = [...params.entries()].filter(([k]) => k.startsWith("attr.")).map(([k, v]) => k + "=" + v).sort().join("&");
+  const attrs = useMemo(() => readAttrParams(new URLSearchParams(attrKey)), [attrKey]);
   const page = Math.max(1, Number(params.get("page")) || 1);
   const sort = params.get("sort") || "relevance"; // without a query the backend ranks by merchandising (buyable, photo, price)
   const [items, setItems] = useState<Product[]>([]), [packs, setPacks] = useState<PackSummary[]>([]), [facets, setFacets] = useState<Facets | null>(null);
   const [tree, setTree] = useState<TaxNode[]>([]), [pages, setPages] = useState(1), [total, setTotal] = useState(0);
-  const [moreFilters, setMoreFilters] = useState(false);
+  const [attrFacets, setAttrFacets] = useState<AttributeFacet[]>([]);
   const [loading, setLoading] = useState(true), [error, setError] = useState(""), [query, setQuery] = useState(q);
-  const [priceFrom, setPriceFrom] = useState(""), [priceTo, setPriceTo] = useState("");
   function change(values: Record<string, string>) {
     const next = new URLSearchParams(params.toString());
     for (const [k, v] of Object.entries(values)) v ? next.set(k, v) : next.delete(k);
@@ -45,12 +43,15 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
     setLoading(true); setError("");
     catalog.list({ q: q || undefined, category: cat || undefined, brand: brand || undefined, availability: avail || undefined,
                    size: size || undefined, min_price: minPrice ? Number(minPrice) : undefined, max_price: maxPrice ? Number(maxPrice) : undefined,
-                   page, page_size: 24, sort, group: "family" })
-      .then((x) => { if (!on) return; setItems(x.items); setPacks(x.packs); setFacets(x.facets ?? null); setTotal(x.total); setPages(Math.max(1, x.pages)); })
+                   page, page_size: 24, sort, group: "family",
+                   in_stock: inStock ? "1" : undefined, official: official ? "1" : undefined,
+                   attrs: Object.fromEntries(Object.entries(attrs).map(([c, t]) => ["attr." + c, t.join(",")])) })
+      .then((x) => { if (!on) return; setItems(x.items); setPacks(x.packs); setFacets(x.facets ?? null); setAttrFacets(x.attribute_facets); setTotal(x.total); setPages(Math.max(1, x.pages)); })
       .catch((e) => on && setError(e.message))
       .finally(() => on && setLoading(false));
     return () => { on = false; };
-  }, [q, cat, brand, avail, size, minPrice, maxPrice, page, sort]);
+  }, [q, cat, brand, avail, size, minPrice, maxPrice, page, sort, inStock, official, attrs]);
+  const filterState: FilterState = { attrs, brand, minPrice, maxPrice, inStock, official, purchasable: avail === "purchasable" };
   const flat = useMemo(() => flatten(tree), [tree]);
   const name = flat.find((c) => c.slug === cat)?.name;
   const subNodes = useMemo(() => {
@@ -94,21 +95,10 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
         {facets.sizes.map((s) => <button key={s.value} type="button" onClick={() => change({ size: s.value, page: "1" })}
           className={`${chip} ${size === s.value ? "border-brand-navy bg-brand-navy text-white" : "border-neutral-200 bg-white text-neutral-700"}`}>{s.value} ({toPersianNum(s.count)})</button>)}
       </div>}
-      <button type="button" onClick={() => setMoreFilters((x) => !x)} aria-expanded={moreFilters} className="mb-3 min-h-11 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-bold text-brand-navy md:hidden">{moreFilters ? "بستن فیلترها" : "فیلتر قیمت و خرید آنلاین"}</button>
-      <div className={moreFilters ? "" : "hidden md:block"}>
-      {(facets?.price_range || minPrice || maxPrice) && <form aria-label="بازه قیمت" className="mb-3 flex flex-wrap items-end gap-2 text-xs"
-        onSubmit={(e) => { e.preventDefault(); change({ min_price: tomanToMinor(priceFrom), max_price: tomanToMinor(priceTo), page: "1" }); }}>
-        <label className="grid gap-1 font-bold">از (تومان)<input inputMode="numeric" value={priceFrom} onChange={(e) => setPriceFrom(e.target.value)}
-          placeholder={facets?.price_range ? formatPrice(facets.price_range.min).replace(" تومان", "") : ""} className="h-10 w-32 rounded-xl border px-3" /></label>
-        <label className="grid gap-1 font-bold">تا (تومان)<input inputMode="numeric" value={priceTo} onChange={(e) => setPriceTo(e.target.value)}
-          placeholder={facets?.price_range ? formatPrice(facets.price_range.max).replace(" تومان", "") : ""} className="h-10 w-32 rounded-xl border px-3" /></label>
-        <button className="h-10 rounded-xl border border-brand-navy px-4 font-bold text-brand-navy">اعمال قیمت</button>
-        {(minPrice || maxPrice) && <button type="button" onClick={() => { setPriceFrom(""); setPriceTo(""); change({ min_price: "", max_price: "", page: "1" }); }} className="h-10 px-2 font-bold text-brand-blue">حذف فیلتر قیمت</button>}
-        <span className="basis-full text-neutral-500">فقط کالاهایی که قیمت تأییدشده دارند در بازه قیمت نمایش داده می‌شوند.</span>
-      </form>}
-      <label className="mb-4 inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={avail === "purchasable"} onChange={(e) => change({ availability: e.target.checked ? "purchasable" : "", page: "1" })} /> فقط کالاهای قابل خرید آنلاین</label>
-      </div>
-
+      <ActiveFilterChips attrFacets={attrFacets} state={filterState} change={change} />
+      <div className="md:grid md:grid-cols-[15rem_minmax(0,1fr)] md:items-start md:gap-6">
+      <FilterPanel facets={facets} attrFacets={attrFacets} state={filterState} change={change} loading={loading} total={total} />
+      <div className="min-w-0">
       <p className="mb-4 text-sm" aria-live="polite">{loading ? "در حال دریافت…" : toPersianNum(total) + " محصول"}</p>
       {error ? <p role="alert" className="rounded-xl bg-red-50 p-5 text-red-800">{error}</p>
         : loading ? <div className="min-h-64 animate-pulse rounded-xl bg-neutral-100" />
@@ -133,6 +123,8 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
             </Link>))}</div>
         </section>
       )}
+      </div>
+      </div>
     </div>
   );
 }

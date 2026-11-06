@@ -219,9 +219,11 @@ def seo(conn, *, category_id: int | None, path: list[dict], name: str, brand: st
     policy = effective_policy(conn, category_id)
     leaf = path[-1]["name_fa"] if path else ""
     ctx = {"name": name, "category": leaf, "brand": brand or ""}
-    canonical_path = "/" + "/".join(["c"] + [c["slug"] for c in path]) if path else "/"
-    crumbs = [{"@type": "ListItem", "position": i + 1, "name": c["name_fa"], "item": f"{base_url}/c/{c['slug']}"} for i, c in enumerate(path)]
-    crumbs.append({"@type": "ListItem", "position": len(crumbs) + 1, "name": name, "item": f"{base_url}/p/{slug}"})
+    # Paths match the storefront routes: /category/<slug> and /products/<slug>.
+    canonical_path = f"/category/{path[-1]['slug']}" if path else "/"
+    crumbs = [{"@type": "ListItem", "position": i + 1, "name": c["name_fa"], "item": f"{base_url}/category/{c['slug']}"}
+              for i, c in enumerate(path)]
+    crumbs.append({"@type": "ListItem", "position": len(crumbs) + 1, "name": name, "item": f"{base_url}/products/{slug}"})
     props = [{"@type": "PropertyValue", "name": i["label_fa"], "value": i["value_fa"]} for g in specs for i in g["items"]]
     product = {"@context": "https://schema.org", "@type": "Product", "name": name, "category": " > ".join(c["name_fa"] for c in path),
                "additionalProperty": props}
@@ -230,7 +232,7 @@ def seo(conn, *, category_id: int | None, path: list[dict], name: str, brand: st
     if price_minor:
         product["offers"] = {"@type": "Offer", "priceCurrency": "IRR", "price": str(price_minor)}
     return {"meta_title": _fill(policy["meta_title_template"], ctx)[:70], "meta_description": _fill(policy["meta_description_template"], ctx)[:160],
-            "canonical_path": f"/p/{slug}", "category_canonical_path": canonical_path,
+            "canonical_path": f"/products/{slug}", "category_canonical_path": canonical_path,
             "breadcrumb_list": {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": crumbs}, "product_jsonld": product}
 
 
@@ -240,7 +242,7 @@ def category_seo(conn, category_id: int) -> dict:
     name = chain[-1]["name_fa"]
     return {"meta_title": _fill("خرید {category} | قیمت و مشخصات در شصت آنلاین", {"category": name})[:70],
             "meta_description": _fill(policy["meta_description_template"], {"name": name, "category": name})[:160],
-            "canonical_path": "/c/" + "/".join(c["slug"] for c in chain),
+            "canonical_path": f"/category/{chain[-1]['slug']}",
             "breadcrumbs": [{"slug": c["slug"], "name_fa": c["name_fa"], "level": c["level"]} for c in chain]}
 
 

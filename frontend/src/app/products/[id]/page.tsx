@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const p = d.product;
   return {
     title: p.title_fa + " | شصت‌آنلاین",
-    description: p.description_fa || "مشخصات، فروشندگان و استعلام شرایط تأمین " + p.title_fa,
+    description: p.description_fa || d.seo?.meta_description || "مشخصات، فروشندگان و استعلام شرایط تأمین " + p.title_fa,
     alternates: { canonical: site + "/products/" + encodeURIComponent(p.slug) },
   };
 }
@@ -27,6 +27,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     ],
   };
   // Offers/price only when a verified offer exists; never an estimated price in structured data.
+  const additionalProperty = d.seo?.product_jsonld?.additionalProperty
+    ?? (d.spec_groups ?? []).flatMap((g) => g.items.map((i) => ({ "@type": "PropertyValue" as const, name: i.label_fa, value: i.value_fa })));
   const priced = d.offers.filter((o) => o.price_minor != null);
   const structured = {
     "@context": "https://schema.org",
@@ -37,6 +39,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     image: p.images[0] ? new URL(p.images[0], site).href : undefined,
     sku: p.sku,
     brand: p.brand_fa ? { "@type": "Brand", name: p.brand_fa } : undefined,
+    category: d.breadcrumbs.length ? d.breadcrumbs.map((b) => b.name_fa).join(" > ") : undefined,
+    // Typed attributes (Phase 6) as schema.org PropertyValue pairs.
+    additionalProperty: additionalProperty.length ? additionalProperty : undefined,
     offers: priced.length ? priced.map((o) => ({ "@type": "Offer", priceCurrency: "IRR", price: o.price_minor! / 10, seller: { "@type": "Organization", name: o.seller },
       availability: o.stock_state === "in_stock" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" })) : undefined,
   };
