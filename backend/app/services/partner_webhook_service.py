@@ -267,6 +267,84 @@ def bridge_integration_events(db, *, limit: int = 200) -> int:
     return emitted
 
 
+_INITIAL = {"order": "pending", "fulfillment": "pending_assignment"}
+_BRIDGE_BATCH = 500
+
+
+def _stock_threshold() -> int:
+    import os
+    try:
+        return max(0, int(os.environ.get("PARTNER_STOCK_LOW_THRESHOLD", "3")))
+    except ValueError:
+        return 3
+
+
+def _remember(conn, kind: str, ref_id: int, value: str, known: bool) -> None:
+    if known:
+        conn.execute("UPDATE partner_bridge_state SET value=? WHERE kind=? AND ref_id=?", (value, kind, ref_id))
+    else:
+        conn.execute("INSERT INTO partner_bridge_state (kind, ref_id, value) VALUES (?,?,?)", (kind, ref_id, value))
+
+
+def bridge_state_changes(db) -> int:
+    """order.status_changed and offer.stock_low from state diffs (core services stay untouched).
+
+    Buyer side (organization + platform clients) gets order-level status; each seller gets only its own
+    fulfillment part's status; offer.stock_low goes to the offer's seller when stock first drops to the threshold.
+    """
+    emitted = 0
+    with db.write_transaction() as conn:
+        for r in conn.execute(
+                """SELECT o.id, o.order_number, o.status, o.organization_id, s.value AS seen FROM orders o
+                   LEFT JOIN partner_bridge_state s ON s.kind='order' AND s.ref_id=o.id
+                   WHERE s.value IS NULL OR s.value<>o.status ORDER BY o.id LIMIT ?""", (_BRIDGE_BATCH,)).fetchall():
+            prev = r["seen"] or _INITIAL["order"]
+            _remember(conn, "order", r["id"], r["status"], r["seen"] is not None)
+            if prev == r["status"]:
+                continue
+            data = {"order_id": r["id"], "order_number": r["order_number"], "from": prev, "to": r["status"],
+                    "organization_id": r["organization_id"]}
+            if emit(conn, "order.status_changed", data, organization_ids=[r["organization_id"]] if r["organization_id"] else (),
+                    event_key=f"order.status_changed:{r['id']}:{prev}:{r['status']}") is not None:
+                emitted += 1
+        for r in conn.execute(
+                """SELECT fo.id, fo.order_id, fo.supplier_id, fo.status, o.order_number, s.value AS seen FROM fulfillment_orders fo
+                   JOIN orders o ON o.id=fo.order_id
+                   LEFT JOIN partner_bridge_state s ON s.kind='fulfillment' AND s.ref_id=fo.id
+                   WHERE s.value IS NULL OR s.value<>fo.status ORDER BY fo.id LIMIT ?""", (_BRIDGE_BATCH,)).fetchall():
+            prev = r["seen"] or _INITIAL["fulfillment"]
+            _remember(conn, "fulfillment", r["id"], r["status"], r["seen"] is not None)
+            if prev == r["status"]:
+                continue
+            sid = int(r["supplier_id"])
+            data = {"order_id": r["order_id"], "order_number": r["order_number"], "fulfillment_order_id": r["id"],
+                    "supplier_id": sid, "from": prev, "to": r["status"]}
+            if emit(conn, "order.status_changed", data, supplier_ids=[sid], seller_only=True,
+                    event_key=f"order.status_changed:fo:{r['id']}:{prev}:{r['status']}") is not None:
+                emitted += 1
+        limit = _stock_threshold()
+        for r in conn.execute(
+                """SELECT x.*, s.value AS seen FROM (
+                       SELECT o.id, o.supplier_id, o.product_id, o.stock_quantity, p.sku,
+                              CASE WHEN o.stock_quantity <= ? THEN 'low' ELSE 'ok' END AS state
+                       FROM seller_offers o JOIN products p ON p.id=o.product_id) x
+                   LEFT JOIN partner_bridge_state s ON s.kind='stock' AND s.ref_id=x.id
+                   WHERE s.value IS NULL OR s.value<>x.state ORDER BY x.id LIMIT ?""", (limit, _BRIDGE_BATCH)).fetchall():
+            _remember(conn, "stock", r["id"], r["state"], r["seen"] is not None)
+            if r["state"] != "low":
+                continue
+            sid = int(r["supplier_id"])
+            data = {"offer_id": r["id"], "product_id": r["product_id"], "sku": r["sku"], "supplier_id": sid,
+                    "stock_quantity": int(r["stock_quantity"]), "threshold": limit}
+            # One event per drop: the key carries how many times this offer has gone low before.
+            n = conn.execute("SELECT COUNT(*) FROM partner_webhook_events WHERE event_type='offer.stock_low' AND event_key LIKE ?",
+                             (f"offer.stock_low:{r['id']}:%",)).fetchone()[0]
+            if emit(conn, "offer.stock_low", data, supplier_ids=[sid], seller_only=True,
+                    event_key=f"offer.stock_low:{r['id']}:{n + 1}") is not None:
+                emitted += 1
+    return emitted
+
+
 # -------------------------------------------------------------------- delivery
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *args, **kwargs):  # noqa: ARG002
@@ -378,7 +456,7 @@ def deliver_due(db, *, master_key: str, sender: Callable | None = None, resolver
 
 def run_once(db, *, master_key: str, sender: Callable | None = None) -> dict:
     """One worker tick: bridge checkout events, then deliver what is due."""
-    bridged = bridge_integration_events(db)
+    bridged = bridge_integration_events(db) + bridge_state_changes(db)
     stats = deliver_due(db, master_key=master_key, sender=sender)
     stats["bridged"] = bridged
     return stats

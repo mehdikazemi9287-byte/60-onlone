@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
-import { ApiError } from "@/lib/api";
+import { ApiError, auth } from "@/lib/api";
 
 export default function LoginPage() {
   return (
@@ -26,20 +26,20 @@ function LoginPageInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const go = () => {
+    const requested = searchParams.get("next") || "/";
+    const destination =
+      requested.startsWith("/") && !requested.startsWith("//") && !/[\\\u0000-\u001f]/.test(requested) ? requested : "/";
+    router.push(destination);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
       await login(email, password);
-      const requested = searchParams.get("next") || "/";
-      const destination =
-        requested.startsWith("/") &&
-        !requested.startsWith("//") &&
-        !/[\\\\\u0000-\u001f]/.test(requested)
-          ? requested
-          : "/";
-      router.push(destination);
+      go();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "ورود ناموفق بود");
     } finally {
@@ -74,6 +74,7 @@ function LoginPageInner() {
             {(["password", "otp"] as const).map((t) => (
               <button
                 key={t}
+                type="button"
                 onClick={() => setTab(t)}
                 className={cn(
                   "flex-1 py-2 rounded-lg text-sm font-medium transition-all",
@@ -82,7 +83,7 @@ function LoginPageInner() {
                     : "text-neutral-500 hover:text-neutral-700",
                 )}
               >
-                {t === "password" ? "رمز عبور" : "کد یک‌بار مصرف (به‌زودی)"}
+                {t === "password" ? "رمز عبور" : "کد پیامکی"}
               </button>
             ))}
           </div>
@@ -204,32 +205,7 @@ function LoginPageInner() {
           )}
 
           {/* OTP form */}
-          {tab === "otp" && (
-            <div className="space-y-4">
-              <p className="text-sm text-center text-neutral-600 bg-neutral-50 rounded-xl p-3 leading-6">
-                ورود با کد یک‌بار مصرف هنوز فعال نشده است. برای ورود از ایمیل و
-                رمز عبور استفاده کنید.
-              </p>
-              <div>
-                <label className="form-label">شماره موبایل</label>
-                <input
-                  type="tel"
-                  value=""
-                  placeholder="09xxxxxxxxx"
-                  disabled
-                  className="form-input mt-1 opacity-60"
-                  dir="ltr"
-                />
-              </div>
-              <button
-                type="button"
-                disabled
-                className="w-full py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors disabled:opacity-70"
-              >
-                دریافت کد
-              </button>
-            </div>
-          )}
+          {tab === "otp" && <OtpForm onDone={go} />}
 
           {/* Divider */}
           <div className="relative my-5">
@@ -254,5 +230,98 @@ function LoginPageInner() {
         </div>
       </div>
     </div>
+  );
+}
+
+const FA = (n: number) => n.toLocaleString("fa-IR");
+
+function OtpForm({ onDone }: { onDone: () => void }) {
+  const { loginWithOtp } = useAuth();
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [name, setName] = useState("");
+  const [step, setStep] = useState<"phone" | "code">("phone");
+  const [needName, setNeedName] = useState(false);
+  const [wait, setWait] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (wait <= 0) return;
+    const t = setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => clearTimeout(t);
+  }, [wait]);
+
+  const send = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const r = await auth.otpRequest(phone);
+      setStep("code");
+      setWait(r.resend_in_seconds);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "ارسال کد ناموفق بود");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const verify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (step === "phone") return send();
+    setError(null);
+    setBusy(true);
+    try {
+      await loginWithOtp(phone, code, needName ? name : undefined);
+      onDone();
+    } catch (err) {
+      if (err instanceof ApiError && err.code === "full_name_required") {
+        setNeedName(true);
+        setError("این شماره هنوز حساب ندارد؛ نامت را بنویس تا حساب ساخته شود.");
+      } else setError(err instanceof ApiError ? err.message : "ورود ناموفق بود");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form onSubmit={verify} className="space-y-4">
+      {error && <p className="text-sm text-center text-danger-600 bg-danger-50 rounded-xl p-3" role="alert">{error}</p>}
+      <div>
+        <label className="form-label" htmlFor="otp-phone">شماره موبایل</label>
+        <input id="otp-phone" type="tel" inputMode="numeric" autoComplete="tel" value={phone} disabled={step === "code"}
+          onChange={(e) => setPhone(e.target.value)} placeholder="09xxxxxxxxx" required className="form-input mt-1" dir="ltr" />
+      </div>
+      {step === "code" && (
+        <>
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className="form-label" htmlFor="otp-code">کد ۶ رقمی پیامک‌شده</label>
+              <button type="button" className="text-xs text-primary-600" onClick={() => { setStep("phone"); setCode(""); setNeedName(false); }}>
+                تغییر شماره
+              </button>
+            </div>
+            <input id="otp-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code}
+              onChange={(e) => setCode(e.target.value)} required className="form-input tracking-[0.5em] text-center" dir="ltr" />
+          </div>
+          {needName && (
+            <div>
+              <label className="form-label" htmlFor="otp-name">نام و نام خانوادگی</label>
+              <input id="otp-name" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={120}
+                autoComplete="name" className="form-input mt-1" />
+            </div>
+          )}
+        </>
+      )}
+      <button type="submit" disabled={busy}
+        className="w-full py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors disabled:opacity-70">
+        {step === "phone" ? "دریافت کد" : needName ? "ساخت حساب و ورود" : "ورود"}
+      </button>
+      {step === "code" && (
+        <button type="button" disabled={wait > 0 || busy} onClick={send} className="w-full text-xs text-neutral-500 disabled:opacity-60">
+          {wait > 0 ? `ارسال دوباره تا ${FA(wait)} ثانیهٔ دیگر` : "ارسال دوبارهٔ کد"}
+        </button>
+      )}
+    </form>
   );
 }

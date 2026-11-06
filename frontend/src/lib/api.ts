@@ -110,6 +110,18 @@ export const auth = {
     request<{ message: string }>("/auth/logout", { method: "POST", token }),
 
   me: (token: string) => request<{ user: AuthUser }>("/auth/me", { token }),
+
+  otpRequest: (phone: string) =>
+    request<{ sent: boolean; expires_in_seconds: number; resend_in_seconds: number }>("/auth/otp/request", {
+      method: "POST",
+      body: JSON.stringify({ phone }),
+    }),
+
+  otpVerify: (phone: string, code: string, fullName?: string) =>
+    request<{ access_token: string; token_type: string; expires_in: number; user: AuthUser; created: boolean }>(
+      "/auth/otp/verify",
+      { method: "POST", body: JSON.stringify({ phone, code, full_name: fullName || undefined }) },
+    ),
 };
 
 // ── Catalog ─────────────────────────────────────────────────────────────────

@@ -91,3 +91,73 @@ def logout():
 @require_auth()
 def me():
     return jsonify({"user": auth_service.get_user(get_db(), current_user()["id"])})
+
+
+# ── OTP (SMS one-time code) ──
+
+def _otp_token(user_id: int) -> tuple[str, dict]:
+    from app.core.security import create_access_token
+    settings = get_settings()
+    user = auth_service.get_user(get_db(), user_id)
+    token = create_access_token(user_id=user_id, email=user["email"], role=user["role"], secret=settings.secret_key,
+                                algorithm=settings.jwt_algorithm, ttl_seconds=settings.access_token_ttl_seconds)
+    return token, user
+
+
+def _otp_verify(fn):
+    from app.services import otp_service
+    try:
+        with get_db().write_transaction() as conn:
+            return fn(conn)
+    except otp_service.OtpWrong as exc:
+        with get_db().write_transaction() as conn:
+            otp_service.count_attempt(conn, exc.challenge_id)
+        raise
+
+
+@bp.post("/otp/request")
+def otp_request():
+    from app.services import otp_service
+    body = _json_body()
+    settings = get_settings()
+    with get_db().write_transaction() as conn:
+        out = otp_service.request_code(conn, phone=body.get("phone"), secret=settings.secret_key, ip_address=client_ip(),
+                                       production=settings.is_production)
+    return jsonify(out)
+
+
+@bp.post("/otp/verify")
+def otp_verify():
+    from app.services import otp_service
+    body = _json_body()
+    settings = get_settings()
+    uid, created = _otp_verify(lambda conn: otp_service.verify_login(
+        conn, phone=body.get("phone"), code=body.get("code"), secret=settings.secret_key,
+        full_name=body.get("full_name") if isinstance(body.get("full_name"), str) else None, ip_address=client_ip()))
+    token, user = _otp_token(uid)
+    return jsonify({"access_token": token, "token_type": "Bearer", "expires_in": settings.access_token_ttl_seconds,
+                    "user": user, "created": created}), (201 if created else 200)
+
+
+@bp.post("/phone/request")
+@require_auth()
+def phone_link_request():
+    from app.services import otp_service
+    body = _json_body()
+    settings = get_settings()
+    with get_db().write_transaction() as conn:
+        out = otp_service.request_code(conn, phone=body.get("phone"), secret=settings.secret_key, purpose="link",
+                                       user_id=current_user()["id"], ip_address=client_ip(), production=settings.is_production)
+    return jsonify(out)
+
+
+@bp.post("/phone/verify")
+@require_auth()
+def phone_link_verify():
+    from app.services import otp_service
+    body = _json_body()
+    settings = get_settings()
+    uid = current_user()["id"]
+    phone = _otp_verify(lambda conn: otp_service.verify_link(conn, user_id=uid, phone=body.get("phone"), code=body.get("code"),
+                                                             secret=settings.secret_key, ip_address=client_ip()))
+    return jsonify({"phone_verified": phone})
