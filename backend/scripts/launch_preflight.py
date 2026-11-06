@@ -72,7 +72,11 @@ def config_checks() -> list[tuple[str, str, str]]:
     add(OK if rl > 0 else WARN, "RATE_LIMIT_PER_MINUTE", "محدودیت درخواست برای جلوگیری از سوءاستفاده")
     add(OK if _writable(os.environ.get("MEDIA_ROOT")) else BLOCKER, "MEDIA_ROOT", "پوشهٔ پایدار و قابل‌نوشتن برای تصاویر")
     add(OK if _writable(os.environ.get("DOCUMENT_STORAGE_DIR")) else WARN, "DOCUMENT_STORAGE_DIR", "پوشهٔ مدارک فروشندگان/برندها")
-    add(OK if os.environ.get("TOROB_PUBLIC_KEY") else INFO, "TOROB_PUBLIC_KEY", "فید ترب پس از ثبت فروشگاه در ترب")
+    add(WARN if os.environ.get("EXTERNAL_CHANNELS_ENABLED") == "1" else OK, "EXTERNAL_CHANNELS_ENABLED",
+        "اکوسیستم بسته: فید ترب و خروجی باسلام خاموش بماند مگر با تصمیم آگاهانه")
+    vis = os.environ.get("STOREFRONT_PRICE_VISIBILITY", "public")
+    add(OK if vis == "organizations" else WARN, "STOREFRONT_PRICE_VISIBILITY",
+        f"شروع سازمانی: قیمت فقط برای اعضای سازمان‌ها، فروشندگان و مدیران (الان: {vis})")
     return out
 
 
@@ -112,9 +116,8 @@ def db_checks(db) -> list[tuple[str, str, str]]:
         add(OK if live >= MIN_PRODUCTS else WARN, "catalog", f"کالای واقعی قیمت‌دار و موجود: {live} (هدف روز اول ≥ {MIN_PRODUCTS})")
         stale = q("SELECT COUNT(*) FROM carrier_tariffs WHERE is_active=1 AND updated_at=created_at")
         add(WARN if stale else OK, "tariffs", f"تعرفهٔ حمل نمونه که هنوز با قرارداد واقعی به‌روز نشده: {stale}")
-        unmapped = q("""SELECT COUNT(*) FROM categories c WHERE c.level IN ('category','type')
-                        AND NOT EXISTS (SELECT 1 FROM category_external_mappings m WHERE m.category_id=c.id AND m.source='torob' AND m.external_code<>'')""")
-        add(INFO, "torob_mapping", f"دسته‌های بدون نگاشت ترب: {unmapped}")
+        orgs = q("SELECT COUNT(*) FROM organizations")
+        add(OK if orgs else WARN, "organizations", f"سازمان‌های ثبت‌شده (مشتری اول): {orgs}")
     return out
 
 

@@ -16,7 +16,7 @@ class PreflightTest(AppTestCase):
         self.assertEqual(rows["seed_accounts"][0], lp.BLOCKER)          # test DB is seeded with demo users
         self.assertIn("admin@70online.ir", rows["seed_accounts"][1])
         self.assertEqual(rows["legal_documents"][0], lp.BLOCKER)        # drafts carry a zero hash
-        for key in ("admin", "vat", "sellers", "catalog", "tariffs", "torob_mapping", "payout_hold"):
+        for key in ("admin", "vat", "sellers", "catalog", "tariffs", "organizations", "payout_hold"):
             self.assertIn(key, rows)
         with self.db.write_transaction() as conn:
             conn.execute("UPDATE users SET is_active=0 WHERE email_normalized LIKE '%@70online.ir' OR email_normalized LIKE '%@parsco.ir'")
@@ -29,7 +29,7 @@ class PreflightTest(AppTestCase):
                 "SECRET_KEY": "k" * 64, "PAYMENT_PROVIDER": "sepehr", "SEPEHR_TERMINAL_ID": "123",
                 "STOREFRONT_SALES_ENABLED": "1", "LEGAL_REQUIRE_BUYER_TERMS": "1", "SMS_PROVIDER": "kavenegar",
                 "KAVENEGAR_API_KEY": "x", "KAVENEGAR_TEMPLATE": "t", "RATE_LIMIT_PER_MINUTE": "120",
-                "MEDIA_ROOT": d, "DOCUMENT_STORAGE_DIR": d, "TOROB_PUBLIC_KEY": "pem"}
+                "MEDIA_ROOT": d, "DOCUMENT_STORAGE_DIR": d, "STOREFRONT_PRICE_VISIBILITY": "organizations"}
         with mock.patch.dict(os.environ, good, clear=True):
             self.assertEqual([r for r in lp.config_checks() if r[0] != lp.OK], [])
         with mock.patch.dict(os.environ, {**good, "COMMERCE_TEST_MODE": "1", "CORS_ORIGINS": "http://localhost:3000"}, clear=True):

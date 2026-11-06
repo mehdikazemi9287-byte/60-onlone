@@ -333,6 +333,9 @@ def create_app(
         return response
 
     # ---- Security headers ------------------------------------------------
+    from app.core.price_privacy import install as _install_price_privacy
+    _install_price_privacy(app)
+
     @app.after_request
     def apply_security_headers(response):
         response.headers["X-Content-Type-Options"] = "nosniff"

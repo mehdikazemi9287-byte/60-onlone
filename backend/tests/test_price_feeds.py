@@ -21,7 +21,7 @@ class TorobFeedTest(Phase6Base):
         super().setUp()
         self.key = Ed25519PrivateKey.generate()
         pub = self.key.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo).decode()
-        self.env = mock.patch.dict(os.environ, {"TOROB_PUBLIC_KEY": pub, "TOROB_AUD": "60online.ir", "TOROB_PRICE_UNIT": "toman"})
+        self.env = mock.patch.dict(os.environ, {"EXTERNAL_CHANNELS_ENABLED": "1", "TOROB_PUBLIC_KEY": pub, "TOROB_AUD": "60online.ir", "TOROB_PRICE_UNIT": "toman"})
         self.env.start()
         self.addCleanup(self.env.stop)
         sup = self.create_test_supplier()
@@ -114,6 +114,12 @@ class TorobFeedTest(Phase6Base):
 
 
 class BasalamExportTest(AppTestCase):
+    def test_off_by_default(self):
+        sup = self.create_test_supplier()
+        self.assertEqual(self.client.get("/api/v1/supplier/feeds/basalam", headers=sup["headers"]).status_code, 404)
+        self.assertEqual(self.client.post("/api/v1/feeds/torob/v3/products", json={"page": 1}).status_code, 404)
+
+    @mock.patch.dict(os.environ, {"EXTERNAL_CHANNELS_ENABLED": "1"})
     def test_seller_export_own_offers_only(self):
         sup = self.create_test_supplier()
         self.create_test_product_with_offer(sup["supplier_id"], sup["location_id"], stock=7)

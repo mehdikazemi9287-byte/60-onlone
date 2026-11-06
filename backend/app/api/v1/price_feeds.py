@@ -2,7 +2,7 @@
 
   POST /api/v1/feeds/torob/v3/products     Torob crawler (X-Torob-Token + X-Torob-Token-Version: 1)
   GET  /api/v1/supplier/feeds/basalam      seller's own offers in Basalam bulk-upload shape (?format=csv)
-Env: TOROB_PUBLIC_KEY (Ed25519 PEM from Torob), TOROB_AUD (default: host of PUBLIC_BASE_URL), TOROB_PRICE_UNIT.
+Off unless EXTERNAL_CHANNELS_ENABLED=1 (closed ecosystem). Env: TOROB_PUBLIC_KEY (Ed25519 PEM from Torob), TOROB_AUD (default: host of PUBLIC_BASE_URL), TOROB_PRICE_UNIT.
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import jwt
 from flask import Blueprint, Response, jsonify, request
 
 from app.core.deps import current_user, get_db, get_settings, require_auth
-from app.core.errors import PermissionError_, ValidationError
+from app.core.errors import NotFoundError, PermissionError_, ValidationError
 from app.services import price_feed_service as feeds
 from app.services.access_admin_service import current_supplier_id
 
@@ -27,12 +27,19 @@ def _base_url() -> str:
     return base or request.host_url.rstrip("/")
 
 
+def external_channels_enabled() -> bool:
+    """Closed ecosystem by default: nothing leaves for outside marketplaces/comparison sites until the owner opts in."""
+    return os.environ.get("EXTERNAL_CHANNELS_ENABLED", "").strip() == "1"
+
+
 def _torob_error(status: int, message: str):
     return jsonify({"error": message}), status
 
 
 @bp.post("/feeds/torob/v3/products")
 def torob_products():
+    if not external_channels_enabled():
+        return _torob_error(404, "not found")
     key = (os.environ.get("TOROB_PUBLIC_KEY") or "").replace("\\n", "\n").strip()
     if not key:
         return _torob_error(503, "Torob feed is not configured")
@@ -59,6 +66,8 @@ _BASALAM_COLS = ("sku", "name", "brand", "category_id", "category_name", "price_
 @bp.get("/supplier/feeds/basalam")
 @require_auth()
 def basalam_feed():
+    if not external_channels_enabled():
+        raise NotFoundError("این امکان فعال نیست", code="external_channels_disabled")
     with get_db().read_transaction() as conn:
         sid = current_supplier_id(conn, current_user()["id"])
         if not sid:

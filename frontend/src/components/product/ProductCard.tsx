@@ -211,7 +211,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 {formatPrice(product.original_price_minor)}
               </span>
             )}
-            {product.price_minor == null && product.list_price_minor ? (
+            {(product as { price_hidden?: boolean }).price_hidden ? (
+              <a href="/login" className="inline-flex w-fit items-center rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-700">قیمت ویژهٔ مشتریان سازمانی؛ وارد شوید</a>
+            ) : product.price_minor == null && product.list_price_minor ? (
               <>
                 <span className="text-[10px] font-bold text-neutral-500">آخرین قیمت اعلامی تأمین‌کننده</span>
                 <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from || (product.variant_count ?? 1) > 1 ? "از " : ""}{formatPrice(product.list_price_minor)}</span>

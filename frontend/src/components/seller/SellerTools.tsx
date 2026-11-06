@@ -37,7 +37,6 @@ export function SellerTools({ token, isBrand }: { token: string; isBrand: boolea
         <a href="#exports" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">خروجی مالی</a>
         <a href="#in-person" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">مراجعهٔ حضوری</a>
         <a href="#affiliate" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">همکاری در فروش</a>
-        <a href="#channels" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">فروش در باسلام</a>
       </nav>
       {isBrand && <BrandRegistrationCard token={token} />}
       <ProductAttributesCard token={token} />
@@ -45,7 +44,6 @@ export function SellerTools({ token, isBrand }: { token: string; isBrand: boolea
       <ExportsCard token={token} />
       <SellerInPerson token={token} />
       <SellerAffiliateBonus token={token} />
-      <ChannelsCard token={token} />
     </div>
   );
 }
@@ -247,26 +245,3 @@ function ExportsCard({ token }: { token: string }) {
   );
 }
 
-// ── Other channels (Basalam bulk export) ───────────────────────────────────
-function ChannelsCard({ token }: { token: string }) {
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<Msg>(null);
-  const get = async () => {
-    setBusy(true); setMsg(null);
-    try {
-      const d = await apiRequest<{ count: number; warnings: { category_id: number }[] }>("/supplier/feeds/basalam", { token });
-      await downloadAuthed("/supplier/feeds/basalam?format=csv", token, "basalam-products.csv");
-      setMsg({ ok: true, text: d.warnings.length
-        ? `${n(d.count)} کالا آماده شد؛ دستهٔ ${n(d.warnings.length)} گروه هنوز به باسلام نگاشت نشده و باید پیش از بارگذاری انتخاب شود.`
-        : `${n(d.count)} کالا آماده شد.` });
-    } catch (e) { setMsg({ ok: false, text: errText(e, "ساخت فایل ناموفق بود") }); }
-    finally { setBusy(false); }
-  };
-  return (
-    <div id="channels"><Card title="فروش در باسلام">
-      <p className="text-sm text-neutral-600 leading-6">فایل کالاهای فعالت (قیمت با مالیات، موجودی، زمان آماده‌سازی و عکس‌ها) برای بارگذاری گروهی در غرفهٔ باسلام.</p>
-      <Flash msg={msg} />
-      <button type="button" className={btnCls} disabled={busy} onClick={get}>{busy ? "در حال ساخت…" : "دریافت فایل باسلام"}</button>
-    </Card></div>
-  );
-}

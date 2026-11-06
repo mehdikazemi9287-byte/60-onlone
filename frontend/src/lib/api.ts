@@ -21,7 +21,12 @@ async function request<T>(
   path: string,
   options: RequestInit & { token?: string } = {},
 ): Promise<T> {
-  const { token, ...rest } = options;
+  const { token: explicit, ...rest } = options;
+  // Catalog prices may be members-only: send the stored session on catalog reads too.
+  let token = explicit;
+  if (!token && typeof window !== "undefined" && /^\/(storefront|products|shops|stores|brands|categories|offers)\b/.test(path)) {
+    try { token = window.localStorage.getItem("60online_token") ?? undefined; } catch {}
+  }
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
