@@ -11,13 +11,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import load_settings  # noqa: E402
-from app.core.db import Database  # noqa: E402
+from app.core.db import Database, make_backend  # noqa: E402
 from app.services import partner_webhook_service  # noqa: E402
 
 
 def main() -> int:
     settings = load_settings()
-    stats = partner_webhook_service.run_once(Database(settings.sqlite_path), master_key=settings.secret_key)
+    stats = partner_webhook_service.run_once(make_backend(settings.database_url), master_key=settings.secret_key)
     print(" ".join(f"{k}={v}" for k, v in sorted(stats.items())))
     return 0
 

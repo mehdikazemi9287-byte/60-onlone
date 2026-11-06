@@ -70,7 +70,7 @@ export function VambiSearch() {
 
       {res?.price_hidden && (
         <p className="mb-4 rounded-2xl bg-[#FFF6DD] p-4 text-sm text-[#6B4A00]">
-          قیمت‌ها ویژهٔ مشتریان سازمانی است. <a href="/login" className="font-bold underline">وارد شو</a> تا قیمت و مقایسهٔ کامل را ببینی.
+          قیمت و خرید فقط برای مشتریان سازمانی طرف قرارداد است. <a href="/login" className="font-bold underline">ورود</a> · <a href="/business" className="font-bold underline">درخواست حساب سازمانی</a>
         </p>
       )}
       {error && <p role="alert" className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
@@ -92,7 +92,7 @@ export function VambiSearch() {
                   <p className="text-xs text-neutral-500">{[it.brand, it.category].filter(Boolean).join(" · ")}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                     <span className="font-black text-[#1748C9]">
-                      {s.min_price_minor != null ? <>از {formatPrice(s.min_price_minor)}</> : res.price_hidden ? "قیمت برای اعضا" : "استعلام قیمت"}
+                      {s.min_price_minor != null ? <>از {formatPrice(s.min_price_minor)}</> : res.price_hidden ? "قیمت فقط برای مشتریان سازمانی" : "استعلام قیمت"}
                     </span>
                     <span className="text-neutral-600">{toPersianNum(s.seller_count)} فروشنده</span>
                     {s.fastest_lead_days != null && <span className="text-neutral-600">تحویل از {toPersianNum(s.fastest_lead_days)} روز</span>}

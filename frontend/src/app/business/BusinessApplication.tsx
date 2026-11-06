@@ -8,6 +8,7 @@ const field = "mt-1 w-full rounded-xl border border-neutral-300 bg-white px-3 py
 export function BusinessApplication() {
   const [f, setF] = useState({ buyer_kind: "organization", legal_name: "", national_id: "", business_license_no: "",
     contact_name: "", phone: "", city: "", staff_band: "", monthly_band: "", message: "" });
+  const [consent, setConsent] = useState(false);
   const [state, setState] = useState<"idle" | "busy" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
@@ -18,7 +19,7 @@ export function BusinessApplication() {
     const body: Record<string, string> = {};
     Object.entries(f).forEach(([k, v]) => { if (v.trim()) body[k] = v.trim(); });
     try {
-      await apiRequest("/b2b/applications", { method: "POST", body: JSON.stringify(body) });
+      await apiRequest("/b2b/applications", { method: "POST", body: JSON.stringify({ ...body, privacy_consent: consent }) });
       setState("done");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "ارسال ناموفق بود");
@@ -43,7 +44,7 @@ export function BusinessApplication() {
         </div>
       </fieldset>
       <label className="text-sm">نام {f.buyer_kind === "retailer" ? "فروشگاه" : "سازمان"}<input className={field} required minLength={2} maxLength={200} value={f.legal_name} onChange={set("legal_name")} /></label>
-      <label className="text-sm">شناسهٔ ملی (اختیاری)<input className={field} inputMode="numeric" dir="ltr" value={f.national_id} onChange={set("national_id")} /></label>
+      <label className="text-sm">شناسهٔ ملی شرکت/سازمان — ۱۱ رقمی (اختیاری)<input className={field} inputMode="numeric" dir="ltr" value={f.national_id} onChange={set("national_id")} /></label>
       {f.buyer_kind === "retailer" && <label className="text-sm">شمارهٔ جواز کسب (اختیاری)<input className={field} dir="ltr" value={f.business_license_no} onChange={set("business_license_no")} /></label>}
       <label className="text-sm">نام و نام خانوادگی رابط<input className={field} required minLength={2} maxLength={120} autoComplete="name" value={f.contact_name} onChange={set("contact_name")} /></label>
       <label className="text-sm">موبایل رابط<input className={field} required type="tel" inputMode="numeric" dir="ltr" autoComplete="tel" placeholder="09xxxxxxxxx" value={f.phone} onChange={set("phone")} /></label>
@@ -54,7 +55,11 @@ export function BusinessApplication() {
         <select className={field} value={f.monthly_band} onChange={set("monthly_band")}><option value="">—</option>
           <option value="<100m">کمتر از ۱۰ میلیون</option><option value="100m-500m">۱۰ تا ۵۰ میلیون</option><option value="500m-2b">۵۰ تا ۲۰۰ میلیون</option><option value="2b+">بیش از ۲۰۰ میلیون</option></select></label>
       <label className="text-sm md:col-span-2">توضیح (اختیاری)<textarea className={field} rows={3} maxLength={1000} value={f.message} onChange={set("message")} /></label>
-      <div className="md:col-span-2"><button disabled={state === "busy"} className="w-full rounded-xl bg-primary-600 py-3 text-sm font-bold text-white disabled:opacity-60 md:w-auto md:px-10">{state === "busy" ? "در حال ارسال…" : "ارسال درخواست"}</button></div>
+      <label className="flex items-start gap-2 text-xs leading-6 text-neutral-600 md:col-span-2">
+        <input type="checkbox" required className="mt-1.5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+        <span>موافقم شصت آنلاین برای بررسی درخواست و عقد قرارداد با رابط معرفی‌شده تماس بگیرد. این اطلاعات فقط برای همین منظور نگهداری می‌شود و اگر قراردادی بسته نشود حداکثر پس از ۱۸۰ روز حذف می‌شود (<a href="/privacy" className="underline">حریم خصوصی</a>).</span>
+      </label>
+      <div className="md:col-span-2"><button disabled={state === "busy" || !consent} className="w-full rounded-xl bg-primary-600 py-3 text-sm font-bold text-white disabled:opacity-60 md:w-auto md:px-10">{state === "busy" ? "در حال ارسال…" : "ارسال درخواست"}</button></div>
     </form>
   );
 }

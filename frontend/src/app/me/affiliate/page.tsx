@@ -15,6 +15,7 @@ export default function AffiliatePage() {
   const { token, loading } = useAuth();
   const [d, setD] = useState<Dash | null | undefined>(undefined);
   const [code, setCode] = useState("");
+  const [terms, setTerms] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const load = useCallback(() => {
@@ -36,7 +37,7 @@ export default function AffiliatePage() {
   }
   const join = async (e: React.FormEvent) => {
     e.preventDefault(); setErr(null);
-    try { await apiRequest("/me/affiliate", { method: "POST", token, body: JSON.stringify(code ? { code } : {}) }); load(); }
+    try { await apiRequest("/me/affiliate", { method: "POST", token, body: JSON.stringify({ ...(code ? { code } : {}), accept_terms: terms }) }); load(); }
     catch (x) { setErr(x instanceof ApiError ? x.message : "ثبت‌نام ناموفق بود"); }
   };
   if (d === null) {
@@ -52,8 +53,12 @@ export default function AffiliatePage() {
           <input dir="ltr" className="mt-1 w-full rounded-xl border p-2" value={code} maxLength={24} autoCapitalize="off" spellCheck={false}
             onChange={(e) => setCode(e.target.value.replace(/[^A-Za-z0-9]/g, ""))} />
         </label>
+        <label className="flex items-start gap-2 text-xs leading-6 text-neutral-600">
+          <input type="checkbox" required className="mt-1.5" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
+          <span><a href="/terms/affiliate" target="_blank" className="underline">قوانین همکاری در فروش</a> را خواندم و می‌پذیرم؛ از جمله اینکه کمیسیون فقط به شبای به نام خودم و با کد ملی خودم پرداخت می‌شود.</span>
+        </label>
         {err && <p role="alert" className="text-sm text-red-600">{err}</p>}
-        <button type="submit" className="w-full rounded-xl bg-neutral-900 py-3 font-bold text-white">شروع همکاری</button>
+        <button type="submit" disabled={!terms} className="w-full rounded-xl bg-neutral-900 py-3 font-bold text-white disabled:opacity-50">شروع همکاری</button>
       </form>
     );
   }
@@ -97,6 +102,7 @@ function PayoutCard({ token }: { token: string }) {
   const [p, setP] = useState<Payouts | null>(null);
   const [sheba, setSheba] = useState("");
   const [holder, setHolder] = useState("");
+  const [nid, setNid] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const load = useCallback(() => { apiRequest<Payouts>("/me/affiliate/payouts", { token }).then(setP).catch(() => {}); }, [token]);
@@ -104,7 +110,7 @@ function PayoutCard({ token }: { token: string }) {
   const save = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true); setMsg(null);
     try {
-      await apiRequest("/me/affiliate/sheba", { token, method: "PUT", body: JSON.stringify({ sheba: sheba.replace(/\s/g, ""), holder }) });
+      await apiRequest("/me/affiliate/sheba", { token, method: "PUT", body: JSON.stringify({ sheba: sheba.replace(/\s/g, ""), holder, national_id: nid }) });
       setSheba(""); setHolder(""); setMsg({ ok: true, text: "شبا ثبت شد و پس از تأیید کارشناس، واریزها به آن انجام می‌شود." }); load();
     } catch (err) { setMsg({ ok: false, text: err instanceof ApiError ? err.message : "ثبت ناموفق بود" }); }
     finally { setBusy(false); }
@@ -121,6 +127,7 @@ function PayoutCard({ token }: { token: string }) {
       <form onSubmit={save} className="grid gap-2 sm:grid-cols-3">
         <label className="text-sm sm:col-span-2">شمارهٔ شبا<input className="mt-1 w-full rounded-lg border px-3 py-2" dir="ltr" placeholder="IR000000000000000000000000" required value={sheba} onChange={(e) => setSheba(e.target.value)} /></label>
         <label className="text-sm">نام صاحب حساب<input className="mt-1 w-full rounded-lg border px-3 py-2" required minLength={2} maxLength={120} value={holder} onChange={(e) => setHolder(e.target.value)} /></label>
+        <label className="text-sm">کد ملی صاحب حساب<input className="mt-1 w-full rounded-lg border px-3 py-2" dir="ltr" inputMode="numeric" required maxLength={10} value={nid} onChange={(e) => setNid(e.target.value)} /></label>
         <div className="sm:col-span-3"><button disabled={busy} className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{p.sheba ? "تغییر شبا" : "ثبت شبا"}</button></div>
       </form>
       {p.payouts.length > 0 && (

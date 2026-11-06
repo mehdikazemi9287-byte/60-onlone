@@ -45,8 +45,13 @@ class PricePrivacyTest(AppTestCase):
         self.assertEqual(self.client.get(LIST + "&sort=price_asc").status_code, 403)
         _, cust = self.new_customer()  # signed in but not in an organization
         self.assertTrue(self.client.get(url, headers=cust).get_json()["price_hidden"])
-        # own cart is never redacted
-        self.assertNotIn("price_hidden", self.client.get("/api/v1/cart", headers=cust).get_json() or {})
+        # no buying blind: cart and checkout are closed to viewers who may not see prices
+        for method, path in (("get", "/api/v1/cart"), ("post", "/api/v1/cart/items"), ("post", "/api/v1/checkout/quote")):
+            r = getattr(self.client, method)(path, json={}, headers=cust)
+            self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (403, "price_members_only"), path)
+        # cashier quotes are catalog too: any method is redacted
+        q = self.client.post("/api/v1/cashier/quote", json={"items": [{"product_id": self.p["id"], "quantity": 1}]})
+        self.assertEqual(_prices(q.get_json() or {}), [], q.get_json())
         admin = self.client.get(url, headers=self.admin_headers()).get_json()
         self.assertNotIn("price_hidden", admin)
         self.assertTrue(_prices(admin))

@@ -176,7 +176,19 @@ def current_user() -> dict:
 
 
 def client_ip() -> str | None:
+    """The caller's IP for rate limits and audit.
+
+    X-Forwarded-For is client-controlled except for the hops our own proxies append, so only trust the entry
+    TRUSTED_PROXY_HOPS from the right (e.g. 1 = nginx only, 2 = CDN + nginx). Default 0 = ignore the header.
+    """
+    import os
+    try:
+        hops = max(0, int(os.environ.get("TRUSTED_PROXY_HOPS", "0")))
+    except ValueError:
+        hops = 0
     forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
+    if hops and forwarded:
+        parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+        if len(parts) >= hops:
+            return parts[-hops]
     return request.remote_addr

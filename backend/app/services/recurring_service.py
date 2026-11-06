@@ -243,6 +243,9 @@ def discount_for_cart(conn, *, user_id: int, cart_id: int, lines: list[dict]) ->
     run = _fresh_run(conn, user_id, int(row["recurring_run_id"]))
     if run is None:
         return None, 0
+    if conn.execute("SELECT 1 FROM payment_intents WHERE recurring_run_id=? AND status IN ('pending','authorized') LIMIT 1",
+                    (int(run["id"]),)).fetchone():
+        return None, 0  # one run, one discounted checkout: a second intent while the first is open pays full price
     if {int(l["product_id"]): int(l["quantity"]) for l in lines} != _list_items(conn, int(run["list_id"])):
         return None, 0  # cart was changed after confirming: no subscription price
     rules = cashier.load_rules(conn)

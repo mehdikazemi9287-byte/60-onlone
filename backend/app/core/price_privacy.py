@@ -4,7 +4,7 @@ STOREFRONT_PRICE_VISIBILITY:
   public        — everyone sees prices (default)
   members       — prices only for signed-in users
   organizations — prices only for members of an active organization, sellers and admins (B2B launch)
-For hidden viewers every public catalog GET response (PUBLIC_CATALOG) has its price fields (any key containing "price" or ending
+For hidden viewers every public catalog response (PUBLIC_CATALOG, any method) has its price fields (any key containing "price" or ending
 "_minor") set to null and carries price_hidden=true; price filters/sorts are refused (they would leak prices by
 bisection). Known price-aggregator crawlers are refused on all public endpoints regardless of the setting.
 """
@@ -21,7 +21,9 @@ _PRICE_ARGS = ("min_price", "max_price")
 # Public catalog surfaces only — a buyer's own cart, orders and invoices are never redacted.
 PUBLIC_CATALOG = ("/api/v1/storefront", "/api/v1/products", "/api/v1/catalog", "/api/v1/categories", "/api/v1/brands",
                   "/api/v1/shops", "/api/v1/stores", "/api/v1/offers", "/api/v1/content", "/api/v1/preorders",
-                  "/api/v1/vambi")
+                  "/api/v1/vambi", "/api/v1/cashier")
+# Buying itself: closed to viewers who may not see prices (a pure B2B showcase — nobody adds an unpriced item).
+MEMBERS_ONLY_BUYING = ("/api/v1/cart", "/api/v1/checkout")
 
 
 def mode() -> str:
@@ -75,13 +77,17 @@ def install(app) -> None:
         p = request.path
         if not p.startswith("/api/v1/") or p.startswith(("/api/v1/health", "/api/v1/payments/")):
             return None
-        if AGGREGATOR_UA.search(request.headers.get("User-Agent", "")):
+        if AGGREGATOR_UA.search(request.headers.get("User-Agent", "")) and not p.startswith("/api/v1/feeds/"):
             return jsonify({"error": {"code": "crawler_blocked", "message": "دسترسی خودکار مجاز نیست"}}), 403
         g.price_hidden = False
-        if not p.startswith(PUBLIC_CATALOG) or request.method != "GET":
+        buying = p.startswith(MEMBERS_ONLY_BUYING)
+        if not (p.startswith(PUBLIC_CATALOG) or buying):
             return None
         if mode() == "public" or _viewer_allowed():
             return None
+        if buying:
+            return jsonify({"error": {"code": "price_members_only",
+                                      "message": "خرید فعلاً فقط برای مشتریان سازمانی طرف قرارداد فعال است"}}), 403
         g.price_hidden = True
         if any(a in request.args for a in _PRICE_ARGS) or "price" in (request.args.get("sort") or ""):
             return jsonify({"error": {"code": "login_required_for_prices",

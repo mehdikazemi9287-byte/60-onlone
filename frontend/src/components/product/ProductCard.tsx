@@ -212,7 +212,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               </span>
             )}
             {(product as { price_hidden?: boolean }).price_hidden ? (
-              <a href="/login" className="inline-flex w-fit items-center rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-700">قیمت ویژهٔ مشتریان سازمانی؛ وارد شوید</a>
+              <a href="/business" className="inline-flex w-fit items-center rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-700">قیمت فقط برای مشتریان سازمانی</a>
             ) : product.price_minor == null && product.list_price_minor ? (
               <>
                 <span className="text-[10px] font-bold text-neutral-500">آخرین قیمت اعلامی تأمین‌کننده</span>

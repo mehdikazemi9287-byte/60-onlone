@@ -20,7 +20,8 @@ def _body() -> dict:
 @require_auth()
 def join():
     with get_db().write_transaction() as conn:
-        return jsonify({"affiliate": aff.join(conn, user_id=current_user()["id"], code=_body().get("code"))}), 201
+        return jsonify({"affiliate": aff.join(conn, user_id=current_user()["id"], code=_body().get("code"),
+                                                    accept_terms=_body().get("accept_terms") is True)}), 201
 
 
 @bp.get("/me/affiliate")
@@ -74,7 +75,8 @@ def my_sheba():
     from app.services import affiliate_payout_service as aps
     d = _payout_body()
     with get_db().write_transaction() as conn:
-        return jsonify(aps.set_sheba(conn, user_id=current_user()["id"], sheba=d.get("sheba"), holder=d.get("holder")))
+        return jsonify(aps.set_sheba(conn, user_id=current_user()["id"], sheba=d.get("sheba"), holder=d.get("holder"),
+                                     national_id=d.get("national_id")))
 
 
 @bp.get("/me/affiliate/payouts")
@@ -98,7 +100,8 @@ def payout_preview():
 def verify_sheba(affiliate_id: int):
     from app.services import affiliate_payout_service as aps
     with get_db().write_transaction() as conn:
-        return jsonify(aps.verify_sheba(conn, affiliate_id=affiliate_id, actor_user_id=current_user()["id"]))
+        return jsonify(aps.verify_sheba(conn, affiliate_id=affiliate_id, actor_user_id=current_user()["id"],
+                                        expected_sheba=(request.get_json(silent=True) or {}).get("sheba")))
 
 
 @bp.post("/admin/affiliate-payouts/batches")

@@ -7,6 +7,7 @@ from unittest import mock
 from tests import test_affiliates as _ta
 
 SHEBA = "IR820540102680020817909002"
+NID = "0013542419"  # valid checksum
 
 
 class PayoutTest(_ta.AffiliateTest):
@@ -29,14 +30,20 @@ class PayoutTest(_ta.AffiliateTest):
             p = self.client.get("/api/v1/admin/affiliate-payouts/preview", headers=adm).get_json()
             self.assertEqual(p["waiting"][0]["reason"], "no_sheba")
             self.assertEqual(self.client.put("/api/v1/me/affiliate/sheba", json={"sheba": "IR12", "holder": "کارن"}, headers=h).status_code, 422)
-            r = self.client.put("/api/v1/me/affiliate/sheba", json={"sheba": SHEBA, "holder": "کارن کاظمی"}, headers=h)
+            self.assertEqual(self.client.put("/api/v1/me/affiliate/sheba", json={"sheba": SHEBA, "holder": "کارن کاظمی",
+                                                                               "national_id": "0012345678"}, headers=h).get_json()["error"]["code"],
+                             "invalid_national_id")
+            r = self.client.put("/api/v1/me/affiliate/sheba", json={"sheba": SHEBA, "holder": "کارن کاظمی", "national_id": NID}, headers=h)
             self.assertEqual(r.status_code, 200, r.get_json())
             self.assertNotIn(SHEBA[4:-6], r.get_json()["sheba"])
             p = self.client.get("/api/v1/admin/affiliate-payouts/preview", headers=adm).get_json()
             self.assertEqual(p["waiting"][0]["reason"], "sheba_unverified")
             self.assertEqual(self.client.post("/api/v1/admin/affiliate-payouts/batches", headers=adm).status_code, 409)
             aid = p["unverified"][0]["affiliate_id"]
-            self.client.post(f"/api/v1/admin/affiliates/{aid}/verify-sheba", headers=adm)
+            self.assertEqual(self.client.post(f"/api/v1/admin/affiliates/{aid}/verify-sheba", headers=adm).status_code, 422)
+            self.assertEqual(self.client.post(f"/api/v1/admin/affiliates/{aid}/verify-sheba", json={"sheba": "IR" + "1" * 24},
+                                              headers=adm).status_code, 409)
+            self.client.post(f"/api/v1/admin/affiliates/{aid}/verify-sheba", json={"sheba": SHEBA}, headers=adm)
             b = self.client.post("/api/v1/admin/affiliate-payouts/batches", headers=adm)
             self.assertEqual(b.status_code, 201, b.get_json())
             batch = b.get_json()
@@ -45,7 +52,7 @@ class PayoutTest(_ta.AffiliateTest):
             self.assertEqual((mine["in_payout_minor"], mine["available_minor"]), (amount, 0))
             # no second payout while one is open, and the Sheba is locked
             self.assertEqual(self.client.post("/api/v1/admin/affiliate-payouts/batches", headers=adm).status_code, 409)
-            self.assertEqual(self.client.put("/api/v1/me/affiliate/sheba", json={"sheba": SHEBA, "holder": "x y"}, headers=h).status_code, 409)
+            self.assertEqual(self.client.put("/api/v1/me/affiliate/sheba", json={"sheba": SHEBA, "holder": "x y", "national_id": NID}, headers=h).status_code, 409)
             csv_r = self.client.get(f"/api/v1/admin/affiliate-payouts/batches/{batch['id']}/export.csv", headers=adm)
             self.assertIn(SHEBA, csv_r.get_data(as_text=True))
             self.assertEqual(self.client.get(f"/api/v1/admin/affiliate-payouts/batches/{batch['id']}/export.csv", headers=h).status_code, 403)
@@ -62,9 +69,9 @@ class PayoutTest(_ta.AffiliateTest):
         h = self._ready()
         amount = self._amount()
         adm = self.admin_headers()
-        self.client.put("/api/v1/me/affiliate/sheba", json={"sheba": SHEBA, "holder": "کارن کاظمی"}, headers=h)
+        self.client.put("/api/v1/me/affiliate/sheba", json={"sheba": SHEBA, "holder": "کارن کاظمی", "national_id": NID}, headers=h)
         aid = self.client.get("/api/v1/admin/affiliate-payouts/preview", headers=adm).get_json()["unverified"][0]["affiliate_id"]
-        self.client.post(f"/api/v1/admin/affiliates/{aid}/verify-sheba", headers=adm)
+        self.client.post(f"/api/v1/admin/affiliates/{aid}/verify-sheba", json={"sheba": SHEBA}, headers=adm)
         with mock.patch.dict(os.environ, {"AFFILIATE_MIN_PAYOUT_MINOR": str(amount + 1)}):
             p = self.client.get("/api/v1/admin/affiliate-payouts/preview", headers=adm).get_json()
             self.assertEqual(p["waiting"][0]["reason"], "below_minimum")

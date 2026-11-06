@@ -77,6 +77,11 @@ def config_checks() -> list[tuple[str, str, str]]:
     vis = os.environ.get("STOREFRONT_PRICE_VISIBILITY", "public")
     add(OK if vis == "organizations" else WARN, "STOREFRONT_PRICE_VISIBILITY",
         f"شروع سازمانی: قیمت فقط برای اعضای سازمان‌ها، فروشندگان و مدیران (الان: {vis})")
+    hops = os.environ.get("TRUSTED_PROXY_HOPS", "")
+    add(OK if hops.isdigit() and int(hops) >= 1 else WARN, "TRUSTED_PROXY_HOPS",
+        "پشت nginx/Cloudflare باید تعداد پراکسی‌های مورد اعتماد تنظیم شود؛ وگرنه محدودیت نرخ همه را یک IP می‌بیند")
+    cap = os.environ.get("OTP_DAILY_SMS_CAP", "")
+    add(OK if cap.isdigit() else INFO, "OTP_DAILY_SMS_CAP", f"سقف روزانهٔ پیامک کد ورود (پیش‌فرض ۳۰۰۰؛ الان: {cap or 'پیش‌فرض'})")
     return out
 
 
@@ -118,6 +123,12 @@ def db_checks(db) -> list[tuple[str, str, str]]:
         add(WARN if stale else OK, "tariffs", f"تعرفهٔ حمل نمونه که هنوز با قرارداد واقعی به‌روز نشده: {stale}")
         orgs = q("SELECT COUNT(*) FROM organizations")
         add(OK if orgs else WARN, "organizations", f"سازمان‌های ثبت‌شده (مشتری اول): {orgs}")
+        contracts = q("SELECT COUNT(*) FROM credit_contracts")
+        add(INFO, "credit_contracts", f"قرارداد اعتباری ثبت‌شده: {contracts} — پیش از فعال‌کردن خرید اعتباری، مجوز آن را با وکیل تأیید کنید")
+        new_apps = q("SELECT COUNT(*) FROM b2b_applications WHERE status='new'")
+        add(INFO, "b2b_applications", f"درخواست حساب سازمانی بی‌پاسخ: {new_apps}")
+        unverified = q("SELECT COUNT(*) FROM affiliates WHERE sheba IS NOT NULL AND sheba_verified_at IS NULL AND status='active'")
+        add(WARN if unverified else OK, "affiliate_sheba", f"شبای همکار فروش منتظر استعلام بانکی و تأیید: {unverified}")
     return out
 
 
@@ -125,8 +136,8 @@ def main(argv: list[str]) -> int:
     rows = config_checks()
     try:
         from app.core.config import load_settings
-        from app.core.db import Database
-        rows += db_checks(Database(load_settings().sqlite_path))
+        from app.core.db import make_backend
+        rows += db_checks(make_backend(load_settings().database_url))
     except Exception as exc:  # noqa: BLE001 — report, never crash the checklist
         rows.append((BLOCKER, "database", f"اتصال/بررسی پایگاه‌داده ناموفق: {exc}"))
     blockers = sum(1 for r in rows if r[0] == BLOCKER)

@@ -877,8 +877,8 @@ def supplier_overview(conn, *, user_id: int) -> dict:
         {"key": "bank", "label": "اطلاعات بانکی ثبت‌شده", "ok": bool(sup["sheba"])},
         {"key": "offers", "label": "پیشنهاد کالا با قیمت و موجودی تأییدشده (۲۴ ساعت)",
          "ok": q("""SELECT COUNT(*) FROM seller_offers WHERE supplier_id=? AND status='active'
-                    AND last_price_confirmed_at >= datetime('now','-24 hours')
-                    AND last_inventory_confirmed_at >= datetime('now','-24 hours')""") > 0},
+                    AND datetime(last_price_confirmed_at) >= datetime('now','-24 hours')
+                    AND datetime(last_inventory_confirmed_at) >= datetime('now','-24 hours')""") > 0},
     ]
     return {"supplier": {"id": sup["id"], "name": sup["display_name"], "status": sup["status"],
                          "onboarding_stage": sup["onboarding_stage"], "provenance": sup["provenance"],

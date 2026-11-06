@@ -194,10 +194,18 @@ export function AdminReturns() {
 
 function ReturnAction({ token, r, action, label, onClose, onDone }: { token: string; r: Ret; action: string; label: string; onClose: () => void; onDone: () => void }) {
   const [note, setNote] = useState(""), [amount, setAmount] = useState(""), [ref, setRef] = useState(""), [err, setErr] = useState(""), [key] = useState(newIdempotencyKey);
+  const [split, setSplit] = useState<{ amount_minor: number; welfare_minor: number; bank_minor: number } | null>(null);
+  const amountMinor = Math.round(Number(faDigits(amount).replace(/[,،٬\s]/g, "")) * 10);
+  useEffect(() => {
+    setSplit(null);
+    if (action !== "refund" || !(amountMinor > 0)) return;
+    const t = setTimeout(() => { apiRequest<{ amount_minor: number; welfare_minor: number; bank_minor: number }>(`/admin/returns/${r.id}/refund-split?amount_minor=${amountMinor}`, { token }).then(setSplit).catch(() => setSplit(null)); }, 300);
+    return () => clearTimeout(t);
+  }, [action, amountMinor, r.id, token]);
   const send = async () => {
     try {
       await apiRequest(`/admin/returns/${r.id}/${action}`, { token, method: "POST", headers: { "Idempotency-Key": key },
-        body: JSON.stringify({ note, ...(action === "refund" ? { amount_minor: Math.round(Number(faDigits(amount).replace(/[,،٬\s]/g, "")) * 10), reference: ref } : {}) }) });
+        body: JSON.stringify({ note, ...(action === "refund" ? { amount_minor: amountMinor, reference: ref, ...(split && split.amount_minor === amountMinor ? { bank_amount_minor: split.bank_minor } : {}) } : {}) }) });
       onDone();
     } catch (e) { setErr(e instanceof Error ? e.message : "ناموفق"); }
   };
@@ -207,6 +215,7 @@ function ReturnAction({ token, r, action, label, onClose, onDone }: { token: str
         {action === "refund" && <>
           <Notice icon={<AlertTriangle />}>مبلغ و مرجع بانکی پرداختی را که مالی انجام داده ثبت کنید (حداکثر مانده سفارش: {n(Math.round(r.order_total_minor / 10))} تومان).</Notice>
           <label className={s.field}>مبلغ بازپرداخت (تومان)<input className={s.input} inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
+          {split && split.welfare_minor > 0 && <Notice tone="bad" icon={<AlertTriangle />}>از این مبلغ {formatPrice(split.welfare_minor)} خودکار به کیف پول رفاهی برمی‌گردد. مالی فقط <b>{formatPrice(split.bank_minor)}</b> را به حساب بانکی مشتری واریز کند.</Notice>}
           <label className={s.field}>مرجع بانکی<input className={s.input} value={ref} onChange={(e) => setRef(e.target.value)} /></label></>}
         <label className={s.field}>یادداشت{action === "reject" ? " (علت رد، الزامی)" : ""}<textarea className={s.textarea} rows={3} value={note} onChange={(e) => setNote(e.target.value)} /></label>
         {err && <Notice tone="bad" icon={<AlertTriangle />}>{err}</Notice>}

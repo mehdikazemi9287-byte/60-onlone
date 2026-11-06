@@ -275,6 +275,10 @@ def _apply_migration_pg(
                 # Skip embedded transaction-control statements (migration artefacts).
                 if upper in ("BEGIN", "BEGIN IMMEDIATE", "COMMIT", "ROLLBACK"):
                     continue
+                # Skip comment-only chunks (e.g. trailing "-- Step 5" notes): psycopg2 >= 2.9.10 refuses
+                # to execute an empty query.
+                if not re.sub(r"--[^\n]*|/\*.*?\*/", "", stmt, flags=re.S).strip():
+                    continue
                 cur.execute(stmt)
 
             # Bookkeeping INSERT

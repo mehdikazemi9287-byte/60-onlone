@@ -62,6 +62,17 @@ def admin_returns():
         return jsonify({"items": ops.admin_returns(conn, request.args.get("status") or None)})
 
 
+@bp.get("/admin/returns/<int:return_id>/refund-split")
+@require_auth("admin")
+def admin_return_refund_split(return_id: int):
+    try:
+        amount = int(request.args.get("amount_minor", ""))
+    except ValueError:
+        amount = 0
+    with get_db().read_transaction() as conn:
+        return jsonify(ops.refund_split(conn, return_id=return_id, amount=amount))
+
+
 @bp.post("/admin/returns/<int:return_id>/<action>")
 @require_auth("admin")
 def admin_return_action(return_id: int, action: str):

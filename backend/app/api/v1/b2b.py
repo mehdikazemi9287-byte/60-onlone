@@ -78,3 +78,20 @@ def reject(app_id: int):
     with get_db().write_transaction() as conn:
         return jsonify(b2b.reject_application(conn, application_id=app_id, actor_user_id=current_user()["id"],
                                               note=_body().get("note")))
+
+
+@bp.get("/me/org-invitations")
+@require_auth()
+def my_invitations():
+    with get_db().read_transaction() as conn:
+        return jsonify({"items": b2b.my_invitations(conn, user_id=current_user()["id"])})
+
+
+@bp.post("/me/org-invitations/<int:membership_id>/<answer>")
+@require_auth()
+def answer_invitation(membership_id: int, answer: str):
+    if answer not in ("accept", "decline"):
+        raise ValidationError("پاسخ نامعتبر است")
+    with get_db().write_transaction() as conn:
+        return jsonify(b2b.answer_invitation(conn, user_id=current_user()["id"], membership_id=membership_id,
+                                             accept=answer == "accept", ip_address=client_ip()))

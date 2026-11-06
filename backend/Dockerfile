@@ -6,8 +6,8 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /srv/backend
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt requirements-pg.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-pg.txt
 
 COPY app ./app
 COPY migrations ./migrations

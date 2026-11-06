@@ -25,6 +25,15 @@ MAX_ATTEMPTS = 5
 RESEND_SECONDS = 60
 PER_PHONE_HOUR = 5
 PER_IP_HOUR = 20
+SYNTHETIC_EMAIL_DOMAIN = "users.60online.invalid"  # never a real mailbox; never contains the phone number
+
+
+def daily_sms_cap() -> int:
+    import os
+    try:
+        return max(1, int(os.environ.get("OTP_DAILY_SMS_CAP", "3000")))
+    except ValueError:
+        return 3000
 _DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 _MOBILE = re.compile(r"^09\d{9}$")
 
@@ -32,17 +41,6 @@ _MOBILE = re.compile(r"^09\d{9}$")
 class RateLimited(ApiError):
     status_code = 429
     code = "otp_rate_limited"
-
-
-class OtpWrong(AuthenticationError):
-    """Wrong code for a live challenge. The caller rolls back, then counts the attempt via count_attempt()."""
-    def __init__(self, challenge_id: int):
-        super().__init__("کد واردشده درست نیست یا منقضی شده است", code="otp_invalid")
-        self.challenge_id = challenge_id
-
-
-def count_attempt(conn, challenge_id: int) -> None:
-    conn.execute("UPDATE otp_challenges SET attempts=attempts+1 WHERE id=?", (challenge_id,))
 
 
 class SmsUnavailable(ApiError):
@@ -90,10 +88,14 @@ def request_code(conn: sqlite3.Connection, *, phone: str, secret: str, purpose: 
     if ip_address and conn.execute("SELECT COUNT(*) FROM otp_challenges WHERE ip_address=? AND created_at>?",
                                    (ip_address, hour_ago)).fetchone()[0] >= PER_IP_HOUR:
         raise RateLimited("تعداد درخواست‌ها زیاد بوده؛ بعداً امتحان کن")
+    if conn.execute("SELECT COUNT(*) FROM otp_challenges WHERE created_at>?",
+                    (_iso(t - _dt.timedelta(days=1)),)).fetchone()[0] >= daily_sms_cap():
+        raise SmsUnavailable("ارسال پیامک موقتاً متوقف است؛ کمی بعد دوباره امتحان کن")  # SMS-pumping fuse
+    silent = False
     if purpose == "link":
         owner = conn.execute("SELECT id FROM users WHERE phone_verified=?", (phone,)).fetchone()
-        if owner and owner["id"] != user_id:
-            raise ConflictError("این شماره به حساب دیگری متصل است", code="phone_taken")
+        # Same answer either way (no account enumeration); no SMS is sent and verify_link refuses it later.
+        silent = bool(owner and owner["id"] != user_id)
     try:
         sender = sender or sender_from_env()
     except SmsError as exc:
@@ -105,49 +107,78 @@ def request_code(conn: sqlite3.Connection, *, phone: str, secret: str, purpose: 
     conn.execute("UPDATE otp_challenges SET consumed_at=? WHERE phone=? AND consumed_at IS NULL", (_iso(t), phone))
     conn.execute("INSERT INTO otp_challenges (phone, purpose, user_id, code_hash, ip_address, expires_at, created_at) VALUES (?,?,?,?,?,?,?)",
                  (phone, purpose, user_id, _hash(secret, phone, code), ip_address, _iso(t + _dt.timedelta(seconds=CODE_TTL_SECONDS)), _iso(t)))
-    try:
-        sender.send_code(phone, code)
-    except SmsError as exc:
-        raise SmsUnavailable(str(exc)) from exc
+    if not silent:
+        try:
+            sender.send_code(phone, code)
+        except SmsError as exc:
+            raise SmsUnavailable(str(exc)) from exc
     return {"sent": True, "expires_in_seconds": CODE_TTL_SECONDS, "resend_in_seconds": RESEND_SECONDS}
 
 
-def _check(conn, *, phone: str, code: str, secret: str, purpose: str, user_id: int | None, now) -> sqlite3.Row:
+def claim_attempt(conn, *, phone, purpose: str, user_id: int | None = None, now=None) -> int:
+    """Spend one try on the live code BEFORE comparing it, in its own committed transaction (the caller commits),
+    so parallel guesses can never exceed MAX_ATTEMPTS. Returns the challenge id or raises otp_invalid."""
+    phone = normalize_phone(phone)
+    t = now or _now()
+    ch = conn.execute("SELECT id, user_id FROM otp_challenges WHERE phone=? AND purpose=? AND consumed_at IS NULL "
+                      "ORDER BY id DESC LIMIT 1", (phone, purpose)).fetchone()
+    bad = AuthenticationError("کد واردشده درست نیست یا منقضی شده است", code="otp_invalid")
+    if ch is None or (purpose == "link" and ch["user_id"] != user_id):
+        raise bad
+    took = conn.execute("UPDATE otp_challenges SET attempts=attempts+1 WHERE id=? AND attempts<? AND consumed_at IS NULL "
+                        "AND expires_at>?", (ch["id"], MAX_ATTEMPTS, _iso(t)))
+    if took.rowcount != 1:
+        raise bad
+    return int(ch["id"])
+
+
+def _check(conn, *, challenge_id: int, phone: str, code: str, secret: str, now) -> sqlite3.Row:
     code = str(code or "").translate(_DIGITS).strip()
     bad = AuthenticationError("کد واردشده درست نیست یا منقضی شده است", code="otp_invalid")
-    ch = conn.execute("SELECT * FROM otp_challenges WHERE phone=? AND purpose=? AND consumed_at IS NULL ORDER BY id DESC LIMIT 1",
-                      (phone, purpose)).fetchone()
-    if ch is None or ch["expires_at"] <= _iso(now) or ch["attempts"] >= MAX_ATTEMPTS or (purpose == "link" and ch["user_id"] != user_id):
+    ch = conn.execute("SELECT * FROM otp_challenges WHERE id=? AND phone=? AND consumed_at IS NULL", (challenge_id, phone)).fetchone()
+    if ch is None or ch["expires_at"] <= _iso(now):
         raise bad
     if not re.fullmatch(r"\d{6}", code) or not hmac.compare_digest(ch["code_hash"], _hash(secret, phone, code)):
-        raise OtpWrong(ch["id"])
+        raise bad
     return ch
 
 
-def verify_login(conn: sqlite3.Connection, *, phone: str, code: str, secret: str, full_name: str | None = None,
+def verify_login(conn: sqlite3.Connection, *, challenge_id: int, phone: str, code: str, secret: str,
+                 full_name: str | None = None, accept_terms: bool = False,
                  ip_address: str | None = None, now: _dt.datetime | None = None) -> tuple[int, bool]:
     """→ (user_id, created). Raises OtpWrong on a wrong code (see count_attempt)."""
     phone = normalize_phone(phone)
     t = now or _now()
-    ch = _check(conn, phone=phone, code=code, secret=secret, purpose="login", user_id=None, now=t)
-    row = conn.execute("SELECT id, is_active FROM users WHERE phone_verified=?", (phone,)).fetchone()
+    ch = _check(conn, challenge_id=challenge_id, phone=phone, code=code, secret=secret, now=t)
+    row = conn.execute("SELECT id, is_active, role FROM users WHERE phone_verified=?", (phone,)).fetchone()
     created = False
     if row is None:
         name = (full_name or "").strip()
         if not 2 <= len(name) <= 120:
             # Code stays valid: the client asks for the name and verifies again.
             raise ValidationError("برای ساخت حساب، نام و نام خانوادگی را وارد کن", code="full_name_required")
-        email = f"{phone}@phone.60online.ir"
-        uid = conn.execute("INSERT INTO users (email, email_normalized, password_hash, full_name, phone, phone_verified, role) "
-                           "VALUES (?,?,?,?,?,?, 'customer')",
-                           (email, email, hash_password(secrets.token_urlsafe(24)), name, phone, phone)).lastrowid
+        if accept_terms is not True:
+            raise ValidationError("برای ساخت حساب، پذیرش قوانین و حریم خصوصی لازم است", code="terms_required")
+        email = f"otp-{secrets.token_hex(10)}@{SYNTHETIC_EMAIL_DOMAIN}"
+        try:
+            uid = conn.execute("INSERT INTO users (email, email_normalized, password_hash, full_name, phone, phone_verified, role) "
+                               "VALUES (?,?,?,?,?,?, 'customer')",
+                               (email, email, hash_password(secrets.token_urlsafe(24)), name, phone, phone)).lastrowid
+        except Exception as exc:  # sqlite3 / psycopg2 IntegrityError: a parallel verify just created this phone's account
+            if type(exc).__name__ not in ("IntegrityError", "UniqueViolation"):
+                raise
+            raise ConflictError("این شماره همین الان ثبت شد؛ دوباره کد بگیر و وارد شو", code="otp_race") from exc
         created = True
+        _record_signup_terms(conn, uid, ip_address)
         audit_service.record(conn, action="user.registered", entity_type="user", entity_id=uid, actor_user_id=uid,
                              metadata={"method": "otp", "role": "customer"}, ip_address=ip_address)
     else:
         uid = row["id"]
         if not row["is_active"]:
             raise AuthenticationError("حساب کاربری غیرفعال است", code="account_disabled")
+        if row["role"] != "customer" or conn.execute("SELECT 1 FROM supplier_users WHERE user_id=? LIMIT 1", (uid,)).fetchone():
+            # Staff, admins and sellers: a SIM swap must not be enough to take over the account.
+            raise AuthenticationError("این حساب فقط با رمز عبور وارد می‌شود", code="otp_not_allowed")
     conn.execute("UPDATE otp_challenges SET consumed_at=? WHERE id=?", (_iso(t), ch["id"]))
     from app.services import b2b_service
     b2b_service.claim_invites(conn, user_id=int(uid), phone=phone)  # business invitations for this number
@@ -156,11 +187,11 @@ def verify_login(conn: sqlite3.Connection, *, phone: str, code: str, secret: str
     return int(uid), created
 
 
-def verify_link(conn: sqlite3.Connection, *, user_id: int, phone: str, code: str, secret: str,
+def verify_link(conn: sqlite3.Connection, *, challenge_id: int, user_id: int, phone: str, code: str, secret: str,
                 ip_address: str | None = None, now: _dt.datetime | None = None) -> str:
     phone = normalize_phone(phone)
     t = now or _now()
-    ch = _check(conn, phone=phone, code=code, secret=secret, purpose="link", user_id=user_id, now=t)
+    ch = _check(conn, challenge_id=challenge_id, phone=phone, code=code, secret=secret, now=t)
     owner = conn.execute("SELECT id FROM users WHERE phone_verified=?", (phone,)).fetchone()
     if owner and owner["id"] != user_id:
         raise ConflictError("این شماره به حساب دیگری متصل است", code="phone_taken")
@@ -171,3 +202,12 @@ def verify_link(conn: sqlite3.Connection, *, user_id: int, phone: str, code: str
     audit_service.record(conn, action="user.phone_verified", entity_type="user", entity_id=user_id, actor_user_id=user_id,
                          metadata={"phone_tail": phone[-4:]}, ip_address=ip_address)
     return phone
+
+
+def _record_signup_terms(conn, user_id: int, ip_address: str | None) -> None:
+    """Evidence that a phone-only account accepted the current buyer terms and privacy notice (if published)."""
+    for doc in ("buyer_terms", "privacy"):
+        d = conn.execute("SELECT id FROM legal_documents WHERE doc_key=? ORDER BY id DESC LIMIT 1", (doc,)).fetchone()
+        if d is not None:
+            conn.execute("INSERT INTO terms_acceptances (user_id, document_id, context, context_ref, ip_address) "
+                         "VALUES (?,?, 'signup', 'otp', ?)", (user_id, d["id"], (ip_address or "")[:64] or None))

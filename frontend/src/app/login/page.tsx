@@ -242,6 +242,7 @@ function OtpForm({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState("");
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [needName, setNeedName] = useState(false);
+  const [terms, setTerms] = useState(false);
   const [wait, setWait] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -272,10 +273,10 @@ function OtpForm({ onDone }: { onDone: () => void }) {
     setError(null);
     setBusy(true);
     try {
-      await loginWithOtp(phone, code, needName ? name : undefined);
+      await loginWithOtp(phone, code, needName ? name : undefined, needName ? terms : undefined);
       onDone();
     } catch (err) {
-      if (err instanceof ApiError && err.code === "full_name_required") {
+      if (err instanceof ApiError && (err.code === "full_name_required" || err.code === "terms_required")) {
         setNeedName(true);
         setError("این شماره هنوز حساب ندارد؛ نامت را بنویس تا حساب ساخته شود.");
       } else setError(err instanceof ApiError ? err.message : "ورود ناموفق بود");
@@ -309,6 +310,10 @@ function OtpForm({ onDone }: { onDone: () => void }) {
               <label className="form-label" htmlFor="otp-name">نام و نام خانوادگی</label>
               <input id="otp-name" value={name} onChange={(e) => setName(e.target.value)} required minLength={2} maxLength={120}
                 autoComplete="name" className="form-input mt-1" />
+              <label className="mt-3 flex items-start gap-2 text-xs leading-6 text-neutral-600">
+                <input type="checkbox" required className="mt-1.5" checked={terms} onChange={(e) => setTerms(e.target.checked)} />
+                <span><a href="/terms" target="_blank" className="underline">شرایط استفاده</a> و <a href="/privacy" target="_blank" className="underline">حریم خصوصی</a> را می‌پذیرم.</span>
+              </label>
             </div>
           )}
         </>

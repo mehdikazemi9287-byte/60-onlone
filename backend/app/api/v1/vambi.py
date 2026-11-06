@@ -7,7 +7,7 @@ nothing is fed out. Price visibility follows STOREFRONT_PRICE_VISIBILITY (this p
 """
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 
 from app.api.v1.marketplace import _viewer_orgs
 from app.core.deps import get_db
@@ -44,9 +44,16 @@ def search():
         items = []
         for c in res["items"]:
             offers = store.offers_for(conn, c["id"], viewer_org_ids=orgs)
+            hidden = getattr(g, "price_hidden", False)
             rows = sorted(({"seller": o["seller"], "city": o["seller_city"], "price_incl_vat_minor": o["price_incl_vat_minor"],
                             "lead_time_days": o["lead_time_days"], "stock_state": o["stock_state"], "best": o["eligible"]}
-                           for o in offers), key=lambda o: (o["price_incl_vat_minor"] is None, o["price_incl_vat_minor"] or 0))
+                           for o in offers),
+                          # hidden prices: order must not leak who is cheaper either
+                          key=(lambda o: o["seller"]) if hidden else
+                          (lambda o: (o["price_incl_vat_minor"] is None, o["price_incl_vat_minor"] or 0)))
+            if hidden:
+                for o in rows:
+                    o["best"] = False
             items.append({"slug": c["slug"], "title": c.get("title_fa") or c.get("title"), "brand": c.get("brand_fa"),
                           "image_url": c.get("image_url"), "category": c.get("category_name_fa"),
                           "summary": _summary(rows), "offers": rows[:MAX_OFFERS]})

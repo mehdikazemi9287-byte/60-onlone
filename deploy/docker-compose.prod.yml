@@ -1,0 +1,108 @@
+# 60Online + Vambi — one-host production stack.  Usage: see docs/DEPLOY.md
+#   cd deploy && docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+name: sixty
+
+x-backend: &backend
+  build: ../backend
+  env_file: .env
+  environment:
+    APP_ENV: production
+    DATABASE_URL: postgresql://sixty:${POSTGRES_PASSWORD}@db:5432/sixty
+    MEDIA_ROOT: /data/media
+    DOCUMENT_STORAGE_DIR: /data/documents
+    TRUSTED_PROXY_HOPS: "1"          # Caddy is the only proxy in front of the API
+  volumes:
+    - media:/data/media
+    - documents:/data/documents
+  restart: unless-stopped
+  depends_on:
+    db: { condition: service_healthy }
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: sixty
+      POSTGRES_USER: sixty
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sixty -d sixty"]
+      interval: 10s
+      retries: 10
+    restart: unless-stopped
+    # never published to the host: only backend, worker and backup reach it
+
+  backend:
+    <<: *backend
+
+  worker:
+    <<: *backend
+    command: ["worker"]
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql://sixty:${POSTGRES_PASSWORD}@db:5432/sixty
+      MEDIA_ROOT: /data/media
+      DOCUMENT_STORAGE_DIR: /data/documents
+      BACKUP_DIR: /backups
+    volumes:
+      - media:/data/media
+      - documents:/data/documents
+      - ${BACKUP_HOST_DIR:-/var/backups/sixty}:/backups:ro
+    healthcheck: { disable: true }
+    depends_on:
+      backend: { condition: service_healthy }
+
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        NEXT_PUBLIC_API_URL: ""      # same origin: Caddy sends /api/* to the backend on every domain
+        NEXT_PUBLIC_MAIN_SITE: https://${MAIN_DOMAIN:-60online.ir}
+    environment:
+      NODE_ENV: production
+      BACKEND_INTERNAL_URL: http://backend:8000   # server-side rendering talks to Flask directly
+      VAMBI_HOSTS: ${VAMBI_DOMAIN:-vambi.ir},www.${VAMBI_DOMAIN:-vambi.ir}
+    restart: unless-stopped
+    depends_on:
+      backend: { condition: service_healthy }
+
+  backup:
+    image: postgres:16-alpine
+    env_file: .env
+    environment:
+      PGHOST: db
+      PGUSER: sixty
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: sixty
+    volumes:
+      - ./backup.sh:/backup.sh:ro
+      - ${BACKUP_HOST_DIR:-/var/backups/sixty}:/backups
+      - media:/data/media:ro
+      - documents:/data/documents:ro
+    entrypoint: ["/bin/sh", "-c", "apk add --no-cache rclone >/dev/null 2>&1 || true; while true; do /bin/sh /backup.sh; sleep 86400; done"]
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+
+  caddy:
+    image: caddy:2-alpine
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      MAIN_DOMAIN: ${MAIN_DOMAIN:-60online.ir}
+      VAMBI_DOMAIN: ${VAMBI_DOMAIN:-vambi.ir}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    depends_on: [frontend, backend]
+
+volumes:
+  pgdata:
+  media:
+  documents:
+  caddy_data:
+  caddy_config:

@@ -122,10 +122,10 @@ export const auth = {
       body: JSON.stringify({ phone }),
     }),
 
-  otpVerify: (phone: string, code: string, fullName?: string) =>
+  otpVerify: (phone: string, code: string, fullName?: string, acceptTerms?: boolean) =>
     request<{ access_token: string; token_type: string; expires_in: number; user: AuthUser; created: boolean }>(
       "/auth/otp/verify",
-      { method: "POST", body: JSON.stringify({ phone, code, full_name: fullName || undefined }) },
+      { method: "POST", body: JSON.stringify({ phone, code, full_name: fullName || undefined, accept_terms: acceptTerms || undefined }) },
     ),
 };
 

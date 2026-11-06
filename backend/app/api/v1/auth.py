@@ -104,15 +104,13 @@ def _otp_token(user_id: int) -> tuple[str, dict]:
     return token, user
 
 
-def _otp_verify(fn):
+def _otp_verify(phone, purpose: str, user_id, fn):
+    """Spend the attempt in its own committed transaction first, then compare the code (race-proof limit)."""
     from app.services import otp_service
-    try:
-        with get_db().write_transaction() as conn:
-            return fn(conn)
-    except otp_service.OtpWrong as exc:
-        with get_db().write_transaction() as conn:
-            otp_service.count_attempt(conn, exc.challenge_id)
-        raise
+    with get_db().write_transaction() as conn:
+        challenge_id = otp_service.claim_attempt(conn, phone=phone, purpose=purpose, user_id=user_id)
+    with get_db().write_transaction() as conn:
+        return fn(conn, challenge_id)
 
 
 @bp.post("/otp/request")
@@ -131,9 +129,10 @@ def otp_verify():
     from app.services import otp_service
     body = _json_body()
     settings = get_settings()
-    uid, created = _otp_verify(lambda conn: otp_service.verify_login(
-        conn, phone=body.get("phone"), code=body.get("code"), secret=settings.secret_key,
-        full_name=body.get("full_name") if isinstance(body.get("full_name"), str) else None, ip_address=client_ip()))
+    uid, created = _otp_verify(body.get("phone"), "login", None, lambda conn, cid: otp_service.verify_login(
+        conn, challenge_id=cid, phone=body.get("phone"), code=body.get("code"), secret=settings.secret_key,
+        full_name=body.get("full_name") if isinstance(body.get("full_name"), str) else None,
+        accept_terms=body.get("accept_terms") is True, ip_address=client_ip()))
     token, user = _otp_token(uid)
     return jsonify({"access_token": token, "token_type": "Bearer", "expires_in": settings.access_token_ttl_seconds,
                     "user": user, "created": created}), (201 if created else 200)
@@ -158,6 +157,7 @@ def phone_link_verify():
     body = _json_body()
     settings = get_settings()
     uid = current_user()["id"]
-    phone = _otp_verify(lambda conn: otp_service.verify_link(conn, user_id=uid, phone=body.get("phone"), code=body.get("code"),
-                                                             secret=settings.secret_key, ip_address=client_ip()))
+    phone = _otp_verify(body.get("phone"), "link", uid, lambda conn, cid: otp_service.verify_link(
+        conn, challenge_id=cid, user_id=uid, phone=body.get("phone"), code=body.get("code"),
+        secret=settings.secret_key, ip_address=client_ip()))
     return jsonify({"phone_verified": phone})

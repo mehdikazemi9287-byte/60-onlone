@@ -23,7 +23,7 @@ def normalize_email(email: str) -> str:
 
 def validate_registration(email: str, password: str, full_name: str) -> None:
     errors: dict[str, str] = {}
-    if not EMAIL_RE.match(normalize_email(email)):
+    if not EMAIL_RE.match(normalize_email(email)) or normalize_email(email).endswith(("@users.60online.invalid", "@phone.60online.ir")):
         errors["email"] = "ایمیل معتبر نیست"
     if not isinstance(password, str) or len(password) < MIN_PASSWORD_LENGTH:
         errors["password"] = f"رمز عبور باید حداقل {MIN_PASSWORD_LENGTH} کاراکتر باشد"

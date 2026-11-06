@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import load_settings  # noqa: E402
-from app.core.db import Database  # noqa: E402
+from app.core.db import Database, make_backend  # noqa: E402
 from app.core.migrator import upgrade  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
 from app.services import ledger_service  # noqa: E402
@@ -501,7 +501,7 @@ def seed(db: Database) -> dict:
 
 def main() -> int:
     settings = load_settings()
-    db = Database(settings.sqlite_path)
+    db = make_backend(settings.database_url)
     created = seed(db)
     totals = {
         "categories": db.query_one("SELECT COUNT(*) n FROM categories")["n"],

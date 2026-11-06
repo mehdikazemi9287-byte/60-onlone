@@ -56,9 +56,16 @@ class B2BTest(AppTestCase):
         org_id = self.onboard().get_json()["account"]["id"]
         self.client.post("/api/v1/auth/otp/request", json={"phone": "09121112233"})
         r = self.client.post("/api/v1/auth/otp/verify", json={"phone": "09121112233", "code": ConsoleSms.outbox["09121112233"],
-                                                                "full_name": "مدیر فروشگاه"})
+                                                                "full_name": "مدیر فروشگاه", "accept_terms": True})
         self.assertEqual(r.status_code, 201, r.get_json())
         h = {"Authorization": f"Bearer {r.get_json()['access_token']}"}
+        # a recycled number must not drop its new owner into the org: membership waits for an explicit yes
+        self.assertEqual(self.client.get(f"/api/v1/orgs/{org_id}/credit-contract", headers=h).status_code, 403)
+        invs = self.client.get("/api/v1/me/org-invitations", headers=h).get_json()["items"]
+        self.assertEqual(len(invs), 1, invs)
+        ok = self.client.post(f"/api/v1/me/org-invitations/{invs[0]['membership_id']}/accept", headers=h)
+        self.assertEqual(ok.status_code, 200, ok.get_json())
+        self.assertEqual(self.client.post(f"/api/v1/me/org-invitations/{invs[0]['membership_id']}/accept", headers=h).status_code, 409)
         c = self.client.get(f"/api/v1/orgs/{org_id}/credit-contract", headers=h)
         self.assertEqual(c.status_code, 200, c.get_json())
         acc = self.client.get(f"{URL}/{org_id}", headers=self.admin_headers()).get_json()
@@ -72,6 +79,9 @@ class B2BTest(AppTestCase):
     def test_applications(self):
         body = {"buyer_kind": "organization", "legal_name": "شرکت آزمایشی", "contact_name": "علی رضایی",
                 "phone": "۰۹۱۲۳۳۳۴۴۵۵", "staff_band": "51-200", "monthly_band": "100m-500m"}
+        r = self.client.post("/api/v1/b2b/applications", json=body)
+        self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (422, "consent_required"))
+        body["privacy_consent"] = True
         self.assertEqual(self.client.post("/api/v1/b2b/applications", json=body).status_code, 201)
         self.assertEqual(self.client.post("/api/v1/b2b/applications", json={**body, "staff_band": "x"}).status_code, 422)
         for _ in range(2):
@@ -87,3 +97,9 @@ class B2BTest(AppTestCase):
         self.assertEqual(self.client.post(f"/api/v1/admin/b2b/applications/{items[0]['id']}/reject", json={},
                                           headers=self.admin_headers()).status_code, 409)
         self.assertEqual(self.client.get("/api/v1/admin/b2b/applications").status_code, 401)
+        import datetime as dt
+        from app.services import b2b_service
+        with self.db.write_transaction() as conn:  # retention: rejected leads go after 180 days, approved stay
+            later = dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=181)
+            self.assertEqual(b2b_service.purge_stale_applications(conn, now=later), 2)
+            self.assertEqual(conn.execute("SELECT status FROM b2b_applications").fetchall()[0][0], "approved")

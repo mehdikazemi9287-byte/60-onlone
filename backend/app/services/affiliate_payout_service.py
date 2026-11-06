@@ -47,7 +47,7 @@ def _affiliate_by_user(conn, user_id: int):
     return a
 
 
-def set_sheba(conn: sqlite3.Connection, *, user_id: int, sheba, holder) -> dict:
+def set_sheba(conn: sqlite3.Connection, *, user_id: int, sheba, holder, national_id=None) -> dict:
     a = _affiliate_by_user(conn, user_id)
     v = (sheba or "").replace(" ", "").upper() if isinstance(sheba, str) else ""
     if not valid_sheba(v):
@@ -55,22 +55,32 @@ def set_sheba(conn: sqlite3.Connection, *, user_id: int, sheba, holder) -> dict:
     h = holder.strip() if isinstance(holder, str) else ""
     if not 2 <= len(h) <= 120:
         raise ValidationError("نام صاحب حساب لازم است", code="holder_required")
+    from app.services.seller_shop_service import valid_national_id
+    nid = national_id.strip().translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹", "0123456789")) if isinstance(national_id, str) else ""
+    if len(nid) != 10 or not valid_national_id(nid):  # a person's code: payouts are income of the account owner
+        raise ValidationError("کد ملی صاحب حساب معتبر نیست", code="invalid_national_id")
     if conn.execute("SELECT 1 FROM affiliate_payouts WHERE affiliate_id=? AND status='pending'", (a["id"],)).fetchone():
         raise ConflictError("تا تسویهٔ در جریان تمام نشده، شبا را نمی‌توان عوض کرد", code="payout_in_progress")
-    conn.execute("UPDATE affiliates SET sheba=?, sheba_holder=?, sheba_verified_at=NULL, sheba_updated_at=? WHERE id=?",
-                 (v, h, _now(), a["id"]))
+    conn.execute("UPDATE affiliates SET sheba=?, sheba_holder=?, payee_national_id=?, sheba_verified_at=NULL, sheba_updated_at=? "
+                 "WHERE id=?", (v, h, nid, _now(), a["id"]))
     audit_service.record(conn, action="affiliate.sheba_changed", entity_type="affiliate", entity_id=int(a["id"]),
                          actor_user_id=user_id, metadata={"sheba_tail": v[-6:]})
     return {"sheba": mask(v), "holder": h, "verified": False}
 
 
-def verify_sheba(conn: sqlite3.Connection, *, affiliate_id: int, actor_user_id: int) -> dict:
+def verify_sheba(conn: sqlite3.Connection, *, affiliate_id: int, actor_user_id: int, expected_sheba: str | None = None) -> dict:
     a = conn.execute("SELECT id, sheba FROM affiliates WHERE id=?", (affiliate_id,)).fetchone()
     if a is None:
         raise NotFoundError("همکار یافت نشد", code="affiliate_not_found")
     if not a["sheba"]:
         raise ConflictError("همکار هنوز شبا ثبت نکرده است", code="sheba_missing")
-    conn.execute("UPDATE affiliates SET sheba_verified_at=? WHERE id=?", (_now(), affiliate_id))
+    if not expected_sheba:
+        raise ValidationError("شبای بررسی‌شده را برای تأیید ارسال کنید", code="sheba_expected_required")
+    expected = str(expected_sheba).strip().upper().replace(" ", "")
+    # the row may have changed since the admin looked at it: verify only the exact sheba they checked
+    cur = conn.execute("UPDATE affiliates SET sheba_verified_at=? WHERE id=? AND sheba=?", (_now(), affiliate_id, expected))
+    if cur.rowcount != 1:
+        raise ConflictError("شبای همکار پس از بررسی شما تغییر کرده است؛ دوباره بررسی کنید", code="sheba_changed")
     audit_service.record(conn, action="affiliate.sheba_verified", entity_type="affiliate", entity_id=affiliate_id,
                          actor_user_id=actor_user_id, metadata={"sheba_tail": a["sheba"][-6:]})
     return {"id": affiliate_id, "verified": True}
@@ -235,8 +245,9 @@ def mark_failed(conn: sqlite3.Connection, *, payout_id: int, reason, actor_user_
 
 def unverified(conn) -> list[dict]:
     return [{"affiliate_id": int(r["id"]), "code": r["code"], "sheba": r["sheba"], "holder": r["sheba_holder"],
-             "user_name": r["full_name"], "updated_at": r["sheba_updated_at"]}
-            for r in conn.execute("SELECT a.id, a.code, a.sheba, a.sheba_holder, a.sheba_updated_at, u.full_name FROM affiliates a "
+             "national_id": r["payee_national_id"], "user_name": r["full_name"], "updated_at": r["sheba_updated_at"]}
+            for r in conn.execute("SELECT a.id, a.code, a.sheba, a.sheba_holder, a.payee_national_id, a.sheba_updated_at, u.full_name "
+                                  "FROM affiliates a "
                                   "JOIN users u ON u.id=a.user_id WHERE a.sheba IS NOT NULL AND a.sheba_verified_at IS NULL "
                                   "AND a.status='active' ORDER BY a.sheba_updated_at")]
 

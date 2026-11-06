@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { apiRequest } from "@/lib/api";
+import { OrgInvitations } from "@/components/account/OrgInvitations";
 type Tier = {
   id: number;
   name_fa: string;
@@ -99,6 +100,7 @@ function AccountPanelBody({
   return (
     <main className="container-page max-w-5xl py-8" dir="rtl">
       <h1 className="text-2xl font-bold">{titles[section]}</h1>
+      {token && <div className="mt-4"><OrgInvitations token={token} /></div>}
       <nav aria-label="بخش‌های حساب کاربری" className="my-6 flex flex-wrap gap-3 rounded-2xl border border-neutral-200 bg-white p-4">
         {Object.entries(titles).map(([path, title]) => (
           <Link key={path} href={"/" + path} aria-current={path===section?"page":undefined} className={path===section?"rounded-lg bg-brand-navy px-3 py-2 text-sm font-bold text-white":"rounded-lg bg-neutral-50 px-3 py-2 text-sm text-brand-navy"}>

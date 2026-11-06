@@ -73,14 +73,44 @@ def _kind(data: dict) -> str:
 
 # ── invitations ─────────────────────────────────────────────────────────────
 
+INVITE_TTL_DAYS = 14  # numbers get recycled: an old invitation must not hand an organization to a new SIM owner
+
+
 def _add_member(conn, organization_id: int, user_id: int, role: str, actor: int | None) -> bool:
+    """Creates the membership as 'invited': the person must accept it (sees who invited them and what it grants)."""
     row = conn.execute("SELECT id FROM organization_memberships WHERE organization_id=? AND user_id=?",
                        (organization_id, user_id)).fetchone()
     if row:
         return False
     conn.execute("INSERT INTO organization_memberships (organization_id, user_id, role, status, invited_by_user_id) "
-                 "VALUES (?,?,?, 'active', ?)", (organization_id, user_id, role, actor))
+                 "VALUES (?,?,?, 'invited', ?)", (organization_id, user_id, role, actor))
     return True
+
+
+def _invite_cutoff() -> str:
+    return (_dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=INVITE_TTL_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def my_invitations(conn, *, user_id: int) -> list[dict]:
+    return [dict(r) for r in conn.execute(
+        "SELECT m.id AS membership_id, m.role, o.id AS organization_id, o.display_name AS organization, o.buyer_kind, "
+        "u.full_name AS invited_by FROM organization_memberships m JOIN organizations o ON o.id=m.organization_id "
+        "LEFT JOIN users u ON u.id=m.invited_by_user_id WHERE m.user_id=? AND m.status='invited' AND o.status='active' "
+        "ORDER BY m.id", (user_id,))]
+
+
+def answer_invitation(conn, *, user_id: int, membership_id: int, accept: bool, ip_address: str | None = None) -> dict:
+    m = conn.execute("SELECT id, organization_id, status FROM organization_memberships WHERE id=? AND user_id=?",
+                     (membership_id, user_id)).fetchone()
+    if m is None:
+        raise NotFoundError("دعوت یافت نشد", code="invitation_not_found")
+    if m["status"] != "invited":
+        raise ConflictError("این دعوت قبلاً پاسخ داده شده است", code="invitation_answered")
+    conn.execute("UPDATE organization_memberships SET status=? WHERE id=?", ("active" if accept else "inactive", membership_id))
+    audit_service.record(conn, action="b2b.invitation_" + ("accepted" if accept else "declined"), entity_type="organization",
+                         entity_id=int(m["organization_id"]), actor_user_id=user_id, ip_address=ip_address,
+                         metadata={"membership_id": membership_id})
+    return {"membership_id": membership_id, "status": "active" if accept else "declined"}
 
 
 def invite(conn, *, organization_id: int, phone, role: str, actor_user_id: int | None) -> dict:
@@ -107,12 +137,14 @@ def invite(conn, *, organization_id: int, phone, role: str, actor_user_id: int |
 
 
 def claim_invites(conn, *, user_id: int, phone: str) -> list[int]:
-    """Called once a number is verified for user_id: every pending invite for it becomes a membership."""
+    """Called once a number is verified for user_id: every fresh pending invite becomes an 'invited' membership,
+    which the person then accepts or declines (my_invitations / answer_invitation)."""
     stamp = _now()
     joined = []
     for inv in conn.execute("SELECT i.id, i.organization_id, i.role, i.invited_by_user_id FROM b2b_invites i "
                             "JOIN organizations o ON o.id=i.organization_id "
-                            "WHERE i.phone=? AND i.status='pending' AND o.status IN ('pending','active')", (phone,)).fetchall():
+                            "WHERE i.phone=? AND i.status='pending' AND o.status IN ('pending','active') AND i.created_at>?",
+                            (phone, _invite_cutoff())).fetchall():
         _add_member(conn, int(inv["organization_id"]), user_id, inv["role"], inv["invited_by_user_id"])
         conn.execute("UPDATE b2b_invites SET status='claimed', claimed_user_id=?, claimed_at=? WHERE id=?",
                      (user_id, stamp, inv["id"]))
@@ -248,6 +280,8 @@ def submit_application(conn, *, data: dict, ip_address: str | None) -> dict:
     if not isinstance(data, dict):
         raise ValidationError("بدنهٔ درخواست نامعتبر است")
     kind = _kind(data)
+    if data.get("privacy_consent") is not True:
+        raise ValidationError("برای ثبت درخواست، رضایت به تماس و نگهداری اطلاعات لازم است", code="consent_required")
     phone = normalize_phone(data.get("phone"))
     day_ago = (_dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     if conn.execute("SELECT COUNT(*) FROM b2b_applications WHERE phone=? AND created_at>?", (phone, day_ago)).fetchone()[0] >= APPS_PER_PHONE_DAY:
@@ -268,6 +302,16 @@ def submit_application(conn, *, data: dict, ip_address: str | None) -> dict:
          phone, _text(data, "city", required=False, hi=60), staff, monthly, _text(data, "message", required=False, lo=1, hi=1000),
          ip_address, _now()))
     return {"received": True}
+
+
+APPLICATION_RETENTION_DAYS = 180
+
+
+def purge_stale_applications(conn, *, now: _dt.datetime | None = None) -> int:
+    """Rejected (or never-answered) leads hold personal data we no longer need: delete them after the retention period.
+    Approved ones stay — they are the onboarding record of a live account."""
+    cutoff = ((now or _dt.datetime.now(_dt.timezone.utc)) - _dt.timedelta(days=APPLICATION_RETENTION_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return conn.execute("DELETE FROM b2b_applications WHERE status IN ('rejected','new') AND created_at < ?", (cutoff,)).rowcount
 
 
 def list_applications(conn, *, status: str = "new") -> list[dict]:

@@ -442,7 +442,15 @@ class _PgConnectionShim:
         # Pass params for placeholder-count validation inside _adapt_pg_sql.
         adapted = _adapt_pg_sql(sql, params if params else None)
         cur = self._conn.cursor()
-        cur.execute(adapted, params if params else None)
+        try:
+            cur.execute(adapted, params if params else None)
+        except Exception as exc:
+            # Callers catch sqlite3.IntegrityError (duplicate email, unique keys…): give them the same type on PG.
+            # The PG transaction is aborted afterwards, so callers must only raise from that handler (they all do).
+            if type(exc).__name__ in ("IntegrityError", "UniqueViolation", "ForeignKeyViolation", "CheckViolation",
+                                      "NotNullViolation") or exc.__class__.__mro__[1].__name__ == "IntegrityError":
+                raise sqlite3.IntegrityError(str(exc)) from exc
+            raise
 
         # Track rowcount for total_changes compatibility (UPDATE/DELETE affected rows).
         self._last_rowcount = cur.rowcount if cur.rowcount >= 0 else 0
@@ -499,7 +507,20 @@ def _adapt_pg_sql(sql: str, params: Sequence[Any] | None = None) -> str:
 
     # datetime('now') → to_char(timezone('UTC', NOW()), 'YYYY-MM-DD"T"HH24:MI:SS.US"+00:00"')
     _dt_now = "to_char(timezone('UTC', NOW()), 'YYYY-MM-DD\"T\"HH24:MI:SS.US\"+00:00\"')"
+
+    # datetime('now', '-24 hours') and similar offsets → a UTC *timestamp*: every caller compares it with
+    # datetime(col), which this adapter turns into col::timestamp (compare those, never raw text columns).
+    sql = _re.sub(
+        r"datetime\(\s*'now'\s*,\s*'([+-]?\d+)\s*(seconds?|minutes?|hours?|days?)'\s*\)",
+        lambda m: f"(timezone('UTC', NOW()) + interval '{m.group(1)} {m.group(2)}')",
+        sql, flags=_re.IGNORECASE,
+    )
+
     sql = _re.sub(r"datetime\(\s*'now'\s*\)", _dt_now, sql, flags=_re.IGNORECASE)
+
+    # date('now') → UTC calendar date as 'YYYY-MM-DD' text (SQLite's date('now'))
+    sql = _re.sub(r"(?<![A-Za-z_])date\(\s*'now'\s*\)", "to_char(timezone('UTC', NOW()), 'YYYY-MM-DD')",
+                  sql, flags=_re.IGNORECASE)
 
     # strftime('%Y-%m-%dT%H:%M:%fZ', 'now') and variants → same UTC text
     sql = _re.sub(

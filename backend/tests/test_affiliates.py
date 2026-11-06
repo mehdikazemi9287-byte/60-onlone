@@ -16,7 +16,7 @@ class AffiliateTest(AppTestCase):
 
     def _referred_delivery(self, *, bonus_bps=0, self_ref=False, later_bonus_bps=None, qty=1):
         aff_token, aff_headers = self.new_customer()
-        code = self.client.post("/api/v1/me/affiliate", json={"code": "Karen2026"}, headers=aff_headers).get_json()["affiliate"]["code"]
+        code = self.client.post("/api/v1/me/affiliate", json={"code": "Karen2026", "accept_terms": True}, headers=aff_headers).get_json()["affiliate"]["code"]
         buyer_headers = aff_headers if self_ref else self.new_customer()[1]
         self.client.post("/api/v1/me/referral", json={"code": code}, headers=buyer_headers)
         product = self.product("office-paper-a4-carton")
@@ -74,8 +74,9 @@ class AffiliateTest(AppTestCase):
                          "FROM orders o JOIN fulfillment_order_items i ON i.fulfillment_order_id=? WHERE o.id=?", (fo["id"], fo["order_id"]))
         self.assertEqual(self.client.get("/api/v1/me/affiliate", headers=h).get_json()["items"][0]["state"], "on_hold")
         _, other = self.new_customer()
-        self.assertEqual(self.client.post("/api/v1/me/affiliate", json={"code": "karen2026"}, headers=other).status_code, 409)
-        self.assertEqual(self.client.post("/api/v1/me/affiliate", json={"code": "bad code!"}, headers=other).status_code, 422)
+        self.assertEqual(self.client.post("/api/v1/me/affiliate", json={"code": "zz2026"}, headers=other).get_json()["error"]["code"], "terms_required")
+        self.assertEqual(self.client.post("/api/v1/me/affiliate", json={"code": "karen2026", "accept_terms": True}, headers=other).status_code, 409)
+        self.assertEqual(self.client.post("/api/v1/me/affiliate", json={"code": "bad code!", "accept_terms": True}, headers=other).status_code, 422)
 
     def _return(self, fo, status, qty=1, product_id=None):
         import json

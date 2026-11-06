@@ -37,7 +37,7 @@ export default function AffiliatePayoutsAdmin() {
           {p.unverified.map((u) => (
             <li key={u.affiliate_id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-neutral-50 p-2">
               <span>{u.user_name} · کد {u.code} · <span dir="ltr">{u.sheba}</span> · {u.holder}</span>
-              <button className={btn} onClick={() => act(() => apiRequest(`/admin/affiliates/${u.affiliate_id}/verify-sheba`, { token, method: "POST" }))}>تأیید شبا</button>
+              <button className={btn} onClick={() => act(() => apiRequest(`/admin/affiliates/${u.affiliate_id}/verify-sheba`, { token, method: "POST", body: JSON.stringify({ sheba: u.sheba }) }))}>تأیید شبا</button>
             </li>
           ))}
         </ul>

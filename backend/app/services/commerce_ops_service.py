@@ -177,6 +177,11 @@ def admin_transition(conn, *, actor: int, return_id: int, action: str, data: dic
             raise ValidationError("مبلغ بازپرداخت نامعتبر است یا از مانده سفارش بیشتر است")
         if not 3 <= len(ref) <= 200:
             raise ValidationError("مرجع بانکی بازپرداخت الزامی است")
+        split = refund_split(conn, return_id=return_id, amount=amount)
+        if split["welfare_minor"] and data.get("bank_amount_minor") != split["bank_minor"]:
+            raise ConflictError(f"بخشی از این بازپرداخت ({split['welfare_minor']:,} ریال) به کیف پول رفاهی برمی‌گردد؛ "
+                                f"واریز بانکی باید {split['bank_minor']:,} ریال باشد. مبلغ واریز بانکی را تأیید کنید",
+                                code="refund_split_mismatch")
     changed = conn.execute("""UPDATE order_return_requests SET status=?, refund_amount_minor=COALESCE(?, refund_amount_minor),
                               refund_reference=COALESCE(?, refund_reference), version=version+1, updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')
                               WHERE id=? AND version=?""", (to, amount, ref, return_id, r["version"]))
@@ -188,7 +193,7 @@ def admin_transition(conn, *, actor: int, return_id: int, action: str, data: dic
         total = conn.execute("SELECT total_minor FROM orders WHERE id=?", (r["order_id"],)).fetchone()[0]
         refunded = conn.execute("SELECT COALESCE(SUM(refund_amount_minor),0) FROM order_return_requests WHERE order_id=? AND status='refunded'",
                                 (r["order_id"],)).fetchone()[0]
-        _restore_welfare(conn, order_id=r["order_id"], return_id=return_id, amount=amount, total=total, refunded=refunded)
+        _restore_welfare(conn, order_id=r["order_id"], return_id=return_id, amount=amount)
         if refunded >= total:
             conn.execute("UPDATE orders SET status='refunded' WHERE id=?", (r["order_id"],))
     view = _return_view(conn, conn.execute("SELECT * FROM order_return_requests WHERE id=?", (return_id,)).fetchone())
@@ -196,22 +201,42 @@ def admin_transition(conn, *, actor: int, return_id: int, action: str, data: dic
     return view
 
 
-def _restore_welfare(conn, *, order_id: int, return_id: int, amount: int, total: int, refunded: int) -> None:
-    """The welfare share of a refund goes back to the wallet (same proportion it paid); the bank refunds the rest.
-    The last refund that brings the order to fully refunded returns whatever welfare share is still out."""
-    from app.services import welfare_wallet_service
-    o = conn.execute("SELECT welfare_minor, payment_intent_id FROM orders WHERE id=?", (order_id,)).fetchone()
+def _welfare_share(conn, *, order_id: int, return_id: int, amount: int) -> tuple[int, str | None]:
+    """(share, payment_intent_id): how much of a refund of `amount` goes back to the welfare wallet (same proportion it paid);
+    the refund that brings the order to fully refunded returns whatever welfare share is still out."""
+    o = conn.execute("SELECT welfare_minor, payment_intent_id, total_minor FROM orders WHERE id=?", (order_id,)).fetchone()
     welfare = int(o["welfare_minor"] or 0) if o is not None and "welfare_minor" in o.keys() else 0
     if welfare <= 0 or not o["payment_intent_id"]:
-        return
+        return 0, None
+    total = int(o["total_minor"])
+    prior = conn.execute("SELECT COALESCE(SUM(refund_amount_minor),0) FROM order_return_requests WHERE order_id=? AND status='refunded' AND id<>?",
+                         (order_id, return_id)).fetchone()[0]
     already = conn.execute("SELECT COALESCE(SUM(welfare_restored_minor),0) FROM order_return_requests WHERE order_id=? AND id<>?",
                            (order_id, return_id)).fetchone()[0]
-    share = welfare - already if refunded >= total else min(welfare - already, amount * welfare // total)
+    share = welfare - already if prior + amount >= total else min(welfare - already, amount * welfare // total)
+    return max(0, int(share)), o["payment_intent_id"]
+
+
+def refund_split(conn, *, return_id: int, amount: int) -> dict:
+    """What finance must actually wire for a refund of `amount` — shown BEFORE the bank transfer, so nobody pays the
+    welfare share twice (once into the wallet, once to the bank account)."""
+    r = conn.execute("SELECT order_id FROM order_return_requests WHERE id=?", (return_id,)).fetchone()
+    if not r:
+        raise NotFoundError("درخواست مرجوعی یافت نشد")
+    if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
+        raise ValidationError("مبلغ بازپرداخت نامعتبر است")
+    share, _ = _welfare_share(conn, order_id=r["order_id"], return_id=return_id, amount=amount)
+    return {"amount_minor": amount, "welfare_minor": share, "bank_minor": amount - share}
+
+
+def _restore_welfare(conn, *, order_id: int, return_id: int, amount: int) -> None:
+    from app.services import welfare_wallet_service
+    share, intent = _welfare_share(conn, order_id=order_id, return_id=return_id, amount=amount)
     if share <= 0:
         return
     restored = welfare_wallet_service.restore_partial(
-        conn, spend_key=f"intent:{o['payment_intent_id']}", amount_minor=share,
-        restore_key=f"intent:{o['payment_intent_id']}:restore:{return_id}")
+        conn, spend_key=f"intent:{intent}", amount_minor=share,
+        restore_key=f"intent:{intent}:restore:{return_id}")
     conn.execute("UPDATE order_return_requests SET welfare_restored_minor=? WHERE id=?", (restored, return_id))
 
 

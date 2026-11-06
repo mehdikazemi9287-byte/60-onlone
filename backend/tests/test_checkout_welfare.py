@@ -80,14 +80,24 @@ class CheckoutWelfareTest(AppTestCase):
             self.assertEqual(conn.execute("SELECT COUNT(*) FROM orders").fetchone()[0], 0)
 
 
+from app.core.errors import ConflictError  # noqa: E402
+
+
 class WelfareRefundTest(CheckoutWelfareTest):
     def _return(self, order_id, amount, admin_id):
         from app.services import commerce_ops_service as ops
         with self.db.write_transaction() as conn:
             rid = conn.execute("INSERT INTO order_return_requests (order_id, user_id, items_json, reason, status) "
                                "SELECT id, user_id, '[]', 'خراب بود', 'refund_pending' FROM orders WHERE id=?", (order_id,)).lastrowid
-            return ops.admin_transition(conn, actor=admin_id, return_id=rid, action="refund",
-                                        data={"amount_minor": amount, "reference": "REF-123"})
+            split = ops.refund_split(conn, return_id=rid, amount=amount)
+            self.assertGreater(split["welfare_minor"], 0)
+            with self.assertRaises(ConflictError):  # finance must confirm the bank share, not wire the full amount
+                ops.admin_transition(conn, actor=admin_id, return_id=rid, action="refund",
+                                     data={"amount_minor": amount, "reference": "REF-123"})
+            v = ops.admin_transition(conn, actor=admin_id, return_id=rid, action="refund",
+                                     data={"amount_minor": amount, "reference": "REF-123", "bank_amount_minor": split["bank_minor"]})
+            self.assertEqual(v["bank_refund_minor"], split["bank_minor"])
+            return v
 
     def test_refund_refills_wallet_in_proportion(self):
         org, emp, total = self.setup_cart()

@@ -13,12 +13,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import load_settings  # noqa: E402
-from app.core.db import Database  # noqa: E402
+from app.core.db import Database, make_backend  # noqa: E402
 from app.services import credit_contract_service, installment_service, org_order_service  # noqa: E402
 
 
 def main() -> int:
-    db = Database(load_settings().sqlite_path)
+    db = make_backend(load_settings().database_url)
     with db.write_transaction() as conn:
         statements = credit_contract_service.run_weekly_statements(conn)
         overdue = credit_contract_service.enforce_overdue(conn)

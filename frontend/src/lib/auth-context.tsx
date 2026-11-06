@@ -11,7 +11,7 @@ interface AuthContextValue {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithOtp: (phone: string, code: string, fullName?: string) => Promise<{ created: boolean }>;
+  loginWithOtp: (phone: string, code: string, fullName?: string, acceptTerms?: boolean) => Promise<{ created: boolean }>;
   register: (email: string, password: string, fullName: string, phone?: string) => Promise<void>;
   logout: () => void;
 }
@@ -57,8 +57,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(res.user);
   }, []);
 
-  const loginWithOtp = useCallback(async (phone: string, code: string, fullName?: string) => {
-    const res = await auth.otpVerify(phone, code, fullName);
+  const loginWithOtp = useCallback(async (phone: string, code: string, fullName?: string, acceptTerms?: boolean) => {
+    const res = await auth.otpVerify(phone, code, fullName, acceptTerms);
     localStorage.setItem(TOKEN_KEY, res.access_token);
     bindDraftOwner(res.user.id);
     setToken(res.access_token);

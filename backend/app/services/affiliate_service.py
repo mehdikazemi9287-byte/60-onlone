@@ -33,10 +33,15 @@ def _iso(t: _dt.datetime) -> str:
     return t.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 
-def join(conn: sqlite3.Connection, *, user_id: int, code: str | None = None) -> dict:
+AFFILIATE_TERMS_VERSION = "draft-1405-1"  # bump when /terms/affiliate changes; members re-accept on next join call
+
+
+def join(conn: sqlite3.Connection, *, user_id: int, code: str | None = None, accept_terms: bool = False) -> dict:
     row = conn.execute("SELECT * FROM affiliates WHERE user_id=?", (user_id,)).fetchone()
     if row:
         return dict(row)
+    if accept_terms is not True:
+        raise ValidationError("برای پیوستن، پذیرش قوانین همکاری در فروش لازم است", code="terms_required")
     if code is not None:
         if not isinstance(code, str) or not _CODE.fullmatch(code):
             raise ValidationError("کد معرف فقط حروف و عدد لاتین، ۴ تا ۲۴ نویسه", details={"field": "code"})
@@ -44,7 +49,8 @@ def join(conn: sqlite3.Connection, *, user_id: int, code: str | None = None) -> 
             raise ConflictError("این کد قبلاً گرفته شده است", code="affiliate_code_taken")
     else:
         code = "R" + secrets.token_hex(4).upper()
-    conn.execute("INSERT INTO affiliates (user_id, code) VALUES (?,?)", (user_id, code))
+    conn.execute("INSERT INTO affiliates (user_id, code, terms_version, terms_accepted_at) VALUES (?,?,?,?)",
+                 (user_id, code, AFFILIATE_TERMS_VERSION, _iso(_now())))
     return dict(conn.execute("SELECT * FROM affiliates WHERE user_id=?", (user_id,)).fetchone())
 
 

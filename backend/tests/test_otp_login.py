@@ -40,6 +40,8 @@ class OtpTest(AppTestCase):
         r = self.ver(code)
         self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (422, "full_name_required"))
         r = self.ver(code, full_name="کارن کاظمی")
+        self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (422, "terms_required"))
+        r = self.ver(code, full_name="کارن کاظمی", accept_terms=True)
         self.assertEqual(r.status_code, 201, r.get_json())
         token = r.get_json()["access_token"]
         me = self.client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
@@ -92,7 +94,7 @@ class OtpTest(AppTestCase):
             conn.execute("UPDATE users SET phone=? WHERE id=?", (self.N, uid))
         a = self.req().get_json()
         self.assertEqual(set(a), {"sent", "expires_in_seconds", "resend_in_seconds"})
-        r = self.ver(ConsoleSms.outbox[self.N], full_name="کسی دیگر")
+        r = self.ver(ConsoleSms.outbox[self.N], full_name="کسی دیگر", accept_terms=True)
         self.assertEqual(r.status_code, 201)
         self.assertNotEqual(r.get_json()["user"]["id"], uid)  # free-text phone never grants access
 
@@ -111,7 +113,19 @@ class OtpTest(AppTestCase):
         self.assertEqual(r.get_json()["user"]["id"], uid)
         _, h2 = self.new_customer()
         self._age_codes()
-        self.assertEqual(self.client.post("/api/v1/auth/phone/request", json={"phone": self.PHONE}, headers=h2).status_code, 409)
+        ConsoleSms.outbox.clear()
+        # someone else's number: same answer as any request (no enumeration) and no SMS goes to the owner
+        self.assertEqual(self.client.post("/api/v1/auth/phone/request", json={"phone": self.PHONE}, headers=h2).status_code, 200)
+        self.assertNotIn(self.N, ConsoleSms.outbox)
+
+    def test_staff_cannot_login_by_sms(self):
+        h = self.admin_headers()
+        uid = self.client.get("/api/v1/auth/me", headers=h).get_json()["user"]["id"]
+        with self.db.write_transaction() as conn:
+            conn.execute("UPDATE users SET phone=?, phone_verified=? WHERE id=?", (self.N, self.N, uid))
+        self.req()
+        r = self.ver(ConsoleSms.outbox[self.N])
+        self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (401, "otp_not_allowed"))
 
     def test_production_refuses_console_sender(self):
         with self.db.write_transaction() as conn:
