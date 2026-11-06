@@ -233,6 +233,14 @@ function ConfirmStep({
   const [placedOrderNumber, setPlacedOrderNumber] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [boundary, setBoundary] = useState(false);
+  // Buyer terms + statutory withdrawal notice, accepted before paying (recorded as evidence).
+  const [terms, setTerms] = useState<{ version: string; url: string } | null>(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  useEffect(() => {
+    apiRequest<{ documents: { doc_key: string; version: string; url: string }[] }>("/legal/terms")
+      .then((r) => { const d = r.documents.find((x) => x.doc_key === "buyer_terms"); if (d) setTerms(d); })
+      .catch(() => {});
+  }, []);
   const [redirecting, setRedirecting] = useState(false);
   const [requestKey] = useState(() => newIdempotencyKey());
   const [idempotencyKey, setIdempotencyKey] = useState(() => newIdempotencyKey());
@@ -263,7 +271,7 @@ function ConfirmStep({
     setPlacing(true);
     setError(null);
     try {
-      const placed = await checkoutApi.place(token, idempotencyKey, address, method);
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version);
       if (placed.payment_redirect) {
         // Pay on the bank page; the bank sends the customer back to the order or here with the result.
         setRedirecting(true);
@@ -388,13 +396,21 @@ function ConfirmStep({
         </p>
       </div>
 
+      {terms && (
+        <label className="flex items-start gap-2 text-sm text-neutral-700">
+          <input type="checkbox" className="mt-1" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
+          <span>
+            <a href={terms.url} target="_blank" rel="noopener" className="underline">شرایط خرید</a> را می‌پذیرم. می‌دانم تا ۷ روز کاری بعد از تحویل، بدون ذکر دلیل حق انصراف دارم (به‌جز کالاهای استثنا).
+          </span>
+        </label>
+      )}
       <div className="flex gap-3">
         <button onClick={onBack} disabled={placing} className="flex-1 py-3 rounded-xl border border-neutral-200 text-sm text-neutral-600 font-medium hover:bg-neutral-50 transition-colors disabled:opacity-50">
           بازگشت
         </button>
         <button
           onClick={handlePlace}
-          disabled={placing || boundary}
+          disabled={placing || boundary || (!!terms && !acceptTerms)}
           className="flex-[2] py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
         >
           {placing ? (

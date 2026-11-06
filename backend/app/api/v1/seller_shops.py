@@ -1,7 +1,7 @@
 """Phase 1 — seller shops: public shop pages, self-registration, seller panel, admin review."""
 from flask import Blueprint, jsonify, request
 
-from app.core.deps import current_user, get_db, require_auth
+from app.core.deps import client_ip, current_user, get_db, require_auth
 from app.core.errors import PermissionError_, ValidationError
 from app.services import seller_shop_service as shops
 from app.services.access_admin_service import current_supplier_id
@@ -54,7 +54,9 @@ def terms():
 @require_auth()
 def apply():
     with get_db().write_transaction() as conn:
-        return jsonify({"shop": shops.apply(conn, user_id=current_user()["id"], data=_body())}), 201
+        data = {k: v for k, v in _body().items() if not k.startswith("_")}
+        data.update({"_ip": client_ip(), "_ua": request.headers.get("User-Agent")})
+        return jsonify({"shop": shops.apply(conn, user_id=current_user()["id"], data=data)}), 201
 
 
 @bp.get("/api/v1/supplier/shop")

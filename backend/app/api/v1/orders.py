@@ -24,6 +24,18 @@ def checkout():
         redeem_coins = int(raw_redeem) if raw_redeem not in (None, "") else 0
     except (TypeError, ValueError) as exc:
         raise ValidationError("redeem_coins باید عدد صحیح باشد") from exc
+    # Buyer terms: record the accepted version as evidence; required when LEGAL_REQUIRE_BUYER_TERMS=1.
+    accepted = body.get("accepted_terms_version")
+    import os
+    from app.services import consumer_rights_service
+    if accepted is not None or os.environ.get("LEGAL_REQUIRE_BUYER_TERMS") == "1":
+        if not isinstance(accepted, str):
+            raise ValidationError("پذیرفتن شرایط خرید لازم است", code="terms_required")
+        with get_db().write_transaction() as conn:
+            consumer_rights_service.record_acceptance(
+                conn, user_id=user["id"], doc_key="buyer_terms", version=accepted, context="checkout",
+                context_ref=request.headers.get("Idempotency-Key", "")[:200], ip=client_ip(),
+                user_agent=request.headers.get("User-Agent"))
     status, payload = checkout_service.checkout(
         get_db(),
         user_id=user["id"],

@@ -159,7 +159,8 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
           <div className="rounded-2xl border border-neutral-200 bg-white p-4">
             {d.price_minor != null ? (
               <>
-                <p className="text-2xl font-black text-brand-navy">{formatPrice(d.price_minor)}</p>
+                <p className="text-2xl font-black text-brand-navy">{formatPrice(d.price_incl_vat_minor ?? d.price_minor)}</p>
+                {d.vat_bps ? <p className="text-[11px] text-neutral-500">با احتساب {toPersianNum(d.vat_bps / 100)}٪ مالیات بر ارزش افزوده</p> : null}
                 <p className="mt-1 flex items-center gap-1 text-xs text-emerald-700"><CheckCircle2 className="h-4 w-4" /> قیمت و موجودی تأییدشده فروشنده (۲۴ ساعت اخیر)</p>
               </>
             ) : (

@@ -153,7 +153,7 @@ def commission_for_fulfillment(conn: sqlite3.Connection, fulfillment_order_id: i
 def apply(conn: sqlite3.Connection, *, user_id: int, data: dict) -> dict:
     allowed = {"seller_kind", "legal_name", "shop_title", "shop_slug", "national_id", "mobile", "email",
                "province", "city", "address", "sheba", "bank_name", "shop_bio", "accept_terms"}
-    extra = set(data) - allowed
+    extra = set(data) - allowed - {"_ip", "_ua"}
     if extra:
         raise ValidationError("فیلد ناشناخته", details={"fields": sorted(extra)})
     if data.get("accept_terms") is not True:
@@ -204,6 +204,10 @@ def apply(conn: sqlite3.Connection, *, user_id: int, data: dict) -> dict:
     conn.execute(
         "INSERT INTO supplier_onboarding_events (supplier_id, from_stage, to_stage, actor_user_id, note) "
         "VALUES (?, 'draft', 'submitted', ?, 'ثبت‌نام خودکار غرفه')", (sid, user_id))
+    from app.services import consumer_rights_service
+    consumer_rights_service.record_acceptance(conn, user_id=user_id, doc_key="seller_terms", version=TERMS_VERSION,
+                                              context="seller_apply", context_ref=f"supplier:{sid}",
+                                              ip=data.get("_ip"), user_agent=data.get("_ua"))
     return shop_view(conn, sid, private=True)
 
 

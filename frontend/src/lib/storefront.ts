@@ -10,7 +10,7 @@ export type Offer = {
   offer_id: number; seller: string; seller_city: string | null; pricing_mode: string; channel: string; price_minor: number | null;
   price_confirmed: boolean; stock_state: "in_stock" | "out_of_stock" | "unknown"; available: number | null; min_order_quantity: number;
   max_order_quantity: number | null; lead_time_days: number | null; valid_until: string | null; tiers: { retail: Tier[]; organization: Tier[] };
-  provenance: string; eligible: boolean; list_price_minor?: number | null; list_price_at?: string | null;
+  provenance: string; eligible: boolean; list_price_minor?: number | null; list_price_at?: string | null; price_incl_vat_minor?: number | null; vat_bps?: number;
 };
 export type Variant = { allowed_channels?:string[]; supply_channel?:string; sku_id: number; slug: string; sku: string; label: string | null; title_fa: string; attributes: Record<string, unknown>;
   image_url: string | null; availability: string; price_minor: number | null; selected: boolean };
@@ -23,7 +23,7 @@ export type ProductPage = {
     description_fa: string; images: string[]; variant_label: string | null; attributes: Record<string, unknown>; specs: { label: string; value: unknown }[];
     provenance: string; master_product_id: number; unit?: string | null; package_quantity?: number | null };
   breadcrumbs: { slug: string; name_fa: string; level: string }[];
-  variants: Variant[]; offers: Offer[]; availability: string; price_minor: number | null; cta: "add_to_cart" | "request_quote";
+  variants: Variant[]; offers: Offer[]; availability: string; price_minor: number | null; price_incl_vat_minor?: number | null; vat_bps?: number; cta: "add_to_cart" | "request_quote";
   sale_blocker: string | null; sales_enabled: boolean; list_price_minor?: number | null; list_price_at?: string | null; org_only?: boolean; related: Card[]; alternatives: Card[];
 };
 export type PackItem = { allowed_channels?:string[]; master_product_id: number; sku_id: number | null; slug: string | null; title_fa: string; brand_fa: string | null;

@@ -65,6 +65,7 @@ from app.api.v1 import cashier as cashier_api
 from app.api.v1 import org_brands as org_brands_api
 from app.api.v1 import credit_platform as credit_platform_api
 from app.api import partner_v1 as partner_v1_api
+from app.api.v1 import consumer_rights as consumer_rights_api
 from app.api.v1 import admin_partner_api, finance_exports as finance_exports_api, logistics_v2 as logistics_v2_api
 from app.core.config import Settings, load_settings
 from app.core.db import Database, DatabaseBackend, make_backend
@@ -193,6 +194,7 @@ def create_app(
         admin_partner_api.bp,
         finance_exports_api.bp,
         logistics_v2_api.bp,
+        consumer_rights_api.bp,
     ):
         app.register_blueprint(blueprint)
 

@@ -130,6 +130,13 @@ def create_settlement_batch(
         stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
         held = [eid for eid in payable_entry_ids
                 if entries_by_id[eid].get("available_at") and entries_by_id[eid]["available_at"] > stamp]
+        disputed = [eid for eid in payable_entry_ids if conn.execute(
+            "SELECT 1 FROM supplier_payable_entries pe JOIN fulfillment_orders fo ON fo.id = pe.fulfillment_order_id "
+            "JOIN order_return_requests r ON r.order_id = fo.order_id WHERE pe.id = ? "
+            "AND r.status IN ('requested','approved','received','refund_pending')", (eid,)).fetchone()]
+        if disputed:
+            raise ConflictError("برای سفارش این مبالغ درخواست مرجوعی یا انصراف باز است",
+                                code="return_open", details={"entry_ids": disputed})
         if held:
             raise ConflictError("این مبالغ هنوز در دورهٔ امانت (بعد از تحویل) هستند",
                                 code="payable_on_hold", details={"entry_ids": held})

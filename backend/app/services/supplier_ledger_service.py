@@ -109,9 +109,13 @@ def record_sale_payable(
     fee = seller_shop_service.commission_for_fulfillment(conn, fulfillment_order_id)
     kind = conn.execute("SELECT seller_kind FROM suppliers WHERE id = ?", (supplier_id,)).fetchone()
     # Contracted suppliers settle by contract; only self-registered shops get the escrow hold.
-    available_at = None if kind is None or kind["seller_kind"] == "supplier" else (
-        _dt.datetime.now(_dt.timezone.utc)
-        + _dt.timedelta(days=seller_shop_service.hold_days())).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    available_at = None
+    if kind is not None and kind["seller_kind"] != "supplier":
+        # Never before the buyer's statutory withdrawal window (7 working days after delivery) closes.
+        from app.services import consumer_rights_service
+        hold = _dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(days=seller_shop_service.hold_days())
+        available_at = max(hold, consumer_rights_service.escrow_floor(conn, fulfillment_order_id)
+                           ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     cursor = conn.execute(
         """
         INSERT INTO supplier_payable_entries

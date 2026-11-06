@@ -137,7 +137,14 @@ def category_path(cats: dict, cat_id) -> list[dict]:
 
 # ── Offers ──
 
+def _gross(net, vat_bps):
+    from app.services.consumer_rights_service import gross
+    return gross(net, vat_bps)
+
+
 def offers_for(conn, sku_id: int, *, viewer_org_ids: tuple = ()) -> list[dict]:
+    from app.services import consumer_rights_service as _crs
+    vat_bps = _crs.standard_vat_bps(conn)
     prov = _prov_sql()
     rows = conn.execute(f"""
         SELECT so.*, s.display_name AS seller, s.provenance AS seller_provenance, sl.city AS seller_city,
@@ -179,6 +186,9 @@ def offers_for(conn, sku_id: int, *, viewer_org_ids: tuple = ()) -> list[dict]:
             "list_price_minor": o["selling_price_minor"] if (o["pricing_mode"] in ("fixed", "bulk") and o["selling_price_minor"] > 0
                                                              and o["last_price_confirmed_at"]) else None,
             "list_price_at": o["last_price_confirmed_at"],
+            # Consumer law: the shown price must include VAT; price_minor stays the net used by checkout.
+            "price_incl_vat_minor": _crs.gross(o["selling_price_minor"] if priced else None, vat_bps),
+            "vat_bps": vat_bps,
         })
     return out
 
@@ -477,6 +487,9 @@ def product(conn, slug: str, *, viewer_org_ids: tuple = ()) -> dict:
                     "master_product_id": s.variant_id, "supply_channel":s.supply_channel,"allowed_channels":list(policy.channels(s.supply_channel)), "unit": s.specs.get("unit"), "package_quantity": s.specs.get("package_quantity")},
         "breadcrumbs": [{"slug": c["slug"], "name_fa": c["name_fa"], "level": c["level"]} for c in path],
         "variants": variants, "offers": offers, "availability": state, "price_minor": price,
+        # Shown price includes VAT (consumer law); price_minor stays net for cart/checkout math.
+        "price_incl_vat_minor": _gross(price, offers[0]["vat_bps"] if offers else 0),
+        "vat_bps": offers[0]["vat_bps"] if offers else 0,
         "cta": cta, "sale_blocker": blocker, "sales_enabled": se.sales_enabled(),
         "list_price_minor": lp["price"] if lp else None, "list_price_at": lp["at"] if lp else None,
         "org_only": s.supply_channel=="organization", "supply_channel":s.supply_channel,"allowed_channels":list(policy.channels(s.supply_channel)),
