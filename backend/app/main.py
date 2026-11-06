@@ -69,6 +69,7 @@ from app.api.v1 import consumer_rights as consumer_rights_api
 from app.api.v1 import in_person as in_person_api
 from app.api.v1 import affiliates as affiliates_api
 from app.api.v1 import catalog_schema as catalog_schema_api
+from app.api.v1 import price_feeds as price_feeds_api
 from app.api.v1 import admin_partner_api, finance_exports as finance_exports_api, logistics_v2 as logistics_v2_api
 from app.core.config import Settings, load_settings
 from app.core.db import Database, DatabaseBackend, make_backend
@@ -209,6 +210,7 @@ def create_app(
         in_person_api.bp,
         affiliates_api.bp,
         catalog_schema_api.bp,
+        price_feeds_api.bp,
     ):
         app.register_blueprint(blueprint)
 
