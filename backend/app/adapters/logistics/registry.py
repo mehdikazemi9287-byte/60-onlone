@@ -21,7 +21,7 @@ _ADAPTERS: dict[str, CarrierAdapter] = {
 
 # Placeholder entries — future implementations will replace these.
 # Accessing them raises NotImplementedError from the base class.
-_NOT_IMPLEMENTED = ("alopeyk", "post", "tipax", "local_courier")
+_NOT_IMPLEMENTED = ("alopeyk", "post", "tipax", "local_courier", "chapar")
 
 
 def get_carrier_adapter(provider_code: str) -> CarrierAdapter:
@@ -43,3 +43,34 @@ def get_carrier_adapter(provider_code: str) -> CarrierAdapter:
 
 def list_provider_codes() -> list[str]:
     return list(_ADAPTERS) + list(_NOT_IMPLEMENTED)
+
+
+# ---------------------------------------------------------------------------
+# Phase 5C: tracking status maps + tracking-event handler registry entry.
+# ---------------------------------------------------------------------------
+
+NORMALIZED_TRACKING_STATUSES = (
+    "created", "picked_up", "in_transit", "out_for_delivery", "delivered", "failed", "returned",
+)
+
+
+def get_tracking_status_map(provider_code: str) -> dict[str, str]:
+    """Carrier code -> normalized status, from the adapter's TRACKING_STATUS_MAP."""
+    from app.adapters.logistics.alopeyk import AloPeykCarrierAdapter
+    from app.adapters.logistics.chapar import ChaparCarrierAdapter
+    from app.adapters.logistics.post import IranPostCarrierAdapter
+    from app.adapters.logistics.tipax import TipaxCarrierAdapter
+
+    classes = {"tipax": TipaxCarrierAdapter, "chapar": ChaparCarrierAdapter,
+               "post": IranPostCarrierAdapter, "post_ir": IranPostCarrierAdapter,
+               "alopeyk": AloPeykCarrierAdapter}
+    cls = classes.get(provider_code)
+    base = {s: s for s in NORMALIZED_TRACKING_STATUSES}
+    return {**base, **dict(getattr(cls, "TRACKING_STATUS_MAP", {}) or {})}
+
+
+def get_tracking_event_handler():
+    """Inbound tracking webhooks (phase 5A endpoint) call this handler:
+    handler(conn, carrier, payload) -> dict."""
+    from app.services.shipment_orchestrator import apply_tracking_event
+    return apply_tracking_event

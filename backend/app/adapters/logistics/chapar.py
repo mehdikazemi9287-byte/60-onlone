@@ -41,6 +41,10 @@ class ChaparCarrierAdapter(CarrierAdapter):
 
     provider_code = "chapar"
     implementation_status = "not_implemented"
+    # Phase 5C: carrier status code -> normalized tracking status. PROVISIONAL codes,
+    # to be confirmed against official docs; overridable per carrier via
+    # logistics_carriers.status_map_json.
+    TRACKING_STATUS_MAP: dict[str, str] = {"1": "created", "2": "picked_up", "3": "in_transit", "4": "out_for_delivery", "5": "delivered", "6": "failed", "7": "returned"}
 
     def __init__(self, config: dict | None = None):
         self._config = config or {}

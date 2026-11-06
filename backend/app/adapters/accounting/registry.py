@@ -26,6 +26,7 @@ from app.adapters.accounting.rahkaran import RahkaranAccountingAdapter
 from app.adapters.accounting.holo import HoloAccountingAdapter
 from app.adapters.accounting.sap import SapAccountingAdapter
 from app.adapters.accounting.odoo import OdooAccountingAdapter
+from app.adapters.accounting.mahak import MahakAccountingAdapter
 from app.core.errors import ValidationError
 
 
@@ -42,6 +43,10 @@ _REGISTRY: dict[str, type[AccountingAdapter]] = {
     "HOLO": HoloAccountingAdapter,
     "SAP": SapAccountingAdapter,
     "ODOO": OdooAccountingAdapter,
+    # Phase 5B — file/payload exports via app.adapters.accounting.finance_formats
+    "MAHAK": MahakAccountingAdapter,
+    "HAMKARAN": RahkaranAccountingAdapter,
+    "HOLOO": HoloAccountingAdapter,
 }
 
 
@@ -124,5 +129,12 @@ def list_accounting_systems() -> list[dict]:
             "implementation_status": "not_implemented",
             "description": "Odoo ERP — REAL PROVIDER: NOT IMPLEMENTED",
             "verified_docs_url": "https://www.odoo.com/documentation/17.0/developer/reference/external_api.html",
+        },
+        {
+            "system": "MAHAK",
+            "label": "محک",
+            "implementation_status": "not_implemented",
+            "description": "محک — فقط خروجی CSV ورود سند (Phase 5B finance exports)",
+            "verified_docs_url": None,
         },
     ]

@@ -108,3 +108,42 @@ class SepidarAccountingAdapter(AccountingAdapter):
             "SEPIDAR: upsert_supplier — REAL PROVIDER: NOT IMPLEMENTED.",
             code="not_implemented",
         )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 5B — Sepidar import file (Excel/CSV) from the canonical finance export.
+# No API: Sepidar is fed through its "ورود اطلاعات از اکسل" import screens.
+# Column titles follow the common Sepidar import template; verify per customer.
+# ─────────────────────────────────────────────────────────────────────────────
+
+from app.adapters.accounting.finance_formats import (  # noqa: E402
+    FinanceExportFormatter,
+    jalali,
+    voucher_rows,
+)
+
+
+class SepidarFinanceFormatter(FinanceExportFormatter):
+    connector = "SEPIDAR"
+    label = "سپیدار — فایل اکسل ورود سند/فاکتور"
+    layouts = ("vouchers", "invoices")
+
+    VOUCHER_HEADER = ["ردیف", "شماره سند", "تاریخ سند", "شرح سند", "کد حساب", "کد تفصیلی",
+                      "شرح ردیف", "بدهکار", "بستانکار", "شماره مرجع"]
+    INVOICE_HEADER = ["شماره فاکتور", "تاریخ فاکتور", "کد طرف حساب", "نام طرف حساب", "شناسه ملی",
+                      "کد کالا/خدمت", "شرح کالا/خدمت", "تعداد", "فی", "مبلغ", "تخفیف",
+                      "مالیات و عوارض", "مبلغ کل"]
+
+    def render(self, export: dict) -> dict:
+        if self.layout == "invoices":
+            rows = [[d["doc_number"], jalali(d["doc_date"]), d["counterparty"]["code"],
+                     d["counterparty"]["name"], d["counterparty"]["national_id"], ln["code"],
+                     ln["description"], ln["quantity"], ln["unit_price_minor"], ln["gross_minor"],
+                     ln["discount_minor"], ln["vat_minor"], ln["total_minor"]]
+                    for d in export["documents"] if d["lines"] for ln in d["lines"]]
+            return self._csv(export, self.INVOICE_HEADER, rows, "invoices")
+        numbers = {d["doc_number"]: n for n, d in enumerate(export["documents"], start=1)}
+        rows = [[i, numbers[d["doc_number"]], jalali(d["doc_date"]), d["description"], v["account_code"],
+                 v["detail_code"], v["description"], v["debit_minor"], v["credit_minor"], d["doc_number"]]
+                for d, i, v in voucher_rows(export)]
+        return self._csv(export, self.VOUCHER_HEADER, rows, "vouchers")
