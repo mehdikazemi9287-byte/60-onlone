@@ -236,6 +236,13 @@ function ConfirmStep({
   // Buyer terms + statutory withdrawal notice, accepted before paying (recorded as evidence).
   const [terms, setTerms] = useState<{ version: string; url: string } | null>(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  // Card gateway or an external credit provider (Tara pattern: the lender funds, we only accept).
+  const [payOptions, setPayOptions] = useState<{ provider: string; kind: string; label: string; note?: string }[]>([]);
+  const [provider, setProvider] = useState<string | null>(null);
+  useEffect(() => {
+    apiRequest<{ options: { provider: string; kind: string; label: string; note?: string }[] }>("/checkout/payment-options")
+      .then((r) => setPayOptions(r.options)).catch(() => {});
+  }, []);
   useEffect(() => {
     apiRequest<{ documents: { doc_key: string; version: string; url: string }[] }>("/legal/terms")
       .then((r) => { const d = r.documents.find((x) => x.doc_key === "buyer_terms"); if (d) setTerms(d); })
@@ -271,7 +278,8 @@ function ConfirmStep({
     setPlacing(true);
     setError(null);
     try {
-      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version);
+      const external = payOptions.find((o) => o.provider === provider && o.kind === "external_credit");
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider);
       if (placed.payment_redirect) {
         // Pay on the bank page; the bank sends the customer back to the order or here with the result.
         setRedirecting(true);
@@ -396,6 +404,18 @@ function ConfirmStep({
         </p>
       </div>
 
+      {method === "card" && payOptions.length > 1 && (
+        <fieldset className="space-y-2 text-sm">
+          <legend className="mb-1 font-bold text-neutral-800">پرداخت با</legend>
+          {payOptions.map((o) => (
+            <label key={o.provider} className="flex items-start gap-2">
+              <input type="radio" name="pay-provider" className="mt-1" checked={(provider ?? payOptions[0].provider) === o.provider}
+                onChange={() => setProvider(o.provider)} />
+              <span>{o.label}{o.note && <span className="block text-xs text-neutral-500">{o.note}</span>}</span>
+            </label>
+          ))}
+        </fieldset>
+      )}
       {terms && (
         <label className="flex items-start gap-2 text-sm text-neutral-700">
           <input type="checkbox" className="mt-1" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />

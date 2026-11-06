@@ -379,11 +379,13 @@ export const checkout = {
     shipping_address: import("./types").Address,
     payment_method: import("./types").PaymentMethod = "card",
     accepted_terms_version?: string,
+    payment_provider?: string,
   ) =>
     request<CheckoutPlaced>("/checkout", {
       method: "POST",
       token,
-      body: JSON.stringify({ shipping_address, payment_method, ...(accepted_terms_version ? { accepted_terms_version } : {}) }),
+      body: JSON.stringify({ shipping_address, payment_method, ...(accepted_terms_version ? { accepted_terms_version } : {}),
+        ...(payment_provider ? { payment_provider } : {}) }),
       headers: { "Idempotency-Key": idempotencyKey },
     }),
 };

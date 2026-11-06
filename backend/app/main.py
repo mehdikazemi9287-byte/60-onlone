@@ -108,6 +108,14 @@ def create_app(
         from app.adapters.payment.sepehr import SepehrPaymentProvider
         payment_registry.register(SepehrPaymentProvider(settings.sepehr_terminal_id))
 
+    # External credit (Tara pattern): licensed lenders fund the purchase; we only accept it.
+    from app.adapters.payment import registry as _payment_registry
+    from app.adapters.payment.external_credit import enabled_from_env
+    app.extensions["external_credit_providers"] = []
+    for _provider in enabled_from_env():
+        _payment_registry.register(_provider)
+        app.extensions["external_credit_providers"].append(_provider.name)
+
     @app.after_request
     def _private_cache_control(response):
         if request.headers.get("Authorization") or request.path.startswith("/api/v1/admin/"):

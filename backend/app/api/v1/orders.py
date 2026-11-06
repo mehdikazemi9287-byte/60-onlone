@@ -36,35 +36,59 @@ def checkout():
                 conn, user_id=user["id"], doc_key="buyer_terms", version=accepted, context="checkout",
                 context_ref=request.headers.get("Idempotency-Key", "")[:200], ip=client_ip(),
                 user_agent=request.headers.get("User-Agent"))
+    # Card gateway by default; an enabled external credit provider (Tara, Digipay, SnappPay) on request.
+    from flask import current_app
+    provider_name = settings.payment_provider
+    chosen = body.get("payment_provider")
+    if chosen is not None:
+        allowed = set(current_app.extensions.get("external_credit_providers", [])) | {settings.payment_provider}
+        if chosen not in allowed:
+            raise ValidationError("این روش پرداخت فعال نیست", code="payment_provider_unavailable")
+        provider_name = chosen
     status, payload = checkout_service.checkout(
         get_db(),
         user_id=user["id"],
         user_email=user["email"],
         address=body.get("shipping_address") or {},
         idempotency_key=request.headers.get("Idempotency-Key", ""),
-        payment_provider_name=settings.payment_provider,
+        payment_provider_name=provider_name,
         payment_method=body.get("payment_method", "card"),
         exponent=settings.currency_exponent,
         ip_address=client_ip(),
         redeem_coins=redeem_coins,
-        callback_url=_callback_url(settings),
+        callback_url=_callback_url(settings, provider_name),
     )
     if status == 202:  # pay on the bank page first; the order is created on return
         return jsonify(payload), status
     return jsonify({"order": payload}), status
 
 
-def _callback_url(settings) -> str | None:
+def _callback_url(settings, provider_name: str | None = None) -> str | None:
     if not settings.public_base_url:
         return None
-    return f"{settings.public_base_url}/api/v1/payments/{settings.payment_provider}/callback"
+    return f"{settings.public_base_url}/api/v1/payments/{provider_name or settings.payment_provider}/callback"
+
+
+@bp.get("/checkout/payment-options")
+def payment_options():
+    """Methods the checkout page may offer. Labels are Persian; order = display order."""
+    from flask import current_app
+    from app.adapters.payment.external_credit import PROVIDERS
+    settings = get_settings()
+    opts = [{"provider": settings.payment_provider, "kind": "card", "label": "کارت بانکی (درگاه شتاب)"}]
+    for name in current_app.extensions.get("external_credit_providers", []):
+        opts.append({"provider": name, "kind": "external_credit", "label": PROVIDERS[name][0],
+                     "note": "اعتبار را خود این شرکت می‌دهد؛ شرایط و اقساط با اوست."})
+    return jsonify({"options": opts})
 
 
 @bp.route("/payments/<provider>/callback", methods=["GET", "POST"])
 def payment_callback(provider: str):
     """The bank returns the customer's browser here (no auth header on this hop)."""
     settings = get_settings()
-    if provider != settings.payment_provider or provider == "mock":
+    from flask import current_app
+    known = {settings.payment_provider, *current_app.extensions.get("external_credit_providers", [])}
+    if provider not in known or provider == "mock":
         return redirect("/checkout?" + urlencode({"payment": "failed", "reason": "unknown_gateway"}), 303)
     callback = {**request.args.to_dict(), **request.form.to_dict()}
     outcome = checkout_service.complete_redirect_payment(
