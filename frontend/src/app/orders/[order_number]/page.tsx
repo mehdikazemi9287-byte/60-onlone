@@ -8,6 +8,7 @@ import { orders as ordersApi, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { OrderReturns } from "@/components/OrderReturns";
 import { OrderWithdrawal } from "@/components/OrderWithdrawal";
+import { PickupChooser } from "@/components/inperson/PickupChooser";
 import { OrderTracking } from "@/components/OrderTracking";
 import { Package } from "lucide-react";
 import type { FulfillmentOrder, Order } from "@/lib/types";
@@ -114,9 +115,12 @@ export default function OrderDetailPage() {
           <p className="text-xs font-semibold text-neutral-500 uppercase mb-3">وضعیت پردازش سفارش</p>
           <div className="space-y-2">
             {fulfillmentOrders.map((fo) => (
-              <div key={fo.id} className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-neutral-600">مرحله پردازش داخلی</span>
-                <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", fo.status === "delivered" ? "bg-success-50 text-success-700" : "bg-blue-50 text-blue-700")}>{FO_STATUS_FA[fo.status] ?? "در حال بررسی"}</span>
+              <div key={fo.id}>
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="text-neutral-600">مرحله پردازش داخلی</span>
+                  <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", fo.status === "delivered" ? "bg-success-50 text-success-700" : "bg-blue-50 text-blue-700")}>{FO_STATUS_FA[fo.status] ?? "در حال بررسی"}</span>
+                </div>
+                {token && <PickupChooser token={token} foId={fo.id} />}
               </div>
             ))}
           </div>
