@@ -133,6 +133,7 @@ def request_withdrawal(conn: sqlite3.Connection, *, user_id: int, order_number: 
                                 code="withdrawal_exempt")
         if qty > eligible[pid]["quantity"] - already.get(pid, 0):
             raise ValidationError("تعداد انصراف از تعداد خریداری‌شده بیشتر است")
+        already[pid] = already.get(pid, 0) + qty  # duplicate lines for one product count together
         items.append({"product_id": pid, "title_fa": eligible[pid]["title_fa"], "quantity": qty})
     reason = data.get("reason")
     reason = reason.strip()[:2000] if isinstance(reason, str) and len(reason.strip()) >= 3 else "انصراف قانونی بدون ذکر دلیل"

@@ -278,6 +278,13 @@ def complete_settlement_batch(
         )
 
     net_minor = int(b["net_minor"])
+    open_return = conn.execute(
+        "SELECT 1 FROM supplier_payable_entries pe JOIN fulfillment_orders fo ON fo.id = pe.fulfillment_order_id "
+        "JOIN order_return_requests r ON r.order_id = fo.order_id WHERE pe.settlement_batch_id = ? "
+        "AND r.status IN ('requested','approved','received','refund_pending') LIMIT 1", (batch_id,)).fetchone()
+    if open_return and b["status"] != "completed":
+        raise ConflictError("بعد از ساخت این دسته، برای یکی از سفارش‌ها مرجوعی یا انصراف ثبت شده است",
+                            code="return_open")
     if net_minor == 0 and conn.execute(
             "SELECT 1 FROM seller_advance_entries WHERE entry_type='recovery' AND supplier_id=? "
             "AND settlement_reference=?", (int(b["supplier_id"]), b["idempotency_key"])).fetchone():

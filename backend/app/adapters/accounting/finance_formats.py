@@ -27,6 +27,7 @@ vendors — verify against the customer's own import template before go-live.
 from __future__ import annotations
 
 import csv
+import re
 import io
 import json
 
@@ -69,10 +70,20 @@ def jalali(date_iso: str, sep: str = "/") -> str:
 def csv_text(header: list[str], rows: list[list], *, bom: bool = True, delimiter: str = ",") -> str:
     buf = io.StringIO()
     w = csv.writer(buf, delimiter=delimiter, lineterminator="\r\n")
-    w.writerow(header)
+    w.writerow([safe_cell(h) for h in header])
     for r in rows:
-        w.writerow(r)
+        w.writerow([safe_cell(v) for v in r])
     return (BOM if bom else "") + buf.getvalue()
+
+
+_PLAIN_NUMBER = re.compile(r"^[+-]?\d+(\.\d+)?$")
+
+
+def safe_cell(value):
+    """Neutralise spreadsheet formulas in text cells (=, +, -, @, tab, CR); numbers pass unchanged."""
+    if not isinstance(value, str) or not value or _PLAIN_NUMBER.match(value):
+        return value
+    return "'" + value if value[0] in ("=", "+", "-", "@", "\t", "\r") else value
 
 
 def voucher_rows(export: dict):

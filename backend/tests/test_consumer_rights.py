@@ -116,3 +116,31 @@ class VatDisplayTest(AppTestCase):
     def test_gross(self):
         self.assertEqual(rights.gross(1_000_000, 1000), 1_100_000)
         self.assertIsNone(rights.gross(None, 1000))
+
+
+class ReviewFixesTest(AppTestCase):
+    def test_duplicate_withdrawal_lines_cannot_exceed_bought(self):
+        supplier_id, entry, fo = WithdrawalFlowTest._delivered_order(self)
+        with self.db.write_transaction() as conn:
+            line = conn.execute("SELECT product_id, quantity FROM order_items WHERE order_id=?", (fo["order_id"],)).fetchone()
+            from app.core.errors import ValidationError
+            with self.assertRaises(ValidationError):
+                rights.request_withdrawal(conn, user_id=fo["user_id"], order_number=fo["order_number"], data={
+                    "items": [{"product_id": line[0], "quantity": line[1]}, {"product_id": line[0], "quantity": 1}]})
+
+    def test_csv_formula_cells_neutralised(self):
+        from app.adapters.accounting.finance_formats import csv_text, safe_cell
+        self.assertEqual(safe_cell("=HYPERLINK(1)"), "'=HYPERLINK(1)")
+        self.assertEqual(safe_cell("-1000"), "-1000")
+        self.assertEqual(safe_cell(-1000), -1000)
+        self.assertIn("'@SUM", csv_text(["a"], [["@SUM(A1)"]], bom=False))
+
+    def test_withdrawal_after_batching_blocks_completion(self):
+        supplier_id, entry, fo = WithdrawalFlowTest._delivered_order(self)
+        with self.db.write_transaction() as conn:
+            b = settlement_service.create_settlement_batch(conn, supplier_id=supplier_id,
+                                                           payable_entry_ids=[entry["id"]], idempotency_key="rb1")
+            rights.request_withdrawal(conn, user_id=fo["user_id"], order_number=fo["order_number"], data={})
+            with self.assertRaises(ConflictError) as e:
+                settlement_service.complete_settlement_batch(conn, batch_id=b["id"])
+            self.assertEqual(e.exception.code, "return_open")

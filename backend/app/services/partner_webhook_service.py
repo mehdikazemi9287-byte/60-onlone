@@ -56,7 +56,7 @@ def _ip_is_public(ip: str) -> bool:
 
 
 def validate_webhook_url(url: str, *, allow_custom_port: bool = False,
-                         resolver: Callable | None = None) -> str:
+                         resolver: Callable | None = None, return_ips: bool = False):
     """Refuse anything but https to a public host. Non-443 ports need admin override.
 
     The admin override relaxes only the port; private/loopback/link-local
@@ -86,7 +86,7 @@ def validate_webhook_url(url: str, *, allow_custom_port: bool = False,
     ips = {info[4][0] for info in infos}
     if not ips or not all(_ip_is_public(ip) for ip in ips):
         raise ValidationError("نشانی داخلی/خصوصی برای وب‌هوک مجاز نیست", code="webhook_url_private")
-    return url.strip()
+    return (url.strip(), sorted(ips)) if return_ips else url.strip()
 
 
 def _clean_events(raw) -> list[str]:
@@ -182,7 +182,7 @@ def list_deliveries(conn, *, client_id: int, sub_id: int, limit: int = 50) -> li
 
 # ------------------------------------------------------------------------ emit
 def emit(conn, event_type: str, payload: dict, *, organization_ids=(), supplier_ids=(),
-         event_key: str | None = None) -> int | None:
+         event_key: str | None = None, seller_only: bool = False) -> int | None:
     """Record an event in the caller's transaction and queue one delivery per matching subscription.
 
     Audience: platform-owned clients receive every event; organization clients only
@@ -209,7 +209,8 @@ def emit(conn, event_type: str, payload: dict, *, organization_ids=(), supplier_
         if event_type not in json.loads(s["event_types_json"] or "[]"):
             continue
         if s["owner_type"] == "platform":
-            pass
+            if seller_only:  # the platform already got the buyer-side copy of this event
+                continue
         elif s["owner_type"] == "organization" and s["organization_id"] in orgs:
             pass
         elif s["owner_type"] == "supplier" and s["supplier_id"] in sups:
@@ -244,14 +245,24 @@ def bridge_integration_events(db, *, limit: int = 200) -> int:
                 order_id = int(p["order_id"])
             except (ValueError, KeyError, TypeError):
                 continue
-            sups = [int(x["supplier_id"]) for x in conn.execute(
-                "SELECT DISTINCT supplier_id FROM fulfillment_orders WHERE order_id=?", (order_id,)).fetchall()]
             data = {"order_id": order_id, "order_number": p.get("order_number"),
                     "status": p.get("status"), "total_minor": p.get("total_minor"),
                     "organization_id": r["organization_id"]}
-            if emit(conn, "order.created", data, organization_ids=[r["organization_id"]], supplier_ids=sups,
+            # Buyer side (organization + platform clients) sees the whole order.
+            if emit(conn, "order.created", data, organization_ids=[r["organization_id"]],
                     event_key=f"order.created:{order_id}") is not None:
                 emitted += 1
+            # Each seller sees only its own part — never other sellers' amounts.
+            for fo in conn.execute(
+                    "SELECT fo.supplier_id, COALESCE(SUM(i.line_selling_minor),0) AS seller_total FROM fulfillment_orders fo "
+                    "LEFT JOIN fulfillment_order_items i ON i.fulfillment_order_id=fo.id WHERE fo.order_id=? "
+                    "GROUP BY fo.supplier_id", (order_id,)).fetchall():
+                sid = int(fo["supplier_id"])
+                seller_data = {"order_id": order_id, "order_number": p.get("order_number"), "status": p.get("status"),
+                               "supplier_id": sid, "seller_total_minor": int(fo["seller_total"])}
+                if emit(conn, "order.created", seller_data, supplier_ids=[sid], seller_only=True,
+                        event_key=f"order.created:{order_id}:supplier:{sid}") is not None:
+                    emitted += 1
         conn.execute("UPDATE partner_bridge_cursors SET last_id=? WHERE name='order_created'", (last,))
     return emitted
 
@@ -262,14 +273,31 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def _http_send(url: str, body: bytes, headers: dict) -> int:
-    opener = urllib.request.build_opener(_NoRedirect)
-    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+def _http_send(url: str, body: bytes, headers: dict, *, pin_ip: str | None = None) -> int:
+    """POST without following redirects. With pin_ip, connect to that already-validated address
+    (TLS SNI and certificate check still use the hostname) so DNS cannot be re-pointed in between."""
+    import http.client
+    import ssl
+    parts = urlsplit(url)
+    host, port = parts.hostname, parts.port or 443
+    path = (parts.path or "/") + (f"?{parts.query}" if parts.query else "")
+    ctx = ssl.create_default_context()
+
+    class _Pinned(http.client.HTTPSConnection):
+        def connect(self):
+            sock = socket.create_connection((pin_ip or host, port), timeout=_TIMEOUT_SECONDS)
+            peer = sock.getpeername()[0]
+            if not _ip_is_public(peer):
+                sock.close()
+                raise ConnectionError("webhook peer is not a public address")
+            self.sock = ctx.wrap_socket(sock, server_hostname=host)
+
+    conn = _Pinned(host, port, timeout=_TIMEOUT_SECONDS, context=ctx)
     try:
-        with opener.open(req, timeout=_TIMEOUT_SECONDS) as resp:
-            return int(resp.status)
-    except urllib.error.HTTPError as exc:
-        return int(exc.code)
+        conn.request("POST", path, body=body, headers={**headers, "Host": parts.netloc})
+        return int(conn.getresponse().status)  # 3xx is returned as-is, never followed
+    finally:
+        conn.close()
 
 
 def build_body(event_row) -> bytes:
@@ -309,14 +337,16 @@ def deliver_due(db, *, master_key: str, sender: Callable | None = None, resolver
         try:
             if row["sub_status"] != "active":
                 raise RuntimeError("subscription_inactive")
-            validate_webhook_url(row["url"], allow_custom_port=bool(row["allow_custom_port"]), resolver=resolver)
+            _, pinned_ips = validate_webhook_url(row["url"], allow_custom_port=bool(row["allow_custom_port"]),
+                                                 resolver=resolver, return_ips=True)
             body = build_body({"id": row["eid"], "event_type": row["event_type"], "created_at": row["created_at"],
                                "payload_json": row["payload_json"]})
             secret = api_keys.derive_signing_secret(master_key, row["secret_salt"])
             headers = {"Content-Type": "application/json", "User-Agent": "60Online-Webhooks/1",
                        "X-60Online-Event": row["event_type"], "X-60Online-Delivery": str(row["id"]),
                        api_keys.SIGNATURE_HEADER: api_keys.sign(secret, body, int(current.timestamp()))}
-            status_code = send(row["url"], body, headers)
+            status_code = (send(row["url"], body, headers) if sender is not None
+                           else _http_send(row["url"], body, headers, pin_ip=pinned_ips[0]))
             if not 200 <= int(status_code) < 300:
                 error = f"http_{status_code}"
         except ValidationError as exc:
