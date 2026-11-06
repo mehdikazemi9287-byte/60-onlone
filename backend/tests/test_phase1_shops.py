@@ -66,6 +66,9 @@ class ShopFlowTest(AppTestCase):
         self.assertNotIn("sheba_on_file", page.get_json()["shop"])  # private fields stay private
         self.assertIn("karen-crafts", [s["slug"] for s in self.client.get("/api/v1/shops").get_json()["items"]])
 
+        # An approved shop owner keeps role customer but can use the seller portal.
+        self.assertEqual(self.client.get("/api/v1/supplier/offers", headers=seller).status_code, 200)
+        self.assertEqual(self.client.get("/api/v1/supplier/payables", headers=seller).status_code, 200)
         mine = self.client.get("/api/v1/supplier/shop", headers=seller).get_json()
         self.assertEqual(mine["balance"]["ready_minor"], 0)
         upd = self.client.put("/api/v1/supplier/shop", json={"shop_bio": "دست‌ساز"}, headers=seller)

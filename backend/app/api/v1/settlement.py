@@ -182,7 +182,7 @@ def admin_complete_settlement_batch(batch_id: int):
 # ---------------------------------------------------------------------------
 
 @bp.route("/api/v1/supplier/payables", methods=["GET"])
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_list_payables():
     db = get_db()
     user = g.current_user
@@ -193,7 +193,7 @@ def supplier_list_payables():
 
 
 @bp.route("/api/v1/supplier/payables/summary", methods=["GET"])
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_payable_summary():
     db = get_db()
     user = g.current_user

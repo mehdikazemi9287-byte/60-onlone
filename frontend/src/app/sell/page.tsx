@@ -75,7 +75,7 @@ export default function SellPage() {
         )}
         <dl className="grid gap-4 sm:grid-cols-4">
           <Stat label="قابل تسویه" value={formatPrice(balance.ready_minor)} />
-          <Stat label={`در امانت (${holdDays} روز بعد از تحویل)`} value={formatPrice(balance.held_minor)} />
+          <Stat label={`در امانت (${holdDays.toLocaleString("fa-IR")} روز بعد از تحویل)`} value={formatPrice(balance.held_minor)} />
           <Stat label="تسویه‌شده" value={formatPrice(balance.settled_minor)} />
           <Stat label="سلامت حساب" value={HEALTH_LABEL[shop.health_status ?? "good"]} />
         </dl>

@@ -72,7 +72,7 @@ def _bool(val) -> bool:
 
 
 @bp.get("/api/v1/supplier/me")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_me():
     """Supplier profile."""
     db = get_db()
@@ -83,7 +83,7 @@ def supplier_me():
 
 
 @bp.get("/api/v1/supplier/orders")
-@require_auth("supplier")
+@require_auth()  # marketplace shop owners keep role customer; access = active supplier membership
 def supplier_orders():
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -98,7 +98,7 @@ def supplier_orders():
 
 
 @bp.get("/api/v1/supplier/orders/<int:fo_id>")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_order_detail(fo_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -114,7 +114,7 @@ def supplier_order_detail(fo_id: int):
 
 
 @bp.post("/api/v1/supplier/orders/<int:fo_id>/accept")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_accept_order(fo_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -130,7 +130,7 @@ def supplier_accept_order(fo_id: int):
 
 
 @bp.post("/api/v1/supplier/orders/<int:fo_id>/reject")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_reject_order(fo_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -151,7 +151,7 @@ def supplier_reject_order(fo_id: int):
 
 
 @bp.post("/api/v1/supplier/orders/<int:fo_id>/prepare")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_prepare_order(fo_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -167,7 +167,7 @@ def supplier_prepare_order(fo_id: int):
 
 
 @bp.post("/api/v1/supplier/orders/<int:fo_id>/ready")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_ready_order(fo_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -183,7 +183,7 @@ def supplier_ready_order(fo_id: int):
 
 
 @bp.post("/api/v1/supplier/orders/<int:fo_id>/dispatch")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_dispatch_order(fo_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -199,7 +199,7 @@ def supplier_dispatch_order(fo_id: int):
 
 
 @bp.post("/api/v1/supplier/orders/<int:fo_id>/deliver")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_deliver_order(fo_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -218,7 +218,7 @@ def supplier_deliver_order(fo_id: int):
 
 
 @bp.get("/api/v1/supplier/offers")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_offers():
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -234,7 +234,7 @@ def supplier_offers():
 
 
 @bp.patch("/api/v1/supplier/offers/<int:offer_id>/stock")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_update_stock(offer_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -248,7 +248,7 @@ def supplier_update_stock(offer_id: int):
 
 
 @bp.patch("/api/v1/supplier/offers/<int:offer_id>/price")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_update_price(offer_id: int):
     db = get_db()
     sup = _get_supplier_or_404(g.current_user["id"], db)
@@ -265,7 +265,7 @@ def supplier_update_price(offer_id: int):
 
 
 @bp.post("/api/v1/supplier/catalog/import")
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_catalog_import():
     """Supplier submits a batch of catalog rows (manual entry or parsed from
     an uploaded CSV/Excel file client-side — this endpoint takes the parsed

@@ -68,14 +68,14 @@ def shipping_quote():
 
 
 @bp.route("/api/v1/supplier/shipments", methods=["GET"])
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership (_supplier_id)
 def supplier_shipments():
     with get_db().read_transaction() as conn:
         return jsonify({"shipments": shipment_orchestrator.list_supplier_shipments(conn, _supplier_id(conn))})
 
 
 @bp.route("/api/v1/supplier/shipments", methods=["POST"])
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership (_supplier_id)
 def supplier_create_shipment():
     data = _body()
     fo_id = data.get("fulfillment_order_id")
@@ -97,7 +97,7 @@ def supplier_create_shipment():
 
 
 @bp.route("/api/v1/supplier/shipments/<int:shipment_id>/pickup", methods=["POST"])
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership (_supplier_id)
 def supplier_pickup(shipment_id: int):
     data = _body()
     with get_db().write_transaction() as conn:

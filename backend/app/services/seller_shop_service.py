@@ -230,6 +230,9 @@ def review(conn: sqlite3.Connection, *, admin_id: int, supplier_id: int, decisio
     conn.execute(
         "INSERT INTO supplier_onboarding_events (supplier_id, from_stage, to_stage, actor_user_id, note) "
         "VALUES (?,?,?,?,?)", (supplier_id, s["onboarding_stage"], stage, admin_id, note))
+    from app.services import audit_service
+    audit_service.record(conn, action=f"shop_application.{decision}", entity_type="supplier", entity_id=supplier_id,
+                         actor_user_id=admin_id, metadata={"from_stage": s["onboarding_stage"], "to_stage": stage, "note": note})
     return shop_view(conn, supplier_id, private=True)
 
 
