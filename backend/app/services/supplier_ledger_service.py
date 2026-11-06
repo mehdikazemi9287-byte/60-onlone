@@ -127,6 +127,12 @@ def record_sale_payable(
          fee["rate_bps"], fee["commission_minor"], available_at, fee["channel"]),
     )
     entry_id = int(cursor.lastrowid)
+    # Affiliate (همکاری در فروش): accrue the referrer's earning; a seller-paid bonus raises this commission.
+    from app.services import affiliate_service
+    earning = affiliate_service.accrue(conn, fulfillment_order_id=fulfillment_order_id, payable_entry_id=entry_id,
+                                       commission_minor=fee["commission_minor"], available_at=available_at)
+    if earning and earning["seller_paid_minor"]:
+        fee = {**fee, "commission_minor": fee["commission_minor"] + int(earning["seller_paid_minor"])}
     log.info(
         "record_sale_payable: created entry_id=%s fo=%s supplier=%s gross=%s",
         entry_id, fulfillment_order_id, supplier_id, gross_minor,

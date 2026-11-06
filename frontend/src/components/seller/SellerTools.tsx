@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api";
 import { faDate } from "@/lib/utils";
 import { Card, Flash, ListState, btnCls, btnGhost, inputCls, n } from "@/components/commerce/ui";
 import { SellerInPerson } from "@/components/inperson/SellerInPerson";
+import { SellerAffiliateBonus } from "@/components/affiliate/SellerAffiliateBonus";
 
 type Msg = { ok: boolean; text: string } | null;
 
@@ -33,11 +34,13 @@ export function SellerTools({ token, isBrand }: { token: string; isBrand: boolea
         <a href="#shipments" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">ارسال سفارش‌ها</a>
         <a href="#exports" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">خروجی مالی</a>
         <a href="#in-person" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">مراجعهٔ حضوری</a>
+        <a href="#affiliate" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">همکاری در فروش</a>
       </nav>
       {isBrand && <BrandRegistrationCard token={token} />}
       <ShipmentsCard token={token} />
       <ExportsCard token={token} />
       <SellerInPerson token={token} />
+      <SellerAffiliateBonus token={token} />
     </div>
   );
 }
