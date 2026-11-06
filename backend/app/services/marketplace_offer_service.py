@@ -132,6 +132,8 @@ def create(conn, *, supplier_id: int, actor: int, data: dict) -> dict:
         raise ValidationError('برای ایجاد پیشنهاد، قیمت واقعی تأمین‌کننده لازم است؛ کالای بدون قیمت در کاتالوگ برای استعلام باقی می‌ماند')
     _scope(conn,sku_id,c)
     _check_contract_orgs(conn, supplier_id, c["tiers"])
+    from app.services import catalog_quality_service as cq
+    catalog_warnings = cq.offer_gate(conn, sku_id)  # CATALOG_ENFORCE_REQUIRED=1 → raises; default warn-only
     stamp = _now() if c["confirm"] else None
     offer_id = conn.execute(
         """INSERT INTO seller_offers (product_id, supplier_id, supplier_location_id, supplier_sku, selling_price_minor, stock_quantity,
@@ -145,6 +147,8 @@ def create(conn, *, supplier_id: int, actor: int, data: dict) -> dict:
     after = _snapshot(conn, offer_id)
     _event(conn, offer_id, actor, "created", None, after)
     _fire(conn, sku_id)
+    if catalog_warnings:
+        after = {**after, "catalog_warnings": catalog_warnings}
     return after
 
 

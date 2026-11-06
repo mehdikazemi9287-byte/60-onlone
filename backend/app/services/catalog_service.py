@@ -98,7 +98,7 @@ def _publication_dict(row, exponent: int) -> dict:
 def list_categories(db: Database) -> list[dict]:
     rows = db.query(
         """
-        SELECT c.id, c.slug, c.name_fa, c.parent_id, c.sort_order,
+        SELECT c.id, c.slug, c.name_fa, c.parent_id, c.sort_order, c.seed_source,
                ((SELECT COUNT(*) FROM products p WHERE p.category_id = c.id AND p.is_active = 1 AND (p.master_product_id IS NULL OR EXISTS(SELECT 1 FROM master_products cm WHERE cm.id=p.master_product_id AND cm.status='active'))) +
                 (SELECT COUNT(*) FROM catalog_publications cp
                  WHERE cp.category_slug = c.slug AND cp.is_visible = 1 AND EXISTS(SELECT 1 FROM master_products cm WHERE cm.id=cp.master_product_id AND cm.status='active')
@@ -108,7 +108,8 @@ def list_categories(db: Database) -> list[dict]:
         ORDER BY c.sort_order, c.id
         """
     )
-    return [dict(r) for r in rows]
+    # Phase 6 seeded taxonomy nodes stay hidden here until they hold products.
+    return [{k: r[k] for k in r.keys() if k != "seed_source"} for r in rows if not (r["seed_source"] and not r["product_count"])]
 
 
 def search_products(

@@ -313,7 +313,7 @@ def _score(s: Sku, q_tokens: list[str], q_compact: str) -> int:
 
 
 def search(conn, *, q=None, category=None, brand=None, availability=None, sort="relevance", page=1, page_size=24,
-           group: str = "family", size=None, min_price=None, max_price=None) -> dict:
+           group: str = "family", size=None, min_price=None, max_price=None, filters: dict | None = None) -> dict:
     if page < 1 or not 1 <= page_size <= MAX_PAGE_SIZE:
         raise ValidationError("صفحه‌بندی نامعتبر است")
     if sort not in ("relevance", "newest", "price_asc", "price_desc", "name"):
@@ -336,6 +336,10 @@ def search(conn, *, q=None, category=None, brand=None, availability=None, sort="
         score = _score(s, q_tokens, q_compact) if q_tokens else 1
         if score:
             hits.append((score, s))
+    # Phase 6: typed attribute / seller / stock filters + facet counts (attr.<code>=… query args).
+    from app.services import faceted_search_service as fsearch
+    cat_id = next((cid for cid, c in data["cats"].items() if c["slug"] == category), None) if category else None
+    hits, attribute_facets = fsearch.apply(conn, hits, fsearch.request_filters() if filters is None else filters, cat_id, availability_map)
     groups: dict = {}
     for score, s in hits:
         g = groups.setdefault(s.family_id if group == "family" and s.family_id else f"s{s.id}", {"score": 0, "skus": []})
@@ -382,7 +386,7 @@ def search(conn, *, q=None, category=None, brand=None, availability=None, sort="
     if q_tokens:
         from app.services import pack_service
         packs = pack_service.search(conn, q_tokens)[:4]
-    return {"items": items, "packs": packs, "facets": facets, "page": page, "page_size": page_size, "total": total,
+    return {"items": items, "packs": packs, "facets": facets, "attribute_facets": attribute_facets, "page": page, "page_size": page_size, "total": total,
             "total_pages": (total + page_size - 1) // page_size, "query": q or "", "normalized_query": " ".join(q_tokens)}
 
 
@@ -480,7 +484,10 @@ def product(conn, slug: str, *, viewer_org_ids: tuple = ()) -> dict:
             groups.setdefault(x.family_id or f"s{x.id}", []).append(x)
         return [_card(conn, g, data["cats"]) for g in list(groups.values())[:8]]
     specs = [{"label": k, "value": v} for k, v in (s.specs.items() if isinstance(s.specs, dict) else [])]
-    return {
+    from app.services import catalog_quality_service as cq
+    extras = cq.product_detail_extras(conn, master_product_id=s.variant_id, category_id=path[-1]["id"] if path else None, path=path,
+                                      name=s.title, brand=s.brand, slug=s.slug, price_minor=price)
+    return {**extras,
         "product": {"sku_id": s.id, "slug": s.slug, "sku": s.sku, "title_fa": s.title, "family_title_fa": s.family_title,
                     "family_slug": s.family_slug, "brand_fa": s.brand, "description_fa": s.description, "images": s.images,
                     "variant_label": s.label, "attributes": s.attributes, "specs": specs, "provenance": s.provenance,
