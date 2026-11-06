@@ -1,6 +1,11 @@
 """Phase 4 — credit contracts/statements, welfare wallet, installments, debt sale, seller advances, group API."""
 from __future__ import annotations
 
+import os
+os.environ.setdefault("FEATURE_INSTALLMENTS", "1")
+os.environ.setdefault("FEATURE_DEBT_SALE", "1")
+os.environ.setdefault("FEATURE_SELLER_ADVANCES", "1")
+
 import sqlite3
 import uuid
 from datetime import datetime, timezone
@@ -271,3 +276,14 @@ class GroupApiTests(Phase4Base):
         self.assertIn("credit", body)
         self.assertEqual(self.client.post("/api/v1/me/group", json={"businesses": ["nope"]},
                                           headers=headers).status_code, 422)
+
+
+class LendingFlagsTest(AppTestCase):
+    def test_lending_endpoints_off_by_default(self):
+        import os
+        from unittest import mock
+        with mock.patch.dict(os.environ, {"FEATURE_INSTALLMENTS": "0", "FEATURE_SELLER_ADVANCES": "0"}):
+            _, h = self.new_customer()
+            r = self.client.post("/api/v1/installments", json={}, headers=h)
+            self.assertEqual(r.status_code, 403)
+            self.assertEqual(r.get_json()["error"]["code"], "feature_disabled")

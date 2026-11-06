@@ -3,6 +3,11 @@ installment creditor derivation, net statement usage, advance-netted settlement,
 from __future__ import annotations
 
 import os
+os.environ.setdefault("FEATURE_INSTALLMENTS", "1")
+os.environ.setdefault("FEATURE_DEBT_SALE", "1")
+os.environ.setdefault("FEATURE_SELLER_ADVANCES", "1")
+
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path

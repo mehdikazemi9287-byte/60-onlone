@@ -17,6 +17,18 @@ from app.services.access_admin_service import current_supplier_id
 
 bp = Blueprint("credit_platform", __name__, url_prefix="/api/v1")
 
+# Lending-type features (installments with a fee, debt purchase, seller advances) likely need a
+# Central Bank–licensed financing partner. They stay OFF until one is contracted and a licensed
+# lawyer has confirmed the model — enable per feature with FEATURE_<NAME>=1. See docs/LEGAL_CHECKLIST.md.
+_LENDING_FEATURES = {"installments": "FEATURE_INSTALLMENTS", "debt_sale": "FEATURE_DEBT_SALE",
+                     "seller_advances": "FEATURE_SELLER_ADVANCES"}
+
+
+def _require_feature(name: str) -> None:
+    import os
+    if os.environ.get(_LENDING_FEATURES[name], "0") != "1":
+        raise PermissionError_("این امکان هنوز فعال نیست (در انتظار مجوز و شریک مالی)", code="feature_disabled")
+
 ADMIN = ("organization_admin",)
 FINANCE = ("organization_admin", "organization_finance")
 
@@ -197,6 +209,7 @@ def installment_quote():
 @bp.post("/installments")
 @require_auth()
 def create_installment():
+    _require_feature("installments")
     body = _body()
     with get_db().write_transaction() as conn:
         created, agreement = installments.create_agreement(
@@ -235,6 +248,7 @@ def pay_installment(agreement_id: int, schedule_id: int):
 @bp.post("/installments/<int:agreement_id>/debt-sale")
 @require_auth("admin")
 def debt_sale(agreement_id: int):
+    _require_feature("debt_sale")
     body = _body()
     with get_db().write_transaction() as conn:
         created, sale = installments.sell_debt(conn, agreement_id=agreement_id,
@@ -255,6 +269,7 @@ def supplier_advances():
 @bp.post("/supplier/advances")
 @require_auth()
 def request_supplier_advance():
+    _require_feature("seller_advances")
     body = request.get_json(silent=True) or {}
     with get_db().write_transaction() as conn:
         sid = _supplier(conn)
