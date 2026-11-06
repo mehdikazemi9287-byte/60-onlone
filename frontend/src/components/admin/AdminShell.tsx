@@ -11,7 +11,7 @@ export const adminNavigation = [
  {label:"دسته‌بندی‌ها و برندها",href:"/admin/taxonomy",icon:Boxes},
  {label:"کیفیت و انتشار کاتالوگ",href:"/admin/catalog-review",icon:ShieldCheck}, {label:"تأمین‌کنندگان و Offerها",href:"/admin/suppliers",icon:Truck},
  {label:"بررسی Offer و تاریخچه قیمت",href:"/admin/offers",icon:Truck},
- {label:"استعلام مشتریان",href:"/admin/inquiries",icon:Users}, {label:"سازمان‌ها و قراردادها",href:"/admin/organizations",icon:Building2},
+ {label:"استعلام مشتریان",href:"/admin/inquiries",icon:Users}, {label:"حساب‌های سازمانی و فروشگاهی",href:"/admin/b2b",icon:Building2}, {label:"سازمان‌ها و قراردادها",href:"/admin/organizations",icon:Building2},
  {label:"خرید سازمانی و پرونده‌ها",href:"/admin/cases",icon:ClipboardList}, {label:"مدیریت پک‌ها",href:"/admin/packs",icon:Boxes},
  {label:"مالی و تسویه",href:"/admin/settlements",icon:Wallet}, {label:"مرجوعی‌ها",href:"/admin/returns",icon:Package},
  {label:"محتوا و ویرایش بصری",href:"/admin/content",icon:FileText}, {label:"کتابخانه رسانه",href:"/admin/media",icon:Image},

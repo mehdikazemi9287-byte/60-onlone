@@ -149,6 +149,8 @@ def verify_login(conn: sqlite3.Connection, *, phone: str, code: str, secret: str
         if not row["is_active"]:
             raise AuthenticationError("حساب کاربری غیرفعال است", code="account_disabled")
     conn.execute("UPDATE otp_challenges SET consumed_at=? WHERE id=?", (_iso(t), ch["id"]))
+    from app.services import b2b_service
+    b2b_service.claim_invites(conn, user_id=int(uid), phone=phone)  # business invitations for this number
     audit_service.record(conn, action="user.logged_in", entity_type="user", entity_id=uid, actor_user_id=uid,
                          metadata={"method": "otp"}, ip_address=ip_address)
     return int(uid), created
@@ -163,6 +165,8 @@ def verify_link(conn: sqlite3.Connection, *, user_id: int, phone: str, code: str
     if owner and owner["id"] != user_id:
         raise ConflictError("این شماره به حساب دیگری متصل است", code="phone_taken")
     conn.execute("UPDATE users SET phone=?, phone_verified=? WHERE id=?", (phone, phone, user_id))
+    from app.services import b2b_service
+    b2b_service.claim_invites(conn, user_id=user_id, phone=phone)
     conn.execute("UPDATE otp_challenges SET consumed_at=? WHERE id=?", (_iso(t), ch["id"]))
     audit_service.record(conn, action="user.phone_verified", entity_type="user", entity_id=user_id, actor_user_id=user_id,
                          metadata={"phone_tail": phone[-4:]}, ip_address=ip_address)
