@@ -342,6 +342,8 @@ def buy_box(conn, product_id: int, buyer_ctx: dict | None = None, *, quantity: i
     now = now or _now_utc()
     if isinstance(quantity, bool) or not isinstance(quantity, int) or not 1 <= quantity <= MAX_QTY:
         raise ValidationError("تعداد نامعتبر است")
+    from app.services import consumer_rights_service as _crs
+    vat_bps = _crs.standard_vat_bps(conn)
     rules = load_rules(conn)
     cat_cache: dict = {}
     offers, ranked = [], []
@@ -357,6 +359,7 @@ def buy_box(conn, product_id: int, buyer_ctx: dict | None = None, *, quantity: i
             pub["landed_line_minor"] = priced["line_after_discounts_minor"]
             pub["landed_unit_minor"] = priced["line_after_discounts_minor"] // quantity
             pub["partner_discount_minor"] = priced["partner_discount_minor"]
+            pub["landed_unit_incl_vat_minor"] = _crs.gross(pub["landed_unit_minor"], vat_bps)  # display (consumer law)
             ranked.append(((HEALTH_RANK.get(o["health_status"], 1), priced["line_after_discounts_minor"],
                             SELLER_KIND_RANK.get(o["seller_kind"], 2),
                             o["lead_time_days"] if o["lead_time_days"] is not None else 10_000, int(o["id"])), pub))
@@ -365,7 +368,7 @@ def buy_box(conn, product_id: int, buyer_ctx: dict | None = None, *, quantity: i
     winner = ranked[0][1] if ranked else None
     for pub in offers:
         pub["is_winner"] = winner is not None and pub["offer_id"] == winner["offer_id"]
-    return {"product_id": product_id, "quantity": quantity, "channel": ctx["channel"],
+    return {"product_id": product_id, "quantity": quantity, "channel": ctx["channel"], "vat_bps": vat_bps,
             "offers": offers, "winner": winner, "offer_count": len(offers), "eligible_count": len(ranked)}
 
 

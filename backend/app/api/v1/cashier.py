@@ -97,14 +97,16 @@ def recurring_status(list_id: int, action: str):
 @require_auth()
 def recurring_preview(list_id: int):
     with get_db().read_transaction() as conn:
-        return jsonify({"quote": recurring_service.preview(conn, user_id=current_user()["id"], list_id=list_id)})
+        q = recurring_service.preview(conn, user_id=current_user()["id"], list_id=list_id)
+        return jsonify({"quote": cashier.public_view(q)})  # buyers never see cost floors or commission
 
 
 @bp.get("/me/recurring/<int:list_id>/runs")
 @require_auth()
 def recurring_runs(list_id: int):
     with get_db().read_transaction() as conn:
-        return jsonify({"items": recurring_service.list_runs(conn, user_id=current_user()["id"], list_id=list_id)})
+        return jsonify({"items": cashier.public_view(
+            recurring_service.list_runs(conn, user_id=current_user()["id"], list_id=list_id))})
 
 
 # ── admin ──

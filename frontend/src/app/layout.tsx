@@ -4,6 +4,7 @@ import "./globals.css";
 import { PublicChrome } from "@/components/layout/PublicChrome";
 import { Toaster } from "@/components/ui/Toaster";
 import { AuthProvider } from "@/lib/auth-context";
+import { PwaClient } from "@/components/pwa/PwaClient";
 
 const vazirmatn = Vazirmatn({
   subsets: ["arabic"],
@@ -64,6 +65,7 @@ export default function RootLayout({
         <AuthProvider>
           <PublicChrome>{children}</PublicChrome>
           <Toaster />
+          <PwaClient />
         </AuthProvider>
       </body>
     </html>

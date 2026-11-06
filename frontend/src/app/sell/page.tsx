@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { shops, HEALTH_LABEL, latinDigits, type Shop, type ShopApplication, type ShopBalance } from "@/lib/shops";
 import { ApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/utils";
+import { SellerTools } from "@/components/seller/SellerTools";
 
 const EMPTY: ShopApplication = {
   seller_kind: "shop", legal_name: "", shop_title: "", shop_slug: "", national_id: "",
@@ -83,6 +84,7 @@ export default function SellPage() {
           {shop.url && <Link className="underline" href={shop.url}>دیدن صفحهٔ غرفه</Link>} ·{" "}
           <Link className="underline" href="/supplier/offers">مدیریت کالاها و قیمت‌ها</Link>
         </p>
+        {shop.onboarding_stage === "approved" && <SellerTools token={token} isBrand={shop.kind === "brand"} />}
       </div>
     );
   }

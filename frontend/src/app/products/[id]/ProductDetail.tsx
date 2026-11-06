@@ -15,6 +15,7 @@ import { useOrganization } from "@/components/organization/Dashboard";
 import { PRICING_MODE_FA, SALE_BLOCKER_FA, storefront, type Card, type Offer, type ProductPage } from "@/lib/storefront";
 import { cn, faDate, formatPrice, toPersianNum } from "@/lib/utils";
 import { isTinyImage } from "@/components/product/ProductCard";
+import { BuyBoxOffers } from "@/components/product/BuyBoxOffers";
 
 const STOCK_FA: Record<Offer["stock_state"], string> = { in_stock: "موجود", out_of_stock: "ناموجود", unknown: "موجودی تأییدنشده" };
 
@@ -241,6 +242,7 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
             {!d.sales_enabled && d.offers.some((o) => o.price_minor != null) && (
               <p className="mt-2 flex items-start gap-1 text-xs text-amber-800"><AlertTriangle className="h-4 w-4 flex-none" /> خرید آنلاین تا اتصال درگاه پرداخت فعال نیست؛ از «درخواست خرید» استفاده کنید.</p>)}
           </section>
+          <BuyBoxOffers slug={p.slug} vatBps={d.vat_bps} />
         </section>
       </div>
 
