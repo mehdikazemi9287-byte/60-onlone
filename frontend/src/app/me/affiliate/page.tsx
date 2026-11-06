@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { formatPrice } from "@/lib/utils";
 
 type Dash = { code: string; status: string; link_path: string; pending_minor: number; available_minor: number; paid_minor: number;
-  items: { id: number; order_id: number; amount_minor: number; state: string; available_at: string }[] };
+  items: { id: number; reference: string; amount_minor: number; state: string; available_at: string }[] };
 const STATE_FA: Record<string, string> = { pending: "در انتظار پایان مهلت انصراف", on_hold: "مرجوعی باز", available: "قابل برداشت",
   reversed: "برگشت خورد", paid: "پرداخت‌شده" };
 
@@ -79,7 +79,7 @@ export default function AffiliatePage() {
         <ul className="space-y-2 text-sm">
           {d.items.map((i) => (
             <li key={i.id} className="flex flex-wrap justify-between gap-2 rounded-xl bg-neutral-50 p-3">
-              <span>{formatPrice(i.amount_minor)}</span><span className="text-neutral-600">{STATE_FA[i.state] ?? i.state}</span>
+              <span dir="ltr" className="text-xs text-neutral-500">{i.reference}</span><span>{formatPrice(i.amount_minor)}</span><span className="text-neutral-600">{STATE_FA[i.state] ?? i.state}</span>
             </li>
           ))}
         </ul>

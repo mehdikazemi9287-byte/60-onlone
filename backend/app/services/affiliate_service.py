@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import datetime as _dt
 import re
+import json
 import secrets
 import sqlite3
 
@@ -74,7 +75,7 @@ def accrue(conn: sqlite3.Connection, *, fulfillment_order_id: int, payable_entry
 
     Returns the earning or None. Increases the payable's commission by the seller-paid part.
     """
-    fo = conn.execute("SELECT fo.order_id, fo.supplier_id, o.user_id, o.placed_at AS created_at FROM fulfillment_orders fo "
+    fo = conn.execute("SELECT fo.order_id, fo.supplier_id, fo.affiliate_bonus_bps, o.user_id, o.placed_at AS created_at FROM fulfillment_orders fo "
                       "JOIN orders o ON o.id=fo.order_id WHERE fo.id=?", (fulfillment_order_id,)).fetchone()
     if fo is None or conn.execute("SELECT 1 FROM affiliate_earnings WHERE fulfillment_order_id=?",
                                   (fulfillment_order_id,)).fetchone():
@@ -91,7 +92,9 @@ def accrue(conn: sqlite3.Connection, *, fulfillment_order_id: int, payable_entry
     gross = sum(int(l["gross"]) for l in lines)
     platform = sum(int(l["gross"]) * _rate_bps(conn, l["category_id"]) // 10_000 for l in lines)
     platform = min(platform, max(0, int(commission_minor)))  # never more than what the platform earns
-    bonus_bps = conn.execute("SELECT affiliate_bonus_bps FROM suppliers WHERE id=?", (fo["supplier_id"],)).fetchone()[0]
+    bonus_bps = fo["affiliate_bonus_bps"]  # snapshot taken when the order was placed (seller can't change it afterwards)
+    if bonus_bps is None:  # parts created before the snapshot column existed
+        bonus_bps = conn.execute("SELECT affiliate_bonus_bps FROM suppliers WHERE id=?", (fo["supplier_id"],)).fetchone()[0]
     seller = gross * int(bonus_bps or 0) // 10_000
     if platform + seller <= 0:
         return None
@@ -101,9 +104,54 @@ def accrue(conn: sqlite3.Connection, *, fulfillment_order_id: int, payable_entry
     stamp = available_at or _iso(_now() + _dt.timedelta(days=REFERRAL_DAYS))
     conn.execute(
         "INSERT INTO affiliate_earnings (affiliate_id, fulfillment_order_id, order_id, gross_minor, platform_paid_minor, "
-        "seller_paid_minor, available_at) VALUES (?,?,?,?,?,?,?)",
-        (ref["affiliate_id"], fulfillment_order_id, fo["order_id"], gross, platform, seller, stamp))
+        "seller_paid_minor, available_at, reference) VALUES (?,?,?,?,?,?,?,?)",
+        (ref["affiliate_id"], fulfillment_order_id, fo["order_id"], gross, platform, seller, stamp,
+         "AF-" + secrets.token_hex(5).upper()))
     return dict(conn.execute("SELECT * FROM affiliate_earnings WHERE fulfillment_order_id=?", (fulfillment_order_id,)).fetchone())
+
+
+def _returns_for_part(conn: sqlite3.Connection, fulfillment_order_id: int, order_id: int):
+    """(open_hold, refunded_gross) for one seller part: only returns that touch this part's products count."""
+    lines = {int(r["product_id"]): (int(r["quantity"]), int(r["gross"])) for r in conn.execute(
+        "SELECT product_id, quantity, COALESCE(line_selling_minor,0) AS gross FROM fulfillment_order_items "
+        "WHERE fulfillment_order_id=?", (fulfillment_order_id,))}
+    held, refunded_qty = False, {}
+    for rr in conn.execute("SELECT status, items_json FROM order_return_requests WHERE order_id=? AND status NOT IN "
+                           "('rejected','cancelled')", (order_id,)):
+        try:
+            its = json.loads(rr["items_json"] or "[]")
+        except ValueError:
+            its = []
+        for it in its:
+            try:
+                pid, q = int(it.get("product_id")), int(it.get("quantity") or 0)
+            except (TypeError, ValueError, AttributeError):
+                continue
+            if pid not in lines or q <= 0:
+                continue
+            if rr["status"] in _OPEN_RETURN:
+                held = True
+            elif rr["status"] == "refunded":
+                refunded_qty[pid] = refunded_qty.get(pid, 0) + q
+    refunded = sum(g * min(refunded_qty.get(pid, 0), q) // q for pid, (q, g) in lines.items() if q)
+    return held, refunded
+
+
+def settle_returns(conn: sqlite3.Connection, r) -> tuple[int, str]:
+    """Apply refunded returns of this part to the earning, in proportion, and persist it. Returns (amount, state)."""
+    total = int(r["platform_paid_minor"]) + int(r["seller_paid_minor"])
+    if r["status"] != "pending":
+        return max(0, total - int(r["reversed_minor"] or 0)), r["status"]
+    held, refunded_gross = _returns_for_part(conn, r["fulfillment_order_id"], r["order_id"])
+    gross = int(r["gross_minor"])
+    reversed_amt = total if gross <= 0 else min(total, total * min(refunded_gross, gross) // gross)
+    status = "reversed" if reversed_amt >= total and total > 0 else "pending"
+    if reversed_amt != int(r["reversed_minor"] or 0) or status != r["status"]:
+        conn.execute("UPDATE affiliate_earnings SET reversed_minor=?, status=? WHERE id=? AND status='pending'",
+                     (reversed_amt, status, r["id"]))
+    if status == "reversed":
+        return 0, "reversed"
+    return total - reversed_amt, ("on_hold" if held else "pending")
 
 
 def dashboard(conn: sqlite3.Connection, *, user_id: int, now: _dt.datetime | None = None) -> dict:
@@ -115,14 +163,8 @@ def dashboard(conn: sqlite3.Connection, *, user_id: int, now: _dt.datetime | Non
     pending = available = paid = 0
     items = []
     for r in rows:
-        amount = int(r["platform_paid_minor"]) + int(r["seller_paid_minor"])
-        returned = conn.execute(f"SELECT status FROM order_return_requests WHERE order_id=? AND status IN "
-                                f"({','.join('?' * len(_OPEN_RETURN))},'refunded') LIMIT 1",
-                                (r["order_id"], *_OPEN_RETURN)).fetchone()
-        state = r["status"]
-        if state == "pending" and returned is not None:
-            state = "on_hold" if returned["status"] in _OPEN_RETURN else "reversed"
-        elif state == "pending" and r["available_at"] <= stamp:
+        amount, state = settle_returns(conn, r)
+        if state == "pending" and r["available_at"] <= stamp:
             state = "available"
         if state == "available":
             available += amount
@@ -130,8 +172,8 @@ def dashboard(conn: sqlite3.Connection, *, user_id: int, now: _dt.datetime | Non
             pending += amount
         elif state == "paid":
             paid += amount
-        items.append({"id": r["id"], "order_id": r["order_id"], "amount_minor": amount, "state": state,
-                      "available_at": r["available_at"]})  # no buyer identity is shown to the referrer
+        items.append({"id": r["id"], "reference": r["reference"] or f"AF-{r['id']}", "amount_minor": amount, "state": state,
+                      "available_at": r["available_at"]})  # neither buyer identity nor order id is shown to the referrer
     return {"code": a["code"], "status": a["status"], "link_path": f"/?ref={a['code']}",
             "pending_minor": pending, "available_minor": available, "paid_minor": paid, "items": items}
 

@@ -26,7 +26,7 @@ def join():
 @bp.get("/me/affiliate")
 @require_auth()
 def dashboard():
-    with get_db().read_transaction() as conn:
+    with get_db().write_transaction() as conn:
         return jsonify(aff.dashboard(conn, user_id=current_user()["id"]))
 
 

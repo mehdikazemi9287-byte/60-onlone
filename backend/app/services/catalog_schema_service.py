@@ -15,6 +15,8 @@ from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from app.core.errors import NotFoundError, ValidationError
 from app.services import text_norm as tn
 
+TEXT_MAX = 500   # hard cap for text attribute values, whatever the definition says
+RAW_MAX = 2000   # any raw input (lists, measures) beyond this is rejected before parsing
 DATA_TYPES = ("text", "number", "integer", "boolean", "enum", "multi_enum", "measure", "date")
 FLAGS = ("required", "is_filterable", "is_variant_axis", "is_searchable")
 DEFAULT_GROUP = "مشخصات کلی"
@@ -195,6 +197,8 @@ def themes(conn, category_id: int) -> list[dict]:
 def coerce(conn, attr: dict, raw) -> list[dict]:
     """Validate one raw value against its definition → value rows (several for multi_enum). Raises ValidationError (Persian)."""
     name, dt = attr["name_fa"], attr["data_type"]
+    if len(raw if isinstance(raw, str) else json.dumps(raw, ensure_ascii=False)) > RAW_MAX:
+        raise ValidationError(f"«{name}» بیش از حد طولانی است", code="attribute_too_long")
     base = {"value_key": "", "value_text": None, "value_number": None, "value_bool": None, "option_id": None, "unit_entered": None,
             "raw_value": raw if isinstance(raw, str) else json.dumps(raw, ensure_ascii=False)}
     lo, hi = attr.get("min_value"), attr.get("max_value")
@@ -202,7 +206,9 @@ def coerce(conn, attr: dict, raw) -> list[dict]:
         v = str(raw).strip()
         if not v:
             raise ValidationError(f"«{name}» خالی است", code="attribute_empty")
-        if hi is not None and len(v) > hi:
+        cap = min(int(hi), TEXT_MAX) if hi is not None else TEXT_MAX
+        if len(v) > cap:
+            hi = cap
             raise ValidationError(f"«{name}» حداکثر {fa_digits(hi)} نویسه است", code="attribute_too_long")
         if attr.get("regex") and not re.fullmatch(attr["regex"], v):
             raise ValidationError(f"قالب «{name}» معتبر نیست", code="attribute_bad_format")
@@ -297,8 +303,14 @@ def category_of_master(conn, master_product_id: int) -> int | None:
     return r["cid"]
 
 
-def set_values(conn, master_product_id: int, values: dict, *, source: str = "admin", category_id: int | None = None) -> dict:
-    """Validate then write (replacing the given attributes only). Raises ValidationError with all errors in details."""
+def set_values(conn, master_product_id: int, values: dict, *, source: str = "admin", category_id: int | None = None,
+               seller_id: int | None = None, seller_full: bool = False) -> dict:
+    """Validate then write (replacing the given attributes only). Raises ValidationError with all errors in details.
+
+    Seller writes (seller_id given): a master is shared catalog data. A seller with full rights (recorded source or the
+    only active seller) may replace attributes that only hold seller rows; otherwise — or where admin/backfill/import
+    rows exist — a differing value becomes a proposal for review, and non-seller rows are never deleted.
+    """
     cid = category_id or category_of_master(conn, master_product_id)
     if cid is None:
         raise ValidationError("دستهٔ محصول مشخص نیست", code="category_required")
@@ -306,18 +318,50 @@ def set_values(conn, master_product_id: int, values: dict, *, source: str = "adm
     if res["errors"]:
         raise ValidationError(res["errors"][0]["message"], code="attribute_validation_failed", details={"errors": res["errors"]})
     by_code = {a["code"]: a for a in res["schema"]}
+    proposed, skipped = [], []
+
+    def sources(aid):
+        return {r[0] for r in conn.execute("SELECT DISTINCT source FROM product_attribute_values WHERE master_product_id=? AND attribute_id=?",
+                                           (master_product_id, aid))}
+
+    def can_replace(aid):
+        if seller_id is None:
+            return True
+        have = sources(aid)
+        return not have or (seller_full and have <= {"seller"})
+
     for code, raw in values.items():
         if code in by_code and (raw is None or raw == "" or raw == []):
-            conn.execute("DELETE FROM product_attribute_values WHERE master_product_id=? AND attribute_id=?", (master_product_id, by_code[code]["attribute_id"]))
+            aid = by_code[code]["attribute_id"]
+            if seller_id is not None and not (seller_full and sources(aid) <= {"seller"}):
+                skipped.append(code)
+                continue
+            conn.execute("DELETE FROM product_attribute_values WHERE master_product_id=? AND attribute_id=?", (master_product_id, aid))
+    written = []
     for code, rws in res["rows"].items():
         aid = by_code[code]["attribute_id"]
+        if not can_replace(aid):
+            sig = ("value_key", "value_text", "value_number", "value_bool", "option_id")
+            current = sorted(tuple(str(r[k]) for k in sig) for r in conn.execute(
+                "SELECT * FROM product_attribute_values WHERE master_product_id=? AND attribute_id=?", (master_product_id, aid)))
+            if current != sorted(tuple(str(r[k]) for k in sig) for r in rws):
+                raw = values[code]
+                conn.execute("INSERT INTO product_attribute_proposals (master_product_id, attribute_id, supplier_id, raw_value) VALUES (?,?,?,?)",
+                             (master_product_id, aid, seller_id, raw if isinstance(raw, str) else json.dumps(raw, ensure_ascii=False)))
+                proposed.append(code)
+            continue
         conn.execute("DELETE FROM product_attribute_values WHERE master_product_id=? AND attribute_id=?", (master_product_id, aid))
         for r in rws:
             conn.execute("""INSERT INTO product_attribute_values (master_product_id, attribute_id, value_key, value_text, value_number, value_bool,
                                 option_id, unit_entered, raw_value, source) VALUES (?,?,?,?,?,?,?,?,?,?)""",
                          (master_product_id, aid, r["value_key"], r["value_text"], r["value_number"], r["value_bool"], r["option_id"],
                           r["unit_entered"], r["raw_value"], source))
-    return {"master_product_id": master_product_id, "written": sorted(res["rows"]), "values": get_values(conn, master_product_id)}
+        written.append(code)
+    out = {"master_product_id": master_product_id, "written": sorted(written), "values": get_values(conn, master_product_id)}
+    if seller_id is not None:
+        out["proposed"] = sorted(proposed)
+        out["skipped"] = sorted(skipped)
+    return out
 
 
 def _value_rows(conn, master_product_id: int):

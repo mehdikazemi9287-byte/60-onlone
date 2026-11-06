@@ -272,8 +272,10 @@ def create_fulfillment_orders(
             INSERT INTO fulfillment_orders
                 (order_id, supplier_id, supplier_location_id, status,
                  routing_score, routing_reason_json, routing_candidates_json,
-                 fulfillment_type, gross_payable_minor, promised_prep_at, routing_history_json)
-            VALUES (?,?,?, 'assigned', ?,?,?, ?,?,?, '[]')
+                 fulfillment_type, gross_payable_minor, promised_prep_at, routing_history_json,
+                 affiliate_bonus_bps)
+            VALUES (?,?,?, 'assigned', ?,?,?, ?,?,?, '[]',
+                    (SELECT COALESCE(affiliate_bonus_bps, 0) FROM suppliers WHERE id=?))
             """,
             (
                 order_id, supplier_id, location_id,
@@ -282,7 +284,7 @@ def create_fulfillment_orders(
                 sample_res.to_audit_json(),
                 selected.fulfillment_type,
                 gross_payable,
-                promised_prep_at,
+                promised_prep_at, supplier_id,
             ),
         )
         fo_id = int(cursor.lastrowid)
@@ -524,8 +526,10 @@ def confirm_fulfillment_orders_from_plan(
             INSERT INTO fulfillment_orders
                 (order_id, supplier_id, supplier_location_id, status,
                  routing_score, routing_reason_json, routing_candidates_json,
-                 fulfillment_type, gross_payable_minor, promised_prep_at, routing_history_json)
-            VALUES (?,?,?, 'assigned', ?,?,?, ?,?,?, '[]')
+                 fulfillment_type, gross_payable_minor, promised_prep_at, routing_history_json,
+                 affiliate_bonus_bps)
+            VALUES (?,?,?, 'assigned', ?,?,?, ?,?,?, '[]',
+                    (SELECT COALESCE(affiliate_bonus_bps, 0) FROM suppliers WHERE id=?))
             """,
             (
                 order_id, supplier_id, location_id,
@@ -534,7 +538,7 @@ def confirm_fulfillment_orders_from_plan(
                 json.dumps(sample.get("routing_candidates", []), ensure_ascii=False),
                 sample.get("fulfillment_type", "delivery"),
                 gross_payable,
-                promised_prep_at,
+                promised_prep_at, supplier_id,
             ),
         )
         fo_id = int(cursor.lastrowid)

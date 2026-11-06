@@ -15,6 +15,11 @@ SELLER_KINDS = ("supplier", "shop", "brand", "partner")
 _CHUNK = 900
 
 
+MAX_FILTER_ATTRS = 10
+MAX_VALUES_PER_ATTR = 50
+MAX_VALUE_LEN = 100
+
+
 def _get_all(args, key):
     if hasattr(args, "getlist"):
         return args.getlist(key)
@@ -26,9 +31,17 @@ def parse_filters(args) -> dict:
     attrs: dict[str, list[str]] = {}
     for key in list(args.keys()):
         if key.startswith("attr.") and len(key) > 5:
-            vals = [x.strip() for v in _get_all(args, key) for x in cs.latin_digits(v).split(",") if x.strip()]
+            code = key[5:]
+            if len(code) > 60:
+                continue
+            vals = list(dict.fromkeys(x.strip()[:MAX_VALUE_LEN] for v in _get_all(args, key)
+                                      for x in cs.latin_digits(str(v)[:4000]).split(",") if x.strip()))
+            if len(vals) > MAX_VALUES_PER_ATTR:
+                raise ValidationError(f"حداکثر {MAX_VALUES_PER_ATTR} مقدار برای هر ویژگی", code="too_many_filter_values")
             if vals:
-                attrs[key[5:]] = vals
+                attrs[code] = vals
+                if len(attrs) > MAX_FILTER_ATTRS:
+                    raise ValidationError(f"حداکثر {MAX_FILTER_ATTRS} ویژگی در فیلتر", code="too_many_filters")
     out: dict = {}
     if attrs:
         out["attrs"] = attrs

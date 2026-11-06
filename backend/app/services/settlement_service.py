@@ -159,6 +159,14 @@ def create_settlement_batch(
         commission_rate_bps = (commission_minor * 10_000) // gross_minor if gross_minor else 0
     else:
         commission_minor = (gross_minor * commission_rate_bps) // 10_000  # integer floor division
+        # An admin-set rate replaces the platform commission only; the seller-funded affiliate bonus still applies.
+        fos = sorted({entries_by_id[eid]["fulfillment_order_id"] for eid in payable_entry_ids
+                      if entries_by_id[eid].get("fulfillment_order_id") is not None})
+        if fos:
+            commission_minor += int(conn.execute(
+                f"SELECT COALESCE(SUM(seller_paid_minor),0) FROM affiliate_earnings WHERE status<>'reversed' "
+                f"AND fulfillment_order_id IN ({','.join('?' * len(fos))})", fos).fetchone()[0])
+            commission_minor = min(commission_minor, gross_minor)
     # Shipping charge only deducted if supplier pays
     effective_shipping = shipping_charge_minor if shipping_payer == "supplier" else 0
     net_minor = gross_minor - commission_minor - effective_shipping

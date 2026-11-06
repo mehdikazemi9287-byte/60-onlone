@@ -113,10 +113,22 @@ def supplier_validate():
 def _seller_owns_master(conn, supplier_id: int, mid: int) -> bool:
     """Seller may edit a master's attributes if they have an offer on one of its SKUs or are its recorded source."""
     if conn.execute("""SELECT 1 FROM seller_offers o JOIN products p ON p.id=o.product_id
-                       WHERE o.supplier_id=? AND p.master_product_id=? LIMIT 1""", (supplier_id, mid)).fetchone():
+                       WHERE o.supplier_id=? AND p.master_product_id=? AND o.status IN ('active','out_of_stock') LIMIT 1""",
+                    (supplier_id, mid)).fetchone():
         return True
     return bool(conn.execute("SELECT 1 FROM direct_product_profiles WHERE master_product_id=? AND source_supplier_id=?",
                              (mid, supplier_id)).fetchone())
+
+
+def _seller_full_rights(conn, supplier_id: int, mid: int) -> bool:
+    """Full write only for the master's recorded source seller, or when this seller is its only active seller."""
+    if conn.execute("SELECT 1 FROM direct_product_profiles WHERE master_product_id=? AND source_supplier_id=?",
+                    (mid, supplier_id)).fetchone():
+        return True
+    others = conn.execute("""SELECT 1 FROM seller_offers o JOIN products p ON p.id=o.product_id
+                             WHERE p.master_product_id=? AND o.supplier_id<>? AND o.status IN ('active','out_of_stock') LIMIT 1""",
+                          (mid, supplier_id)).fetchone()
+    return others is None
 
 
 def _seller_master(conn, mid: int) -> int:
@@ -157,11 +169,13 @@ def supplier_product_values_put(mid: int):
     user = current_user()
     with get_db().write_transaction() as conn:
         sid = _seller_master(conn, mid)
-        out = cs.set_values(conn, mid, values, source="seller")
+        if len(values) > 200:
+            raise ValidationError("تعداد ویژگی‌ها بیش از حد است", code="too_many_attributes")
+        out = cs.set_values(conn, mid, values, source="seller", seller_id=sid, seller_full=_seller_full_rights(conn, sid, mid))
         out["quality"] = cq.master_quality(conn, mid)
         conn.execute("INSERT INTO audit_logs (actor_user_id, action, entity_type, entity_id, metadata_json, ip_address) VALUES (?,?,?,?,?,?)",
                      (user["id"], "supplier.catalog.attributes_set", "master_product", str(mid),
-                      json.dumps({"supplier_id": sid, "written": out["written"], "score": out["quality"]["score"]}, ensure_ascii=False),
+                      json.dumps({"supplier_id": sid, "written": out["written"], "proposed": out["proposed"], "score": out["quality"]["score"]}, ensure_ascii=False),
                       request.remote_addr))
         return jsonify(out)
 
@@ -524,3 +538,43 @@ def backfill():
 def apply_defaults():
     with get_db().write_transaction() as conn:
         return jsonify(cq.apply_policy_defaults(conn))
+
+
+# ── admin: seller proposals on shared catalog attributes ──
+
+@bp.get("/admin/catalog/proposals")
+@require_auth("admin")
+def proposals_list():
+    with get_db().read_transaction() as conn:
+        rows = conn.execute("""SELECT p.*, a.code, a.name_fa, m.canonical_name_fa FROM product_attribute_proposals p
+                               JOIN attribute_definitions a ON a.id=p.attribute_id JOIN master_products m ON m.id=p.master_product_id
+                               WHERE p.status='pending' ORDER BY p.id LIMIT 500""").fetchall()
+        return jsonify({"items": [dict(r) for r in rows]})
+
+
+@bp.post("/admin/catalog/proposals/<int:pid>/decision")
+@require_auth("admin")
+def proposal_decide(pid: int):
+    d = _body()
+    accept = d.get("accept")
+    if not isinstance(accept, bool):
+        raise ValidationError("«accept» باید true یا false باشد")
+    user = current_user()
+    with get_db().write_transaction() as conn:
+        p = conn.execute("SELECT p.*, a.code FROM product_attribute_proposals p JOIN attribute_definitions a ON a.id=p.attribute_id "
+                         "WHERE p.id=?", (pid,)).fetchone()
+        if p is None:
+            raise NotFoundError("پیشنهاد یافت نشد")
+        if p["status"] != "pending":
+            raise ConflictError("این پیشنهاد قبلاً بررسی شده است", code="proposal_decided")
+        if accept:
+            try:
+                raw = json.loads(p["raw_value"])
+            except ValueError:
+                raw = p["raw_value"]
+            cs.set_values(conn, p["master_product_id"], {p["code"]: raw}, source="admin")
+        conn.execute("UPDATE product_attribute_proposals SET status=? WHERE id=?", ("accepted" if accept else "rejected", pid))
+        conn.execute("INSERT INTO audit_logs (actor_user_id, action, entity_type, entity_id, metadata_json, ip_address) VALUES (?,?,?,?,?,?)",
+                     (user["id"], "catalog.proposal_decided", "attribute_proposal", str(pid),
+                      json.dumps({"accept": accept}), request.remote_addr))
+        return jsonify({"id": pid, "status": "accepted" if accept else "rejected"})
