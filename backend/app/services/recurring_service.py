@@ -190,3 +190,70 @@ def list_runs(conn, *, user_id: int, list_id: int) -> list[dict]:
         d["quote"] = json.loads(d.pop("quote_json")) if d.get("quote_json") else None
         out.append(d)
     return out
+
+
+RUN_FRESH_DAYS = 14  # a quoted run can be confirmed for two weeks; after that it is stale
+
+
+def _list_items(conn, list_id: int) -> dict[int, int]:
+    return {int(r["product_id"]): int(r["quantity"]) for r in conn.execute(
+        "SELECT product_id, quantity FROM recurring_list_items WHERE list_id=?", (list_id,))}
+
+
+def _fresh_run(conn, user_id: int, run_id: int):
+    run = conn.execute("SELECT r.*, l.user_id, l.status AS list_status FROM recurring_runs r JOIN recurring_lists l "
+                       "ON l.id=r.list_id WHERE r.id=?", (run_id,)).fetchone()
+    if run is None or int(run["user_id"]) != user_id:
+        return None
+    oldest = (_today() - _dt.timedelta(days=RUN_FRESH_DAYS)).isoformat()
+    if run["status"] != "quoted" or run["list_status"] != "active" or run["scheduled_for"] < oldest:
+        return None
+    return run
+
+
+def to_cart(conn, *, user_id: int, list_id: int, run_id: int) -> dict:
+    """Confirm a quoted run: the cart becomes exactly the list (previous cart lines are replaced)."""
+    from app.services import cart_service, sale_eligibility
+    run = _fresh_run(conn, user_id, run_id)
+    if run is None or int(run["list_id"]) != list_id:
+        raise ConflictError("این پیش‌فاکتور دوره‌ای قابل تأیید نیست (منقضی، تأییدشده یا فهرست غیرفعال)",
+                            code="recurring_run_unavailable")
+    cart_id = cart_service.get_or_create_active_cart_id(conn, user_id)
+    conn.execute("DELETE FROM cart_items WHERE cart_id=?", (cart_id,))
+    skipped = []
+    for product_id, qty in _list_items(conn, list_id).items():
+        try:
+            product, offer = cart_service._load_product(conn, product_id)
+            cart_service._check_quantity(offer, qty)
+        except (ValidationError, NotFoundError, ConflictError) as exc:
+            skipped.append({"product_id": product_id, "reason": exc.message})
+            continue
+        conn.execute("INSERT INTO cart_items (cart_id, product_id, quantity, unit_price_minor, offer_id) VALUES (?,?,?,?,?)",
+                     (cart_id, product_id, qty, sale_eligibility.unit_price(conn, offer, qty), offer["id"] or None))
+    conn.execute("UPDATE carts SET recurring_run_id=?, updated_at=datetime('now') WHERE id=?", (run_id, cart_id))
+    return {"cart_id": cart_id, "run_id": run_id, "skipped": skipped,
+            "discount_applies": not skipped}
+
+
+def discount_for_cart(conn, *, user_id: int, cart_id: int, lines: list[dict]) -> tuple[int | None, int]:
+    """(run_id, discount_minor): the recurring discount when this cart is exactly a fresh confirmed list."""
+    row = conn.execute("SELECT recurring_run_id FROM carts WHERE id=?", (cart_id,)).fetchone()
+    if row is None or row["recurring_run_id"] is None:
+        return None, 0
+    run = _fresh_run(conn, user_id, int(row["recurring_run_id"]))
+    if run is None:
+        return None, 0
+    if {int(l["product_id"]): int(l["quantity"]) for l in lines} != _list_items(conn, int(run["list_id"])):
+        return None, 0  # cart was changed after confirming: no subscription price
+    rules = cashier.load_rules(conn)
+    base, bulk = rules.get("recurring_discount") or {}, rules.get("recurring_discount_bulk") or {}
+    bps = 0
+    if bulk.get("enabled") and len(lines) >= int(bulk.get("min_items") or 0):
+        bps = int(bulk.get("percent_bps") or 0)
+    elif base.get("enabled") and len(lines) >= int(base.get("min_items") or 1):
+        bps = int(base.get("percent_bps") or 0)
+    cap = int((bulk if bps == int(bulk.get("percent_bps") or -1) else base).get("cap_bps") or bps)
+    bps = min(bps, cap)
+    if bps <= 0:
+        return None, 0
+    return int(run["id"]), sum(int(l["line_total_minor"]) * bps // 10_000 for l in lines)

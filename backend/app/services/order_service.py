@@ -66,6 +66,8 @@ def read_order(conn: sqlite3.Connection, *, order_id: int, user_id: int | None, 
         "credit_minor": row["credit_minor"] or 0,
         "cash": format_minor(row["cash_minor"] or 0, exponent),
         "cash_minor": row["cash_minor"] or 0,
+        "welfare_minor": (row["welfare_minor"] or 0) if "welfare_minor" in row.keys() else 0,
+        "recurring_discount_minor": (row["recurring_discount_minor"] or 0) if "recurring_discount_minor" in row.keys() else 0,
         "redeem_coins": row["redeem_coins"] if "redeem_coins" in row.keys() else 0,
         "redeem_discount": format_minor(
             row["redeem_discount_minor"] if "redeem_discount_minor" in row.keys() else 0, exponent

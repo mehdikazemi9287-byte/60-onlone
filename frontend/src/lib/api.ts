@@ -396,6 +396,9 @@ export const checkout = {
   quote: (token: string) =>
     request<import("./types").CheckoutQuote>("/checkout/quote", { token }),
 
+  welfare: (token: string) =>
+    request<{ available: boolean; allowed_minor: number; remaining_minor: number }>("/checkout/welfare", { token }),
+
   place: (
     token: string,
     idempotencyKey: string,
@@ -403,12 +406,13 @@ export const checkout = {
     payment_method: import("./types").PaymentMethod = "card",
     accepted_terms_version?: string,
     payment_provider?: string,
+    use_welfare?: boolean,
   ) =>
     request<CheckoutPlaced>("/checkout", {
       method: "POST",
       token,
       body: JSON.stringify({ shipping_address, payment_method, ...(accepted_terms_version ? { accepted_terms_version } : {}),
-        ...(payment_provider ? { payment_provider } : {}) }),
+        ...(payment_provider ? { payment_provider } : {}), ...(use_welfare ? { use_welfare: true } : {}) }),
       headers: { "Idempotency-Key": idempotencyKey },
     }),
 };

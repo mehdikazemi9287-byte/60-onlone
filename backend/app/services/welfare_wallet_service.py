@@ -197,7 +197,7 @@ def can_spend(conn, membership_id: int, cart_lines, now: datetime | None = None)
 
 
 def record_spend(conn, *, membership_id: int, cart_lines, idempotency_key: str, order_id: int | None = None,
-                 now: datetime | None = None) -> dict:
+                 now: datetime | None = None, cap_minor: int | None = None) -> dict:
     """Consume welfare budget for a cart. Idempotent on idempotency_key."""
     if not idempotency_key:
         raise ValidationError("کلید یکتایی لازم است", code="idempotency_key_required")
@@ -211,6 +211,14 @@ def record_spend(conn, *, membership_id: int, cart_lines, idempotency_key: str, 
     for line in result["lines"]:
         for use in line["plans"]:
             per_plan[use["plan_id"]] = per_plan.get(use["plan_id"], 0) + use["amount_minor"]
+    if cap_minor is not None:  # never consume more than the checkout actually applied
+        left, trimmed = max(0, int(cap_minor)), {}
+        for plan_id, amount in per_plan.items():
+            take = min(amount, left)
+            if take > 0:
+                trimmed[plan_id] = take
+                left -= take
+        per_plan = trimmed
     stamp = fmt(_utc(now))
     for plan_id, amount in per_plan.items():
         conn.execute(
@@ -228,3 +236,29 @@ def member_summary(conn, user_id: int, now: datetime | None = None) -> dict:
                           (user_id,)).fetchall():
         total += sum(p["remaining_minor"] for p in eligible_plans(conn, int(m["id"]), now))
     return {"remaining_minor": total}
+
+
+def reverse_spend(conn, *, idempotency_key: str, now: datetime | None = None) -> int:
+    """Give back a spend (failed or abandoned payment). Idempotent: a second call reverses nothing."""
+    rev_key = f"{idempotency_key}:reversal"
+    if conn.execute("SELECT 1 FROM welfare_ledger_entries WHERE idempotency_key = ? LIMIT 1", (rev_key,)).fetchone():
+        return 0
+    stamp, total = fmt(_utc(now)), 0
+    for r in conn.execute("SELECT plan_id, membership_id, amount_minor, order_id FROM welfare_ledger_entries "
+                          "WHERE idempotency_key = ? AND entry_type = 'spend'", (idempotency_key,)).fetchall():
+        conn.execute("INSERT INTO welfare_ledger_entries (plan_id, membership_id, entry_type, amount_minor, order_id, "
+                     "idempotency_key, created_at) VALUES (?,?, 'reversal', ?,?,?,?)",
+                     (r["plan_id"], r["membership_id"], r["amount_minor"], r["order_id"], rev_key, stamp))
+        total += int(r["amount_minor"])
+    return total
+
+
+def best_membership(conn, user_id: int, cart_lines, now: datetime | None = None) -> tuple[int | None, int]:
+    """The user's membership whose welfare plans cover the most of this cart: (membership_id, allowed_minor)."""
+    best: tuple[int | None, int] = (None, 0)
+    for m in conn.execute("SELECT m.id FROM organization_memberships m JOIN organizations o ON o.id = m.organization_id "
+                          "WHERE m.user_id = ? AND m.status = 'active' AND o.status = 'active'", (user_id,)).fetchall():
+        allowed = can_spend(conn, int(m["id"]), cart_lines, now)["total_allowed_minor"]
+        if allowed > best[1]:
+            best = (int(m["id"]), allowed)
+    return best

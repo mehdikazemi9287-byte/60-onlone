@@ -59,6 +59,7 @@ from app.services import (
     order_service,
     payment_service,
     quote_service,
+    welfare_wallet_service,
 )
 from app.services.integration_event_service import fan_out_business_event
 
@@ -134,7 +135,7 @@ def _store_idempotent_result(
 # ---------------------------------------------------------------- phase one
 def _begin_attempt(
     db: Database, *, user_id: int, cleaned_address: dict, idempotency_key: str,
-    payload_hash: str, exponent: int, ip_address: str | None, redeem_coins: int = 0,
+    payload_hash: str, exponent: int, ip_address: str | None, redeem_coins: int = 0, use_welfare: bool = False,
 ) -> tuple[int, dict] | tuple[None, tuple[int, dict]]:
     """Reserve everything and commit. Returns (intent_id, quote) or a replayed response."""
     with db.write_transaction() as conn:
@@ -244,10 +245,36 @@ def _begin_attempt(
         fulfillment_service.reserve_supplier_stock_for_plan(conn, plan=fulfillment_plan)
         # ── End fulfillment-first block ────────────────────────────────────────
 
+        # ── Welfare wallet (کیف پول رفاهی) ─────────────────────────────────────
+        # Applied first (restricted, expiring money), then credit, then card. The welfare share stays inside
+        # cash_minor (total = credit + cash) but is owed by the organization: card = cash - welfare.
+        welfare_minor, welfare_membership = 0, None
+        if use_welfare:
+            welfare_membership, allowed = welfare_wallet_service.best_membership(conn, user_id, lines)
+            total = int(quote["cart"]["total_minor"])
+            welfare_minor = min(allowed, total)
+            if welfare_minor > 0:
+                credit = min(int(quote["credit_to_use_minor"]), total - welfare_minor)
+                quote["credit_to_use_minor"] = credit
+                quote["cash_due_minor"] = total - credit
+        quote["welfare_minor"] = welfare_minor
+        quote["card_due_minor"] = int(quote["cash_due_minor"]) - welfare_minor
+
         intent_id = payment_service.create_intent(
             conn, user_id=user_id, idempotency_key=idempotency_key, request_hash=payload_hash,
             quote=quote, address=cleaned_address, lines=lines,
         )
+        if quote.get("recurring_discount_minor"):
+            conn.execute("UPDATE payment_intents SET recurring_run_id = ?, recurring_discount_minor = ? WHERE id = ?",
+                         (quote["recurring_run_id"], quote["recurring_discount_minor"], intent_id))
+        if welfare_minor > 0:
+            spent = welfare_wallet_service.record_spend(
+                conn, membership_id=welfare_membership, cart_lines=lines, idempotency_key=f"intent:{intent_id}",
+                cap_minor=welfare_minor)
+            if spent["total_minor"] != welfare_minor:  # budget moved under us: never let the card cover a gap silently
+                raise ConflictError("موجودی کیف پول رفاهی تغییر کرد؛ دوباره تلاش کنید", code="welfare_changed")
+            conn.execute("UPDATE payment_intents SET welfare_minor = ?, welfare_membership_id = ? WHERE id = ?",
+                         (welfare_minor, welfare_membership, intent_id))
 
         # Persist the plan so _fail_attempt and _complete_attempt can use it
         conn.execute(
@@ -255,7 +282,7 @@ def _begin_attempt(
             (json.dumps(fulfillment_plan, ensure_ascii=False), intent_id),
         )
 
-        if quote["credit_to_use_minor"] > 0:
+        if quote["credit_to_use_minor"] > 0 and quote.get("allocation"):
             # Re-derives available credit inside this serialised transaction.
             # A concurrent attempt cannot see the same credit as free.
             credit_service.reserve(
@@ -310,6 +337,8 @@ def _complete_attempt(
         total_minor        = int(intent["total_minor"])
         credit_minor       = int(intent["credit_minor"])
         cash_minor         = int(intent["cash_minor"])
+        welfare_minor      = int(dict(intent).get("welfare_minor") or 0)
+        card_minor         = cash_minor - welfare_minor
         # ── Tax snapshot (calculated during build_quote, persisted in intent) ──
         # We use the persisted snapshot — NEVER recalculate — so the tax amount
         # collected always equals the tax amount recorded in the order and ledger.
@@ -339,6 +368,13 @@ def _complete_attempt(
              redeem_coins, redeem_discount_minor),
         )
         order_id = int(cursor.lastrowid)
+        if welfare_minor:
+            conn.execute("UPDATE orders SET welfare_minor = ? WHERE id = ?", (welfare_minor, order_id))
+        recurring_discount = int(dict(intent).get("recurring_discount_minor") or 0)
+        if recurring_discount:
+            conn.execute("UPDATE orders SET recurring_discount_minor = ? WHERE id = ?", (recurring_discount, order_id))
+            conn.execute("UPDATE recurring_runs SET status = 'confirmed', order_id = ? WHERE id = ? AND status = 'quoted'",
+                         (order_id, intent["recurring_run_id"]))
 
         for item in payment_service.intent_items(conn, intent_id):
             conn.execute(
@@ -380,11 +416,11 @@ def _complete_attempt(
         # Invariant: sum(debits) = cash_minor + credit_minor = total_minor
         #            = subtotal_minor + shipping_minor + tax_minor = sum(credits)
         entries = []
-        if cash_minor > 0:
-            entries.append(ledger_service.Entry(ledger_service.ACCOUNT_PSP_CLEARING, "debit", cash_minor))
-        if credit_minor > 0:
+        if card_minor > 0:
+            entries.append(ledger_service.Entry(ledger_service.ACCOUNT_PSP_CLEARING, "debit", card_minor))
+        if credit_minor + welfare_minor > 0:  # welfare is owed by the employer, like credit
             entries.append(
-                ledger_service.Entry(ledger_service.ACCOUNT_ORG_RECEIVABLE, "debit", credit_minor)
+                ledger_service.Entry(ledger_service.ACCOUNT_ORG_RECEIVABLE, "debit", credit_minor + welfare_minor)
             )
         entries.append(ledger_service.Entry(ledger_service.ACCOUNT_SALES_REVENUE, "credit", subtotal_minor))
         if shipping_minor > 0:
@@ -560,6 +596,7 @@ def _fail_attempt(
         credit_service.release(
             conn, payment_intent_id=intent_id, actor_user_id=user_id, reason="پرداخت ناموفق"
         )
+        welfare_wallet_service.reverse_spend(conn, idempotency_key=f"intent:{intent_id}")
         payment_service.restore_stock(conn, intent_id)
         payment_service.transition(conn, intent_id, "failed", failure_reason=error.message[:500])
         audit_service.record(
@@ -595,6 +632,7 @@ def checkout(
     ip_address: str | None = None,
     redeem_coins: int = 0,
     callback_url: str | None = None,
+    use_welfare: bool = False,
 ) -> tuple[int, dict]:
     """Returns (http_status, response_body).
 
@@ -612,6 +650,7 @@ def checkout(
     cleaned_address = validate_address(address)
     payload_hash = _request_hash({
         "address": cleaned_address, "method": payment_method, "redeem_coins": redeem_coins,
+        **({"use_welfare": True} if use_welfare else {}),
     })
     if payment_provider_name == "mock" and not _mock_payments_allowed():
         # Payment boundary: without a real gateway no charge, capture or paid order is ever simulated.
@@ -633,13 +672,13 @@ def checkout(
     intent_id, quote_or_replay = _begin_attempt(
         db, user_id=user_id, cleaned_address=cleaned_address, idempotency_key=idempotency_key,
         payload_hash=payload_hash, exponent=exponent, ip_address=ip_address,
-        redeem_coins=redeem_coins,
+        redeem_coins=redeem_coins, use_welfare=bool(use_welfare),
     )
     if intent_id is None:
         return quote_or_replay  # replayed a completed attempt
 
     quote = quote_or_replay
-    cash_minor = int(quote["cash_due_minor"])
+    cash_minor = int(quote["card_due_minor"])  # what the card pays; the welfare share is owed by the employer
 
     if cash_minor > 0 and isinstance(provider, RedirectPaymentProvider):
         return _start_redirect(
@@ -685,8 +724,8 @@ def checkout(
     # ---- phase two (committed) -------------------------------------------
     status, body, created_fo_ids = _complete_attempt(
         db, intent_id=intent_id, user_id=user_id, payment_result=payment_result,
-        payment_method="split" if (quote["credit_to_use_minor"] and cash_minor)
-        else ("credit" if quote["credit_to_use_minor"] else payment_method),
+        payment_method="split" if ((quote["credit_to_use_minor"] or quote["welfare_minor"]) and cash_minor)
+        else ("credit" if quote["credit_to_use_minor"] else ("welfare" if quote["welfare_minor"] else payment_method)),
         idempotency_key=idempotency_key, payload_hash=payload_hash,
         exponent=exponent, ip_address=ip_address,
     )
@@ -729,7 +768,7 @@ def _start_redirect(
     ip_address: str | None, callback_url: str | None,
 ) -> tuple[int, dict]:
     """Phase one is committed; open a bank session and send the browser there."""
-    cash_minor = int(quote["cash_due_minor"])
+    cash_minor = int(quote.get("card_due_minor", quote["cash_due_minor"]))  # card share only
     failure: ApiError | None = None
     instruction = None
     if not callback_url:
@@ -829,7 +868,7 @@ def complete_redirect_payment(
 
     try:
         result = provider.verify(
-            callback, expected_amount_minor=int(intent["cash_minor"]), currency=intent["currency"],
+            callback, expected_amount_minor=int(intent["cash_minor"]) - int(dict(intent).get("welfare_minor") or 0), currency=intent["currency"],
         )
     except GatewayError as exc:
         # The bank never got our confirmation, so it returns the money by itself. Keep the
@@ -851,7 +890,7 @@ def complete_redirect_payment(
     try:
         _status, body, created_fo_ids = _complete_attempt(
             db, payment_result=result, exponent=exponent,
-            payment_method="split" if int(intent["credit_minor"]) else "card", **common,
+            payment_method="split" if (int(intent["credit_minor"]) or int(dict(intent).get("welfare_minor") or 0)) else "card", **common,
         )
     except Exception as exc:  # the order could not be created: the money must not stay with us
         log.exception("order creation failed after verified payment, intent %s", intent["id"])

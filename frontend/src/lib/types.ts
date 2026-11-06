@@ -97,6 +97,7 @@ export interface Cart {
 }
 
 export interface CheckoutQuote {
+  recurring_discount_minor?: number;
   cart: {
     item_count: number;
     subtotal: string;

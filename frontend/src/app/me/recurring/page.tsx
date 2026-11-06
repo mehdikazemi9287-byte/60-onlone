@@ -90,6 +90,7 @@ export default function RecurringPage() {
                 {l.items.map((it) => <li key={it.product_id}>{it.title_fa} × {n(it.quantity)}</li>)}
               </ul>
               {quote?.id === l.id && <QuoteView q={quote.q} err={quote.err} />}
+              {l.status === "active" && token && <ReadyRun token={token} listId={l.id} />}
             </li>
           ))}
         </ul>
@@ -206,5 +207,33 @@ function NewList({ token, onCreated }: { token: string; onCreated: (l: Recurring
         <button type="button" className={btnGhost} onClick={() => setOpen(false)}>انصراف</button>
       </div>
     </form>
+  );
+}
+
+type Run = { id: number; status: string; scheduled_for: string; payable_minor: number | null };
+
+// A quoted pre-invoice can be confirmed: the cart becomes this list and checkout applies the subscription discount.
+function ReadyRun({ token, listId }: { token: string; listId: number }) {
+  const [run, setRun] = useState<Run | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    apiRequest<{ items: Run[] }>(`/me/recurring/${listId}/runs`, { token })
+      .then((d) => setRun(d.items.find((r) => r.status === "quoted") ?? null)).catch(() => {});
+  }, [token, listId]);
+  if (!run) return null;
+  const confirm = async () => {
+    setBusy(true); setErr(null);
+    try {
+      await apiRequest(`/me/recurring/${listId}/runs/${run.id}/to-cart`, { token, method: "POST" });
+      window.location.href = "/checkout";
+    } catch (e) { setErr(e instanceof Error ? e.message : "تأیید ناموفق بود"); setBusy(false); }
+  };
+  return (
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
+      <span>پیش‌فاکتور نوبت {faDate(run.scheduled_for)} آماده است{run.payable_minor ? ` (${formatPrice(run.payable_minor)})` : ""}.</span>
+      <button type="button" disabled={busy} onClick={confirm} className="rounded-lg bg-emerald-700 px-3 py-1.5 font-bold text-white disabled:opacity-60">تأیید و پرداخت</button>
+      {err && <p role="alert" className="w-full text-red-700">{err}</p>}
+    </div>
   );
 }

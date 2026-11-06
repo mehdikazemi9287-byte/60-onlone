@@ -57,6 +57,7 @@ def checkout():
         ip_address=client_ip(),
         redeem_coins=redeem_coins,
         callback_url=_callback_url(settings, provider_name),
+        use_welfare=body.get("use_welfare") is True,
     )
     if status == 202:  # pay on the bank page first; the order is created on return
         return jsonify(payload), status
@@ -147,3 +148,17 @@ def get_order(order_number: str):
             conn, order_id=order_id
         )
     return jsonify({"order": order, "fulfillment_orders": fulfillment_orders})
+
+
+@bp.get("/checkout/welfare")
+@require_auth()
+def welfare_for_cart():
+    """How much of the current cart the buyer's welfare wallet can pay (0 when none)."""
+    from app.services import cart_service, welfare_wallet_service
+    user = current_user()
+    with get_db().read_transaction() as conn:
+        cart = cart_service.read_cart(conn, user["id"], get_settings().currency_exponent)
+        lines = [{"product_id": i["product_id"], "line_total_minor": i["line_total_minor"]} for i in cart["items"]]
+        membership, allowed = welfare_wallet_service.best_membership(conn, user["id"], lines) if lines else (None, 0)
+        return jsonify({"available": allowed > 0, "allowed_minor": allowed,
+                        "remaining_minor": welfare_wallet_service.member_summary(conn, user["id"])["remaining_minor"]})

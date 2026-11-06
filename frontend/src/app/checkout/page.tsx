@@ -236,6 +236,10 @@ function ConfirmStep({
   // Buyer terms + statutory withdrawal notice, accepted before paying (recorded as evidence).
   const [terms, setTerms] = useState<{ version: string; url: string } | null>(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  // Employee welfare wallet (کیف پول رفاهی): opt-in; the server decides the exact share.
+  const [welfare, setWelfare] = useState<{ available: boolean; allowed_minor: number } | null>(null);
+  const [useWelfare, setUseWelfare] = useState(false);
+  useEffect(() => { checkoutApi.welfare(token).then(setWelfare).catch(() => setWelfare(null)); }, [token]);
   // Card gateway or an external credit provider (Tara pattern: the lender funds, we only accept).
   const [payOptions, setPayOptions] = useState<{ provider: string; kind: string; label: string; note?: string }[]>([]);
   const [provider, setProvider] = useState<string | null>(null);
@@ -279,7 +283,7 @@ function ConfirmStep({
     setError(null);
     try {
       const external = payOptions.find((o) => o.provider === provider && o.kind === "external_credit");
-      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider);
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, useWelfare);
       if (placed.payment_redirect) {
         // Pay on the bank page; the bank sends the customer back to the order or here with the result.
         setRedirecting(true);
@@ -389,6 +393,18 @@ function ConfirmStep({
           <span className="text-neutral-500">مالیات (٪{(quote.tax_rate_bps / 100).toFixed(0)})</span>
           <span className="tabular-nums">{formatPrice(quote.tax_minor)}</span>
         </div>
+        {!!quote.recurring_discount_minor && (
+          <div className="flex justify-between text-success-600">
+            <span>تخفیف خرید دوره‌ای (اعمال‌شده در جمع کالاها)</span>
+            <span className="tabular-nums">−{formatPrice(quote.recurring_discount_minor)}</span>
+          </div>
+        )}
+        {welfare?.available && (
+          <label className="flex items-start gap-2 rounded-lg bg-success-50 p-2 text-success-700">
+            <input type="checkbox" className="mt-1" checked={useWelfare} onChange={(e) => setUseWelfare(e.target.checked)} />
+            <span>پرداخت با کیف پول رفاهی (تا {formatPrice(welfare.allowed_minor)} از این سبد). سهم رفاهی را سازمان می‌پردازد و از کارت کم می‌شود.</span>
+          </label>
+        )}
         {method !== "card" && quote.credit_to_use_minor > 0 && (
           <div className="flex justify-between text-success-600">
             <span>اعتبار سازمانی</span>
@@ -397,8 +413,9 @@ function ConfirmStep({
         )}
         <div className="border-t border-neutral-100 pt-2 flex justify-between font-bold text-neutral-900">
           <span>پرداختی نهایی</span>
-          <span className="text-primary-700 text-base tabular-nums">{formatPrice(quote.cash_due_minor)}</span>
+          <span className="text-primary-700 text-base tabular-nums">{formatPrice(useWelfare && welfare ? Math.max(0, quote.cash_due_minor - welfare.allowed_minor) : quote.cash_due_minor)}</span>
         </div>
+        {useWelfare && <p className="text-2xs text-neutral-500">مبلغ نهایی کارت پس از اعمال کیف پول رفاهی توسط سرور قطعی می‌شود.</p>}
         <p className="text-2xs text-neutral-400 text-left">
           روش پرداخت: {method === "card" ? "کارت بانکی" : method === "credit" ? "اعتبار سازمانی" : "ترکیبی"}
         </p>
