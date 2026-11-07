@@ -283,7 +283,9 @@ function ConfirmStep({
     setError(null);
     try {
       const external = payOptions.find((o) => o.provider === provider && o.kind === "external_credit");
-      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, useWelfare);
+      let proforma: string | undefined;
+      try { proforma = new URLSearchParams(window.location.search).get("proforma") ?? undefined; } catch {}
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, useWelfare, proforma);
       if (placed.payment_redirect) {
         // Pay on the bank page; the bank sends the customer back to the order or here with the result.
         setRedirecting(true);

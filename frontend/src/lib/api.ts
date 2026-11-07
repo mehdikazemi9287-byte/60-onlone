@@ -407,12 +407,14 @@ export const checkout = {
     accepted_terms_version?: string,
     payment_provider?: string,
     use_welfare?: boolean,
+    proforma_number?: string,
   ) =>
     request<CheckoutPlaced>("/checkout", {
       method: "POST",
       token,
       body: JSON.stringify({ shipping_address, payment_method, ...(accepted_terms_version ? { accepted_terms_version } : {}),
-        ...(payment_provider ? { payment_provider } : {}), ...(use_welfare ? { use_welfare: true } : {}) }),
+        ...(payment_provider ? { payment_provider } : {}), ...(use_welfare ? { use_welfare: true } : {}),
+        ...(proforma_number ? { proforma_number } : {}) }),
       headers: { "Idempotency-Key": idempotencyKey },
     }),
 };

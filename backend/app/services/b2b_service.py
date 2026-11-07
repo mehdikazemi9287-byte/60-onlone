@@ -227,7 +227,10 @@ def onboard(conn: sqlite3.Connection, *, actor_user_id: int, data: dict, idempot
                             payload={"limit_minor": limit, "due_days": credit.get("due_days", 7),
                                      "statement_weekday": credit.get("statement_weekday", ccs.SATURDAY),
                                      "funder_type": "org", "contract_number": contract.get("reference"),
-                                     "signed_by_name": credit.get("signed_by_name")})
+                                     "signed_by_name": credit.get("signed_by_name"),
+                                     # shops start small and earn the full limit by paying on time (Udaan lesson)
+                                     "ramp": credit.get("ramp", kind == "retailer"),
+                                     "ramp_start_pct": credit.get("ramp_start_pct", 25)})
     for inv in invites:
         if not isinstance(inv, dict):
             raise ValidationError("هر دعوت باید {phone, role} باشد")

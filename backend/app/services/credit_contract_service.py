@@ -91,11 +91,64 @@ def _event(conn, contract_id: int, event_type: str, reason: str | None, actor_us
     )
 
 
+RAMP_STEPS = (25, 50, 75, 100)
+RAMP_STATEMENTS_PER_STEP = 2
+
+
+def ramp_pct(conn, row) -> int:
+    """Share (%) of the signed limit usable today. Without a ramp: 100.
+
+    Walks the closed statements oldest first: a statement with usage paid by its due date counts toward the next
+    step (two per step); one paid late or still overdue resets to the start. Statements with no usage neither
+    count nor reset — a buyer cannot climb by not buying."""
+    if not row["ramp_enabled"]:
+        return 100
+    start = RAMP_STEPS.index(int(row["ramp_start_pct"]))
+    level, streak = start, 0
+    for st in conn.execute("SELECT usage_minor, status, due_at, paid_at FROM credit_statements WHERE contract_id = ? "
+                           "AND status IN ('paid','overdue') ORDER BY period_start", (int(row["id"]),)).fetchall():
+        if int(st["usage_minor"]) <= 0:
+            continue
+        on_time = st["status"] == "paid" and st["paid_at"] is not None and st["paid_at"] <= st["due_at"]
+        if not on_time:
+            level, streak = start, 0
+            continue
+        streak += 1
+        if streak == RAMP_STATEMENTS_PER_STEP:
+            level, streak = min(level + 1, len(RAMP_STEPS) - 1), 0
+    return RAMP_STEPS[level]
+
+
+def effective_limit_minor(conn, row) -> int:
+    return int(row["limit_minor"]) * ramp_pct(conn, row) // 100
+
+
+def check_ramp_headroom(conn, organization_id: int, amount_minor: int) -> None:
+    """Refuse a credit reservation that would take a ramped contract past today's step.
+    Counts what is owed plus what is already held but not yet captured."""
+    row = conn.execute("SELECT * FROM credit_contracts WHERE organization_id = ? AND status = 'active'",
+                       (organization_id,)).fetchone()
+    if row is None or not row["ramp_enabled"]:
+        return
+    held = int(conn.execute("SELECT COALESCE(SUM(amount_minor),0) FROM credit_reservations "
+                            "WHERE organization_id = ? AND status = 'held'", (organization_id,)).fetchone()[0])
+    limit = effective_limit_minor(conn, row)
+    available = limit - max(0, outstanding_minor(conn, int(row["id"]))) - held
+    if amount_minor > available:
+        raise ConflictError(
+            f"سقف اعتبار فعلی شما {ramp_pct(conn, row)}٪ سقف قرارداد است و با هر دو صورت‌حساب به‌موقع بالا می‌رود "
+            f"(باقی‌ماندهٔ قابل استفاده: {max(0, available):,} ریال)",
+            code="credit_ramp_limit", details={"available_minor": max(0, available), "ramp_pct": ramp_pct(conn, row)})
+
+
 def contract_dict(conn, row) -> dict:
     data = {k: row[k] for k in row.keys()}
     data.pop("idempotency_key", None)
     data["outstanding_minor"] = outstanding_minor(conn, int(row["id"]))
-    data["headroom_minor"] = int(row["limit_minor"]) - data["outstanding_minor"]
+    data["ramp_enabled"] = bool(row["ramp_enabled"])
+    data["ramp_pct"] = ramp_pct(conn, row)
+    data["effective_limit_minor"] = effective_limit_minor(conn, row)
+    data["headroom_minor"] = data["effective_limit_minor"] - data["outstanding_minor"]
     return data
 
 
@@ -132,6 +185,10 @@ def create_contract(conn: sqlite3.Connection, *, organization_id: int, payload: 
     if payload.get("cycle", "weekly") != "weekly":
         raise ValidationError("فعلاً فقط دورهٔ هفتگی پشتیبانی می‌شود", details={"cycle": "weekly"})
     starts_at = fmt(parse_ts(payload["starts_at"])) if payload.get("starts_at") else fmt(_utc(now))
+    ramp = payload.get("ramp", False)
+    ramp_start = payload.get("ramp_start_pct", RAMP_STEPS[0])
+    if not isinstance(ramp, bool) or ramp_start not in RAMP_STEPS or isinstance(ramp_start, bool):
+        raise ValidationError("تنظیم سقف پلکانی نامعتبر است", details={"ramp": "bool", "ramp_start_pct": list(RAMP_STEPS)})
 
     live = conn.execute(
         "SELECT id FROM credit_contracts WHERE organization_id = ? AND status IN ('active','frozen')",
@@ -146,20 +203,20 @@ def create_contract(conn: sqlite3.Connection, *, organization_id: int, payload: 
         INSERT INTO credit_contracts
             (reference, organization_id, funder_type, funder_name, funder_reference, contract_number,
              limit_minor, cycle, statement_weekday, due_days, status, starts_at, signed_at,
-             signed_by_name, idempotency_key, created_by_user_id, created_at, updated_at)
-        VALUES (?,?,?,?,?,?,?, 'weekly', ?,?, 'active', ?,?,?,?,?,?,?)
+             signed_by_name, idempotency_key, created_by_user_id, created_at, updated_at, ramp_enabled, ramp_start_pct)
+        VALUES (?,?,?,?,?,?,?, 'weekly', ?,?, 'active', ?,?,?,?,?,?,?,?,?)
         """,
         (_ref("CC"), organization_id, funder_type, funder_name, payload.get("funder_reference"),
          payload.get("contract_number"), limit_minor, weekday, due_days, starts_at,
          payload.get("signed_at") or stamp, payload.get("signed_by_name"), idempotency_key,
-         actor_user_id, stamp, stamp),
+         actor_user_id, stamp, stamp, 1 if ramp else 0, ramp_start),
     )
     contract_id = int(cursor.lastrowid)
     _event(conn, contract_id, "created", None, actor_user_id, now)
     audit_service.record(conn, action="credit_contract.created", entity_type="credit_contract",
                          entity_id=contract_id, actor_user_id=actor_user_id,
                          metadata={"organization_id": organization_id, "limit_minor": limit_minor,
-                                   "funder_type": funder_type})
+                                   "funder_type": funder_type, "ramp": ramp})
     return True, contract_dict(conn, _contract_row(conn, contract_id))
 
 

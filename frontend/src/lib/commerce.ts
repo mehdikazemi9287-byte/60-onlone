@@ -33,7 +33,8 @@ export type OrgInvoice = { invoice_number: string; order_number: string; issued_
   subtotal_minor: number; shipping_fee_minor: number; tax_minor: number; total_minor: number; credit_minor: number; cash_minor: number };
 export type CreditContract = { id: number; reference: string; funder_type: string; funder_name: string | null; contract_number: string | null;
   limit_minor: number; outstanding_minor: number; headroom_minor: number; status: "active" | "frozen" | "closed"; freeze_reason: string | null;
-  statement_weekday: number; due_days: number; starts_at: string; closed_at: string | null };
+  statement_weekday: number; due_days: number; starts_at: string; closed_at: string | null;
+  ramp_enabled?: boolean; ramp_pct?: number; effective_limit_minor?: number };
 export type CreditStatement = { id: number; reference: string; period_start: string; period_end: string; opening_minor: number;
   usage_minor: number; payments_minor: number; closing_minor: number; due_at: string; paid_at: string | null; status: "open" | "paid" | "overdue" };
 export type WelfarePlan = { id: number; reference: string; title: string; plan_type: "free" | "category" | "product"; per_employee_cap_minor: number;

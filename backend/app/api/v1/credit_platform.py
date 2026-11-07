@@ -122,6 +122,33 @@ def org_contracts(org_id: int):
         return jsonify({"contracts": contracts.list_contracts(conn, org_id)})
 
 
+def _csv_response(body: str, name: str):
+    from flask import Response
+    return Response("\ufeff" + body, mimetype="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"', "Cache-Control": "no-store"})
+
+
+@bp.get("/orgs/<int:org_id>/reports/payroll.csv")
+@require_org_role(*FINANCE)
+def org_payroll_csv(org_id: int):
+    """Per-member organization-credit use for HR (salary deduction is the employer's own agreement)."""
+    from app.services import org_reports_service as rep
+    start, end = rep.period(request.args.get("from"), request.args.get("to"))
+    with get_db().read_transaction() as conn:
+        body = rep.payroll_csv(conn, organization_id=org_id, start=start, end=end)
+    return _csv_response(body, f"payroll-{org_id}-{request.args.get('from')}.csv")
+
+
+@bp.get("/orgs/<int:org_id>/reports/spend.csv")
+@require_org_role(*FINANCE)
+def org_spend_csv(org_id: int):
+    from app.services import org_reports_service as rep
+    start, end = rep.period(request.args.get("from"), request.args.get("to"))
+    with get_db().read_transaction() as conn:
+        body = rep.spend_csv(conn, organization_id=org_id, start=start, end=end)
+    return _csv_response(body, f"spend-{org_id}-{request.args.get('from')}.csv")
+
+
 @bp.get("/orgs/<int:org_id>/statements")
 @require_org_role(*FINANCE)
 def org_statements(org_id: int):

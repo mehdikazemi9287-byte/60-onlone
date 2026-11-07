@@ -9,7 +9,7 @@ import { latinDigits } from "@/lib/shops";
 import { formatPrice, faDate } from "@/lib/utils";
 import {
   apiRequest, errText, FINANCE_ROLES, ORDER_STATUS_FA,
-  type ApprovalRule, type CreditContract, type CreditStatement, type OrgInvoice, type OrgOrderRow, type PreferredSeller, type WelfarePlan,
+  downloadAuthed, type ApprovalRule, type CreditContract, type CreditStatement, type OrgInvoice, type OrgOrderRow, type PreferredSeller, type WelfarePlan,
 } from "@/lib/commerce";
 import { useOrganization, OrgSelector } from "./Dashboard";
 import { Card, Flash, ListState, btnCls, btnGhost, inputCls, n } from "@/components/commerce/ui";
@@ -192,10 +192,13 @@ function CreditBody({ token, orgId }: Ctx) {
                   ["وضعیت", CONTRACT_FA[c.status] ?? c.status]].map(([k, v]) => (
                   <div key={k} className="rounded-xl border border-neutral-200 p-3"><dt className="text-xs text-neutral-500">{k}</dt><dd className="font-black">{v}</dd></div>))}
               </dl>
+              {c.ramp_enabled && c.ramp_pct !== undefined && c.ramp_pct < 100 && (
+                <p className="rounded-xl bg-primary-50 p-3 text-sm text-primary-800">سقف پلکانی: الان {n(c.ramp_pct)}٪ سقف قرارداد ({formatPrice(c.effective_limit_minor ?? 0)}) قابل استفاده است. هر دو صورت‌حساب که به‌موقع پرداخت شود یک پله بالا می‌رود؛ دیرکرد آن را به پلهٔ اول برمی‌گرداند.</p>)}
               <p className="text-xs text-neutral-500">قرارداد <span dir="ltr">{c.contract_number ?? c.reference}</span>{c.funder_name ? ` · تأمین‌کننده: ${c.funder_name}` : ""} · صورت‌حساب هفتگی، مهلت پرداخت {n(c.due_days)} روز</p>
             </>
           )}
       </Card>
+      <OrgReports token={token} orgId={orgId} />
       <Card title="صورت‌حساب‌های هفتگی">
         <ListState items={stmts} error={sErr} empty="هنوز صورت‌حسابی صادر نشده است." onRetry={() => setRetry((x) => x + 1)} />
         {stmts && stmts.length > 0 && (
@@ -209,6 +212,30 @@ function CreditBody({ token, orgId }: Ctx) {
         )}
       </Card>
     </>
+  );
+}
+
+function OrgReports({ token, orgId }: { token: string; orgId: string }) {
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const [from, setFrom] = useState(() => iso(new Date(Date.now() - 30 * 864e5)));
+  const [to, setTo] = useState(() => iso(new Date()));
+  const [err, setErr] = useState<string | null>(null);
+  const get = async (kind: "payroll" | "spend") => {
+    setErr(null);
+    try { await downloadAuthed(`/orgs/${orgId}/reports/${kind}.csv?from=${from}&to=${to}`, token, `${kind}-${from}.csv`); }
+    catch (e) { setErr(errText(e)); }
+  };
+  return (
+    <Card title="گزارش برای مالی و منابع انسانی">
+      <div className="flex flex-wrap items-end gap-3 text-sm">
+        <label>از <input type="date" dir="ltr" className={inputCls} value={from} onChange={(e) => setFrom(e.target.value)} /></label>
+        <label>تا <input type="date" dir="ltr" className={inputCls} value={to} onChange={(e) => setTo(e.target.value)} /></label>
+        <button className={btnCls} onClick={() => get("spend")}>خرید سازمان (CSV)</button>
+        <button className={btnGhost} onClick={() => get("payroll")}>مصرف اعتبار هر کارمند (CSV)</button>
+      </div>
+      <p className="text-xs text-neutral-500">فایل مصرف اعتبار برای منابع انسانی است؛ کسر آن از حقوق فقط طبق توافق کتبی سازمان با کارمند انجام شود. بودجهٔ رفاهی در آن نمی‌آید.</p>
+      {err && <p role="alert" className="text-sm text-red-700">{err}</p>}
+    </Card>
   );
 }
 

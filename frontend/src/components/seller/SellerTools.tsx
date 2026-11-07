@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api";
 import { faDate } from "@/lib/utils";
 import { Card, Flash, ListState, btnCls, btnGhost, inputCls, n } from "@/components/commerce/ui";
 import { SellerInPerson } from "@/components/inperson/SellerInPerson";
+import { SellerDirect } from "./SellerDirect";
 import { SellerAffiliateBonus } from "@/components/affiliate/SellerAffiliateBonus";
 import { ProductAttributesCard } from "./ProductAttributesForm";
 
@@ -42,6 +43,7 @@ export function SellerTools({ token, isBrand }: { token: string; isBrand: boolea
       <ProductAttributesCard token={token} />
       <ShipmentsCard token={token} />
       <ExportsCard token={token} />
+      <SellerDirect token={token} />
       <SellerInPerson token={token} />
       <SellerAffiliateBonus token={token} />
     </div>

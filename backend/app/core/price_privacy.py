@@ -23,7 +23,7 @@ PUBLIC_CATALOG = ("/api/v1/storefront", "/api/v1/products", "/api/v1/catalog", "
                   "/api/v1/shops", "/api/v1/stores", "/api/v1/offers", "/api/v1/content", "/api/v1/preorders",
                   "/api/v1/vambi", "/api/v1/cashier")
 # Buying itself: closed to viewers who may not see prices (a pure B2B showcase — nobody adds an unpriced item).
-MEMBERS_ONLY_BUYING = ("/api/v1/cart", "/api/v1/checkout")
+MEMBERS_ONLY_BUYING = ("/api/v1/cart", "/api/v1/checkout", "/api/v1/me/proformas")
 
 
 def mode() -> str:

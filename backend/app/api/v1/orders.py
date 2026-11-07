@@ -45,6 +45,13 @@ def checkout():
         if chosen not in allowed:
             raise ValidationError("این روش پرداخت فعال نیست", code="payment_provider_unavailable")
         provider_name = chosen
+    proforma = body.get("proforma_number")
+    if proforma is not None:
+        from app.services import proforma_service
+        if not isinstance(proforma, str) or len(proforma) > 40:
+            raise ValidationError("شمارهٔ پیش‌فاکتور نامعتبر است")
+        with get_db().write_transaction() as conn:
+            proforma_service.guard_checkout(conn, user_id=user["id"], number=proforma)
     status, payload = checkout_service.checkout(
         get_db(),
         user_id=user["id"],
@@ -61,7 +68,27 @@ def checkout():
     )
     if status == 202:  # pay on the bank page first; the order is created on return
         return jsonify(payload), status
+    if proforma and isinstance(payload, dict) and payload.get("id"):
+        with get_db().write_transaction() as conn:
+            conn.execute("UPDATE proformas SET used_order_id=? WHERE number=? AND user_id=? AND used_order_id IS NULL",
+                         (payload["id"], proforma, user["id"]))
     return jsonify({"order": payload}), status
+
+
+@bp.post("/me/proformas")
+@require_auth()
+def create_proforma():
+    from app.services import proforma_service
+    with get_db().write_transaction() as conn:
+        return jsonify(proforma_service.create(conn, user_id=current_user()["id"])), 201
+
+
+@bp.get("/me/proformas/<number>")
+@require_auth()
+def get_proforma(number: str):
+    from app.services import proforma_service
+    with get_db().read_transaction() as conn:
+        return jsonify(proforma_service.get(conn, user_id=current_user()["id"], number=number))
 
 
 def _callback_url(settings, provider_name: str | None = None) -> str | None:

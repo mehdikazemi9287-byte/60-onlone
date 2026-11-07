@@ -287,3 +287,46 @@ class LendingFlagsTest(AppTestCase):
             r = self.client.post("/api/v1/installments", json={}, headers=h)
             self.assertEqual(r.status_code, 403)
             self.assertEqual(r.get_json()["error"]["code"], "feature_disabled")
+
+
+class CreditRampTests(Phase4Base):
+    """Graduated credit: start at 25% of the signed limit, +1 step per two on-time statements, reset on a late one."""
+
+    def test_ramp_climbs_with_on_time_payment_and_resets_when_late(self):
+        org, _, _, emp = self.org_fixture(credit_minor=500_000_000)
+        with self.db.write_transaction() as conn:
+            _, c = cc.create_contract(conn, organization_id=org["id"], idempotency_key="ramp", actor_user_id=None,
+                                      payload={"limit_minor": 100_000_000, "starts_at": "2026-11-01 00:00:00", "ramp": True})
+        self.assertEqual((c["ramp_pct"], c["effective_limit_minor"]), (25, 25_000_000))
+        with self.db.write_transaction() as conn:
+            with self.assertRaises(cc.ConflictError) as e:
+                cc.check_ramp_headroom(conn, org["id"], 25_000_001)
+            self.assertEqual(e.exception.code, "credit_ramp_limit")
+            cc.check_ramp_headroom(conn, org["id"], 25_000_000)
+        for n, (use, issue, pay) in enumerate((("2026-11-03 10:00:00", utc(2026, 11, 7, 12), utc(2026, 11, 8)),
+                                                ("2026-11-10 10:00:00", utc(2026, 11, 14, 12), utc(2026, 11, 15)))):
+            self.capture(emp, org["id"], 10_000_000, use)
+            with self.db.write_transaction() as conn:
+                cc.run_weekly_statements(conn, issue)
+                cc.record_payment(conn, c["id"], amount_minor=10_000_000, idempotency_key=f"rp{n}",
+                                  actor_user_id=None, now=pay)
+        with self.db.write_transaction() as conn:
+            self.assertEqual(cc.get_contract(conn, c["id"])["ramp_pct"], 50)
+        # a week with no purchases neither climbs nor resets; a late one resets to the start
+        self.capture(emp, org["id"], 10_000_000, "2026-11-24 10:00:00")
+        with self.db.write_transaction() as conn:
+            cc.run_weekly_statements(conn, utc(2026, 11, 28, 12))
+            cc.enforce_overdue(conn, utc(2026, 12, 6))
+            got = cc.get_contract(conn, c["id"])
+        self.assertEqual((got["ramp_pct"], got["effective_limit_minor"]), (25, 25_000_000))
+
+    def test_contract_without_ramp_uses_full_limit(self):
+        org, _, _, _ = self.org_fixture(credit_minor=500_000_000)
+        with self.db.write_transaction() as conn:
+            _, c = cc.create_contract(conn, organization_id=org["id"], idempotency_key="flat", actor_user_id=None,
+                                      payload={"limit_minor": 100_000_000})
+            cc.check_ramp_headroom(conn, org["id"], 100_000_000)
+            with self.assertRaises(cc.ValidationError):
+                cc.create_contract(conn, organization_id=org["id"], idempotency_key="bad", actor_user_id=None,
+                                   payload={"limit_minor": 1, "ramp": True, "ramp_start_pct": 30})
+        self.assertEqual((c["ramp_pct"], c["effective_limit_minor"]), (100, 100_000_000))

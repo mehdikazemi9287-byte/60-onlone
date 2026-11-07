@@ -67,6 +67,7 @@ from app.api.v1 import credit_platform as credit_platform_api
 from app.api import partner_v1 as partner_v1_api
 from app.api.v1 import consumer_rights as consumer_rights_api
 from app.api.v1 import in_person as in_person_api
+from app.api.v1 import seller_direct as seller_direct_api
 from app.api.v1 import affiliates as affiliates_api
 from app.api.v1 import catalog_schema as catalog_schema_api
 from app.api.v1 import price_feeds as price_feeds_api
@@ -210,6 +211,7 @@ def create_app(
         logistics_v2_api.bp,
         consumer_rights_api.bp,
         in_person_api.bp,
+        seller_direct_api.bp,
         affiliates_api.bp,
         catalog_schema_api.bp,
         price_feeds_api.bp,

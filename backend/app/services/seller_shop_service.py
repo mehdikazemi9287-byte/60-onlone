@@ -132,9 +132,14 @@ def resolve_commission_bps(conn: sqlite3.Connection, *, supplier_id: int,
 def commission_for_fulfillment(conn: sqlite3.Connection, fulfillment_order_id: int) -> dict:
     """Per-line commission snapshot for a delivered fulfillment order."""
     fo = conn.execute(
-        "SELECT fo.supplier_id, o.organization_id FROM fulfillment_orders fo JOIN orders o ON o.id=fo.order_id "
+        "SELECT fo.supplier_id, o.organization_id, o.user_id FROM fulfillment_orders fo JOIN orders o ON o.id=fo.order_id "
         "WHERE fo.id=?", (fulfillment_order_id,)).fetchone()
     channel = "organization" if fo["organization_id"] else "retail"
+    from app.services import seller_direct_service
+    if seller_direct_service.is_direct(conn, supplier_id=int(fo["supplier_id"]), user_id=fo["user_id"]):
+        gross = conn.execute("SELECT COALESCE(SUM(COALESCE(line_cost_minor, line_selling_minor)),0) "
+                             "FROM fulfillment_order_items WHERE fulfillment_order_id=?", (fulfillment_order_id,)).fetchone()[0]
+        return {"channel": "direct", "gross_minor": int(gross), "commission_minor": 0, "rate_bps": 0}
     rows = conn.execute(
         "SELECT i.product_id, p.category_id, COALESCE(i.line_cost_minor, i.line_selling_minor) AS gross "
         "FROM fulfillment_order_items i JOIN products p ON p.id=i.product_id WHERE i.fulfillment_order_id=?",

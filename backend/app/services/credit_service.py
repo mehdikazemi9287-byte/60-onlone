@@ -370,6 +370,8 @@ def reserve(
     if organization_credit_frozen(conn, int(allocation["organization_id"])):
         raise ConflictError("اعتبار سازمان به دلیل صورتحساب پرداخت‌نشده موقتاً متوقف است",
                             code="credit_contract_frozen")
+    from app.services.credit_contract_service import check_ramp_headroom
+    check_ramp_headroom(conn, int(allocation["organization_id"]), amount_minor)
 
     reference = _ref("RES")
     cursor = conn.execute(
