@@ -182,7 +182,7 @@ class SupplierLedgerTest(AppTestCase):
     def test_payable_api_supplier_sees_own(self):
         """Supplier can list their own payables."""
         import uuid
-        supplier_email = "supplier.tehran@70online.ir"
+        supplier_email = "supplier.tehran@60online.ir"
         supplier_token = self.login(supplier_email, "Sup!Tehran1")
         supplier_h = {"Authorization": f"Bearer {supplier_token}"}
 

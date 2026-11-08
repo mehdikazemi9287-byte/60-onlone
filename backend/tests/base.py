@@ -28,7 +28,7 @@ class AppTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         os.environ["TEST_SALES_OVERRIDE"] = "1"
-        self.tmpdir = tempfile.mkdtemp(prefix="70online-test-")
+        self.tmpdir = tempfile.mkdtemp(prefix="60online-test-")
         db_path = os.path.join(self.tmpdir, "test.db")
         self.settings = Settings(
             secret_key=TEST_SECRET,

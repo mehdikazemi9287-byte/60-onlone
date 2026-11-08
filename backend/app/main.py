@@ -82,7 +82,7 @@ from app.core.logging_config import configure_logging
 from app.core.metrics import InMemoryMetricsCollector, NoOpMetricsCollector
 from app.core.rate_limiter import FailClosedRateLimiter, InMemoryRateLimiter, NoOpRateLimiter
 
-logger = logging.getLogger("70online")
+logger = logging.getLogger("60online")
 
 
 def create_app(

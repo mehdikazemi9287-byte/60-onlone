@@ -58,7 +58,7 @@ class Migration0009PopulatedDBTest(unittest.TestCase):
     """Migration 0008→0009 must succeed with FK-referencing rows in place."""
 
     def setUp(self) -> None:
-        self.tmpdir  = tempfile.mkdtemp(prefix="70online-mig0009-test-")
+        self.tmpdir  = tempfile.mkdtemp(prefix="60online-mig0009-test-")
         self.db_path = os.path.join(self.tmpdir, "test0009.db")
         self.staging = Path(self.tmpdir) / "migrations"
         self.staging.mkdir()

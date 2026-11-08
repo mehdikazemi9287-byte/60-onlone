@@ -38,7 +38,7 @@ def _table_exists(db: Database, name: str) -> bool:
 class Migration0012Test(unittest.TestCase):
 
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp(prefix="70online-mig0012-")
+        self.tmpdir = tempfile.mkdtemp(prefix="60online-mig0012-")
         self.db_path = os.path.join(self.tmpdir, "test0012.db")
         self.staging = Path(self.tmpdir) / "migrations"
         self.staging.mkdir()

@@ -3,7 +3,7 @@ import re, sys, time
 sys.path.insert(0, "/tmp/e2e")
 from common import *
 
-ADMIN = token_for("admin@70online.ir", "Admin!2345")
+ADMIN = token_for("admin@60online.ir", "Admin!2345")
 step("admin login (API)", bool(ADMIN))
 FA = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
 

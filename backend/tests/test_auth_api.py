@@ -125,7 +125,7 @@ class LoginTest(AppTestCase):
 
     def test_seeded_demo_user_can_log_in(self):
         response = self.client.post(
-            "/api/v1/auth/login", json={"email": "demo@70online.ir", "password": "Demo!2345"}
+            "/api/v1/auth/login", json={"email": "demo@60online.ir", "password": "Demo!2345"}
         )
         self.assertEqual(response.status_code, 200)
 

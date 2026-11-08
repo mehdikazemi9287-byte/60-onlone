@@ -21,7 +21,7 @@ if ta is not None:
     step("acceptance traceable to order (via idempotency key)", ik and last_order["order_number"] in (ik[0] or ""),
          f"context_ref={ta['context_ref']} order={last_order['order_number']}")
 
-ADMIN = token_for("admin@70online.ir", "Admin!2345")
+ADMIN = token_for("admin@60online.ir", "Admin!2345")
 sup_id = c.execute("SELECT supplier_id FROM fulfillment_orders ORDER BY id DESC LIMIT 1").fetchone()[0]
 today = datetime.date.today()
 period = {"period_start": today.replace(day=1).isoformat(), "period_end": today.isoformat()}
@@ -36,8 +36,8 @@ if s in (200, 201):
 
 # Seller self-service export (seed supplier user linked to the order's supplier)
 email = c.execute("SELECT u.email FROM supplier_users su JOIN users u ON u.id = su.user_id WHERE u.email LIKE 'seller%' ORDER BY su.supplier_id DESC LIMIT 1").fetchone()
-pw = {"supplier.tehran@70online.ir": "Sup!Tehran1", "supplier.isfahan@70online.ir": "Sup!Isfahan1",
-      "supplier.kermanshah@70online.ir": "Sup!Krmsh1"}.get(email[0] if email else "", "Seller!2345" if email else None)
+pw = {"supplier.tehran@60online.ir": "Sup!Tehran1", "supplier.isfahan@60online.ir": "Sup!Isfahan1",
+      "supplier.kermanshah@60online.ir": "Sup!Krmsh1"}.get(email[0] if email else "", "Seller!2345" if email else None)
 if pw:
     tok = token_for(email[0], pw)
     s, r = api("POST", "/supplier/finance-exports", period, token=tok)
