@@ -59,14 +59,14 @@
 
 ## چک‌لیست راه‌اندازی وامبی (باید حتماً چک شود)
 - ⏳ DNS و SSL دامنهٔ vambi.ir (کارن)
-- ⏳ `https://vambi.ir` در `CORS_ORIGINS` و `VAMBI_HOSTS` روی سرور
+- ⏳ `https://vambi.ir` در `CORS_ORIGINS`، و `vambi.ir,www.vambi.ir` (بدون https) در `VAMBI_HOSTS` روی سرور
 - ⏳ ورود مشترک دو دامنه (ساخته نشده)
 - ⏳ `KAVENEGAR_SENDER` و تست یک پیامک واقعی
-- ⏳ QA نهایی هشدار قیمت (در حال اجرا بود در ۱۷ آبان، ساعت ۲۰؛ نتیجه در PROGRESS.md ثبت شود)
+- ✅ QA نهایی هشدار قیمت: قبول شد (۱۷ آبان)؛ جزئیات در PROGRESS.md
 - ⏳ تست مایگریشن‌های 0079 و 0080 روی PostgreSQL واقعی
 - ⏳ PR از `marketplace-roadmap` به `main` (این کارها هنوز در main نیستند؛ تداخلی با صفحهٔ اول جدید ندارند)
 - ⏳ استقرار روی سرور (فقط با تأیید کارن)
 
 ## اگر کار نیمه‌کاره ماند (برای جلسهٔ بعدی)
 - شاخه: `marketplace-roadmap`. آخرین وضعیت در [PROGRESS.md](PROGRESS.md) و چک‌لیست بالا.
-- قدم بعدی: نتیجهٔ QA را بگیر یا دوباره اجرا کن (`cd backend && python3 -m unittest tests.test_price_alerts tests.test_vambi` و `cd frontend && npx tsc --noEmit`)، بعد ورود مشترک دو دامنه را بساز.
+- قدم بعدی: QA قبول شده؛ ورود مشترک دو دامنه را بساز و ۳ نکتهٔ باقی‌ماندهٔ QA را در PROGRESS.md ببین.
