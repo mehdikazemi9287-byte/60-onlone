@@ -36,7 +36,7 @@ services:
     environment:
       APP_ENV: staging
       SEED_ON_START: "0"
-      DATABASE_URL: sqlite:////data/70online.db
+      DATABASE_URL: sqlite:////data/60online.db
       MEDIA_ROOT: /data/admin-media
       DOCUMENT_STORAGE_DIR: /data/documents
       PORT: "8000"
@@ -89,7 +89,7 @@ wait_health() {  # $1=port
 
 snapshot() {  # consistent copy of the live DB (sqlite online backup) + media
   mkdir -p "$BK/$TS" && chmod 700 "$BK"
-  python3 -c "import sqlite3;s=sqlite3.connect('$LIVE/70online.db');d=sqlite3.connect('$BK/$TS/70online.db');s.backup(d);d.close();s.close()"
+  python3 -c "import sqlite3;s=sqlite3.connect('$LIVE/60online.db');d=sqlite3.connect('$BK/$TS/60online.db');s.backup(d);d.close();s.close()"
   cp -a "$LIVE/admin-media" "$BK/$TS/" 2>/dev/null || true
   echo "  backup: $BK/$TS"
 }
@@ -99,15 +99,15 @@ case "${1:-status}" in
     need
     echo "== 1. copy live DB to $STAGE"
     rm -rf "$STAGE" && mkdir -p "$STAGE"
-    python3 -c "import sqlite3;s=sqlite3.connect('$LIVE/70online.db');d=sqlite3.connect('$STAGE/70online.db');s.backup(d);d.close();s.close()"
+    python3 -c "import sqlite3;s=sqlite3.connect('$LIVE/60online.db');d=sqlite3.connect('$STAGE/60online.db');s.backup(d);d.close();s.close()"
     cp -a "$LIVE/admin-media" "$STAGE/" 2>/dev/null || true
     chown -R 10001:10001 "$(dirname "$STAGE")"
-    echo "== before (copy):"; counts "$STAGE/70online.db"
+    echo "== before (copy):"; counts "$STAGE/60online.db"
     echo "== 2. build + start new code on ports 8100/3100"
     F=$(write_compose sixtystage "$STAGE" 8100 3100)
     docker compose -f "$F" up -d --build
     wait_health 8100
-    echo "== 3. after migrations:"; counts "$STAGE/70online.db"
+    echo "== 3. after migrations:"; counts "$STAGE/60online.db"
     docker compose -f "$F" logs --tail 15 backend
     for p in /api/v1/health/ready /api/v1/products; do
       printf '  %-40s %s\n' "$p" "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8100$p")"
@@ -125,7 +125,7 @@ case "${1:-status}" in
     F=$(write_compose sixty "$LIVE" 8000 3000)
     docker compose -f "$F" up -d --build
     wait_health 8000 || { echo "!! failed — run: bash $0 rollback"; exit 1; }
-    counts "$LIVE/70online.db"
+    counts "$LIVE/60online.db"
     echo "$TS" > "$BK/last-switch"
     echo "== switched. If anything looks wrong: bash $0 rollback"
     ;;
@@ -133,16 +133,18 @@ case "${1:-status}" in
     TSB=$(cat "$BK/last-switch")
     echo "== restore DB from $BK/$TSB and start old stack"
     docker compose -f "$NEW/deploy/.compose-sixty.yml" down || true
-    mkdir -p "$BK/failed-$TS" && mv "$LIVE"/70online.db* "$BK/failed-$TS/"
-    cp -a "$BK/$TSB/70online.db" "$LIVE/" && chown 10001:10001 "$LIVE/70online.db"
+    # the old stack in $OLD still reads the pre-rename file name 70online.db
+    mkdir -p "$BK/failed-$TS" && mv "$LIVE"/60online.db* "$LIVE"/70online.db* "$BK/failed-$TS/" 2>/dev/null || true
+    SRC="$BK/$TSB/70online.db"; [ -f "$SRC" ] || SRC="$BK/$TSB/60online.db"
+    cp -a "$SRC" "$LIVE/70online.db" && chown 10001:10001 "$LIVE/70online.db"
     (cd "$OLD" && docker compose up -d)
     wait_health 8000
     ;;
   status)
     docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
     df -h / | tail -1; free -h | sed -n 2p
-    echo "live:"; counts "$LIVE/70online.db"
-    [ -f "$STAGE/70online.db" ] && { echo "stage:"; counts "$STAGE/70online.db"; } || true
+    echo "live:"; counts "$LIVE/60online.db"
+    [ -f "$STAGE/60online.db" ] && { echo "stage:"; counts "$STAGE/60online.db"; } || true
     ;;
   *) echo "usage: $0 stage|switch|rollback|status"; exit 2 ;;
 esac
