@@ -66,6 +66,23 @@ function useVerified(pool: Product[] | null): Product[] | null {
   return pool && good ? pool.filter((p) => p.image_url && good.has(p.image_url)) : null;
 }
 
+/** A few real products from each of the largest categories (the relevance pool alone is dominated by one brand). */
+const catLists = new Map<string, Promise<Product[]>>();
+function useCategoryProducts(cats: Category[] | null, n = 6): Product[] | null {
+  const [items, setItems] = useState<Product[] | null>(null);
+  const slugs = useMemo(() => (cats ? cats.slice().sort((a, b) => b.product_count - a.product_count).slice(0, n).map((c) => c.slug) : null), [cats, n]);
+  useEffect(() => {
+    if (!slugs) return;
+    let off = false;
+    Promise.all(slugs.map((slug) => {
+      if (!catLists.has(slug)) catLists.set(slug, catalog.list({ category: slug, page: 1, page_size: 24, group: "family", sort: "relevance" }).then((r) => r.items).catch(() => { catLists.delete(slug); return []; }));
+      return catLists.get(slug)!;
+    })).then((lists) => !off && setItems(lists.flat()));
+    return () => { off = true; };
+  }, [slugs]);
+  return items;
+}
+
 function Img({ src, alt = "", className = "" }: { src: string | null | undefined; alt?: string; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
   return src ? <img src={src} alt={alt} loading="lazy" className={`h-full w-full object-contain mix-blend-multiply ${className}`} /> : <span className="block h-full w-full animate-pulse rounded-xl bg-black/5" />;
@@ -126,9 +143,9 @@ function OrgPrices({ items }: { items: Product[] | null }) {
           <p className="mt-0.5 text-xs font-medium text-[#FFE9DF] md:text-sm">قیمت‌ها فقط برای اعضای سازمان‌های طرف قرارداد نمایش داده می‌شود</p></div>
         <Link href="/business/catalog" className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold text-white">مشاهده‌ی همه<ArrowLeft className="h-4 w-4" /></Link>
       </div>
-      <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 md:grid md:grid-cols-6 md:overflow-visible">
+      <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 md:overflow-visible">
         {(items ?? Array.from({ length: 6 }, () => null)).map((p, i) => (
-          <Link key={p?.id ?? i} href={p ? `/products/${p.slug}` : "#"} className="flex w-40 shrink-0 snap-start flex-col items-center gap-1.5 rounded-[14px] bg-white p-3 text-center md:w-auto">
+          <Link key={p?.id ?? i} href={p ? `/products/${p.slug}` : "#"} className="flex w-40 shrink-0 snap-start flex-col items-center gap-1.5 rounded-[14px] bg-white p-3 text-center md:w-[calc((100%-60px)/6)]">
             <span className="block aspect-square w-full p-1"><Img src={p?.image_url} alt={p?.name} /></span>
             <b className="line-clamp-2 min-h-[42px] text-sm leading-[21px]" style={{ color: C.ink }}>{p?.name ?? " "}</b>
             <span className="text-xs" style={{ color: C.gray }}>{p?.brand || p?.category?.name || " "}</span>
@@ -264,9 +281,28 @@ function Packs() {
 
 
 export default function FigmaHome({previewContent}:{previewContent?:PageContent}={}) {
-  const { pool: raw, cats } = useCatalog();
+  const { pool: base, cats } = useCatalog();
+  const extra = useCategoryProducts(cats);
+  const raw = useMemo(() => {
+    if (!base || !extra) return base && cats && !cats.length ? base : null;
+    const seen = new Set<number>(), out: Product[] = [];
+    for (const p of [...base, ...extra]) if (!seen.has(p.id)) { seen.add(p.id); out.push(p); }
+    return out;
+  }, [base, extra, cats]);
   const pool = useVerified(raw);
-  const orgItems = useMemo(() => (pool ? diversify(pool, 6) : null), [pool]);
+  const brandRow = useMemo(() => {
+    if (!pool) return { brand: null, items: null };
+    const counts = new Map<string, number>();
+    for (const p of pool) if (p.brand) counts.set(p.brand, (counts.get(p.brand) ?? 0) + 1);
+    const brand = counts.has("کاله") ? "کاله" : [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    return { brand, items: brand ? diversify(pool.filter((p) => p.brand === brand), 4) : [] };
+  }, [pool]);
+  const orgItems = useMemo(() => {
+    if (!pool) return null;
+    const inRow = new Set((brandRow.items ?? []).map((p) => p.id));
+    const rest = diversify(pool.filter((p) => !inRow.has(p.id)), 6);
+    return rest.length >= 4 ? rest : diversify(pool, 6);
+  }, [pool, brandRow]);
   const used = useMemo(() => new Set((orgItems ?? []).map((p) => p.image_url!)), [orgItems]);
   // Largest real categories, each with one of its own verified photos not already shown above.
   const catPicks = useMemo<CatPick[] | null>(() => {
@@ -279,14 +315,6 @@ export default function FigmaHome({previewContent}:{previewContent?:PageContent}
       return { cat, img: p?.image_url };
     });
   }, [cats, pool, used]);
-  const brandRow = useMemo(() => {
-    if (!pool) return { brand: null, items: null };
-    const counts = new Map<string, number>();
-    for (const p of pool) if (p.brand) counts.set(p.brand, (counts.get(p.brand) ?? 0) + 1);
-    const brand = counts.has("کاله") ? "کاله" : [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-    return { brand, items: brand ? diversify(pool.filter((p) => p.brand === brand), 4) : [] };
-  }, [pool]);
-
   const [published,setPublished]=useState<PageContent|null>(null);
   useEffect(()=>{if(previewContent)return;const c=new AbortController();apiRequest<{content:PageContent}>("/content/pages/homepage",{signal:c.signal}).then(r=>{if(!c.signal.aborted&&Array.isArray(r.content?.blocks))setPublished(r.content)}).catch(()=>{});return()=>c.abort()},[previewContent]);
   const configured=previewContent??published;
