@@ -7,6 +7,9 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /srv/backend
 
 COPY requirements.txt requirements-pg.txt ./
+# Slow links to pypi.org (e.g. from Iranian datacenters): longer timeout and more retries
+ARG PIP_DEFAULT_TIMEOUT=120
+ARG PIP_RETRIES=10
 RUN pip install --no-cache-dir -r requirements.txt -r requirements-pg.txt
 
 COPY app ./app
