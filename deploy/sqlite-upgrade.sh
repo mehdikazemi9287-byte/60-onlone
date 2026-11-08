@@ -18,6 +18,8 @@ STAGE=/srv/60online-stage/data
 BK=/root/backups-60online
 ENV_FILE="$OLD/secrets/backend.env"
 TS=$(date +%Y%m%d-%H%M)
+# PyPI index for the backend build; set PIP_MIRROR=... when pypi.org is unreachable from the host
+PIP_MIRROR="${PIP_MIRROR:-https://pypi.org/simple}"
 
 need() { [ -f "$ENV_FILE" ] || { echo "!! $ENV_FILE not found"; exit 1; }; }
 
@@ -27,7 +29,9 @@ write_compose() {
 name: $1
 services:
   backend:
-    build: $NEW/backend
+    build:
+      context: $NEW/backend
+      args: { PIP_INDEX_URL: "$PIP_MIRROR" }
     env_file: $ENV_FILE
     environment:
       APP_ENV: staging
