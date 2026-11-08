@@ -1,0 +1,3 @@
+const mk=(n:string)=>(p:any)=><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={p.strokeWidth??2} className={p.className} style={p.style} data-icon={n}><rect x="4" y="4" width="16" height="16" rx="4"/></svg>;
+export const ArrowLeft=(p:any)=><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={p.className}><path d="m15 18-6-6 6-6"/></svg>;
+export const Boxes=mk('Boxes'),Building2=mk('Building2'),ClipboardList=mk('ClipboardList'),Coins=mk('Coins'),Gift=mk('Gift'),LayoutGrid=mk('LayoutGrid'),Store=mk('Store'),Truck=mk('Truck'),Wallet=mk('Wallet');
