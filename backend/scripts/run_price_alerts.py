@@ -18,7 +18,9 @@ def main() -> int:
     r = price_alert_service.run(db)
     w, s, m = r["watches"], r["sellers"], r["sms"]
     print(f"price_alerts watches={w['checked']} alerts={w['alerts'] + s['alerts']} products={s['products']} "
-          f"sms_sent={m['sent']} sms_failed={m['failed']} sms_capped={m['skipped_cap']} sms_unavailable={m['unavailable']}")
+          f"errors={w['errors'] + s['errors']} deferred={w['deferred'] + s['deferred'] + m['deferred']} "
+          f"sms_sent={m['sent']} sms_failed={m['failed']} sms_capped={m['skipped_cap']} sms_held={m['held']} "
+          f"sms_unavailable={m['unavailable']} cleaned={sum(r['cleanup'].values())}")
     return 0
 
 

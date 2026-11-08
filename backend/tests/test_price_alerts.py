@@ -18,15 +18,21 @@ from app.services.consumer_rights_service import gross, standard_vat_bps
 RETAIL = 1_000_000          # synthetic net prices (rial)
 ORG_GENERAL = 900_000       # general organization tier at 10+
 ORG_A_CONTRACT = 700_000    # organization A's own contract tier at 10+
+ENV_KEYS = ("STOREFRONT_PRICE_VISIBILITY", "PRICE_ALERT_DAILY_SMS_PARTS_CAP", "PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP",
+            "PRICE_ALERT_USER_DAILY_SMS", "PRICE_ALERT_JOB_BUDGET_S")
 
 
-class PriceAlertsTest(AppTestCase):
+class PriceAlertFixtures(AppTestCase):
+    """Synthetic fixtures and helpers only (no tests)."""
+
     def setUp(self):
         super().setUp()
         os.environ.pop("STOREFRONT_PRICE_VISIBILITY", None)
-        os.environ.pop("PRICE_ALERT_DAILY_SMS_CAP", None)
+        for k in ENV_KEYS:
+            os.environ.pop(k, None)
         ConsoleSms.texts.clear()
-        self.now = dt.datetime.now(dt.timezone.utc).replace(minute=5, second=0, microsecond=0)
+        # 06:05 UTC = 09:35 Tehran: outside SMS quiet hours, whatever the wall clock says
+        self.now = dt.datetime.now(dt.timezone.utc).replace(hour=6, minute=5, second=0, microsecond=0)
         self.stamp = self.now.strftime("%Y-%m-%d %H:%M:%S")
         self.pid, self.slug = self.make_product()
         self.s1 = self.make_seller("آزمایشی-۱")
@@ -39,8 +45,8 @@ class PriceAlertsTest(AppTestCase):
             self.vat = standard_vat_bps(conn)
 
     def tearDown(self):
-        os.environ.pop("STOREFRONT_PRICE_VISIBILITY", None)
-        os.environ.pop("PRICE_ALERT_DAILY_SMS_CAP", None)
+        for k in ENV_KEYS:
+            os.environ.pop(k, None)
         ConsoleSms.texts.clear()
         super().tearDown()
 
@@ -95,8 +101,8 @@ class PriceAlertsTest(AppTestCase):
         headers, _ = self.make_org_admin(org["id"])
         return headers
 
-    def tick(self, hours=0):
-        return svc.run(self.db, now=self.now + dt.timedelta(hours=hours), sender=ConsoleSms())
+    def tick(self, hours=0, sender=None, **kw):
+        return svc.run(self.db, now=self.now + dt.timedelta(hours=hours), sender=sender or ConsoleSms(), **kw)
 
     def watch(self, headers, expect=201, **body):
         r = self.client.post("/api/v1/me/price-watches", json={"slug": self.slug, **body}, headers=headers)
@@ -120,6 +126,8 @@ class PriceAlertsTest(AppTestCase):
                 self.assertNotIn(str(v), text)
                 self.assertNotIn(self.fa_toman(v).split(" ")[0], text)
 
+
+class PriceAlertsTest(PriceAlertFixtures):
     # ── level detection ─────────────────────────────────────────────────────
     def test_level_auto_detection(self):
         _, consumer = self.new_customer()
@@ -181,7 +189,8 @@ class PriceAlertsTest(AppTestCase):
         self.tick(hours=1)
         na = self.notes(a)
         self.assertEqual(len(na), 1)
-        self.assertIn(self.fa_toman(self.g(650_000)), na[0]["body"])
+        self.assert_no_price(na, 650_000, ORG_A_CONTRACT, ORG_GENERAL)   # org bodies never carry a price (B7)
+        self.assertEqual(na[0]["link"], "/me/price-alerts")
         self.assertEqual(self.notes(b), [])
         self.assertEqual(self.notes(consumer), [])
         sms_a = [t for _, t in ConsoleSms.texts]
@@ -263,7 +272,7 @@ class PriceAlertsTest(AppTestCase):
                              "skipped_item")
 
     def test_global_daily_sms_cap(self):
-        os.environ["PRICE_ALERT_DAILY_SMS_CAP"] = "1"
+        os.environ["PRICE_ALERT_DAILY_SMS_PARTS_CAP"] = "3"  # one digest is 2 billed UCS-2 parts
         users = []
         for _ in range(2):
             _, h = self.new_customer()
@@ -278,6 +287,8 @@ class PriceAlertsTest(AppTestCase):
         with self.db.read_transaction() as conn:
             statuses = sorted(r[0] for r in conn.execute("SELECT sms_status FROM price_alert_events"))
         self.assertEqual(statuses, ["sent", "skipped_cap"])
+        with self.db.read_transaction() as conn:
+            self.assertLessEqual(conn.execute("SELECT SUM(parts) FROM price_alert_sms WHERE status='sent'").fetchone()[0], 3)
 
     def test_no_sms_without_verified_phone(self):
         _, consumer = self.new_customer()
@@ -396,3 +407,190 @@ class PriceAlertsTest(AppTestCase):
         listed = self.client.get("/api/v1/me/price-watches", headers=admin_a).get_json()["items"][0]
         self.assertEqual((listed["level"], listed["organization_id"]), ("consumer", None))
         self.assertEqual(listed["current"]["price_minor"], self.g(RETAIL))
+
+
+class FailingSms(ConsoleSms):
+    """Synthetic provider that always fails (no network)."""
+    calls = 0
+
+    def send_text(self, phone, text):
+        FailingSms.calls += 1
+        raise RuntimeError("synthetic provider outage")
+
+
+class PriceAlertsReviewTest(PriceAlertFixtures):
+    """Review fixes B1–B8 (runs on the same synthetic fixtures)."""
+
+    # B1 — re-POST only reactivates; fields change only when sent
+    def test_repost_keeps_settings_and_status_lookup(self):
+        _, consumer = self.new_customer()
+        w = self.watch(consumer, target_price_minor=900_000, alert_types=["back_in_stock"], sms_enabled=False)["watch"]
+        self.client.patch(f"/api/v1/me/price-watches/{w['id']}", json={"active": False}, headers=consumer)
+        again = self.watch(consumer, expect=200)["watch"]
+        self.assertEqual((again["id"], again["active"], again["target_price_minor"], again["alert_types"], again["sms_enabled"]),
+                         (w["id"], True, 900_000, ["back_in_stock"], False))
+        again = self.watch(consumer, expect=200, target_price_minor=800_000)["watch"]
+        self.assertEqual((again["target_price_minor"], again["alert_types"]), (800_000, ["back_in_stock"]))
+        a = self.org_buyer(self.org_a)
+        wa = self.watch(a, quantity=24)["watch"]
+        self.assertEqual(self.watch(a, expect=200)["watch"]["quantity"], 24)
+        self.assertEqual(wa["allowed_alert_types"], ["price_drop", "new_seller", "contract_expiring"])
+        self.assertEqual(wa["alert_fa"]["price_drop"], "کاهش قیمت")
+        found = self.client.get(f"/api/v1/me/price-watches?product={self.slug}", headers=consumer).get_json()["items"]
+        self.assertEqual([x["id"] for x in found], [w["id"]])
+        self.assertEqual(self.client.get("/api/v1/me/price-watches?product=no-such-slug", headers=consumer).get_json()["items"], [])
+
+    # B5 — watch limit and digest reservation are race-safe (ON CONFLICT, not 500)
+    def test_limit_and_reservation_conflicts(self):
+        _, consumer = self.new_customer()
+        self.watch(consumer)
+        pid2, slug2 = self.make_product()
+        old = svc.MAX_WATCHES
+        svc.MAX_WATCHES = 1
+        try:
+            r = self.client.post("/api/v1/me/price-watches", json={"slug": slug2}, headers=consumer)
+            self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (409, "price_watch_limit"))
+        finally:
+            svc.MAX_WATCHES = old
+        uid, _ = self.verify_phone(consumer)
+        self.tick()
+        self.set_price(self.offer1, price=900_000)
+        with self.db.write_transaction() as conn:  # an overlapping run already reserved this user's digest for the hour
+            conn.execute("INSERT INTO price_alert_sms (user_id, run_hour, day, item_count, status, created_at) VALUES (?,?,?,1,'sent',?)",
+                         (uid, svc._hour(self.now + dt.timedelta(hours=1)), "2000-01-01", "x"))
+        self.tick(hours=1)
+        self.assertEqual(ConsoleSms.texts, [])
+        with self.db.read_transaction() as conn:
+            self.assertEqual(conn.execute("SELECT sms_status FROM price_alert_events").fetchone()[0], "pending")
+        self.tick(hours=2)  # next hour: sent once
+        self.assertEqual(len(ConsoleSms.texts), 1)
+
+    # B2 — bounded job: consecutive provider failures and the time budget
+    def test_provider_failures_and_budget_leave_rest_pending(self):
+        heads = []
+        for _ in range(5):
+            _, h = self.new_customer()
+            self.verify_phone(h)
+            self.watch(h)
+            heads.append(h)
+        self.tick()
+        self.set_price(self.offer1, price=900_000)
+        FailingSms.calls = 0
+        r = self.tick(hours=1, sender=FailingSms())
+        self.assertEqual((FailingSms.calls, r["sms"]["failed"], r["sms"]["deferred"]), (3, 3, 2))
+        with self.db.read_transaction() as conn:
+            statuses = sorted(x[0] for x in conn.execute("SELECT sms_status FROM price_alert_events"))
+        self.assertEqual(statuses, ["failed"] * 3 + ["pending"] * 2)
+        r = self.tick(hours=2, budget_s=0)  # no time left: nothing is checked or sent, all stays pending
+        self.assertEqual((r["watches"]["checked"], r["sms"]["sent"]), (0, 0))
+        self.assertGreater(r["watches"]["deferred"], 0)
+        r = self.tick(hours=3)
+        self.assertEqual(r["sms"]["sent"], 2)
+
+    # B3 — per-user daily digests, seller budget, seller SMS opt-out
+    def test_user_daily_limit_and_seller_sms_controls(self):
+        os.environ["PRICE_ALERT_USER_DAILY_SMS"] = "1"
+        _, consumer = self.new_customer()
+        self.verify_phone(consumer)
+        pid2, slug2 = self.make_product()
+        o2 = self.make_offer(self.s1["supplier_id"], pid2, 2_000_000)
+        self.watch(consumer)
+        self.client.post("/api/v1/me/price-watches", json={"slug": slug2}, headers=consumer)
+        self.tick()
+        self.set_price(self.offer1, price=900_000)
+        self.tick(hours=1)
+        self.set_price(o2, price=1_900_000)
+        self.tick(hours=2)
+        self.assertEqual(len(self.notes(consumer)), 2)
+        self.assertEqual(len(ConsoleSms.texts), 1)   # second digest of the day refused by the per-user limit
+        # seller: separate budget, and an opt-out that keeps in-site alerts
+        ConsoleSms.texts.clear()
+        os.environ["PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP"] = "0"
+        s2 = self.make_seller("رقیب")
+        o3 = self.make_offer(s2["supplier_id"], self.pid, 1_500_000)
+        self.verify_phone(self.s1["headers"])
+        self.tick(hours=3)
+        self.set_price(o3, price=500_000)
+        self.tick(hours=4)
+        self.assertEqual(len(self.notes(self.s1["headers"], kind="price_alert_seller")), 2)
+        self.assertEqual(ConsoleSms.texts, [])  # seller budget 0 → no seller SMS, buyers unaffected by it
+        r = self.client.patch("/api/v1/supplier/price-alerts/settings", json={"sms_enabled": False}, headers=self.s1["headers"])
+        self.assertEqual(r.get_json(), {"sms_enabled": False})
+        self.assertFalse(self.client.get("/api/v1/supplier/price-alerts", headers=self.s1["headers"]).get_json()["sms_enabled"])
+        _, buyer = self.new_customer()
+        self.assertEqual(self.client.patch("/api/v1/supplier/price-alerts/settings", json={"sms_enabled": False},
+                                           headers=buyer).status_code, 403)
+        os.environ.pop("PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP")
+        self.set_price(o3, price=1_600_000)   # s1 best again …
+        self.tick(hours=5)
+        self.set_price(o3, price=400_000)     # … and beaten again: in-site yes, SMS no (opted out)
+        self.tick(hours=6)
+        self.assertEqual(len(self.notes(self.s1["headers"], kind="price_alert_seller")), 4)
+        self.assertEqual(ConsoleSms.texts, [])
+        self.assertTrue(all("نیستید" in n["title"] for n in self.notes(self.s1["headers"], kind="price_alert_seller")))
+
+    # B4 — one failing item never aborts the run
+    def test_bad_row_is_skipped_not_fatal(self):
+        _, consumer = self.new_customer()
+        pid2, slug2 = self.make_product()
+        o2 = self.make_offer(self.s1["supplier_id"], pid2, 2_000_000)
+        self.watch(consumer)
+        self.client.post("/api/v1/me/price-watches", json={"slug": slug2}, headers=consumer)
+        self.tick()
+        self.set_price(self.offer1, price=900_000)
+        self.set_price(o2, price=1_900_000)
+        real = svc.observe
+
+        def broken(conn, **kw):
+            if kw["product_id"] == self.pid:
+                raise RuntimeError("synthetic bad row")
+            return real(conn, **kw)
+        svc.observe = broken
+        try:
+            r = self.tick(hours=1)
+        finally:
+            svc.observe = real
+        self.assertEqual(r["watches"]["errors"], 1)
+        self.assertEqual([n["link"] for n in self.notes(consumer)], [f"/products/{slug2}"])
+
+    # B6 — seller-written titles are sanitized before SMS
+    def test_sms_title_sanitized(self):
+        with self.db.write_transaction() as conn:
+            conn.execute("UPDATE products SET title_fa=? WHERE id=?",
+                         ("آزمایشی تماس 09121234567 @shop https://x.example.ir/a www.y.com", self.pid))
+        _, consumer = self.new_customer()
+        self.verify_phone(consumer)
+        self.watch(consumer)
+        self.tick()
+        self.set_price(self.offer1, price=900_000)
+        self.tick(hours=1)
+        text = ConsoleSms.texts[0][1]
+        for bad in ("0912", "@", "http", "www", "example"):
+            self.assertNotIn(bad, text)
+        self.assertEqual(svc.sms_safe("  کالا   ۱۲۳۴۵۶  تست "), "کالا تست")
+        self.assertEqual(svc.sms_parts("a" * 160), 1)
+        self.assertEqual((svc.sms_parts("س" * 70), svc.sms_parts("س" * 71), svc.sms_parts("س" * 135)), (1, 2, 3))
+
+    # B8 — quiet hours and retention
+    def test_quiet_hours_and_cleanup(self):
+        _, consumer = self.new_customer()
+        self.verify_phone(consumer)
+        self.watch(consumer)
+        self.tick()
+        self.set_price(self.offer1, price=900_000)
+        r = self.tick(hours=14)          # 20:05 UTC = 23:35 Tehran
+        self.assertEqual(len(self.notes(consumer)), 1)   # in-site immediately
+        self.assertEqual((ConsoleSms.texts, r["sms"]["held"]), ([], 1))
+        self.tick(hours=20)              # 02:05 UTC = 05:35 Tehran: still quiet
+        self.assertEqual(ConsoleSms.texts, [])
+        self.tick(hours=23)              # 05:05 UTC = 08:35 Tehran: sent
+        self.assertEqual(len(ConsoleSms.texts), 1)
+        with self.db.write_transaction() as conn:
+            conn.execute("INSERT INTO price_history_daily (product_id, scope, organization_key, quantity, day, updated_at)"
+                         " VALUES (?, 'retail', 0, 1, '2000-01-01', 'x')", (self.pid,))
+            conn.execute("UPDATE price_alert_events SET created_at='2000-01-01T00:00:00Z'")
+        r = self.tick(hours=24)
+        self.assertGreaterEqual(r["cleanup"]["history"], 1)
+        self.assertGreaterEqual(r["cleanup"]["events"], 1)
+        with self.db.read_transaction() as conn:
+            self.assertEqual(conn.execute("SELECT COUNT(*) FROM price_history_daily WHERE day='2000-01-01'").fetchone()[0], 0)

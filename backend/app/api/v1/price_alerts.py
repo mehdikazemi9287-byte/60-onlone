@@ -1,6 +1,6 @@
 """Tiered Vambi price alerts — every user sees only their OWN level's price (see price_alert_service).
 
-GET    /api/v1/me/price-watches                    my watches + my detected level and organization contexts
+GET    /api/v1/me/price-watches[?product=<slug>]   my watches (optionally one product: the button's state check)
 GET    /api/v1/me/price-watches/level              my detected level (for the «زیر نظر بگیر» button)
 POST   /api/v1/me/price-watches                    {slug|product_id, target_price_minor?, quantity?, alert_types?,
                                                     organization_id?, sms_enabled?}  → 201 new / 200 updated
@@ -8,6 +8,7 @@ PATCH  /api/v1/me/price-watches/<id>               {target_price_minor?, quantit
 DELETE /api/v1/me/price-watches/<id>
 GET    /api/v1/me/price-watches/<id>/history?days= daily price at my level, up to 90 days
 GET    /api/v1/supplier/price-alerts               seller panel: own best-offer status + recent alerts (no competitor price)
+PATCH  /api/v1/supplier/price-alerts/settings      {sms_enabled: bool} the seller's own SMS for these alerts
 
 The level is computed on the server from the account; organization_id only selects among the caller's own
 active memberships. Watches are owner-only (404 for anyone else's id).
@@ -35,7 +36,7 @@ def _body() -> dict:
 @require_auth()
 def list_watches():
     with get_db().read_transaction() as conn:
-        return jsonify(svc.list_watches(conn, current_user()))
+        return jsonify(svc.list_watches(conn, current_user(), request.args.get("product")))
 
 
 @bp.get("/me/price-watches/level")
@@ -88,4 +89,14 @@ def seller_alerts():
         sid = current_supplier_id(conn, current_user()["id"])
         if not sid:
             raise PermissionError_("حساب فروشنده یافت نشد")
-        return jsonify(svc.seller_alerts(conn, sid))
+        return jsonify(svc.seller_alerts(conn, sid, current_user()["id"]))
+
+
+@bp.patch("/supplier/price-alerts/settings")
+@require_auth()
+def seller_alert_settings():
+    data = _body()
+    with get_db().write_transaction() as conn:
+        if not current_supplier_id(conn, current_user()["id"]):
+            raise PermissionError_("حساب فروشنده یافت نشد")
+        return jsonify(svc.set_seller_sms(conn, current_user()["id"], data.get("sms_enabled")))

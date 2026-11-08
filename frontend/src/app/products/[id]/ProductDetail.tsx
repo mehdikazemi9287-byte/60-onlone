@@ -204,10 +204,11 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
                   <Link href={`/requests/new?slug=${encodeURIComponent(p.slug)}&quantity=${qty}`} className="flex min-h-11 flex-1 items-center justify-center rounded-xl bg-brand-coral px-3 py-3 text-center text-sm font-bold text-white">استعلام قیمت / درخواست خرید</Link>
                 </div>
               )}
-              {d.cta !== "add_to_cart" && personalAllowed && (
+              {d.cta !== "add_to_cart" && personalAllowed ? (
                 <StockAlert slug={p.slug} />
+              ) : (
+                <WatchButton slug={p.slug} fullWidth />
               )}
-              <WatchButton slug={p.slug} />
               {msg && <p role="status" className={cn("rounded-xl px-3 py-2 text-sm", msg.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800")}>{msg.text}{msg.ok && <> — <Link href="/cart" className="font-bold underline">مشاهده سبد</Link></>}</p>}
               <div className="border-t border-neutral-100 pt-3">
                 <p className="mb-2 flex items-center gap-1 text-xs font-bold text-neutral-700"><Building2 className="h-4 w-4" /> خرید سازمانی / عمده</p>

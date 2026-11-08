@@ -19,10 +19,15 @@ that organization only. The price shown and compared is the winner's landed unit
 STOREFRONT_PRICE_VISIBILITY: a user who may not see catalog prices gets no price in any watch response,
 notification or chart, and cannot set a target price.
 
-Delivery: an in-site notification for every alert; SMS (only to a verified phone) are batched into ONE digest per
-user per run, at most one SMS per item per user per day (Tehran day) and a global daily cap
-(PRICE_ALERT_DAILY_SMS_CAP, default 500). SMS texts carry no prices at all. A rerun in the same hour sends nothing
-twice (state transitions + unique dedupe keys + one digest per user and run hour).
+Delivery: an in-site notification for every alert (organization-level bodies carry no price: a notification
+outlives membership). SMS only to a verified phone, batched into ONE digest per user, kind (buyer/seller) and run;
+at most one SMS per item per user per Tehran day; PRICE_ALERT_USER_DAILY_SMS digests per user and day (default 2);
+global daily budgets in billed parts (PRICE_ALERT_DAILY_SMS_PARTS_CAP 1500, PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP 500);
+held 22:00–08:00 Tehran; sellers can turn their SMS off. SMS texts carry no prices and sanitized titles.
+The job is bounded (3 s SMS timeout, stop after 3 consecutive provider failures, PRICE_ALERT_JOB_BUDGET_S = 120 s
+total), works in short transactions with a SAVEPOINT per item, and on PostgreSQL takes an advisory lock so
+overlapping runs serialize. A rerun in the same hour sends nothing twice (state transitions + unique dedupe keys
++ one reserved digest row per user, kind and hour). Retention: history and events older than 120 days are deleted.
 """
 from __future__ import annotations
 
@@ -30,6 +35,8 @@ import datetime as _dt
 import json
 import logging
 import os
+import re
+import time
 
 from app.core.errors import ApiError, ConflictError, NotFoundError, PermissionError_, ValidationError
 from app.services import cashier_service as cashier
@@ -50,13 +57,25 @@ LEVEL_ALERTS = {
 PRICE_ALERTS = {"price_target", "price_drop", "new_tier", "contract_expiring"}  # need price visibility
 ALERT_FA = {"price_target": "ارزان شد", "back_in_stock": "موجود شد", "welfare_added": "به سبد رفاهی اضافه شد",
             "price_drop": "کاهش قیمت", "new_seller": "فروشندهٔ تازه", "contract_expiring": "پایان قیمت قراردادی",
-            "new_tier": "پلهٔ تخفیف تعدادی جدید", "lost_best_offer": "دیگر بهترین پیشنهاد نیستی"}
+            "new_tier": "پلهٔ تخفیف تعدادی جدید", "lost_best_offer": "دیگر بهترین پیشنهاد نیستید"}
+# UI chip labels (returned by the API so the client keeps no copy of the table)
+CHIP_FA = {"price_target": "رسیدن به قیمت هدف", "back_in_stock": "موجود شد", "welfare_added": "اضافه شدن به سبد رفاهی",
+           "price_drop": "کاهش قیمت", "new_seller": "فروشندهٔ تازه", "contract_expiring": "پایان قیمت قراردادی (۷ روز)",
+           "new_tier": "پلهٔ تخفیف تعدادی جدید"}
 SELLER_LEVEL_FA = {"retail": "خرده‌فروشی", "organization": "سازمانی و عمده"}
 BUYER_ROLES = ("organization_admin", "procurement_agent")
 MAX_WATCHES = 200
 HISTORY_DAYS = 90
 CONTRACT_WARN_DAYS = 7
-DIGEST_ITEMS = 4
+DIGEST_ITEMS = 3
+BATCH = 50                      # watches / products per short write transaction
+LOCK_NS, JOB_LOCK = 60079, 0    # pg_advisory_xact_lock namespace; key 0 = the job, key = user id for watch creation
+QUIET_FROM, QUIET_UNTIL = 22, 8  # Tehran hours: digest SMS held, in-site notifications immediate
+PENDING_MAX_HOURS = 24          # an SMS line older than this is dropped (in-site notice already delivered)
+SMS_TIMEOUT_S = 3.0
+MAX_CONSECUTIVE_FAILURES = 3
+JOB_BUDGET_S = 120              # PRICE_ALERT_JOB_BUDGET_S; leftovers wait for the next run
+RETENTION_DAYS = 120
 TEHRAN = _dt.timedelta(hours=3, minutes=30)  # Iran has had no DST since 2022
 
 
@@ -76,13 +95,6 @@ def _day(now) -> str:
 
 def _hour(now) -> str:
     return now.strftime("%Y-%m-%dT%H")
-
-
-def daily_sms_cap() -> int:
-    try:
-        return max(0, int(os.environ.get("PRICE_ALERT_DAILY_SMS_CAP", "500")))
-    except ValueError:
-        return 500
 
 
 def toman(minor: int | None) -> str:
@@ -154,6 +166,7 @@ def level_options(conn, user) -> dict:
     visible = may_see_prices(conn, user)
     return {"level": default["level"], "level_fa": LEVEL_FA[default["level"]], "organization_id": default["organization_id"],
             "alert_types": _allowed_types(default["level"], visible), "price_visible": visible,
+            "alert_fa": {t: CHIP_FA[t] for t in _allowed_types(default["level"], visible)},
             "is_seller": bool(acting_supplier_id(conn, uid)),
             "options": [{"organization_id": int(m["organization_id"]), "organization_name": names.get(m["organization_id"]),
                          "level": _level_of(m), "level_fa": LEVEL_FA[_level_of(m)]} for m in ms]}
@@ -283,10 +296,13 @@ def _current_view(conn, user, w: dict, visible: bool) -> dict:
 def _view(conn, user, row, visible: bool, product=None) -> dict:
     w = dict(row)
     p = product or conn.execute("SELECT slug, title_fa FROM products WHERE id=?", (w["product_id"],)).fetchone()
+    allowed = _allowed_types(w["level"], visible)
     out = {"id": w["id"], "product": {"id": w["product_id"], "slug": p["slug"], "title_fa": p["title_fa"]},
            "level": w["level"], "level_fa": LEVEL_FA[w["level"]], "organization_id": w["organization_id"],
            "quantity": w["quantity"], "target_price_minor": w["target_price_minor"] if visible else None,
-           "alert_types": [t for t in w["alert_types"].split(",") if t], "sms_enabled": bool(w["sms_enabled"]),
+           "alert_types": [t for t in w["alert_types"].split(",") if t and t in allowed],
+           "allowed_alert_types": allowed, "alert_fa": {t: CHIP_FA[t] for t in allowed},
+           "sms_enabled": bool(w["sms_enabled"]),
            "active": bool(w["active"]), "created_at": w["created_at"], "last_notified_at": w["last_notified_at"],
            "current": _current_view(conn, user, w, visible)}
     if not visible:
@@ -301,6 +317,16 @@ def _own(conn, user_id: int, watch_id: int):
     return row
 
 
+def _is_pg(conn) -> bool:
+    return type(conn).__name__ == "_PgConnectionShim"
+
+
+def _pg_lock(conn, key: int) -> None:
+    """PostgreSQL: serialize per key for the rest of the transaction. SQLite writes are already serial."""
+    if _is_pg(conn):
+        conn.execute("SELECT pg_advisory_xact_lock(?, ?)", (LOCK_NS, int(key)))
+
+
 def _buyer_level(conn, user, organization_id) -> dict:
     lv = detect_level(conn, int(user["id"]), organization_id)
     if lv["level"] == "consumer":
@@ -310,7 +336,17 @@ def _buyer_level(conn, user, organization_id) -> dict:
     return lv
 
 
+def _check_target(target, level: str, visible: bool) -> None:
+    if target is None:
+        return
+    if not visible:
+        raise PermissionError_("برای دیدن قیمت‌ها وارد حساب سازمانی شوید", code="login_required_for_prices")
+    if "price_target" not in LEVEL_ALERTS[level]:
+        raise ValidationError("قیمت هدف برای سطح شما نیست", code="alert_type_not_for_level")
+
+
 def create_watch(conn, user, data: dict, now=None) -> tuple[dict, bool]:
+    """Create, or reactivate an existing watch. On an existing watch only the fields present in the body change."""
     now = _now(now)
     if not isinstance(data, dict):
         raise ValidationError("بدنهٔ درخواست نامعتبر است")
@@ -318,45 +354,63 @@ def create_watch(conn, user, data: dict, now=None) -> tuple[dict, bool]:
     product = _product(conn, slug=data.get("slug"), product_id=data.get("product_id"))
     lv = _buyer_level(conn, user, data.get("organization_id"))
     visible = may_see_prices(conn, user)
-    types = _types(data.get("alert_types"), lv["level"], visible)
+    # validate everything that was sent, before any write
+    types = _types(data.get("alert_types"), lv["level"], visible) if "alert_types" in data else None
     target = _int(data.get("target_price_minor"), "target_price_minor", 1, 10**13)
-    if target is not None and (not visible or "price_target" not in LEVEL_ALERTS[lv["level"]]):
-        raise (PermissionError_("برای دیدن قیمت‌ها وارد حساب سازمانی شوید", code="login_required_for_prices") if not visible
-               else ValidationError("قیمت هدف برای سطح شما نیست", code="alert_type_not_for_level"))
-    if lv["level"] in ("consumer", "employee"):
-        qty = 1
-    else:
-        qty = _int(data.get("quantity"), "quantity", 1, 100_000) or _default_quantity(conn, int(product["id"]))
-    sms = data.get("sms_enabled", True)
-    if not isinstance(sms, bool):
+    _check_target(target, lv["level"], visible)
+    qty_in = _int(data.get("quantity"), "quantity", 1, 100_000) if lv["level"] in ("org_buyer", "shop") else None
+    if "sms_enabled" in data and not isinstance(data["sms_enabled"], bool):
         raise ValidationError("sms_enabled نامعتبر است")
+    _pg_lock(conn, uid)
+    key = (uid, int(product["id"]), lv["organization_id"] or 0)
+    existing = conn.execute("SELECT * FROM price_watches WHERE user_id=? AND product_id=? AND COALESCE(organization_id,0)=?",
+                            key).fetchone()
+    stamp = _stamp(now)
+    if existing and existing["level"] == lv["level"]:
+        patch = {k: data[k] for k in ("alert_types", "target_price_minor", "quantity", "sms_enabled") if k in data}
+        if lv["level"] in ("consumer", "employee"):
+            patch.pop("quantity", None)
+        patch["active"] = True
+        return update_watch(conn, user, int(existing["id"]), patch, now), False
+    qty = 1 if lv["level"] in ("consumer", "employee") else (qty_in or _default_quantity(conn, int(product["id"])))
     obs = observe(conn, user_id=uid, product_id=int(product["id"]), level=lv["level"], organization_id=lv["organization_id"],
                   membership_id=lv["membership_id"], quantity=qty, now=now)
-    existing = conn.execute("SELECT id FROM price_watches WHERE user_id=? AND product_id=? AND COALESCE(organization_id,0)=?",
-                            (uid, int(product["id"]), lv["organization_id"] or 0)).fetchone()
-    stamp = _stamp(now)
-    if existing:
+    obs["expiring_notified"] = obs.get("expiring", [])
+    if existing:  # same organization context but the user's level there changed: re-level, keep what still applies
+        old = [t for t in existing["alert_types"].split(",") if t in LEVEL_ALERTS[lv["level"]]]
+        types = types or old or _allowed_types(lv["level"], visible)
+        target = target if "target_price_minor" in data else (
+            existing["target_price_minor"] if "price_target" in LEVEL_ALERTS[lv["level"]] else None)
+        sms = int(data["sms_enabled"]) if "sms_enabled" in data else int(existing["sms_enabled"])
         conn.execute("""UPDATE price_watches SET level=?, quantity=?, target_price_minor=?, alert_types=?, sms_enabled=?,
                         state_json=?, checked_at=?, active=1, updated_at=? WHERE id=?""",
-                     (lv["level"], qty, target, ",".join(types), int(sms), json.dumps(obs), stamp, stamp, int(existing["id"])))
-        wid, created = int(existing["id"]), False
-    else:
-        if conn.execute("SELECT COUNT(*) FROM price_watches WHERE user_id=?", (uid,)).fetchone()[0] >= MAX_WATCHES:
-            raise ConflictError("حداکثر تعداد کالاهای زیر نظر پر شده است", code="price_watch_limit")
-        wid = int(conn.execute(
-            """INSERT INTO price_watches (user_id, product_id, level, organization_id, quantity, target_price_minor, alert_types,
-                                          sms_enabled, state_json, checked_at, active, created_at, updated_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?)""",
-            (uid, int(product["id"]), lv["level"], lv["organization_id"], qty, target, ",".join(types), int(sms),
-             json.dumps(obs), stamp, stamp, stamp)).lastrowid)
-        created = True
+                     (lv["level"], qty, target, ",".join(types), sms, json.dumps(obs), stamp, stamp, int(existing["id"])))
+        _record_history(conn, int(product["id"]), lv, qty, obs, now)
+        return _view(conn, user, _own(conn, uid, int(existing["id"])), visible, product), False
+    if conn.execute("SELECT COUNT(*) FROM price_watches WHERE user_id=?", (uid,)).fetchone()[0] >= MAX_WATCHES:
+        raise ConflictError("حداکثر تعداد کالاهای زیر نظر پر شده است", code="price_watch_limit")
+    types = types or _allowed_types(lv["level"], visible)
+    cur = conn.execute(
+        """INSERT INTO price_watches (user_id, product_id, level, organization_id, quantity, target_price_minor, alert_types,
+                                      sms_enabled, state_json, checked_at, active, created_at, updated_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?) ON CONFLICT DO NOTHING""",
+        (uid, int(product["id"]), lv["level"], lv["organization_id"], qty, target, ",".join(types),
+         int(data.get("sms_enabled", True)), json.dumps(obs), stamp, stamp, stamp))
+    row = conn.execute("SELECT * FROM price_watches WHERE user_id=? AND product_id=? AND COALESCE(organization_id,0)=?",
+                       key).fetchone()
+    if not cur.rowcount:  # a concurrent request created it first: answer like a re-POST
+        return _view(conn, user, row, visible, product), False
     _record_history(conn, int(product["id"]), lv, qty, obs, now)
-    return _view(conn, user, _own(conn, uid, wid), visible, product), created
+    return _view(conn, user, row, visible, product), True
 
 
-def list_watches(conn, user) -> dict:
+def list_watches(conn, user, product_slug: str | None = None) -> dict:
     visible = may_see_prices(conn, user)
-    rows = conn.execute("SELECT * FROM price_watches WHERE user_id=? ORDER BY id DESC", (int(user["id"]),)).fetchall()
+    if product_slug is not None:
+        rows = conn.execute("""SELECT w.* FROM price_watches w JOIN products p ON p.id=w.product_id
+                               WHERE w.user_id=? AND p.slug=? ORDER BY w.id DESC""", (int(user["id"]), product_slug[:200])).fetchall()
+    else:
+        rows = conn.execute("SELECT * FROM price_watches WHERE user_id=? ORDER BY id DESC", (int(user["id"]),)).fetchall()
     out = {"items": [_view(conn, user, r, visible) for r in rows], "level": level_options(conn, user)}
     if not visible:
         out["price_hidden"] = True
@@ -385,6 +439,8 @@ def update_watch(conn, user, watch_id: int, data: dict, now=None) -> dict:
             if not isinstance(data[key], bool):
                 raise ValidationError(f"{key} نامعتبر است")
             sets[key] = int(data[key])
+    if sets.get("active") == 1 and not row["active"]:
+        sets["state_json"] = None  # reactivated: fresh baseline, no alert from changes made while paused
     if sets:
         if "quantity" in sets and sets["quantity"] != row["quantity"]:
             sets["state_json"] = None  # new quantity = new baseline on the next run (no alert from the switch itself)
@@ -449,6 +505,27 @@ def _upsert_history(conn, product_id, scope, key, qty, price, in_stock, now) -> 
 
 # ── the hourly run ───────────────────────────────────────────────────────────
 
+_URL = re.compile(r"(https?://\S+|www\.\S+|\S+\.(?:ir|com|net|org|me|io|co|app|shop|site|info)\b\S*)", re.I)
+_DIGITS = re.compile(r"[0-9۰-۹٠-٩]{4,}")
+
+
+def sms_safe(title: str, limit: int = 24) -> str:
+    """Seller-written titles go into SMS: no links, handles or phone/card-like digit runs."""
+    t = _URL.sub(" ", str(title or ""))
+    t = t.replace("@", " ")
+    t = _DIGITS.sub(" ", t)
+    t = " ".join(t.split())
+    return (t if len(t) <= limit else t[:limit - 1] + "…") or "کالا"
+
+
+def sms_parts(text: str) -> int:
+    """Billed SMS parts: GSM-7 160/153, otherwise UCS-2 70/67."""
+    n = len(text)
+    if all(ord(c) < 128 for c in text):
+        return 1 if n <= 160 else -(-n // 153)
+    return 1 if n <= 70 else -(-n // 67)
+
+
 def _event(conn, *, user_id, product, level, alert_type, dedupe, title, body, sms_text, now,
            watch_id=None, supplier_id=None, sms_ok=True, link=None) -> bool:
     phone = conn.execute("SELECT phone_verified, is_active FROM users WHERE id=?", (user_id,)).fetchone()
@@ -471,14 +548,18 @@ def _short(title: str) -> str:
     return title if len(title) <= 32 else title[:31] + "…"
 
 
+ORG_LEVELS = ("org_buyer", "shop")
+
+
 def _alerts_for(w: dict, prev: dict, obs: dict, visible: bool) -> list[tuple[str, str, str]]:
-    """[(alert_type, discriminator, body)] for the watch's own level only."""
+    """[(alert_type, discriminator, body)] for the watch's own level only. Organization-level bodies never carry a
+    price: a notification outlives membership, so the price is shown only on /me/price-alerts after a level re-check."""
     types = set(t for t in w["alert_types"].split(",") if t) & set(LEVEL_ALERTS[w["level"]])
     if not visible:
         types -= PRICE_ALERTS
     out = []
     price, before = obs.get("price"), prev.get("price")
-    if "price_target" in types and price is not None:
+    if "price_target" in types and price is not None:  # consumer / employee: public retail price only
         target = w["target_price_minor"]
         if target is not None:
             if price <= target and (before is None or before > target):
@@ -486,11 +567,11 @@ def _alerts_for(w: dict, prev: dict, obs: dict, visible: bool) -> list[tuple[str
         elif before is not None and price < before:
             out.append(("price_target", str(price), f"قیمت از {toman(before)} به {toman(price)} رسید."))
     if "price_drop" in types and price is not None and before is not None and price < before:
-        unit = "عدد" if w["quantity"] == 1 else f"{w['quantity']} عدد"
-        out.append(("price_drop", str(price), f"قیمت هر واحد برای خرید {unit}: {toman(price)} (قبلاً {toman(before)})."))
+        unit = "هر عدد" if w["quantity"] == 1 else f"خرید {w['quantity']} عددی"
+        out.append(("price_drop", str(price), f"قیمت سطح شما برای {unit} کاهش یافت. قیمت فعلی را در «کالاهای زیر نظر» ببینید."))
     if "back_in_stock" in types and obs["in_stock"] and prev.get("in_stock") is False:
         out.append(("back_in_stock", "1", "قیمت و موجودی توسط فروشنده تأیید شده است."))
-    if "new_seller" in types and set(obs["sellers"]) - set(prev.get("sellers", [])) and prev.get("sellers") is not None:
+    if "new_seller" in types and prev.get("sellers") is not None and set(obs["sellers"]) - set(prev["sellers"]):
         out.append(("new_seller", ",".join(map(str, sorted(set(obs["sellers"]) - set(prev["sellers"])))),
                     "فروشندهٔ تازه‌ای این کالا را برای سازمان شما عرضه می‌کند."))
     if "new_tier" in types and prev.get("tiers") is not None:
@@ -507,128 +588,182 @@ def _alerts_for(w: dict, prev: dict, obs: dict, visible: bool) -> list[tuple[str
     return out
 
 
-def run_watches(conn, now=None) -> dict:
-    now = _now(now)
+def _over(deadline) -> bool:
+    return deadline is not None and time.monotonic() >= deadline
+
+
+def _check_watch(conn, w: dict, now, users: dict, stats: dict) -> None:
     hour = _hour(now)
-    stats = {"checked": 0, "alerts": 0, "rebased": 0, "skipped": 0}
+    user = users.get(w["user_id"]) or conn.execute("SELECT id, role, is_active FROM users WHERE id=?", (w["user_id"],)).fetchone()
+    users[w["user_id"]] = user
+    if not user or not user["is_active"]:
+        stats["skipped"] += 1
+        return
+    product = conn.execute("SELECT id, slug, title_fa, provenance, is_active FROM products WHERE id=?", (w["product_id"],)).fetchone()
+    if not product or not product["is_active"] or product["provenance"] not in se.allowed_provenance():
+        stats["skipped"] += 1
+        return
+    try:
+        lv = detect_level(conn, w["user_id"], w["organization_id"]) if w["organization_id"] else detect_level(conn, w["user_id"])
+    except ApiError:
+        lv = detect_level(conn, w["user_id"])  # no longer a member: fall back to the user's real level
+    stamp = _stamp(now)
+    if lv["level"] != w["level"] or lv["organization_id"] != w["organization_id"]:
+        clash = conn.execute("SELECT id FROM price_watches WHERE user_id=? AND product_id=? AND COALESCE(organization_id,0)=? AND id<>?",
+                             (w["user_id"], w["product_id"], lv["organization_id"] or 0, w["id"])).fetchone()
+        stats["rebased"] += 1
+        if clash:
+            conn.execute("UPDATE price_watches SET active=0, state_json=NULL, updated_at=? WHERE id=?", (stamp, w["id"]))
+            return
+        types = ",".join(t for t in w["alert_types"].split(",") if t in LEVEL_ALERTS[lv["level"]]) or ",".join(LEVEL_ALERTS[lv["level"]])
+        qty = w["quantity"] if lv["level"] in ORG_LEVELS else 1
+        target = w["target_price_minor"] if "price_target" in LEVEL_ALERTS[lv["level"]] else None
+        conn.execute("""UPDATE price_watches SET level=?, organization_id=?, quantity=?, alert_types=?, target_price_minor=?,
+                        state_json=NULL, updated_at=? WHERE id=?""",
+                     (lv["level"], lv["organization_id"], qty, types, target, stamp, w["id"]))
+        w.update(level=lv["level"], organization_id=lv["organization_id"], quantity=qty, alert_types=types,
+                 target_price_minor=target, state_json=None)
+    obs = observe(conn, user_id=w["user_id"], product_id=w["product_id"], level=w["level"], organization_id=w["organization_id"],
+                  membership_id=lv["membership_id"], quantity=w["quantity"], now=now)
+    stats["checked"] += 1
+    _record_history(conn, w["product_id"], lv, w["quantity"], obs, now)
+    if w["state_json"] is None:  # new baseline: never alert on the first look
+        obs["expiring_notified"] = obs.get("expiring", [])
+        conn.execute("UPDATE price_watches SET state_json=?, checked_at=? WHERE id=?", (json.dumps(obs), stamp, w["id"]))
+        return
+    prev = json.loads(w["state_json"])
+    visible = may_see_prices(conn, user)
+    fired = False
+    for alert_type, disc, body in _alerts_for(w, prev, obs, visible):
+        org = w["level"] in ORG_LEVELS
+        if _event(conn, user_id=w["user_id"], product=product, level=w["level"], alert_type=alert_type,
+                  dedupe=f"w{w['id']}:{alert_type}:{disc}:{hour}", title=f"«{_short(product['title_fa'])}» {ALERT_FA[alert_type]}",
+                  body=body, sms_text=f"«{sms_safe(product['title_fa'])}» {ALERT_FA[alert_type]}", now=now, watch_id=w["id"],
+                  sms_ok=bool(w["sms_enabled"]), link="/me/price-alerts" if org else None):
+            stats["alerts"] += 1
+            fired = True
+    obs["expiring_notified"] = sorted(set(prev.get("expiring_notified", [])) | set(obs.get("expiring", [])))
+    conn.execute("UPDATE price_watches SET state_json=?, checked_at=?" + (", last_notified_at=?" if fired else "") + " WHERE id=?",
+                 (json.dumps(obs), stamp, *((stamp,) if fired else ()), w["id"]))
+
+
+def _guarded(conn, label: str, fn, stats: dict) -> None:
+    """One bad row never aborts the run: each item runs in its own SAVEPOINT."""
+    conn.execute("SAVEPOINT price_alert_item")
+    try:
+        fn()
+    except Exception:  # noqa: BLE001 — logged and skipped; the next run retries it
+        conn.execute("ROLLBACK TO SAVEPOINT price_alert_item")
+        conn.execute("RELEASE SAVEPOINT price_alert_item")
+        log.exception("price alerts: %s failed", label)
+        stats["errors"] += 1
+    else:
+        conn.execute("RELEASE SAVEPOINT price_alert_item")
+
+
+def run_watches(db, now=None, deadline=None) -> dict:
+    now = _now(now)
+    stats = {"checked": 0, "alerts": 0, "rebased": 0, "skipped": 0, "errors": 0, "deferred": 0}
+    with db.read_transaction() as conn:
+        ids = [int(r[0]) for r in conn.execute("SELECT id FROM price_watches WHERE active=1 ORDER BY id")]
     users: dict = {}
-    for w in [dict(r) for r in conn.execute("SELECT * FROM price_watches WHERE active=1 ORDER BY id")]:
-        user = users.get(w["user_id"]) or conn.execute("SELECT id, role, is_active FROM users WHERE id=?", (w["user_id"],)).fetchone()
-        users[w["user_id"]] = user
-        if not user or not user["is_active"]:
-            stats["skipped"] += 1
-            continue
-        product = conn.execute("SELECT id, slug, title_fa, provenance, is_active FROM products WHERE id=?", (w["product_id"],)).fetchone()
-        if not product or not product["is_active"] or product["provenance"] not in se.allowed_provenance():
-            stats["skipped"] += 1
-            continue
-        try:
-            lv = detect_level(conn, w["user_id"], w["organization_id"]) if w["organization_id"] else detect_level(conn, w["user_id"])
-        except ApiError:
-            lv = detect_level(conn, w["user_id"])  # no longer a member: fall back to the user's real level
-        stamp = _stamp(now)
-        if lv["level"] != w["level"] or lv["organization_id"] != w["organization_id"]:
-            clash = conn.execute("SELECT id FROM price_watches WHERE user_id=? AND product_id=? AND COALESCE(organization_id,0)=? AND id<>?",
-                                 (w["user_id"], w["product_id"], lv["organization_id"] or 0, w["id"])).fetchone()
-            if clash:
-                conn.execute("UPDATE price_watches SET active=0, state_json=NULL, updated_at=? WHERE id=?", (stamp, w["id"]))
-                stats["rebased"] += 1
-                continue
-            types = ",".join(t for t in w["alert_types"].split(",") if t in LEVEL_ALERTS[lv["level"]]) or ",".join(LEVEL_ALERTS[lv["level"]])
-            qty = w["quantity"] if lv["level"] in ("org_buyer", "shop") else 1
-            target = w["target_price_minor"] if "price_target" in LEVEL_ALERTS[lv["level"]] else None
-            conn.execute("""UPDATE price_watches SET level=?, organization_id=?, quantity=?, alert_types=?, target_price_minor=?,
-                            state_json=NULL, updated_at=? WHERE id=?""",
-                         (lv["level"], lv["organization_id"], qty, types, target, stamp, w["id"]))
-            w.update(level=lv["level"], organization_id=lv["organization_id"], quantity=qty, alert_types=types,
-                     target_price_minor=target, state_json=None)
-            stats["rebased"] += 1
-        try:
-            obs = observe(conn, user_id=w["user_id"], product_id=w["product_id"], level=w["level"], organization_id=w["organization_id"],
-                          membership_id=lv["membership_id"], quantity=w["quantity"], now=now)
-        except ApiError:
-            stats["skipped"] += 1
-            continue
-        stats["checked"] += 1
-        _record_history(conn, w["product_id"], lv, w["quantity"], obs, now)
-        if w["state_json"] is None:  # new baseline: never alert on the first look
-            obs["expiring_notified"] = obs.get("expiring", [])
-            conn.execute("UPDATE price_watches SET state_json=?, checked_at=? WHERE id=?", (json.dumps(obs), stamp, w["id"]))
-            continue
-        prev = json.loads(w["state_json"])
-        visible = may_see_prices(conn, user)
-        fired = False
-        for alert_type, disc, body in _alerts_for(w, prev, obs, visible):
-            title = f"«{_short(product['title_fa'])}» {ALERT_FA[alert_type]}"
-            if _event(conn, user_id=w["user_id"], product=product, level=w["level"], alert_type=alert_type,
-                      dedupe=f"w{w['id']}:{alert_type}:{disc}:{hour}", title=title, body=body,
-                      sms_text=f"«{_short(product['title_fa'])}» {ALERT_FA[alert_type]}", now=now, watch_id=w["id"],
-                      sms_ok=bool(w["sms_enabled"])):
-                stats["alerts"] += 1
-                fired = True
-        obs["expiring_notified"] = sorted(set(prev.get("expiring_notified", [])) | set(obs.get("expiring", [])))
-        conn.execute("UPDATE price_watches SET state_json=?, checked_at=?" + (", last_notified_at=?" if fired else "") + " WHERE id=?",
-                     (json.dumps(obs), stamp, *((stamp,) if fired else ()), w["id"]))
+    for start in range(0, len(ids), BATCH):
+        if _over(deadline):
+            stats["deferred"] += len(ids) - start
+            break
+        with db.write_transaction() as conn:  # short transactions: never hold the write lock for the whole run
+            _pg_lock(conn, JOB_LOCK)
+            for wid in ids[start:start + BATCH]:
+                row = conn.execute("SELECT * FROM price_watches WHERE id=? AND active=1", (wid,)).fetchone()
+                if row:
+                    w = dict(row)
+                    _guarded(conn, f"watch {wid}", lambda w=w: _check_watch(conn, w, now, users, stats), stats)
     return stats
 
 
-def run_sellers(conn, now=None) -> dict:
+def _seller_sms_on(conn, user_id: int) -> bool:
+    row = conn.execute("SELECT seller_sms FROM price_alert_user_prefs WHERE user_id=?", (user_id,)).fetchone()
+    return True if row is None else bool(row["seller_sms"])
+
+
+def set_seller_sms(conn, user_id: int, enabled) -> dict:
+    if not isinstance(enabled, bool):
+        raise ValidationError("sms_enabled نامعتبر است")
+    conn.execute("""INSERT INTO price_alert_user_prefs (user_id, seller_sms, updated_at) VALUES (?,?,?)
+                    ON CONFLICT (user_id) DO UPDATE SET seller_sms=excluded.seller_sms, updated_at=excluded.updated_at""",
+                 (user_id, int(enabled), _stamp(_now())))
+    return {"sms_enabled": enabled}
+
+
+def _check_product(conn, pid: int, now, stats: dict) -> None:
+    from app.services.procurement_notify import _supplier_users
+    hour, stamp = _hour(now), _stamp(now)
+    product = conn.execute("SELECT id, slug, title_fa FROM products WHERE id=?", (pid,)).fetchone()
+    retail = cashier.buy_box(conn, pid, None, quantity=1, now=now)
+    w = retail["winner"]
+    _upsert_history(conn, pid, "retail", 0, 1, w["landed_unit_incl_vat_minor"] if w else None, w is not None, now)
+    results: dict = {}  # (supplier_id, level) -> (is_best, offer_id)
+    for o in retail["offers"]:
+        if o["eligible"]:
+            key = (int(o["supplier_id"]), "retail")
+            best = bool(w and int(w["supplier_id"]) == key[0])
+            results[key] = (results.get(key, (False, None))[0] or best, o["offer_id"])
+    moqs = {int(r["id"]): int(r["min_order_quantity"] or 1) for r in conn.execute(
+        "SELECT id, min_order_quantity FROM seller_offers WHERE product_id=? AND status='active'", (pid,))}
+    org_ctx = {**cashier._retail_ctx(), "channel": "organization"}  # general organization price, no contract
+    for qty in sorted(set(max(1, q) for q in moqs.values()))[:5]:
+        box = cashier.buy_box(conn, pid, org_ctx, quantity=qty, now=now)
+        ow = box["winner"]
+        for o in box["offers"]:
+            if o["eligible"] and max(1, moqs.get(int(o["offer_id"]), 1)) == qty:
+                key = (int(o["supplier_id"]), "organization")
+                best = bool(ow and int(ow["supplier_id"]) == key[0])
+                results[key] = (results.get(key, (False, None))[0] or best, o["offer_id"])
+    for (sid, level), (is_best, offer_id) in results.items():
+        prev = conn.execute("SELECT is_best FROM price_alert_seller_state WHERE supplier_id=? AND product_id=? AND level=?",
+                            (sid, pid, level)).fetchone()
+        conn.execute("""INSERT INTO price_alert_seller_state (supplier_id, product_id, level, offer_id, is_best, updated_at)
+                        VALUES (?,?,?,?,?,?) ON CONFLICT (supplier_id, product_id, level) DO UPDATE SET
+                        offer_id=excluded.offer_id, is_best=excluded.is_best, updated_at=excluded.updated_at""",
+                     (sid, pid, level, offer_id, int(is_best), stamp))
+        if prev and prev["is_best"] and not is_best:
+            title = f"«{_short(product['title_fa'])}»: {ALERT_FA['lost_best_offer']}"
+            body = (f"در سطح {SELLER_LEVEL_FA[level]} پیشنهاد دیگری اکنون بهتر از پیشنهاد شماست. "
+                    "قیمت، موجودی یا زمان تحویل خود را بررسی کنید.")
+            for uid in sorted(_supplier_users(conn, sid)):
+                if _event(conn, user_id=uid, product=product, level="seller", alert_type="lost_best_offer",
+                          dedupe=f"s{sid}:{pid}:{level}:u{uid}:{hour}", title=title, body=body,
+                          sms_text=f"«{sms_safe(product['title_fa'])}» ({SELLER_LEVEL_FA[level]}): {ALERT_FA['lost_best_offer']}",
+                          now=now, supplier_id=sid, link="/sell#price-alerts", sms_ok=_seller_sms_on(conn, uid)):
+                    stats["alerts"] += 1
+    # A seller whose offer dropped out of the eligible set keeps its old state row; it is not "beaten".
+
+
+def run_sellers(db, now=None, deadline=None) -> dict:
     """Buy-box winner per product at the two public levels; a seller who was the best and no longer is gets one
     alert per transition. Contract (organization-specific) prices are never part of this comparison."""
-    from app.services.procurement_notify import _supplier_users
     now = _now(now)
-    hour, stamp = _hour(now), _stamp(now)
-    stats = {"products": 0, "alerts": 0}
+    stats = {"products": 0, "alerts": 0, "errors": 0, "deferred": 0}
     prov = ",".join(f"'{p}'" for p in se.allowed_provenance())
-    pids = [int(r[0]) for r in conn.execute(
-        f"""SELECT DISTINCT so.product_id FROM seller_offers so JOIN suppliers s ON s.id=so.supplier_id
-            JOIN products p ON p.id=so.product_id
-            WHERE so.status='active' AND s.status='active' AND p.is_active=1 AND p.provenance IN ({prov})
-            ORDER BY so.product_id""")]
-    org_ctx = {**cashier._retail_ctx(), "channel": "organization"}  # general organization price, no contract
-    for pid in pids:
-        stats["products"] += 1
-        product = conn.execute("SELECT id, slug, title_fa FROM products WHERE id=?", (pid,)).fetchone()
-        retail = cashier.buy_box(conn, pid, None, quantity=1, now=now)
-        w = retail["winner"]
-        _upsert_history(conn, pid, "retail", 0, 1, w["landed_unit_incl_vat_minor"] if w else None, w is not None, now)
-        results: dict = {}  # (supplier_id, level) -> (is_best, offer_id)
-        for o in retail["offers"]:
-            if o["eligible"]:
-                key = (int(o["supplier_id"]), "retail")
-                best = bool(w and int(w["supplier_id"]) == key[0])
-                results[key] = (results.get(key, (False, None))[0] or best, o["offer_id"])
-        moqs = {int(r["id"]): int(r["min_order_quantity"] or 1) for r in conn.execute(
-            "SELECT id, min_order_quantity FROM seller_offers WHERE product_id=? AND status='active'", (pid,))}
-        for qty in sorted(set(max(1, q) for q in moqs.values()))[:5]:
-            box = cashier.buy_box(conn, pid, org_ctx, quantity=qty, now=now)
-            ow = box["winner"]
-            for o in box["offers"]:
-                if o["eligible"] and max(1, moqs.get(int(o["offer_id"]), 1)) == qty:
-                    key = (int(o["supplier_id"]), "organization")
-                    best = bool(ow and int(ow["supplier_id"]) == key[0])
-                    results[key] = (results.get(key, (False, None))[0] or best, o["offer_id"])
-        for (sid, level), (is_best, offer_id) in results.items():
-            prev = conn.execute("SELECT is_best FROM price_alert_seller_state WHERE supplier_id=? AND product_id=? AND level=?",
-                                (sid, pid, level)).fetchone()
-            conn.execute("""INSERT INTO price_alert_seller_state (supplier_id, product_id, level, offer_id, is_best, updated_at)
-                            VALUES (?,?,?,?,?,?) ON CONFLICT (supplier_id, product_id, level) DO UPDATE SET
-                            offer_id=excluded.offer_id, is_best=excluded.is_best, updated_at=excluded.updated_at""",
-                         (sid, pid, level, offer_id, int(is_best), stamp))
-            if prev and prev["is_best"] and not is_best:
-                title = f"«{_short(product['title_fa'])}»: {ALERT_FA['lost_best_offer']}"
-                body = f"در سطح {SELLER_LEVEL_FA[level]} پیشنهاد دیگری اکنون بهتر از پیشنهاد شماست. قیمت، موجودی یا زمان تحویل خود را بررسی کنید."
-                for uid in sorted(_supplier_users(conn, sid)):
-                    if _event(conn, user_id=uid, product=product, level="seller", alert_type="lost_best_offer",
-                              dedupe=f"s{sid}:{pid}:{level}:u{uid}:{hour}", title=title, body=body,
-                              sms_text=f"«{_short(product['title_fa'])}» {SELLER_LEVEL_FA[level]}: {ALERT_FA['lost_best_offer']}",
-                              now=now, supplier_id=sid, link="/sell"):
-                        stats["alerts"] += 1
-        # A seller whose offer dropped out of the eligible set keeps its old state row; it is not "beaten".
+    with db.read_transaction() as conn:
+        pids = [int(r[0]) for r in conn.execute(
+            f"""SELECT DISTINCT so.product_id FROM seller_offers so JOIN suppliers s ON s.id=so.supplier_id
+                JOIN products p ON p.id=so.product_id
+                WHERE so.status='active' AND s.status='active' AND p.is_active=1 AND p.provenance IN ({prov})
+                ORDER BY so.product_id""")]
+    for start in range(0, len(pids), BATCH):
+        if _over(deadline):
+            stats["deferred"] += len(pids) - start
+            break
+        with db.write_transaction() as conn:
+            _pg_lock(conn, JOB_LOCK)
+            for pid in pids[start:start + BATCH]:
+                stats["products"] += 1
+                _guarded(conn, f"product {pid}", lambda pid=pid: _check_product(conn, pid, now, stats), stats)
     return stats
 
 
-def seller_alerts(conn, supplier_id: int) -> dict:
+def seller_alerts(conn, supplier_id: int, user_id: int | None = None) -> dict:
     """Seller panel: own buy-box status per product and level, plus recent alerts. Own prices only."""
     rows = conn.execute(
         """SELECT st.product_id, st.level, st.is_best, st.updated_at, st.offer_id, p.slug, p.title_fa,
@@ -643,13 +778,12 @@ def seller_alerts(conn, supplier_id: int) -> dict:
     seen, items = set(), []
     for r in recent:
         k = (r["product_id"], r["created_at"], r["sms_text"])
-        if k not in seen:
+        if k not in seen and len(items) < 50:
             seen.add(k)
-            if len(items) >= 50:
-                break
             items.append({"product": {"id": r["product_id"], "slug": r["slug"], "title_fa": r["title_fa"]},
                           "text": r["sms_text"], "created_at": r["created_at"]})
-    return {"items": [{"product": {"id": r["product_id"], "slug": r["slug"], "title_fa": r["title_fa"]},
+    return {"checked": bool(rows), "sms_enabled": _seller_sms_on(conn, user_id) if user_id else True,
+            "items": [{"product": {"id": r["product_id"], "slug": r["slug"], "title_fa": r["title_fa"]},
                        "level": r["level"], "level_fa": SELLER_LEVEL_FA[r["level"]], "is_best": bool(r["is_best"]),
                        "own_price_minor": r["own_price_minor"], "updated_at": r["updated_at"]} for r in rows],
             "recent": items}
@@ -657,19 +791,97 @@ def seller_alerts(conn, supplier_id: int) -> dict:
 
 # ── SMS digests ──────────────────────────────────────────────────────────────
 
+def _env_int(name: str, default: int) -> int:
+    try:
+        return max(0, int(os.environ.get(name, str(default))))
+    except ValueError:
+        return default
+
+
+def quiet_hours(now) -> bool:
+    h = (now + TEHRAN).hour
+    return h >= QUIET_FROM or h < QUIET_UNTIL
+
+
 def _digest_text(lines: list[str]) -> str:
-    head = "شصت‌آنلاین | هشدار قیمت"
-    body = "\n".join(lines[:DIGEST_ITEMS])
-    more = f"\nو {len(lines) - DIGEST_ITEMS} مورد دیگر" if len(lines) > DIGEST_ITEMS else ""
-    return f"{head}\n{body}{more}\nجزئیات: 60online.ir/me/price-alerts"
+    more = f"\n+{len(lines) - DIGEST_ITEMS} مورد دیگر" if len(lines) > DIGEST_ITEMS else ""
+    return "شصت‌آنلاین:\n" + "\n".join(lines[:DIGEST_ITEMS]) + more + "\n60online.ir/me/price-alerts"
 
 
-def send_digests(db, sender=None, now=None) -> dict:
-    """One digest SMS per user per run hour from that user's own pending events (texts carry no prices)."""
+def _reserve_digest(conn, uid: int, kind: str, now, sender, stats: dict):
+    """Pick this user's pending events of one kind, apply every cap, and reserve one digest row.
+    Returns (sms_id, phone, text) to send, or None."""
+    hour, day = _hour(now), _day(now)
+    run_key = hour if kind == "buyer" else f"{hour}:s"
+    seller_kind = "=" if kind == "seller" else "<>"
+    pending = conn.execute(f"""SELECT id, product_id, sms_text, created_at FROM price_alert_events
+                               WHERE user_id=? AND sms_status='pending' AND level {seller_kind} 'seller' ORDER BY id""",
+                           (uid,)).fetchall()
+    if not pending:
+        return None
+    if conn.execute("SELECT 1 FROM price_alert_sms WHERE user_id=? AND run_hour=?", (uid, run_key)).fetchone():
+        return None  # this hour's digest already went out; the rest waits for the next run
+    cutoff = _stamp(now - _dt.timedelta(hours=PENDING_MAX_HOURS))
+    texted_today = {int(r[0]) for r in conn.execute(
+        """SELECT DISTINCT e.product_id FROM price_alert_events e JOIN price_alert_sms s ON s.id=e.sms_id
+           WHERE e.user_id=? AND s.day=? AND s.kind=? AND s.status IN ('sending','sent')""", (uid, day, kind))}
+    take, skip, seen = [], [], set()
+    for r in pending:
+        pid = int(r["product_id"])
+        if r["created_at"] < cutoff or pid in texted_today or pid in seen:
+            skip.append(r["id"])  # too old, already texted today, or a second line for the same item
+            continue
+        seen.add(pid)
+        take.append(r)
+
+    def mark(ids, status):
+        if ids:
+            conn.execute(f"UPDATE price_alert_events SET sms_status=? WHERE id IN ({','.join('?' * len(ids))})", (status, *ids))
+
+    mark(skip, "skipped_item")
+    stats["skipped_item"] += len(skip)
+    if not take:
+        return None
+    ids = [r["id"] for r in take]
+    phone = conn.execute("SELECT phone_verified FROM users WHERE id=? AND is_active=1", (uid,)).fetchone()
+    if not phone or not phone["phone_verified"]:
+        mark(ids, "none")
+        return None
+    if sender is None:
+        mark(ids, "unavailable")
+        stats["unavailable"] += len(ids)
+        return None
+    sent_today = conn.execute("SELECT COUNT(*) FROM price_alert_sms WHERE user_id=? AND day=? AND kind=? AND status IN ('sending','sent')",
+                              (uid, day, kind)).fetchone()[0]
+    text = _digest_text([r["sms_text"] for r in take])
+    parts = sms_parts(text)
+    cap = _env_int("PRICE_ALERT_DAILY_SMS_PARTS_CAP", 1500) if kind == "buyer" else _env_int("PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP", 500)
+    used = conn.execute("SELECT COALESCE(SUM(parts),0) FROM price_alert_sms WHERE day=? AND kind=? AND status IN ('sending','sent')",
+                        (day, kind)).fetchone()[0]
+    if sent_today >= _env_int("PRICE_ALERT_USER_DAILY_SMS", 2) or int(used) + parts > cap:
+        mark(ids, "skipped_cap")
+        stats["skipped_cap"] += len(ids)
+        return None
+    cur = conn.execute("""INSERT INTO price_alert_sms (user_id, run_hour, day, item_count, status, created_at, parts, kind)
+                          VALUES (?,?,?,?, 'sending', ?,?,?) ON CONFLICT DO NOTHING""",
+                       (uid, run_key, day, len(ids), _stamp(now), parts, kind))
+    if not cur.rowcount:
+        return None  # an overlapping run reserved it first
+    sms_id = int(conn.execute("SELECT id FROM price_alert_sms WHERE user_id=? AND run_hour=?", (uid, run_key)).fetchone()[0])
+    conn.execute(f"UPDATE price_alert_events SET sms_status='sent', sms_id=? WHERE id IN ({','.join('?' * len(ids))})", (sms_id, *ids))
+    return sms_id, phone["phone_verified"], text
+
+
+def send_digests(db, sender=None, now=None, deadline=None) -> dict:
+    """One digest SMS per user, kind (buyer/seller) and run hour from that user's own pending events (no prices).
+    Held during quiet hours (22:00–08:00 Tehran); pending events wait for the first run after 08:00."""
     from app.adapters.sms import ConsoleSms, SmsError, sender_from_env
     now = _now(now)
-    hour, day = _hour(now), _day(now)
-    stats = {"sent": 0, "failed": 0, "skipped_item": 0, "skipped_cap": 0, "unavailable": 0}
+    stats = {"sent": 0, "failed": 0, "skipped_item": 0, "skipped_cap": 0, "unavailable": 0, "held": 0, "deferred": 0}
+    if quiet_hours(now):
+        with db.read_transaction() as conn:
+            stats["held"] = int(conn.execute("SELECT COUNT(*) FROM price_alert_events WHERE sms_status='pending'").fetchone()[0])
+        return stats
     if sender is None:
         try:
             sender = sender_from_env()
@@ -677,79 +889,56 @@ def send_digests(db, sender=None, now=None) -> dict:
             sender = None
         if isinstance(sender, ConsoleSms) and (os.environ.get("APP_ENV") or "").lower() == "production":
             sender = None  # never pretend a console "send" is a real SMS in production
-    cap = daily_sms_cap()
+    if sender is not None and hasattr(sender, "timeout"):
+        sender.timeout = min(float(sender.timeout), SMS_TIMEOUT_S)  # the scheduler is sequential: never block it long
     with db.read_transaction() as conn:
-        users = [int(r[0]) for r in conn.execute(
-            "SELECT DISTINCT user_id FROM price_alert_events WHERE sms_status='pending' ORDER BY user_id")]
-    for uid in users:
+        pairs = [(int(r[0]), "seller" if r[1] else "buyer") for r in conn.execute(
+            """SELECT DISTINCT user_id, CASE WHEN level='seller' THEN 1 ELSE 0 END FROM price_alert_events
+               WHERE sms_status='pending' ORDER BY 1, 2""")]
+    failures = 0
+    for i, (uid, kind) in enumerate(pairs):
+        if _over(deadline) or failures >= MAX_CONSECUTIVE_FAILURES:
+            stats["deferred"] = len(pairs) - i  # left pending for the next run
+            break
         with db.write_transaction() as conn:
-            pending = conn.execute("SELECT id, product_id, sms_text, day FROM price_alert_events WHERE user_id=? AND sms_status='pending' ORDER BY id",
-                                   (uid,)).fetchall()
-            if not pending:
-                continue
-            if conn.execute("SELECT 1 FROM price_alert_sms WHERE user_id=? AND run_hour=?", (uid, hour)).fetchone():
-                continue  # this hour's digest already went out; the rest waits for the next run
-            stale = [r["id"] for r in pending if r["day"] != day]  # yesterday's leftovers: in-site only
-            texted_today = {int(r[0]) for r in conn.execute(
-                "SELECT DISTINCT product_id FROM price_alert_events WHERE user_id=? AND day=? AND sms_status='sent'", (uid, day))}
-            take, skip, seen = [], [], set()
-            for r in pending:
-                if r["id"] in stale:
-                    continue
-                if int(r["product_id"]) in texted_today:
-                    skip.append(r["id"])
-                    continue
-                if int(r["product_id"]) in seen:
-                    skip.append(r["id"])  # one line per item in a digest
-                    continue
-                seen.add(int(r["product_id"]))
-                take.append(r)
-            for ids, status in ((stale, "skipped_item"), (skip, "skipped_item")):
-                if ids:
-                    conn.execute(f"UPDATE price_alert_events SET sms_status=? WHERE id IN ({','.join('?' * len(ids))})", (status, *ids))
-            stats["skipped_item"] += len(stale) + len(skip)
-            if not take:
-                continue
-            phone = conn.execute("SELECT phone_verified FROM users WHERE id=? AND is_active=1", (uid,)).fetchone()
-            ids = [r["id"] for r in take]
-            marks = ",".join("?" * len(ids))
-            if not phone or not phone["phone_verified"]:
-                conn.execute(f"UPDATE price_alert_events SET sms_status='none' WHERE id IN ({marks})", ids)
-                continue
-            if sender is None:
-                conn.execute(f"UPDATE price_alert_events SET sms_status='unavailable' WHERE id IN ({marks})", ids)
-                stats["unavailable"] += len(ids)
-                continue
-            used = conn.execute("SELECT COUNT(*) FROM price_alert_sms WHERE day=? AND status IN ('sending','sent')", (day,)).fetchone()[0]
-            if used >= cap:
-                conn.execute(f"UPDATE price_alert_events SET sms_status='skipped_cap' WHERE id IN ({marks})", ids)
-                stats["skipped_cap"] += len(ids)
-                continue
-            sms_id = int(conn.execute(
-                "INSERT INTO price_alert_sms (user_id, run_hour, day, item_count, status, created_at) VALUES (?,?,?,?, 'sending', ?)",
-                (uid, hour, day, len(ids), _stamp(now))).lastrowid)
-            conn.execute(f"UPDATE price_alert_events SET sms_status='sent', sms_id=? WHERE id IN ({marks})", (sms_id, *ids))
-            text, to = _digest_text([r["sms_text"] for r in take]), phone["phone_verified"]
-        # Network call outside the DB transaction; the reservation above already blocks a second send this hour.
-        try:
+            reserved = _reserve_digest(conn, uid, kind, now, sender, stats)
+        if reserved is None:
+            continue
+        sms_id, to, text = reserved
+        try:  # network call outside the DB transaction; the reservation already blocks a second send this hour
             sender.send_text(to, text)
             ok = True
-        except Exception:  # noqa: BLE001 — a provider failure must not stop the other digests
+        except Exception:  # noqa: BLE001 — a provider failure must not stop the job
             log.warning("price alert digest SMS failed for user %s", uid)
             ok = False
         with db.write_transaction() as conn:
             conn.execute("UPDATE price_alert_sms SET status=? WHERE id=?", ("sent" if ok else "failed", sms_id))
             if not ok:
                 conn.execute("UPDATE price_alert_events SET sms_status='failed' WHERE sms_id=?", (sms_id,))
+        failures = 0 if ok else failures + 1
         stats["sent" if ok else "failed"] += 1
     return stats
 
 
-def run(db, *, now=None, sender=None) -> dict:
+def cleanup(conn, now=None) -> dict:
+    """Retention: daily history and alert events older than 120 days (charts show 90)."""
     now = _now(now)
+    day = (now + TEHRAN - _dt.timedelta(days=RETENTION_DAYS)).date().isoformat()
+    stamp = _stamp(now - _dt.timedelta(days=RETENTION_DAYS))
+    h = conn.execute("DELETE FROM price_history_daily WHERE day < ?", (day,)).rowcount
+    e = conn.execute("DELETE FROM price_alert_events WHERE created_at < ?", (stamp,)).rowcount
+    s = conn.execute("DELETE FROM price_alert_sms WHERE day < ?", (day,)).rowcount
+    return {"history": h, "events": e, "sms": s}
+
+
+def run(db, *, now=None, sender=None, budget_s: float | None = None) -> dict:
+    now = _now(now)
+    budget = _env_int("PRICE_ALERT_JOB_BUDGET_S", JOB_BUDGET_S) if budget_s is None else budget_s
+    deadline = time.monotonic() + budget
+    watches = run_watches(db, now, deadline)
+    sellers = run_sellers(db, now, deadline)
+    sms = send_digests(db, sender=sender, now=now, deadline=deadline)
     with db.write_transaction() as conn:
-        watches = run_watches(conn, now)
-    with db.write_transaction() as conn:
-        sellers = run_sellers(conn, now)
-    sms = send_digests(db, sender=sender, now=now)
-    return {"watches": watches, "sellers": sellers, "sms": sms}
+        _pg_lock(conn, JOB_LOCK)
+        cleaned = cleanup(conn, now)
+    return {"watches": watches, "sellers": sellers, "sms": sms, "cleanup": cleaned}

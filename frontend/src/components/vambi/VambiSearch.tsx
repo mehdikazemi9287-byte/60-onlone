@@ -123,7 +123,7 @@ export function VambiSearch() {
               )}
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                 <a href={`${MAIN}/products/${encodeURIComponent(it.slug)}`} className="inline-block text-sm font-bold text-[#1748C9]">مشاهده و خرید ←</a>
-                <WatchButton slug={it.slug} />
+                <WatchButton slug={it.slug} variant="vambi" />
               </div>
             </li>
           );
