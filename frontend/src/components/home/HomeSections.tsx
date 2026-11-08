@@ -1,19 +1,16 @@
 "use client";
 
-// Organization-first refinement explicitly requested by the user; original Figma is a baseline, not a current pixel-parity claim.
-// Original homepage — implemented from the final Figma frames (file Q4lD8SJ0MfZzHTAM94NUpQ,
-// 166:219 desktop / 166:220 mobile): store hero, real categories, today's products,
-// one pack section (→ /pack-builder), 60AI shopping assistant and a short organization entry.
-// Every product, image, category, pack and price comes from the live catalog API;
-// photos pass the card-quality gate and unverified prices read "استعلام قیمت".
+// Homepage — retail layout requested by the user on 2026-11-08 (Canva draft, corrected in Figma:
+// https://www.figma.com/design/U2wFUAhjMdD8qBg0KaNH6y). Header and footer stay in the shared layout.
+// Every product, category, brand, count, photo and price comes from the live catalog API; the two hero
+// photos are real catalog images. Prices follow the existing rule: verified price or "قیمت با استعلام".
+// The pack section below is the existing protected pack section, unchanged.
 
-import BusinessHero from "./BusinessHero";
 import type {PageContent} from "@/lib/content-types";
 import {apiRequest} from "@/lib/api";
-import { Fragment, useEffect, useMemo, useState, type FormEvent } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Boxes, Building2, LayoutGrid, MessageSquareText, Sparkles, Tag } from "lucide-react";
+import { ArrowLeft, Boxes, Building2, ClipboardList, Coins, Gift, LayoutGrid, Store, Truck, Wallet } from "lucide-react";
 import { catalog, categories as categoriesApi } from "@/lib/api";
 import { useGoodImages } from "@/lib/imageQuality";
 import { storefront, type PackDetail } from "@/lib/storefront";
@@ -21,7 +18,8 @@ import type { Category, Product } from "@/lib/types";
 import { formatTomanExact, toPersianNum } from "@/lib/utils";
 import { PackCard, UI, loadPackDetails } from "@/components/packs/PackCard";
 
-const ACCENT = "#C4461C"; // brand coral, darkened to AA contrast (≥4.5:1) with white; reserved for conversion actions
+const ACCENT = "#C4461C"; // used by the protected pack section
+const C = { blue: "#034EA2", navy: "#0A2735", orange: "#E0501F", orangeL: "#FF6D41", ink: "#1B2430", gray: "#5F6875", line: "#E4E8EE", bg: "#F3F5F8", blueL: "#E8F0FB", orangeT: "#FDECE5" };
 const hasImage = (p: Product) => !!p.image_url && !p.image_url.includes("picsum.photos");
 
 // ── Live catalog, fetched once per page view ───────────────────────────────
@@ -70,150 +68,165 @@ function useVerified(pool: Product[] | null): Product[] | null {
 
 function Img({ src, alt = "", className = "" }: { src: string | null | undefined; alt?: string; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return src ? <img src={src} alt={alt} loading="lazy" className={`h-full w-full object-contain ${className}`} /> : <span className="block h-full w-full animate-pulse rounded-xl bg-white/70" />;
+  return src ? <img src={src} alt={alt} loading="lazy" className={`h-full w-full object-contain mix-blend-multiply ${className}`} /> : <span className="block h-full w-full animate-pulse rounded-xl bg-black/5" />;
 }
 const H2 = ({ children }: { children: React.ReactNode }) => <h2 className="text-xl font-black md:text-2xl" style={{ color: UI.ink }}>{children}</h2>;
 const priceLabel = (p: Product) => (p.purchasable && p.price_minor ? formatTomanExact(p.price_minor / 10) : "قیمت با استعلام");
+const Card = ({ children, className = "", label }: { children: React.ReactNode; className?: string; label?: string }) => <section aria-label={label} className={`rounded-[20px] bg-white p-4 md:p-6 ${className}`}>{children}</section>;
+function Title({ children, href, more = "مشاهده‌ی همه" }: { children: React.ReactNode; href?: string; more?: string }) {
+  return <div className="mb-4 flex items-center justify-between gap-3">
+    <h2 className="flex items-center gap-2.5 text-lg font-black md:text-[22px]" style={{ color: C.ink }}><span className="h-6 w-1 rounded-full" style={{ background: C.blue }} />{children}</h2>
+    {href && <Link href={href} className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold" style={{ color: C.blue }}>{more}<ArrowLeft className="h-4 w-4" /></Link>}
+  </div>;
+}
 
-// ── Store hero (Figma "Store hero") + 60AI shopping assistant entry ───────
-function Hero({ picks }: { picks: Product[] | null }) {
-  const router = useRouter();
-  const [q, setQ] = useState("");
-  const ask = (e: FormEvent) => { e.preventDefault(); router.push(q.trim() ? `/assistant?q=${encodeURIComponent(q.trim())}` : "/assistant"); };
+// ── Hero: employee gifts (copy can be overridden from the content panel) ──
+const HERO_IMAGES = ["/images/catalog/33c657bae8d646702dc50726178d374197ef7aad2114a858bb5b0e51c129e4c2.jpg", "/images/catalog/3a30bc8720ae582140060b6ea6cdb03e7c59e85276fff904402d576c95b3635f.jpg"];
+function Hero({ content }: { content?: { title?: string; body?: string; link?: string; button_label?: string } }) {
   return (
-    <section className="grid items-center gap-5 overflow-hidden rounded-[20px] p-4 md:grid-cols-2 md:gap-8 md:p-8" style={{ background: UI.mint }}>
-      <div className="grid grid-cols-3 gap-3 md:order-2">
-        {(picks ?? [null, null, null]).map((p, i) => (
-          <Link key={p?.id ?? i} href={p ? `/products/${p.slug}` : "#today"} aria-label={p?.name ?? "محصولات"} className={`aspect-square overflow-hidden rounded-2xl bg-white p-2 shadow-sm ${i === 1 ? "md:-translate-y-3" : ""}`}>
-            <Img src={p?.image_url} alt={p?.name} />
-          </Link>
-        ))}
+    <section className="grid overflow-hidden rounded-[24px] bg-white md:grid-cols-[1.15fr_1fr]" aria-labelledby="home-hero">
+      <div className="flex flex-col items-start justify-center gap-4 p-6 md:p-12" style={{ background: C.blue }}>
+        <span className="rounded-full px-3.5 py-1.5 text-sm font-bold" style={{ background: C.orangeL, color: C.navy }}>هدیه‌ی پایان سال</span>
+        <h1 id="home-hero" className="whitespace-pre-line text-[28px] font-black leading-[1.45] text-white md:text-[40px]">{content?.title || "هدیه‌ی کارکنان، به تعداد،\nبا بسته‌بندی کادویی"}</h1>
+        <p className="text-sm leading-7 text-[#DCE7F7] md:text-[17px]">{content?.body || "جعبه‌های آجیل و خشکبار و پک‌های آماده، برای همه‌ی پرسنل سازمان"}</p>
+        <Link href={content?.link || "/packs/employee-gift"} className="mt-2 inline-flex h-12 items-center gap-2 rounded-xl bg-white px-5 text-base font-bold" style={{ color: C.blue }}>{content?.button_label || "مشاهده‌ی هدیه‌ها"}<ArrowLeft className="h-5 w-5" /></Link>
       </div>
-      <div className="flex flex-col gap-3 md:order-1">
-        <h1 className="text-[28px] font-black leading-[1.55] md:text-[40px]" style={{ color: UI.ink }}>برای زندگی، برای کار.</h1>
-        <p className="-mt-2 text-xs font-bold" style={{ color: ACCENT }}>فروشگاه آنلاین خرید خانه و تأمین کالای سازمان</p>
-        <p className="text-sm leading-7 md:text-base" style={{ color: UI.ink }}>کالای روزمره، دیجیتال و هدیه را با قیمت واقعی بخرید، یا برای قیمت روز استعلام بگیرید.</p>
-        <Link href="#today" className="mt-1 flex h-12 w-full items-center justify-center rounded-xl text-sm font-bold text-white shadow-sm md:w-60" style={{ background: ACCENT }}>شروع خرید</Link>
-        <form id="ai" onSubmit={ask} className="mt-2 flex scroll-mt-28 items-center gap-2 rounded-xl bg-white p-1.5 shadow-sm" aria-label="60AI">
-          <span className="flex h-9 shrink-0 items-center gap-1 rounded-lg px-2 text-xs font-black text-white" style={{ background: UI.ink }}><Sparkles className="h-4 w-4" />60AI</span>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="دستیار خرید: مثلاً برنج ۱۰ کیلویی برای خانواده" aria-label="درخواست از دستیار خرید 60AI" className="h-9 min-w-0 flex-1 bg-transparent px-1 text-sm focus:outline-none" />
-          <button type="submit" className="h-9 shrink-0 rounded-lg px-3 text-sm font-bold" style={{ color: UI.ink, background: UI.warm }}>بپرس</button>
-        </form>
+      <div className="relative flex min-h-[220px] items-center justify-center gap-2 p-6" style={{ background: "#F6F1EA" }}>
+        <span className="block aspect-square w-[58%] max-w-[300px]"><Img src={HERO_IMAGES[0]} alt="جعبه‌ی هدیه‌ی آجیل" /></span>
+        <span className="block aspect-square w-[36%] max-w-[210px] self-end"><Img src={HERO_IMAGES[1]} alt="جعبه‌ی کادویی آجیل" /></span>
       </div>
     </section>
   );
 }
 
-// ── Real categories ────────────────────────────────────────────────────────
-function Categories({ cats }: { cats: Category[] | null }) {
-  const list = (cats ?? []).slice().sort((a, b) => b.product_count - a.product_count).slice(0, 9);
-  const tile = "flex min-h-14 flex-col items-center justify-center rounded-xl border bg-white px-2 py-2 text-center";
-  return (
-    <section className="space-y-4">
-      <H2>دسته‌بندی‌های فروشگاه</H2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {cats === null ? Array.from({ length: 10 }).map((_, i) => <span key={i} className={`${tile} animate-pulse`} style={{ borderColor: UI.line }} />)
-          : list.map((c) => (
-            <Link key={c.slug} href={`/category/${c.slug}`} className={tile} style={{ borderColor: UI.line }}>
-              <b className="text-sm" style={{ color: UI.ink }}>{c.name}</b>
-              <span className="text-[11px]" style={{ color: UI.muted }}>{toPersianNum(c.product_count)} کالا</span>
-            </Link>))}
-        {cats !== null && <Link href="/category" className={`${tile} gap-1`} style={{ borderColor: UI.line }}>
-          <b className="flex items-center gap-1.5 text-sm" style={{ color: UI.ink }}><LayoutGrid className="h-4 w-4" /> همه دسته‌ها</b>
-        </Link>}
-      </div>
-    </section>
-  );
-}
-
-// ── Today's products (Figma "Product cards") ───────────────────────────────
-function Today({ items }: { items: Product[] | null }) {
-  return (
-    <section id="today" className="scroll-mt-28 space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <H2>برای خرید امروز</H2>
-        <Link href="/search" className="inline-flex min-h-11 items-center gap-1 text-sm" style={{ color: UI.muted }}>مشاهده همه <ArrowLeft className="h-4 w-4" /></Link>
-      </div>
-      {items && !items.length ? (
-        <p className="rounded-xl py-10 text-center text-sm" style={{ background: UI.warm, color: UI.muted }}>فعلاً کالایی با تصویر مناسب منتشر نشده است. <Link href="/search" className="font-bold underline">همه کالاها</Link></p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-5">
-          {(items ?? Array.from({ length: 10 }).map(() => null)).map((p, i) => (
-            <article key={p?.id ?? i} className={`flex min-w-0 flex-col gap-2 rounded-2xl border bg-white p-3 md:p-4 ${i >= 6 ? "hidden lg:flex" : ""}`} style={{ borderColor: UI.line }}>
-              <Link href={p ? `/products/${p.slug}` : "#"} className="block aspect-square overflow-hidden rounded-xl bg-white" aria-label={p?.name}>
-                <Img src={p?.image_url} alt={p?.name} className="p-2" />
-              </Link>
-              <Link href={p ? `/products/${p.slug}` : "#"} className="line-clamp-2 min-h-[40px] text-sm font-bold leading-5" style={{ color: UI.ink }}>{p?.name ?? " "}</Link>
-              <span className="min-h-[20px] text-sm font-black tabular-nums" style={{ color: UI.ink }}>{p ? priceLabel(p) : ""}</span>
-              <Link href={p ? `/products/${p.slug}` : "#"} className="mt-auto flex h-11 items-center justify-center rounded-xl border text-sm font-bold" style={p && !(p.purchasable && p.price_minor) ? { color: ACCENT, borderColor: ACCENT } : { color: UI.ink, borderColor: UI.line }}>{p && !(p.purchasable && p.price_minor) ? "درخواست قیمت روز" : "مشاهده و خرید"}</Link>
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-// ── Why 60Online: only claims the product itself backs ─────────────────────
-const WHY: [typeof Tag, string, string][] = [
-  [Tag, "قیمت واقعی، نه تخمینی", "قیمت فقط از پیشنهاد تأییدشده فروشنده نمایش داده می‌شود."],
-  [MessageSquareText, "استعلام قیمت روز", "برای کالای بدون قیمت، درخواست ثبت کنید تا قیمت و زمان تحویل اعلام شود."],
-  [Boxes, "پک‌ساز هوشمند", "پک آماده، پک بر اساس بودجه یا پک دلخواه از کالاهای واقعی."],
-  [Building2, "شخصی و سازمانی", "خرید خانه و تأمین کالای سازمان در یک فروشگاه."],
+// ── Service shortcuts ──────────────────────────────────────────────────────
+const SERVICES: [typeof Gift, string, string][] = [
+  [Building2, "خرید سازمانی", "/org"], [Boxes, "پک‌ساز", "/pack-builder"], [Gift, "هدیه‌ی کارکنان", "/packs/employee-gift"], [Wallet, "کیف پول رفاهی", "/wallet"],
+  [ClipboardList, "درخواست قیمت عمده", "/requests/new"], [Coins, "وامبی", "/vambi"], [Store, "غرفه‌ها", "/shops"], [Truck, "پیگیری سفارش", "/orders"],
 ];
-function Why() {
+function Services() {
   return (
-    <section aria-label="چرا 60Online" className="grid grid-cols-2 gap-3 rounded-[20px] p-4 md:grid-cols-4 md:gap-4 md:p-6" style={{ background: UI.warm }}>
-      {WHY.map(([Icon, t, d]) => (
-        <div key={t} className="flex flex-col gap-2 md:flex-row md:items-start md:gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: UI.ink }}><Icon className="h-5 w-5" /></span>
-          <span><b className="block text-sm font-black" style={{ color: UI.ink }}>{t}</b><span className="mt-0.5 block text-xs leading-5" style={{ color: UI.muted }}>{d}</span></span>
-        </div>))}
-    </section>
+    <Card label="خدمات" className="grid grid-cols-4 gap-y-5 md:grid-cols-8">
+      {SERVICES.map(([Icon, label, href], i) => (
+        <Link key={href} href={href} className="flex flex-col items-center gap-2.5 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full md:h-[68px] md:w-[68px]" style={{ background: i % 2 ? C.orangeT : C.blueL, color: i % 2 ? C.orange : C.blue }}><Icon className="h-7 w-7" strokeWidth={1.8} /></span>
+          <span className="text-xs font-semibold leading-5 md:text-sm" style={{ color: C.ink }}>{label}</span>
+        </Link>))}
+    </Card>
   );
 }
 
-// ── Product groups: real categories with their own real photos ──────────────
-function Groups({ pool, used }: { pool: Product[] | null; used: Set<string> }) {
-  const groups = useMemo(() => {
-    if (!pool) return null;
-    const by = new Map<string, Product[]>();
-    for (const p of pool) if (p.category && p.image_url && !used.has(p.image_url)) { const k = p.category.slug; if (!by.has(k)) by.set(k, []); by.get(k)!.push(p); }
-    return [...by.values()].filter((l) => l.length >= 3).sort((a, b) => b.length - a.length).slice(0, 3)
-      .map((l) => ({ cat: l[0].category!, items: diversify(l, 3).length >= 3 ? diversify(l, 3) : l.slice(0, 3), count: l.length }));
-  }, [pool, used]);
-  if (groups && !groups.length) return null;
+// ── Organization prices strip ──────────────────────────────────────────────
+function OrgPrices({ items }: { items: Product[] | null }) {
+  if (items && !items.length) return null;
   return (
-    <section className="space-y-4">
-      <H2>پیشنهادهای فروشگاه</H2>
-      <div className="grid gap-4 md:grid-cols-3">
-        {(groups ?? [null, null, null]).map((g, i) => g ? (
-          <Link key={g.cat.slug} href={`/category/${g.cat.slug}`} className="flex flex-col gap-3 rounded-2xl p-4" style={{ background: UI.warm }}>
-            <span className="flex items-center justify-between gap-2"><b className="text-base font-black" style={{ color: UI.ink }}>{g.cat.name}</b>
-              <span className="inline-flex items-center gap-1 text-xs" style={{ color: UI.muted }}>مشاهده همه <ArrowLeft className="h-4 w-4" /></span></span>
-            <span className="grid grid-cols-3 gap-2">{g.items.map((p) => <span key={p.id} className="aspect-square overflow-hidden rounded-xl bg-white p-1.5"><Img src={p.image_url} alt={p.name} /></span>)}</span>
-          </Link>) : <span key={i} className="h-44 animate-pulse rounded-2xl" style={{ background: UI.warm }} />)}
+    <section className="rounded-[22px] p-4 md:p-5" style={{ background: C.orange }} aria-labelledby="org-prices">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div><h2 id="org-prices" className="text-xl font-black text-white md:text-[26px]">قیمت سازمانی</h2>
+          <p className="mt-0.5 text-xs font-medium text-[#FFE9DF] md:text-sm">قیمت‌ها فقط برای اعضای سازمان‌های طرف قرارداد نمایش داده می‌شود</p></div>
+        <Link href="/business/catalog" className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold text-white">مشاهده‌ی همه<ArrowLeft className="h-4 w-4" /></Link>
+      </div>
+      <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 md:grid md:grid-cols-6 md:overflow-visible">
+        {(items ?? Array.from({ length: 6 }, () => null)).map((p, i) => (
+          <Link key={p?.id ?? i} href={p ? `/products/${p.slug}` : "#"} className="flex w-40 shrink-0 snap-start flex-col items-center gap-1.5 rounded-[14px] bg-white p-3 text-center md:w-auto">
+            <span className="block aspect-square w-full p-1"><Img src={p?.image_url} alt={p?.name} /></span>
+            <b className="line-clamp-2 min-h-[42px] text-sm leading-[21px]" style={{ color: C.ink }}>{p?.name ?? " "}</b>
+            <span className="text-xs" style={{ color: C.gray }}>{p?.brand || p?.category?.name || " "}</span>
+            <span className="mt-auto text-[15px] font-black tabular-nums" style={{ color: C.ink }}>{p ? priceLabel(p) : ""}</span>
+          </Link>))}
       </div>
     </section>
   );
 }
 
-// ── Real brands (monogram; product photos stay on product cards) ──────────
+// ── Category promo tiles (largest real categories with their own photo) ───
+const TILE_BG = ["#E3EDFA", "#FFF2D2", "#FCE6D8", "#ECEEFA"];
+type CatPick = { cat: Category; img?: string };
+function Promos({ picks }: { picks: CatPick[] | null }) {
+  if (picks && !picks.length) return null;
+  return (
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+      {(picks ?? Array.from({ length: 4 }, () => null)).slice(0, 4).map((c, i) => (
+        <Link key={c?.cat.slug ?? i} href={c ? `/category/${c.cat.slug}` : "#"} className="relative flex h-40 overflow-hidden rounded-[18px] p-4 md:h-44" style={{ background: TILE_BG[i] }}>
+          <span className="z-10 flex h-full flex-col justify-between">
+            <b className="line-clamp-2 max-w-[9rem] text-base font-black leading-7 md:text-xl" style={{ color: C.navy }}>{c?.cat.name ?? ""}</b>
+            <span className="inline-flex w-fit items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold" style={{ color: C.navy }}>مشاهده‌ی کالاها<ArrowLeft className="h-3.5 w-3.5" /></span>
+          </span>
+          <span className="absolute bottom-3 left-2 block h-24 w-24 md:h-32 md:w-32">{c?.img && <Img src={c.img} alt="" />}</span>
+        </Link>))}
+    </div>
+  );
+}
+
+// ── Shop by category ───────────────────────────────────────────────────────
+function Categories({ picks }: { picks: CatPick[] | null }) {
+  return (
+    <Card label="دسته‌بندی‌ها">
+      <Title href="/category" more="همه‌ی دسته‌ها">خرید بر اساس دسته‌بندی</Title>
+      <div className="grid grid-cols-3 gap-x-3 gap-y-5 md:grid-cols-6">
+        {(picks ?? Array.from({ length: 6 }, () => null)).slice(0, 6).map((c, i) => (
+          <Link key={c?.cat.slug ?? i} href={c ? `/category/${c.cat.slug}` : "#"} className="flex flex-col items-center gap-1.5 text-center">
+            <span className="mb-1 flex aspect-square w-full max-w-[132px] items-center justify-center overflow-hidden rounded-full p-4" style={{ background: "#F1F4F8" }}>
+              {c?.img ? <Img src={c.img} alt="" /> : <LayoutGrid className="h-10 w-10" style={{ color: i % 2 ? C.orange : C.blue }} strokeWidth={1.6} />}</span>
+            <b className="text-sm leading-6 md:text-[15px]" style={{ color: C.ink }}>{c?.cat.name ?? " "}</b>
+            <span className="text-xs" style={{ color: C.gray }}>{c ? `${toPersianNum(c.cat.product_count)} کالا` : " "}</span>
+          </Link>))}
+      </div>
+    </Card>
+  );
+}
+
+// ── One brand's products (کاله when present, otherwise the largest brand) ─
+function BrandRow({ brand, items }: { brand: string | null; items: Product[] | null }) {
+  if (items && items.length < 2) return null;
+  return (
+    <Card label={brand ?? "برند"}>
+      <Title href={brand ? `/search?brand=${encodeURIComponent(brand)}` : "/search"}>{brand ? `محصولات ${brand}` : " "}</Title>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {(items ?? Array.from({ length: 4 }, () => null)).slice(0, 4).map((p, i) => (
+          <Link key={p?.id ?? i} href={p ? `/products/${p.slug}` : "#"} className="flex items-center gap-3 rounded-[14px] border p-3" style={{ borderColor: C.line }}>
+            <span className="min-w-0 flex-1">
+              <b className="line-clamp-2 text-sm leading-6" style={{ color: C.ink }}>{p?.name ?? " "}</b>
+              <span className="block text-xs" style={{ color: C.gray }}>{p?.brand ?? ""}</span>
+              <span className="mt-1 block text-[15px] font-black tabular-nums" style={{ color: C.ink }}>{p ? priceLabel(p) : ""}</span>
+            </span>
+            <span className="block h-24 w-24 shrink-0"><Img src={p?.image_url} alt={p?.name} /></span>
+          </Link>))}
+      </div>
+    </Card>
+  );
+}
+
+// ── Shops and brands (name + real count; brand logos only when supplied) ──
 function Brands() {
   const [items, setItems] = useState<{ name: string; product_count: number; image_url: string | null }[] | null>(null);
   useEffect(() => { storefront.brands().then((r) => setItems(r.items.slice(0, 8))).catch(() => setItems([])); }, []);
   if (items && !items.length) return null;
   return (
-    <section className="space-y-4" aria-label="برندها">
-      <H2>برندهای فروشگاه</H2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+    <Card label="غرفه‌ها و برندها">
+      <Title href="/shops" more="همه‌ی غرفه‌ها">غرفه‌ها و برندها</Title>
+      <div className="grid grid-cols-4 gap-2 md:gap-3 lg:grid-cols-8">
         {(items ?? Array.from({ length: 8 }, () => null)).map((b, i) => b ? (
-          <Link key={b.name} href={`/search?brand=${encodeURIComponent(b.name)}`} className="flex items-center gap-3 rounded-2xl border bg-white p-2.5 lg:flex-col lg:text-center" style={{ borderColor: UI.line }}>
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-lg font-black" style={{ background: UI.warm, color: UI.ink }}>
-              {b.name.slice(0, 1)}</span>
-            <span className="min-w-0"><b className="line-clamp-1 text-sm" style={{ color: UI.ink }}>{b.name}</b><span className="block text-[11px]" style={{ color: UI.muted }}>{toPersianNum(b.product_count)} کالا</span></span>
-          </Link>) : <span key={i} className="h-[68px] animate-pulse rounded-2xl" style={{ background: UI.warm }} />)}
+          <Link key={b.name} href={`/search?brand=${encodeURIComponent(b.name)}`} className="flex flex-col items-center gap-1.5 rounded-[14px] border px-1 py-3 text-center md:px-2 md:py-4" style={{ borderColor: C.line }}>
+            <span className="mb-1 flex h-11 w-11 items-center justify-center rounded-full text-lg font-black md:h-14 md:w-14 md:text-xl" style={{ background: C.blueL, color: C.blue }}>{b.name.slice(0, 1)}</span>
+            <b className="line-clamp-1 text-sm md:text-base" style={{ color: C.ink }}>{b.name}</b>
+            <span className="text-xs" style={{ color: C.gray }}>{toPersianNum(b.product_count)} کالا</span>
+          </Link>) : <span key={i} className="h-[132px] animate-pulse rounded-[14px] bg-black/5" />)}
       </div>
+    </Card>
+  );
+}
+
+// ── Sell on 60Online ───────────────────────────────────────────────────────
+function Seller() {
+  return (
+    <section className="flex flex-col gap-4 rounded-[20px] p-5 md:flex-row md:items-center md:justify-between md:px-8" style={{ background: "#E3EDFA" }}>
+      <span className="flex items-center gap-4">
+        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white" style={{ color: C.blue }}><Store className="h-8 w-8" strokeWidth={1.8} /></span>
+        <span><b className="block text-xl font-black md:text-[22px]" style={{ color: C.navy }}>در شصت‌آنلاین بفروشید</b>
+          <span className="mt-1 block text-sm md:text-[15px]" style={{ color: C.gray }}>غرفه بگیرید و به اعضای سازمان‌های طرف قرارداد بفروشید</span></span>
+      </span>
+      <Link href="/sell" className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-6 text-base font-bold text-white" style={{ background: C.blue }}>درخواست غرفه<ArrowLeft className="h-5 w-5" /></Link>
     </section>
   );
 }
@@ -249,35 +262,41 @@ function Packs() {
   );
 }
 
-// ── Organization entry (details live in the independent /org area) ─────────
-function Org() {
-  return (
-    <section className="flex flex-col gap-4 rounded-[20px] p-5 text-white md:flex-row md:items-center md:justify-between md:p-6" style={{ background: UI.ink }}>
-      <div><p className="text-xs font-bold text-white/70">خرید سازمانی</p><h2 className="text-xl font-black md:text-2xl">برای سازمان‌ها، شرکت‌ها و مجموعه‌ها</h2>
-        <p className="mt-1 text-sm leading-7 text-white/85">تأمین کالا، پک سازمانی و خرید با تأیید و پیگیری در پنل جداگانه سازمان</p></div>
-      <Link href="/org" className="flex h-11 flex-none items-center justify-center gap-2 rounded-xl bg-white px-6 text-sm font-bold md:w-64" style={{ color: UI.ink }}><Building2 className="h-4 w-4" /> مشاهده خدمات سازمانی</Link>
-    </section>
-  );
-}
 
 export default function FigmaHome({previewContent}:{previewContent?:PageContent}={}) {
   const { pool: raw, cats } = useCatalog();
   const pool = useVerified(raw);
-  // Hero and rail share one diversified list so no photo appears twice on the page.
-  const picks = useMemo(() => (pool ? diversify(pool, 13) : null), [pool]);
-  const used = useMemo(() => new Set((picks ?? []).map((p) => p.image_url!)), [picks]);
+  const orgItems = useMemo(() => (pool ? diversify(pool, 6) : null), [pool]);
+  const used = useMemo(() => new Set((orgItems ?? []).map((p) => p.image_url!)), [orgItems]);
+  // Largest real categories, each with one of its own verified photos not already shown above.
+  const catPicks = useMemo<CatPick[] | null>(() => {
+    if (!cats || !pool) return null;
+    const taken = new Set(used);
+    return cats.slice().sort((a, b) => b.product_count - a.product_count).map((cat) => {
+      const own = pool.filter((x) => x.category?.slug === cat.slug && x.image_url);
+      const p = own.find((x) => !taken.has(x.image_url!)) ?? own[0];
+      if (p?.image_url) taken.add(p.image_url);
+      return { cat, img: p?.image_url };
+    });
+  }, [cats, pool, used]);
+  const brandRow = useMemo(() => {
+    if (!pool) return { brand: null, items: null };
+    const counts = new Map<string, number>();
+    for (const p of pool) if (p.brand) counts.set(p.brand, (counts.get(p.brand) ?? 0) + 1);
+    const brand = counts.has("کاله") ? "کاله" : [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+    return { brand, items: brand ? diversify(pool.filter((p) => p.brand === brand), 4) : [] };
+  }, [pool]);
 
   const [published,setPublished]=useState<PageContent|null>(null);
   useEffect(()=>{if(previewContent)return;const c=new AbortController();apiRequest<{content:PageContent}>("/content/pages/homepage",{signal:c.signal}).then(r=>{if(!c.signal.aborted&&Array.isArray(r.content?.blocks))setPublished(r.content)}).catch(()=>{});return()=>c.abort()},[previewContent]);
   const configured=previewContent??published;
-  const order=configured?configured.blocks.filter(b=>b.type==="home_section"&&b.enabled).map(b=>b.key??""):["hero","collections","categories","today","why","groups","brands","packs","organization"];
+  // The content panel can still hide a section it knows about; new sections are always shown.
+  const hidden=new Set((configured?.blocks??[]).filter(b=>b.type==="home_section"&&!b.enabled).map(b=>b.key??""));
   const hero=configured?.blocks.find(b=>b.key==="hero");
+  const order=["hero","services","organization","collections","categories","packs","today","brands","seller"].filter(k=>!hidden.has(k));
   const sections:Record<string,React.ReactNode>={
-   hero:<BusinessHero content={hero}/>,
-   collections:<section className="grid gap-3 sm:grid-cols-3" aria-label="کاتالوگ مجموعه‌ها">{[{name:"آریا",href:"/business/catalog?supplier=آریا",desc:"نوشت‌افزار و لوازم آموزشی"},{name:"پویا پروتئین",href:"/business/catalog?supplier=پویا%20پروتئین",desc:"مواد پروتئینی"},{name:"کاله",href:"/business/catalog?q=کاله",desc:"لبنیات و محصولات غذایی"}].map(c=><Link key={c.name} href={c.href} className="flex items-center justify-between rounded-2xl border border-[#dce5df] bg-[#faf9f6] p-5"><span><b className="text-base text-[#0a2735]">{c.name}</b><span className="mt-2 block text-xs text-[#52616a]">{c.desc}</span></span><ArrowLeft size={18} className="text-[#004e72]"/></Link>)}</section>,
-   categories:<Categories cats={cats}/>,
-   today:<Today items={picks&&picks.slice(0,10)}/>,
-   why:<Why/>,groups:<Groups pool={pool} used={used}/>,brands:<Brands/>,packs:<Packs/>,organization:<Org/>
+   hero:<Hero content={hero}/>,services:<Services/>,organization:<OrgPrices items={orgItems}/>,collections:<Promos picks={catPicks}/>,
+   categories:<Categories picks={catPicks}/>,packs:<Packs/>,today:<BrandRow brand={brandRow.brand} items={brandRow.items}/>,brands:<Brands/>,seller:<Seller/>
   };
-  return <div className="bg-white"><div className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-4 py-4 md:px-8 md:py-8 xl:px-16" dir="rtl">{order.map(key=><Fragment key={key}>{sections[key]}</Fragment>)}</div></div>;
+  return <div style={{ background: C.bg }}><div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-4 md:px-8 md:py-6" dir="rtl">{order.map(key=><Fragment key={key}>{sections[key]}</Fragment>)}</div></div>;
 }
