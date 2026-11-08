@@ -1,0 +1,12 @@
+[
+  "PASS wishlist keyboard, focus, 44px target, no nested button/link, no accidental navigation",
+  "PASS pagination preserves real page-two result count and product identity",
+  "PASS real-image card srcset/lazy and stable image-failure geometry",
+  "PASS original asset contain/priority and image-failure replacement",
+  "PASS quote CTA preserves real slug",
+  "PASS real API validation error remains explicit without fabricated count",
+  "PASS real empty search",
+  "PASS isolated injected network failure renders alert",
+  "PASS homepage API error distinct from empty; pack remains unavailable",
+  "PASS reduced-motion scrolling"
+]

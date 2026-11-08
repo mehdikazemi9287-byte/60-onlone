@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "original_catalog_rows_preserved": true,
+  "imported": 400,
+  "aria": 233,
+  "pouya": 167,
+  "duplicates": 0,
+  "published_sku_conflicts": 0,
+  "sku9030_absent": true,
+  "final_sale_null": 400,
+  "unknown_unit": 176,
+  "images_attached": 3,
+  "published_images_missing": 397,
+  "rollback_visibility_test": "PASS",
+  "counts": {
+    "master_products": 1039,
+    "products": 560,
+    "suppliers": 12,
+    "seller_offers": 489,
+    "catalog_publications": 903,
+    "external_product_mappings": 400
+  }
+}

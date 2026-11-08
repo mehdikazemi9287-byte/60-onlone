@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn, formatPrice, toPersianNum } from "@/lib/utils";
-import { cart as cartApi, ApiError } from "@/lib/api";
+import { cart as cartApi, ApiError, apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Cart, CartItem } from "@/lib/types";
 
@@ -278,16 +278,47 @@ export default function CartPage() {
                   ادامه و پرداخت
                 </Link>
               )}
+              <ProformaButton />
               <Link
                 href="/search"
                 className="mt-2 block w-full text-center py-2.5 rounded-xl text-sm text-neutral-500 hover:bg-neutral-50 transition-colors"
               >
                 ادامه خرید
               </Link>
+              {/* 60AI contextual entry point — additive only, no change to
+                  the existing cart/summary logic or numbers. */}
+              <Link
+                href="/assistant"
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 py-2.5 text-xs font-medium text-primary-700 hover:border-primary-300 transition-colors"
+              >
+                <span className="text-sm">✦</span> هزینه را با 60AI کمتر کن
+              </Link>
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function ProformaButton() {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const make = async () => {
+    setBusy(true); setErr(null);
+    try {
+      const t = window.localStorage.getItem("60online_token") ?? undefined;
+      const r = await apiRequest<{ number: string }>("/me/proformas", { token: t, method: "POST", body: "{}" });
+      window.location.href = `/me/proformas/${encodeURIComponent(r.number)}`;
+    } catch (e) { setErr(e instanceof ApiError ? e.message : "ناموفق بود"); setBusy(false); }
+  };
+  return (
+    <>
+      <button type="button" disabled={busy} onClick={make}
+        className="mt-2 block w-full rounded-xl border border-neutral-200 py-2.5 text-center text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50">
+        دریافت پیش‌فاکتور (۷۲ ساعت معتبر)
+      </button>
+      {err && <p role="alert" className="mt-1 text-center text-xs text-red-700">{err}</p>}
+    </>
   );
 }

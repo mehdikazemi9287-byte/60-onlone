@@ -41,6 +41,10 @@ class AloPeykCarrierAdapter(CarrierAdapter):
 
     provider_code = "alopeyk"
     implementation_status = "not_implemented"
+    # Phase 5C: carrier status code -> normalized tracking status. PROVISIONAL codes,
+    # to be confirmed against official docs; overridable per carrier via
+    # logistics_carriers.status_map_json.
+    TRACKING_STATUS_MAP: dict[str, str] = {"new": "created", "accepted": "created", "picking": "created", "delivering": "picked_up", "delivered": "delivered", "finished": "delivered", "cancelled": "failed", "returned": "returned"}
 
     def __init__(self, config: dict | None = None):
         self._config = config or {}

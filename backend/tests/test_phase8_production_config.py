@@ -163,7 +163,9 @@ class TestMockProviderProductionGuard(unittest.TestCase):
         s = _load(
             APP_ENV="production", SECRET_KEY=_SAFE_KEY,
             DATABASE_URL="sqlite:///./data/test.db",
-            PAYMENT_PROVIDER="stripe",
+            PAYMENT_PROVIDER="sepehr",
+            SEPEHR_TERMINAL_ID="98765432",
+            PUBLIC_BASE_URL="https://60online.ir",
             CREDIT_PROVIDER="internal",
             DEMO_MODE=None,
             SEED_ON_START=None,

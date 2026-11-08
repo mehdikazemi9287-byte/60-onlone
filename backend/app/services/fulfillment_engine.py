@@ -182,8 +182,12 @@ def load_candidates(
     *,
     product_id: int,
     quantity_needed: int,
+    offer_id: int | None = None,
 ) -> list[OfferCandidate]:
-    """Query all active offers for a product and return candidate objects."""
+    """Active offers for a product with allowed provenance (REAL; TEST only in test mode) on the
+    retail channel. When the cart line is bound to an offer, only that offer is a candidate."""
+    from app.services.sale_eligibility import allowed_provenance
+    prov = ",".join(f"'{p}'" for p in allowed_provenance())
     rows = conn.execute(
         """
         SELECT
@@ -211,9 +215,12 @@ def load_candidates(
           AND so.status     = 'active'
           AND s.status      = 'active'
           AND sl.status     = 'active'
+          AND so.provenance IN ({prov}) AND s.provenance IN ({prov})
+          AND so.channel IN ('retail', 'both') AND so.pricing_mode IN ('fixed', 'bulk')
+          AND (? IS NULL OR so.id = ?)
         ORDER BY s.rating_x10 DESC, so.selling_price_minor ASC, s.id ASC
-        """,
-        (product_id,),
+        """.replace("{prov}", prov).replace("so.channel IN ('retail', 'both')", __import__("app.services.product_channel_policy",fromlist=["offer_sql"]).offer_sql("so.product_id","so.channel","retail")),
+        (product_id, offer_id, offer_id),
     ).fetchall()
 
     return [
@@ -387,6 +394,7 @@ def route(
     quantity_needed: int,
     customer_province: str,
     customer_city: str,
+    offer_id: int | None = None,
 ) -> RoutingResult:
     """Main entry point. Returns a RoutingResult with selected candidate + all candidates.
 
@@ -400,7 +408,7 @@ def route(
     not merely a scoring component.
     """
     policy_type = get_policy_type(conn, product_id)
-    candidates  = load_candidates(conn, product_id=product_id, quantity_needed=quantity_needed)
+    candidates  = load_candidates(conn, product_id=product_id, quantity_needed=quantity_needed, offer_id=offer_id)
 
     _score_candidates(
         candidates,

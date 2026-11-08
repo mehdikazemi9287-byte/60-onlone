@@ -102,15 +102,37 @@ def record_sale_payable(
             code="zero_payable",
         )
 
+    # Commission per line (category + channel) and the escrow date are snapshotted now,
+    # so later rule changes never rewrite what this sale owes.
+    from app.services import seller_shop_service
+    import datetime as _dt
+    fee = seller_shop_service.commission_for_fulfillment(conn, fulfillment_order_id)
+    kind = conn.execute("SELECT seller_kind FROM suppliers WHERE id = ?", (supplier_id,)).fetchone()
+    # Contracted suppliers settle by contract; only self-registered shops get the escrow hold.
+    available_at = None
+    if kind is not None and kind["seller_kind"] != "supplier":
+        # Never before the buyer's statutory withdrawal window (7 working days after delivery) closes.
+        from app.services import consumer_rights_service
+        hold = _dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(days=seller_shop_service.hold_days())
+        available_at = max(hold, consumer_rights_service.escrow_floor(conn, fulfillment_order_id)
+                           ).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     cursor = conn.execute(
         """
         INSERT INTO supplier_payable_entries
-            (supplier_id, fulfillment_order_id, entry_type, gross_minor, idempotency_key, status)
-        VALUES (?, ?, 'sale_payable', ?, ?, 'unbatched')
+            (supplier_id, fulfillment_order_id, entry_type, gross_minor, idempotency_key, status,
+             commission_rate_bps, commission_minor, available_at, channel)
+        VALUES (?, ?, 'sale_payable', ?, ?, 'unbatched', ?, ?, ?, ?)
         """,
-        (supplier_id, fulfillment_order_id, gross_minor, idempotency_key),
+        (supplier_id, fulfillment_order_id, gross_minor, idempotency_key,
+         fee["rate_bps"], fee["commission_minor"], available_at, fee["channel"]),
     )
     entry_id = int(cursor.lastrowid)
+    # Affiliate (همکاری در فروش): accrue the referrer's earning; a seller-paid bonus raises this commission.
+    from app.services import affiliate_service
+    earning = affiliate_service.accrue(conn, fulfillment_order_id=fulfillment_order_id, payable_entry_id=entry_id,
+                                       commission_minor=fee["commission_minor"], available_at=available_at)
+    if earning and earning["seller_paid_minor"]:
+        fee = {**fee, "commission_minor": fee["commission_minor"] + int(earning["seller_paid_minor"])}
     log.info(
         "record_sale_payable: created entry_id=%s fo=%s supplier=%s gross=%s",
         entry_id, fulfillment_order_id, supplier_id, gross_minor,
@@ -123,6 +145,9 @@ def record_sale_payable(
         "gross_minor": gross_minor,
         "idempotency_key": idempotency_key,
         "status": "unbatched",
+        "commission_minor": fee["commission_minor"],
+        "commission_rate_bps": fee["rate_bps"],
+        "available_at": available_at,
     }
 
 

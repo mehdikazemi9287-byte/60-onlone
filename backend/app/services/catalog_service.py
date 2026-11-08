@@ -1,4 +1,5 @@
 """Browse: categories, product search/listing, product detail."""
+
 from __future__ import annotations
 
 import json
@@ -7,6 +8,7 @@ from app.core.db import Database
 from app.core.errors import NotFoundError, ValidationError
 from app.core.money import format_minor
 from app.services import sale_eligibility
+from app.services import product_channel_policy as policy
 
 MAX_PAGE_SIZE = 48
 DEFAULT_PAGE_SIZE = 12
@@ -39,6 +41,9 @@ def _product_dict(row, exponent: int, verified_offer=None) -> dict:
     available = int(verified_offer["available"]) if verified_offer is not None else None
     return {
         "id": row["id"],
+        "master_product_id": row["master_product_id"],
+        "supply_channel":row["policy_channel"] or "both",
+        "allowed_channels":list(policy.channels(row["policy_channel"] or "both")),
         "slug": row["slug"],
         "sku": row["sku"],
         "title_fa": row["title_fa"],
@@ -57,16 +62,54 @@ def _product_dict(row, exponent: int, verified_offer=None) -> dict:
     }
 
 
+def _publication_dict(row, exponent: int) -> dict:
+    """A verified master-catalog identity which is visible but not sellable.
+
+    These rows deliberately have no product/offer/inventory identity.  A
+    synthetic negative API id prevents accidental collision with a commerce
+    product id, while ``purchasable`` is always false and price may be NULL.
+    """
+    price_minor = None  # Research prices are not sale offers.
+    return {
+        "id": -int(row["master_product_id"]),
+        "master_product_id": row["master_product_id"],
+        "supply_channel":row["policy_channel"] or "both",
+        "allowed_channels":list(policy.channels(row["policy_channel"] or "both")),
+        "slug": row["slug"],
+        "sku": row["profile_sku"],
+        "title_fa": row["canonical_name_fa"],
+        "brand_fa": row["brand"],
+        "category_slug": row["category_slug"],
+        "category_name_fa": row["category_name_fa"],
+        "price": format_minor(price_minor, exponent) if price_minor is not None else None,
+        "price_minor": price_minor,
+        "currency": row["currency"],
+        "image_emoji": None,
+        "image_url": _image_url(row),
+        "rating": None,
+        "in_stock": False,
+        "quantity_available": None,
+        "purchasable": False,
+        "price_status": "pending",
+        "inquiry_only": True,
+    }
+
+
 def list_categories(db: Database) -> list[dict]:
     rows = db.query(
         """
-        SELECT c.id, c.slug, c.name_fa, c.parent_id, c.sort_order,
-               (SELECT COUNT(*) FROM products p WHERE p.category_id = c.id AND p.is_active = 1) AS product_count
+        SELECT c.id, c.slug, c.name_fa, c.parent_id, c.sort_order, c.seed_source,
+               ((SELECT COUNT(*) FROM products p WHERE p.category_id = c.id AND p.is_active = 1 AND (p.master_product_id IS NULL OR EXISTS(SELECT 1 FROM master_products cm WHERE cm.id=p.master_product_id AND cm.status='active'))) +
+                (SELECT COUNT(*) FROM catalog_publications cp
+                 WHERE cp.category_slug = c.slug AND cp.is_visible = 1 AND EXISTS(SELECT 1 FROM master_products cm WHERE cm.id=cp.master_product_id AND cm.status='active')
+                 AND NOT EXISTS (SELECT 1 FROM products linked WHERE linked.master_product_id=cp.master_product_id AND linked.is_active=1))) AS product_count
         FROM categories c
+        WHERE c.level = 'category'  -- legacy flat list; the full taxonomy is /storefront/taxonomy
         ORDER BY c.sort_order, c.id
         """
     )
-    return [dict(r) for r in rows]
+    # Phase 6 seeded taxonomy nodes stay hidden here until they hold products.
+    return [{k: r[k] for k in r.keys() if k != "seed_source"} for r in rows if not (r["seed_source"] and not r["product_count"])]
 
 
 def search_products(
@@ -84,16 +127,10 @@ def search_products(
     if page_size < 1 or page_size > MAX_PAGE_SIZE:
         raise ValidationError(f"page_size باید بین ۱ و {MAX_PAGE_SIZE} باشد")
 
-    order_by = {
-        "newest": "p.id DESC",
-        "price_asc": "p.base_price_minor ASC, p.id DESC",
-        "price_desc": "p.base_price_minor DESC, p.id DESC",
-        "rating": "p.rating_x10 DESC, p.id DESC",
-    }.get(sort)
-    if order_by is None:
+    if sort not in {"newest", "price_asc", "price_desc", "rating"}:
         raise ValidationError("مقدار sort نامعتبر است")
 
-    where = ["p.is_active = 1"]
+    where = ["p.is_active = 1", "(mp.id IS NULL OR mp.status='active')"]
     params: list = []
     if q and q.strip():
         # LIKE with escaped wildcards; parameterised, so no injection surface.
@@ -108,31 +145,66 @@ def search_products(
         params.append(category_slug.strip())
 
     clause = " AND ".join(where)
-    total = db.query_one(
-        f"SELECT COUNT(*) AS n FROM products p JOIN categories c ON c.id = p.category_id WHERE {clause}",
-        params,
-    )["n"]
-
     rows = db.query(
         f"""
         SELECT p.*, c.slug AS category_slug, c.name_fa AS category_name_fa,
                COALESCE(i.quantity_available, 0) AS quantity_available,
-               mp.image_urls_json AS image_urls_json
+               mp.image_urls_json AS image_urls_json, dp.supply_channel AS policy_channel
         FROM products p
         JOIN categories c ON c.id = p.category_id
         LEFT JOIN inventory i ON i.product_id = p.id
-        LEFT JOIN master_products mp ON mp.id = p.master_product_id
+        LEFT JOIN master_products mp ON mp.id = p.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
         WHERE {clause}
-        ORDER BY {order_by}
-        LIMIT ? OFFSET ?
         """,
-        [*params, page_size, (page - 1) * page_size],
+        params,
     )
+    publication_where = [
+        "cp.is_visible = 1", "mp.status='active'",
+        "NOT EXISTS (SELECT 1 FROM products linked WHERE linked.master_product_id=cp.master_product_id AND linked.is_active=1)",
+    ]
+    publication_params: list = []
+    if q and q.strip():
+        needle = "%" + q.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+        publication_where.append(
+            "(mp.canonical_name_fa LIKE ? ESCAPE '\\' OR mp.brand LIKE ? ESCAPE '\\' "
+            "OR COALESCE(mp.description_fa, '') LIKE ? ESCAPE '\\')"
+        )
+        publication_params.extend([needle, needle, needle])
+    if category_slug and category_slug.strip():
+        publication_where.append("cp.category_slug = ?")
+        publication_params.append(category_slug.strip())
+    publication_rows = db.query(
+        f"""
+        SELECT cp.*, mp.canonical_name_fa, mp.brand, mp.description_fa,
+               mp.image_urls_json, dp.supply_channel AS policy_channel,dp.sku AS profile_sku, c.name_fa AS category_name_fa
+        FROM catalog_publications cp
+        JOIN master_products mp ON mp.id = cp.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
+        JOIN categories c ON c.slug = cp.category_slug
+        WHERE {' AND '.join(publication_where)}
+        """,
+        publication_params,
+    )
+    items = [
+        _product_dict(r, exponent, sale_eligibility.eligible_offer_db(db, int(r["id"])))
+        for r in rows
+    ]
+    items.extend(_publication_dict(r, exponent) for r in publication_rows)
+    if sort == "price_asc":
+        items.sort(key=lambda x: (x["price_minor"] is None, x["price_minor"] or 0, -x["id"]))
+    elif sort == "price_desc":
+        items.sort(
+            key=lambda x: (x["price_minor"] is not None, x["price_minor"] or 0, x["id"]),
+            reverse=True,
+        )
+    elif sort == "rating":
+        items.sort(key=lambda x: (x["rating"] is not None, x["rating"] or 0, x["id"]), reverse=True)
+    else:
+        items.sort(key=lambda x: x["id"], reverse=True)
+    total = len(items)
+    offset = (page - 1) * page_size
+    items = items[offset : offset + page_size]
     return {
-        "items": [
-            _product_dict(r, exponent, sale_eligibility.eligible_offer_db(db, int(r["id"])))
-            for r in rows
-        ],
+        "items": items,
         "page": page,
         "page_size": page_size,
         "total": int(total),
@@ -145,19 +217,32 @@ def get_product_by_slug(db: Database, slug: str, *, exponent: int) -> dict:
         """
         SELECT p.*, c.slug AS category_slug, c.name_fa AS category_name_fa,
                COALESCE(i.quantity_available, 0) AS quantity_available,
-               mp.image_urls_json AS image_urls_json
+               mp.image_urls_json AS image_urls_json, dp.supply_channel AS policy_channel
         FROM products p
         JOIN categories c ON c.id = p.category_id
         LEFT JOIN inventory i ON i.product_id = p.id
-        LEFT JOIN master_products mp ON mp.id = p.master_product_id
-        WHERE p.slug = ? AND p.is_active = 1
+        LEFT JOIN master_products mp ON mp.id = p.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
+        WHERE p.slug = ? AND p.is_active = 1 AND (mp.id IS NULL OR mp.status='active')
         """,
         (slug,),
     )
     if row is None:
-        raise NotFoundError("محصول یافت نشد", code="product_not_found")
-    data = _product_dict(
-        row, exponent, sale_eligibility.eligible_offer_db(db, int(row["id"]))
-    )
+        publication = db.query_one(
+            """
+            SELECT cp.*, mp.canonical_name_fa, mp.brand, mp.description_fa,
+                   mp.image_urls_json, dp.supply_channel AS policy_channel,dp.sku AS profile_sku, c.name_fa AS category_name_fa
+            FROM catalog_publications cp
+            JOIN master_products mp ON mp.id = cp.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
+            JOIN categories c ON c.slug = cp.category_slug
+            WHERE cp.slug = ? AND cp.is_visible = 1 AND mp.status='active'
+            """,
+            (slug,),
+        )
+        if publication is None:
+            raise NotFoundError("محصول یافت نشد", code="product_not_found")
+        data = _publication_dict(publication, exponent)
+        data["description_fa"] = publication["description_fa"]
+        return data
+    data = _product_dict(row, exponent, sale_eligibility.eligible_offer_db(db, int(row["id"])))
     data["description_fa"] = row["description_fa"]
     return data

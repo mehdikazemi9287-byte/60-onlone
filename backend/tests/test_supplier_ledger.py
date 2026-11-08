@@ -195,7 +195,10 @@ class SupplierLedgerTest(AppTestCase):
         """Customer cannot access supplier payable endpoints."""
         _, headers = self.new_customer()
         resp = self.client.get("/api/v1/supplier/payables", headers=headers)
-        self.assertEqual(resp.status_code, 403)
+        # Seller access is membership-based (marketplace shop owners keep role customer):
+        # a customer with no shop is refused with supplier_not_linked and sees no data.
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.get_json()["error"]["code"], "supplier_not_linked")
 
 
 class DeliveryPayableAtomicTest(AppTestCase):

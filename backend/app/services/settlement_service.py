@@ -46,7 +46,8 @@ def create_settlement_batch(
     supplier_id: int,
     payable_entry_ids: list[int],
     idempotency_key: str,
-    commission_rate_bps: int = DEFAULT_COMMISSION_RATE_BPS,
+    commission_rate_bps: int | None = None,
+    release_held: bool = False,
     shipping_charge_minor: int = 0,
     shipping_payer: str = "customer",
 ) -> dict:
@@ -67,7 +68,7 @@ def create_settlement_batch(
     """
     if not idempotency_key or not idempotency_key.strip():
         raise ValidationError("idempotency_key is required for settlement batch")
-    if not isinstance(commission_rate_bps, int) or commission_rate_bps < 0:
+    if commission_rate_bps is not None and (not isinstance(commission_rate_bps, int) or commission_rate_bps < 0):
         raise ValidationError("commission_rate_bps must be a non-negative integer")
     if not isinstance(shipping_charge_minor, int) or shipping_charge_minor < 0:
         raise ValidationError("shipping_charge_minor must be a non-negative integer")
@@ -121,12 +122,65 @@ def create_settlement_batch(
                 code="entry_already_batched",
             )
 
+    # Escrow: entries still inside the buyer's protection window are not settleable,
+    # nor is anything owed to a seller whose account health is suspended.
+    if not release_held:
+        from app.services import seller_shop_service
+        import datetime as _dt
+        stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        held = [eid for eid in payable_entry_ids
+                if entries_by_id[eid].get("available_at") and entries_by_id[eid]["available_at"] > stamp]
+        disputed = [eid for eid in payable_entry_ids if conn.execute(
+            "SELECT 1 FROM supplier_payable_entries pe JOIN fulfillment_orders fo ON fo.id = pe.fulfillment_order_id "
+            "JOIN order_return_requests r ON r.order_id = fo.order_id WHERE pe.id = ? "
+            "AND r.status IN ('requested','approved','received','refund_pending')", (eid,)).fetchone()]
+        if disputed:
+            raise ConflictError("برای سفارش این مبالغ درخواست مرجوعی یا انصراف باز است",
+                                code="return_open", details={"entry_ids": disputed})
+        if held:
+            raise ConflictError("این مبالغ هنوز در دورهٔ امانت (بعد از تحویل) هستند",
+                                code="payable_on_hold", details={"entry_ids": held})
+        health = conn.execute("SELECT health_status, payout_hold FROM suppliers WHERE id = ?", (supplier_id,)).fetchone()
+        if health is not None and health["payout_hold"]:
+            raise ConflictError("شبای این فروشنده تازه تغییر کرده و منتظر تأیید ادمین است",
+                                code="payout_account_unverified")
+        if health is not None and health["health_status"] == "suspended":
+            raise ConflictError("تسویهٔ این فروشنده به دلیل وضعیت سلامت حساب متوقف است",
+                                code="seller_suspended")
+
     # Compute financials — integer arithmetic only (BLOCKER 5)
     gross_minor = sum(entries_by_id[eid]["gross_minor"] for eid in payable_entry_ids)
-    commission_minor = (gross_minor * commission_rate_bps) // 10_000  # integer floor division
+    if commission_rate_bps is None:
+        # Per-entry snapshots (category/channel rules); legacy entries fall back to the default rate.
+        commission_minor = sum(
+            entries_by_id[eid]["commission_minor"] if entries_by_id[eid].get("commission_minor") is not None
+            else (entries_by_id[eid]["gross_minor"] * DEFAULT_COMMISSION_RATE_BPS) // 10_000
+            for eid in payable_entry_ids)
+        commission_rate_bps = (commission_minor * 10_000) // gross_minor if gross_minor else 0
+    else:
+        commission_minor = (gross_minor * commission_rate_bps) // 10_000  # integer floor division
+        # An admin-set rate replaces the platform commission only; the seller-funded affiliate bonus still applies.
+        fos = sorted({entries_by_id[eid]["fulfillment_order_id"] for eid in payable_entry_ids
+                      if entries_by_id[eid].get("fulfillment_order_id") is not None})
+        if fos:
+            commission_minor += int(conn.execute(
+                f"SELECT COALESCE(SUM(seller_paid_minor),0) FROM affiliate_earnings WHERE status<>'reversed' "
+                f"AND fulfillment_order_id IN ({','.join('?' * len(fos))})", fos).fetchone()[0])
+            commission_minor = min(commission_minor, gross_minor)
     # Shipping charge only deducted if supplier pays
     effective_shipping = shipping_charge_minor if shipping_payer == "supplier" else 0
     net_minor = gross_minor - commission_minor - effective_shipping
+
+    # Phase 4: an advance already paid to the seller is netted out of this payout (idempotent per batch key).
+    advance_recovered = 0
+    if net_minor > 0:
+        try:
+            from app.services import seller_advance_service
+            advance_recovered = seller_advance_service.recover_from_settlement(
+                conn, supplier_id=supplier_id, available_minor=net_minor, settlement_reference=idempotency_key)
+        except ImportError:  # pragma: no cover
+            advance_recovered = 0
+        net_minor -= advance_recovered
 
     if net_minor < 0:
         raise ValidationError(
@@ -186,7 +240,7 @@ def create_settlement_batch(
     batch = conn.execute(
         "SELECT * FROM settlement_batches WHERE id = ?", (batch_id,)
     ).fetchone()
-    return {**dict(batch), "items": [dict(i) for i in items]}
+    return {**dict(batch), "items": [dict(i) for i in items], "advance_recovered_minor": advance_recovered}
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +286,28 @@ def complete_settlement_batch(
         )
 
     net_minor = int(b["net_minor"])
+    open_return = conn.execute(
+        "SELECT 1 FROM supplier_payable_entries pe JOIN fulfillment_orders fo ON fo.id = pe.fulfillment_order_id "
+        "JOIN order_return_requests r ON r.order_id = fo.order_id WHERE pe.settlement_batch_id = ? "
+        "AND r.status IN ('requested','approved','received','refund_pending') LIMIT 1", (batch_id,)).fetchone()
+    if open_return and b["status"] != "completed":
+        raise ConflictError("بعد از ساخت این دسته، برای یکی از سفارش‌ها مرجوعی یا انصراف ثبت شده است",
+                            code="return_open")
+    if net_minor == 0 and conn.execute(
+            "SELECT 1 FROM seller_advance_entries WHERE entry_type='recovery' AND supplier_id=? "
+            "AND settlement_reference=?", (int(b["supplier_id"]), b["idempotency_key"])).fetchone():
+        # The whole payout was absorbed by an outstanding seller advance: nothing to wire, but the
+        # payables are settled (by the advance) and must not stay stuck in 'batched'.
+        conn.execute("UPDATE supplier_payable_entries SET status = 'settled' WHERE settlement_batch_id = ?",
+                     (batch_id,))
+        conn.execute(
+            "UPDATE settlement_batches SET status='completed', payment_reference=?, external_reference=?, "
+            "updated_at=datetime('now') WHERE id=?",
+            (payment_reference or f"advance-netted:{b['idempotency_key']}", external_reference, batch_id))
+        log.info("complete_settlement_batch: batch_id=%s settled entirely by advance netting", batch_id)
+        _emit_settled(conn, b, batch_id, 0, settled_by_advance=True)
+        return {"batch": dict(conn.execute("SELECT * FROM settlement_batches WHERE id = ?", (batch_id,)).fetchone()),
+                "payment": None, "settled_by_advance": True}
     if net_minor <= 0:
         raise ValidationError(
             f"Cannot complete settlement with net_minor={net_minor}",
@@ -290,6 +366,7 @@ def complete_settlement_batch(
     batch_updated = conn.execute(
         "SELECT * FROM settlement_batches WHERE id = ?", (batch_id,)
     ).fetchone()
+    _emit_settled(conn, batch_updated, batch_id, int(batch_updated["net_minor"]))
     payment = conn.execute(
         "SELECT * FROM settlement_payments WHERE id = ?", (payment_id,)
     ).fetchone()
@@ -348,3 +425,13 @@ def list_settlement_batches(
     sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
     params += [limit, offset]
     return [dict(r) for r in conn.execute(sql, params).fetchall()]
+
+
+def _emit_settled(conn, batch, batch_id: int, net_minor: int, *, settled_by_advance: bool = False) -> None:
+    """Partner webhook: settlement.completed for the seller (and platform clients). Same transaction."""
+    from app.services import partner_webhook_service
+    partner_webhook_service.emit(
+        conn, "settlement.completed",
+        {"batch_id": batch_id, "supplier_id": int(batch["supplier_id"]), "net_minor": net_minor,
+         "settled_by_advance": settled_by_advance},
+        supplier_ids=(int(batch["supplier_id"]),), event_key=f"settlement.completed:{batch_id}")

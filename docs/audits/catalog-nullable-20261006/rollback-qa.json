@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "scope": "disposable clone only",
+  "new_publications_hidden": 177,
+  "master_rows_deleted": 0,
+  "provenance_deleted": 0,
+  "foreign_key_check": "PASS",
+  "candidate_changed": false,
+  "constraint_rollback": "verified pre-import; deliberately refuses later master changes"
+}

@@ -77,7 +77,7 @@ def list_connectors():
             FROM connector_accounts
             WHERE (:supplier_id IS NULL OR supplier_id = :supplier_id)
               AND (:admin = 1 OR supplier_id IN (
-                    SELECT id FROM suppliers WHERE user_id = :user_id
+                    SELECT supplier_id FROM supplier_access WHERE user_id = :user_id
                   ))
             ORDER BY created_at DESC
             """,
@@ -116,7 +116,7 @@ def get_connector(account_id: int):
         db2 = get_db()
         with db2.read_transaction() as conn2:
             sup = conn2.execute(
-                "SELECT id FROM suppliers WHERE user_id = ?",
+                "SELECT supplier_id AS id FROM supplier_access WHERE user_id = ? ORDER BY role='owner' DESC, supplier_id LIMIT 1",
                 (g.current_user["id"],),
             ).fetchone()
         if sup is None or int(account.get("supplier_id", -1)) != sup["id"]:

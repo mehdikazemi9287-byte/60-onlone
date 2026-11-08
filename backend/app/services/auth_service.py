@@ -9,6 +9,9 @@ from app.core.errors import AuthenticationError, ConflictError, ValidationError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.services import audit_service
 
+# Persian/Arabic-Indic digits typed on mobile keyboards are stored as ASCII digits.
+_LATIN_DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
+
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$")
 MIN_PASSWORD_LENGTH = 8
 VALID_ROLES = {"customer", "employee", "supplier", "org_admin", "admin"}
@@ -20,7 +23,7 @@ def normalize_email(email: str) -> str:
 
 def validate_registration(email: str, password: str, full_name: str) -> None:
     errors: dict[str, str] = {}
-    if not EMAIL_RE.match(normalize_email(email)):
+    if not EMAIL_RE.match(normalize_email(email)) or normalize_email(email).endswith(("@users.60online.invalid", "@phone.60online.ir")):
         errors["email"] = "ایمیل معتبر نیست"
     if not isinstance(password, str) or len(password) < MIN_PASSWORD_LENGTH:
         errors["password"] = f"رمز عبور باید حداقل {MIN_PASSWORD_LENGTH} کاراکتر باشد"
@@ -56,7 +59,7 @@ def register(
                 INSERT INTO users (email, email_normalized, password_hash, full_name, phone, role)
                 VALUES (?,?,?,?,?,?)
                 """,
-                (email.strip(), normalized, digest, full_name.strip(), (phone or "").strip() or None, role),
+                (email.strip(), normalized, digest, full_name.strip(), (phone or "").translate(_LATIN_DIGITS).strip() or None, role),
             )
         except sqlite3.IntegrityError as exc:
             raise ConflictError("این ایمیل قبلاً ثبت شده است", code="email_taken") from exc

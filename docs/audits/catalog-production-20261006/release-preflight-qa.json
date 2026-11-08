@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "runtime_baseline": "current Production code with scoped release deltas",
+  "storefront_PDPs": 400,
+  "all_prices_null": true,
+  "no_direct_purchase": true,
+  "9030_absent": true,
+  "request_RFQ_E2E": "PASS",
+  "temporary_fixtures": "isolated release rehearsal database only"
+}

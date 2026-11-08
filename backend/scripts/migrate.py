@@ -8,13 +8,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import load_settings  # noqa: E402
-from app.core.db import Database  # noqa: E402
+from app.core.db import Database, make_backend  # noqa: E402
 from app.core.migrator import current_version, upgrade  # noqa: E402
 
 
 def main() -> int:
     settings = load_settings()
-    db = Database(settings.sqlite_path)
+    db = make_backend(settings.database_url)
     applied = upgrade(db)
     if applied:
         print(f"applied migrations: {', '.join(applied)}")

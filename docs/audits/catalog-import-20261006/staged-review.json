@@ -1,0 +1,3236 @@
+[
+  {
+    "identity": "آریا:sku:6036",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 102,
+        "sku": "6036",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:8033",
+    "supplier": "آریا",
+    "reasons": [
+      "same_catalog_sku_two_angle_variants"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/__لیست قیمت مصرف کننده شهریور 1405_.pdf",
+        "page": 7,
+        "sku": "8033",
+        "issues": [],
+        "unit": "عدد",
+        "carton_quantity": 864
+      },
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 78,
+        "sku": "8033",
+        "issues": [
+          "same_catalog_sku_two_angle_variants"
+        ],
+        "unit": null,
+        "carton_quantity": null
+      },
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 78,
+        "sku": "8033",
+        "issues": [
+          "same_catalog_sku_two_angle_variants"
+        ],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9030",
+    "supplier": "آریا",
+    "reasons": [
+      "conflicting_catalog_weights_same_sku"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 96,
+        "sku": "9030",
+        "issues": [
+          "conflicting_catalog_weights_same_sku"
+        ],
+        "unit": "عدد",
+        "carton_quantity": 112
+      },
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 97,
+        "sku": "9030",
+        "issues": [
+          "conflicting_catalog_weights_same_sku"
+        ],
+        "unit": "عدد",
+        "carton_quantity": 112
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9090",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 107,
+        "sku": "9090",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9091",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 106,
+        "sku": "9091",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9093",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 108,
+        "sku": "9093",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9094",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 108,
+        "sku": "9094",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9096",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 109,
+        "sku": "9096",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9097",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 106,
+        "sku": "9097",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9098",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 106,
+        "sku": "9098",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "آریا:sku:9099",
+    "supplier": "آریا",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/aria/Arya-Catalogue-2025.pdf",
+        "page": 107,
+        "sku": "9099",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:identity:aa87e712fd7535bd3aaa70ac0f430387af70550b8fba793c9aa422fa02a002c6",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": null,
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:identity:bebab8c5bc1f02cf72a1eadec004db2a252ebb140d81f0dbbedae4137cee044f",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": null,
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:identity:ca789976f279f461615be18b2072c0796db0a04974753575c504a178f627e923",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": null,
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:identity:e143788e89728912c45eb1b2561895978d0f79d9988a999a1eb1858a5da359a0",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": null,
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:identity:fa116f88d16199369318e2ce502183c545179879cf19cd26f9fad667dec078a3",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": null,
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:10101006",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "10101006",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:10102031",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "10102031",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:10102101",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "10102101",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:70101066",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "70101066",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101006",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101006",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101016",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101016",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101036",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101036",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101051",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101051",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101066",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101066",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101081",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101081",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101111",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101111",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101121",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101121",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101131",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101131",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101176",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101176",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101236",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101236",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101241",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101241",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101261",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101261",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101316",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101316",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101391",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101391",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101416",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101416",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101461",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101461",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101476",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101476",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101546",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101546",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101551",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101551",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101561",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101561",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101571",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101571",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101581",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101581",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80101636",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80101636",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102021",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102021",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102031",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102031",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102036",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102036",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102040",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102040",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102041",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102041",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102042",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102042",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102043",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102043",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102081",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102081",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102091",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102091",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102096",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102096",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102101",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102101",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102111",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102111",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102117",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102117",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102131",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102131",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102136",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102136",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102161",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102161",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102166",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102166",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102236",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102236",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102246",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102246",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102301",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102301",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102351",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102351",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102406",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102406",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102466",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102466",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102481",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102481",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102546",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102546",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102551",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102551",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102616",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102616",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102656",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102656",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102766",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102766",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102781",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102781",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102786",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102786",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102866",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102866",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102896",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102896",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102912",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102912",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80102988",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80102988",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103001",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103001",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103081",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103081",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103102",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103102",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103103",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103103",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103109",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103109",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103111",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103111",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103119",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103119",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103120",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103120",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103141",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103141",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103151",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103151",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103251",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103251",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103256",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103256",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103261",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103261",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103266",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103266",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103321",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103321",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103411",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103411",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103441",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103441",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103471",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103471",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103481",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103481",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103486",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103486",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103511",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103511",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103516",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103516",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103556",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103556",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103581",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103581",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103596",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103596",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103656",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103656",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103886",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103886",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103975",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103975",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103992",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103992",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103997",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103997",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103998",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103998",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80103999",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80103999",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201006",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201006",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201021",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201021",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201026",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201026",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201046",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201046",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201051",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201051",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201071",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201071",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201076",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201076",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201101",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201101",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201106",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201106",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201126",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201126",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201141",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201141",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201151",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201151",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201161",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201161",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80201171",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosaleh.pdf",
+        "page": 1,
+        "sku": "80201171",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202001",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202001",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202011",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202011",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202021",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202021",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202031",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202031",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202041",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202041",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202051",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202051",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202056",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202056",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202061",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202061",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202066",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202066",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202091",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202091",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202096",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202096",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202101",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202101",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202111",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202111",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202121",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202121",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202126",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202126",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202136",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202136",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202141",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202141",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202151",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202151",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202156",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202156",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202161",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202161",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202181",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202181",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202186",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202186",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202321",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202321",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80202331",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/gosfand.pdf",
+        "page": 1,
+        "sku": "80202331",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203001",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203001",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203021",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203021",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203036",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203036",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203041",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203041",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203101",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203101",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203106",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203106",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203111",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203111",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203116",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203116",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203181",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203181",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203196",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203196",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203201",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203201",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203221",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203221",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203226",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203226",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203236",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203236",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203241",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203241",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203246",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203246",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203251",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203251",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203256",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203256",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203261",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203261",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203271",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203271",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203296",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203296",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203306",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203306",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203311",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203311",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203326",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203326",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203331",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203331",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203332",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203332",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203491",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203491",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:80203546",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "80203546",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  },
+  {
+    "identity": "پویا پروتئین:sku:90901001",
+    "supplier": "پویا پروتئین",
+    "reasons": [
+      "master_package_quantity_required_but_source_unknown",
+      "master_unit_required_but_source_unknown"
+    ],
+    "sources": [
+      {
+        "file": "data/data/imports/pouya-protein/morgh.pdf",
+        "page": 1,
+        "sku": "90901001",
+        "issues": [],
+        "unit": null,
+        "carton_quantity": null
+      }
+    ]
+  }
+]

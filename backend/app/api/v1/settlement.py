@@ -100,7 +100,14 @@ def admin_create_settlement_batch():
     except (TypeError, ValueError):
         raise ValidationError("تمام مقادیر 'payable_entry_ids' باید عدد صحیح باشند")
 
-    commission_rate_bps = _int_body(data, "commission_rate_bps", required=False, default=1000)
+    # Omit to use each sale's snapshotted commission (category/channel rules).
+    commission_rate_bps = _int_body(data, "commission_rate_bps", required=False, default=None) if "commission_rate_bps" in data else None
+    release_held = data.get("release_held") is True
+    if release_held:
+        from app.core.deps import current_user
+        with db.write_transaction() as conn:
+            conn.execute("INSERT INTO audit_logs(actor_user_id, action, entity_type, entity_id, metadata_json) VALUES (?,?,?,?,?)",
+                         (current_user()["id"], "settlement_release_held", "supplier", str(supplier_id), "{}"))
     shipping_charge_minor = _int_body(data, "shipping_charge_minor", required=False, default=0)
     shipping_payer = (data.get("shipping_payer") or "customer").strip()
 
@@ -113,6 +120,7 @@ def admin_create_settlement_batch():
             commission_rate_bps=commission_rate_bps,
             shipping_charge_minor=shipping_charge_minor,
             shipping_payer=shipping_payer,
+            release_held=release_held,
         )
     return jsonify({"batch": batch}), 201
 
@@ -174,7 +182,7 @@ def admin_complete_settlement_batch(batch_id: int):
 # ---------------------------------------------------------------------------
 
 @bp.route("/api/v1/supplier/payables", methods=["GET"])
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_list_payables():
     db = get_db()
     user = g.current_user
@@ -185,7 +193,7 @@ def supplier_list_payables():
 
 
 @bp.route("/api/v1/supplier/payables/summary", methods=["GET"])
-@require_auth("supplier")
+@require_auth()  # seller access = active supplier membership
 def supplier_payable_summary():
     db = get_db()
     user = g.current_user

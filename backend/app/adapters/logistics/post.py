@@ -41,6 +41,10 @@ class IranPostCarrierAdapter(CarrierAdapter):
 
     provider_code = "post_ir"
     implementation_status = "not_implemented"
+    # Phase 5C: carrier status code -> normalized tracking status. PROVISIONAL codes,
+    # to be confirmed against official docs; overridable per carrier via
+    # logistics_carriers.status_map_json.
+    TRACKING_STATUS_MAP: dict[str, str] = {"accepted": "created", "collected": "picked_up", "dispatched": "in_transit", "arrived_destination": "in_transit", "delivery_attempt": "out_for_delivery", "delivered": "delivered", "not_delivered": "failed", "returned_to_sender": "returned"}
 
     def __init__(self, config: dict | None = None):
         self._config = config or {}

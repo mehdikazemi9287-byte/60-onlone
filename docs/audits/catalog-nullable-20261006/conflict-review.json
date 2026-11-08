@@ -1,0 +1,52 @@
+{
+  "resolved": {
+    "original_conflict": "8033",
+    "evidence": "Original catalogue PDF page 78: 60-degree left caption explicitly 8032; 45-degree right caption 8033. Newer consumer list agrees. Only original extraction assignment corrected; original checkpoint retained.",
+    "master_values_overwritten": false
+  },
+  "quarantined": {
+    "sku": "9030",
+    "pages": [
+      96,
+      97
+    ],
+    "name": "اینرباکس قیچی حیوانات",
+    "first": {
+      "dimensions_raw": "114×80×1 میلیمتر",
+      "declared_product_weight": "50 گرم",
+      "printed_master_carton_count": "112 عدد"
+    },
+    "second": {
+      "dimensions_raw": "233×135×140 میلیمتر",
+      "declared_product_weight": "1500 گرم",
+      "printed_master_carton_count": "112 عدد"
+    },
+    "reason": "Same code printed for visibly distinct animal assortments / dimensions / gross weights; source offers no reliable alternate code or verified identity mapping."
+  },
+  "catalog_identifier_evidence": [
+    {
+      "sku": "8032",
+      "existing_verified_supplier_identifiers": [
+        [
+          "8032",
+          "آریا",
+          832
+        ]
+      ]
+    },
+    {
+      "sku": "8033",
+      "existing_verified_supplier_identifiers": [
+        [
+          "8033",
+          "آریا",
+          1039
+        ]
+      ]
+    },
+    {
+      "sku": "9030",
+      "existing_verified_supplier_identifiers": []
+    }
+  ]
+}

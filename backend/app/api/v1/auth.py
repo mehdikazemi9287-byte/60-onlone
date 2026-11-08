@@ -91,3 +91,73 @@ def logout():
 @require_auth()
 def me():
     return jsonify({"user": auth_service.get_user(get_db(), current_user()["id"])})
+
+
+# ── OTP (SMS one-time code) ──
+
+def _otp_token(user_id: int) -> tuple[str, dict]:
+    from app.core.security import create_access_token
+    settings = get_settings()
+    user = auth_service.get_user(get_db(), user_id)
+    token = create_access_token(user_id=user_id, email=user["email"], role=user["role"], secret=settings.secret_key,
+                                algorithm=settings.jwt_algorithm, ttl_seconds=settings.access_token_ttl_seconds)
+    return token, user
+
+
+def _otp_verify(phone, purpose: str, user_id, fn):
+    """Spend the attempt in its own committed transaction first, then compare the code (race-proof limit)."""
+    from app.services import otp_service
+    with get_db().write_transaction() as conn:
+        challenge_id = otp_service.claim_attempt(conn, phone=phone, purpose=purpose, user_id=user_id)
+    with get_db().write_transaction() as conn:
+        return fn(conn, challenge_id)
+
+
+@bp.post("/otp/request")
+def otp_request():
+    from app.services import otp_service
+    body = _json_body()
+    settings = get_settings()
+    with get_db().write_transaction() as conn:
+        out = otp_service.request_code(conn, phone=body.get("phone"), secret=settings.secret_key, ip_address=client_ip(),
+                                       production=settings.is_production)
+    return jsonify(out)
+
+
+@bp.post("/otp/verify")
+def otp_verify():
+    from app.services import otp_service
+    body = _json_body()
+    settings = get_settings()
+    uid, created = _otp_verify(body.get("phone"), "login", None, lambda conn, cid: otp_service.verify_login(
+        conn, challenge_id=cid, phone=body.get("phone"), code=body.get("code"), secret=settings.secret_key,
+        full_name=body.get("full_name") if isinstance(body.get("full_name"), str) else None,
+        accept_terms=body.get("accept_terms") is True, ip_address=client_ip()))
+    token, user = _otp_token(uid)
+    return jsonify({"access_token": token, "token_type": "Bearer", "expires_in": settings.access_token_ttl_seconds,
+                    "user": user, "created": created}), (201 if created else 200)
+
+
+@bp.post("/phone/request")
+@require_auth()
+def phone_link_request():
+    from app.services import otp_service
+    body = _json_body()
+    settings = get_settings()
+    with get_db().write_transaction() as conn:
+        out = otp_service.request_code(conn, phone=body.get("phone"), secret=settings.secret_key, purpose="link",
+                                       user_id=current_user()["id"], ip_address=client_ip(), production=settings.is_production)
+    return jsonify(out)
+
+
+@bp.post("/phone/verify")
+@require_auth()
+def phone_link_verify():
+    from app.services import otp_service
+    body = _json_body()
+    settings = get_settings()
+    uid = current_user()["id"]
+    phone = _otp_verify(body.get("phone"), "link", uid, lambda conn, cid: otp_service.verify_link(
+        conn, challenge_id=cid, user_id=uid, phone=body.get("phone"), code=body.get("code"),
+        secret=settings.secret_key, ip_address=client_ip()))
+    return jsonify({"phone_verified": phone})

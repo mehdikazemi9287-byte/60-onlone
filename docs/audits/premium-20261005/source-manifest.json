@@ -1,0 +1,11 @@
+{
+  "frontend/src/app/premium.css": "8853000066599b366397e5d70243f38f0b1f0efaa6ce00bcf5d1a61c9b2c5d12",
+  "frontend/src/app/layout.tsx": "1e45ab06ec34008108e618295efeebaa1bbca98e6e0873cab0c1f7367accb7ba",
+  "frontend/src/app/page.tsx": "0b27a6c2bb9f4db7410d67d0fe7b9dd6bd5fd21467022413fe766fc66a0ba300",
+  "frontend/src/app/products/[id]/ProductDetail.tsx": "bceedbb2705799bcb4b3b049ce8cf01bd0ec9b075ab1ba66c82161d33802da2a",
+  "frontend/src/components/catalog/CatalogBrowser.tsx": "ff0c12f93b112bb91d0a74cddf5810cc4ce1c7b4410c37b121fe8fbf394fdc94",
+  "frontend/src/components/home/PackBuilder.tsx": "e3488fcd0404a07f9548f2d7ee8066e4ac1d8cb2cc0e4884b0fa0b6063756c69",
+  "frontend/src/components/product/ProductCard.tsx": "3fd3c1d0702c65aa6df2efe8b153c2b8fbdd93664075fe290c09d36a58686c64",
+  "frontend/src/components/product/ProductMedia.tsx": "59ca7695328a1851579865b7b2d36c99b060214f381cd51f3129caa5572de82a",
+  "frontend/src/components/catalog/CatalogLoading.tsx": "9ed7928e72a16ef7e080b1e76bf2a4672bf90850e0c4665a2ba7d25890e39a21"
+}

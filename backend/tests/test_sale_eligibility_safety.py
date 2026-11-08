@@ -3,6 +3,7 @@ from tests.base import AppTestCase
 class SaleEligibilitySafetyTest(AppTestCase):
     def setUp(self):
         super().setUp()
+        self.app.config["TEST_SALES_OVERRIDE"] = False
         self.token, self.headers = self.new_customer()
         self.product_row = self.db.query_one("SELECT id, base_price_minor FROM products WHERE slug = ?", ("appliance-kettle-2l",))
 

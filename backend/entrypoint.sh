@@ -4,6 +4,13 @@
 # SEED_ON_START is ignored in production (APP_ENV=production).
 set -e
 
+# Worker container: same image, runs background jobs + monitoring instead of the API.
+# Migrations are left to the backend container (one migrator only).
+if [ "${1:-}" = "worker" ]; then
+  echo "→ starting scheduler"
+  exec python -m scripts.scheduler
+fi
+
 echo "→ applying migrations"
 python -m scripts.migrate
 
@@ -22,4 +29,10 @@ else
 fi
 
 echo "→ starting API on :${PORT:-8000}"
+if [ "${_APP_ENV}" = "production" ] || [ "${_APP_ENV}" = "staging" ]; then
+  # One process + threads: the in-memory rate limiter and OTP counters stay exact. Scale threads, not workers,
+  # until rate limiting moves to a shared store.
+  exec gunicorn app.wsgi:app --bind "0.0.0.0:${PORT:-8000}" --workers 1 --threads "${GUNICORN_THREADS:-8}" \
+    --timeout 60 --graceful-timeout 30 --access-logfile - --forwarded-allow-ips "*"
+fi
 exec python -m app.main

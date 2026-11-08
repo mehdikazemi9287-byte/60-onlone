@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn, formatPrice, toPersianNum } from "@/lib/utils";
-import { cart as cartApi, checkout as checkoutApi, newIdempotencyKey, ApiError } from "@/lib/api";
+import { cart as cartApi, checkout as checkoutApi, newIdempotencyKey, ApiError, apiRequest, goToPaymentGateway } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Address, Cart, CheckoutQuote, PaymentMethod } from "@/lib/types";
 
@@ -232,17 +232,71 @@ function ConfirmStep({
   const [placing, setPlacing] = useState(false);
   const [placedOrderNumber, setPlacedOrderNumber] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [boundary, setBoundary] = useState(false);
+  // Buyer terms + statutory withdrawal notice, accepted before paying (recorded as evidence).
+  const [terms, setTerms] = useState<{ version: string; url: string } | null>(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  // Employee welfare wallet (کیف پول رفاهی): opt-in; the server decides the exact share.
+  const [welfare, setWelfare] = useState<{ available: boolean; allowed_minor: number } | null>(null);
+  const [useWelfare, setUseWelfare] = useState(false);
+  useEffect(() => { checkoutApi.welfare(token).then(setWelfare).catch(() => setWelfare(null)); }, [token]);
+  // Card gateway or an external credit provider (Tara pattern: the lender funds, we only accept).
+  const [payOptions, setPayOptions] = useState<{ provider: string; kind: string; label: string; note?: string }[]>([]);
+  const [provider, setProvider] = useState<string | null>(null);
+  useEffect(() => {
+    apiRequest<{ options: { provider: string; kind: string; label: string; note?: string }[] }>("/checkout/payment-options")
+      .then((r) => setPayOptions(r.options)).catch(() => {});
+  }, []);
+  useEffect(() => {
+    apiRequest<{ documents: { doc_key: string; version: string; url: string }[] }>("/legal/terms")
+      .then((r) => { const d = r.documents.find((x) => x.doc_key === "buyer_terms"); if (d) setTerms(d); })
+      .catch(() => {});
+  }, []);
+  const [redirecting, setRedirecting] = useState(false);
+  const [requestKey] = useState(() => newIdempotencyKey());
   const [idempotencyKey, setIdempotencyKey] = useState(() => newIdempotencyKey());
   const router = useRouter();
+
+  // Payment boundary: no online gateway is connected, so no payment is attempted or simulated.
+  // The same cart can be submitted as a tracked purchase request instead.
+  const submitRequest = async () => {
+    setPlacing(true);
+    setError(null);
+    try {
+      const lines = (cart.items as unknown as { slug: string; quantity: number }[]).map((i) => ({ slug: i.slug, quantity: i.quantity }));
+      const a = address as unknown as Record<string, string>;
+      const r = await apiRequest<{ request: { id: number } }>("/requests", {
+        token, method: "POST", headers: { "Idempotency-Key": requestKey },
+        body: JSON.stringify({ kind: "procurement", subject: "درخواست خرید از سبد", items: lines,
+          message: `تحویل: ${a.province ?? ""}، ${a.city ?? ""}، ${a.line1 ?? ""} — گیرنده: ${a.recipient_name ?? ""} (${a.recipient_phone ?? ""})` }),
+      });
+      router.push(`/requests/${r.request.id}`);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "ثبت درخواست ناموفق بود");
+    } finally {
+      setPlacing(false);
+    }
+  };
 
   const handlePlace = async () => {
     setPlacing(true);
     setError(null);
     try {
-      const { order } = await checkoutApi.place(token, idempotencyKey, address, method);
-      setPlacedOrderNumber(order.order_number);
+      const external = payOptions.find((o) => o.provider === provider && o.kind === "external_credit");
+      let proforma: string | undefined;
+      try { proforma = new URLSearchParams(window.location.search).get("proforma") ?? undefined; } catch {}
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, useWelfare, proforma);
+      if (placed.payment_redirect) {
+        // Pay on the bank page; the bank sends the customer back to the order or here with the result.
+        setRedirecting(true);
+        goToPaymentGateway(placed.payment_redirect);
+        return;
+      }
+      setPlacedOrderNumber(placed.order.order_number);
     } catch (err) {
-      if (err instanceof ApiError) {
+      if (err instanceof ApiError && err.code === "payment_gateway_unavailable") {
+        setBoundary(true);
+      } else if (err instanceof ApiError) {
         setError(err.message);
         // A genuine rejection (validation, stock, PSP decline) means the
         // next attempt is a real new request, not a retry of this one.
@@ -290,6 +344,20 @@ function ConfirmStep({
       <h2 className="text-lg font-bold text-neutral-900">تأیید نهایی سفارش</h2>
 
       {error && <p className="text-sm text-center text-danger-600 bg-danger-50 rounded-xl p-3">{error}</p>}
+      {redirecting && (
+        <p role="status" className="text-sm text-center text-primary-700 bg-primary-50 rounded-xl p-3">
+          در حال انتقال به درگاه بانک…
+        </p>
+      )}
+      {boundary && (
+        <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900">
+          <b className="block">پرداخت آنلاین هنوز فعال نیست</b>
+          درگاه پرداخت به فروشگاه متصل نشده است؛ هیچ مبلغی دریافت یا ثبت نشد. می‌توانید همین سبد را به‌صورت «درخواست خرید» ثبت کنید تا کارشناسان
+          قیمت نهایی، موجودی و روش پرداخت را هماهنگ کنند و وضعیت را در «درخواست‌های من» پیگیری کنید.
+          <button type="button" onClick={submitRequest} disabled={placing} className="mt-3 block w-full rounded-xl bg-brand-navy py-2.5 font-bold text-white disabled:opacity-60">
+            {placing ? "در حال ثبت…" : "ثبت درخواست خرید با همین سبد"}</button>
+        </div>
+      )}
 
       <div className="card p-4 space-y-3">
         {cart.items.map((item) => (
@@ -327,6 +395,18 @@ function ConfirmStep({
           <span className="text-neutral-500">مالیات (٪{(quote.tax_rate_bps / 100).toFixed(0)})</span>
           <span className="tabular-nums">{formatPrice(quote.tax_minor)}</span>
         </div>
+        {!!quote.recurring_discount_minor && (
+          <div className="flex justify-between text-success-600">
+            <span>تخفیف خرید دوره‌ای (اعمال‌شده در جمع کالاها)</span>
+            <span className="tabular-nums">−{formatPrice(quote.recurring_discount_minor)}</span>
+          </div>
+        )}
+        {welfare?.available && (
+          <label className="flex items-start gap-2 rounded-lg bg-success-50 p-2 text-success-700">
+            <input type="checkbox" className="mt-1" checked={useWelfare} onChange={(e) => setUseWelfare(e.target.checked)} />
+            <span>پرداخت با کیف پول رفاهی (تا {formatPrice(welfare.allowed_minor)} از این سبد). سهم رفاهی را سازمان می‌پردازد و از کارت کم می‌شود.</span>
+          </label>
+        )}
         {method !== "card" && quote.credit_to_use_minor > 0 && (
           <div className="flex justify-between text-success-600">
             <span>اعتبار سازمانی</span>
@@ -335,20 +415,41 @@ function ConfirmStep({
         )}
         <div className="border-t border-neutral-100 pt-2 flex justify-between font-bold text-neutral-900">
           <span>پرداختی نهایی</span>
-          <span className="text-primary-700 text-base tabular-nums">{formatPrice(quote.cash_due_minor)}</span>
+          <span className="text-primary-700 text-base tabular-nums">{formatPrice(useWelfare && welfare ? Math.max(0, quote.cash_due_minor - welfare.allowed_minor) : quote.cash_due_minor)}</span>
         </div>
+        {useWelfare && <p className="text-2xs text-neutral-500">مبلغ نهایی کارت پس از اعمال کیف پول رفاهی توسط سرور قطعی می‌شود.</p>}
         <p className="text-2xs text-neutral-400 text-left">
           روش پرداخت: {method === "card" ? "کارت بانکی" : method === "credit" ? "اعتبار سازمانی" : "ترکیبی"}
         </p>
       </div>
 
+      {method === "card" && payOptions.length > 1 && (
+        <fieldset className="space-y-2 text-sm">
+          <legend className="mb-1 font-bold text-neutral-800">پرداخت با</legend>
+          {payOptions.map((o) => (
+            <label key={o.provider} className="flex items-start gap-2">
+              <input type="radio" name="pay-provider" className="mt-1" checked={(provider ?? payOptions[0].provider) === o.provider}
+                onChange={() => setProvider(o.provider)} />
+              <span>{o.label}{o.note && <span className="block text-xs text-neutral-500">{o.note}</span>}</span>
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {terms && (
+        <label className="flex items-start gap-2 text-sm text-neutral-700">
+          <input type="checkbox" className="mt-1" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
+          <span>
+            <a href={terms.url} target="_blank" rel="noopener" className="underline">شرایط خرید</a> را می‌پذیرم. می‌دانم تا ۷ روز کاری بعد از تحویل، بدون ذکر دلیل حق انصراف دارم (به‌جز کالاهای استثنا).
+          </span>
+        </label>
+      )}
       <div className="flex gap-3">
         <button onClick={onBack} disabled={placing} className="flex-1 py-3 rounded-xl border border-neutral-200 text-sm text-neutral-600 font-medium hover:bg-neutral-50 transition-colors disabled:opacity-50">
           بازگشت
         </button>
         <button
           onClick={handlePlace}
-          disabled={placing}
+          disabled={placing || boundary || (!!terms && !acceptTerms)}
           className="flex-[2] py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
         >
           {placing ? (
@@ -375,6 +476,16 @@ function ConfirmStep({
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+const REFUND_NOTE = "اگر مبلغی از حسابتان کسر شده باشد، به‌صورت خودکار به حسابتان برمی‌گردد.";
+const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
+  payment_failed: `پرداخت انجام نشد یا لغو شد. ${REFUND_NOTE}`,
+  payment_expired: `مهلت پرداخت تمام شده بود و سفارش ثبت نشد. ${REFUND_NOTE}`,
+  verify_unavailable: `تأیید پرداخت از بانک ممکن نشد و سفارش ثبت نشد. ${REFUND_NOTE}`,
+  order_failed: `پرداخت انجام شد ولی ثبت سفارش ممکن نشد؛ مبلغ برگشت داده می‌شود. ${REFUND_NOTE}`,
+  unknown_payment: `این پرداخت شناخته نشد. ${REFUND_NOTE}`,
+  unknown_gateway: "درگاه پرداخت شناخته نشد.",
+};
+
 export default function CheckoutPage() {
   const { token, loading: authLoading } = useAuth();
   const [step, setStep] = useState(0);
@@ -383,6 +494,14 @@ export default function CheckoutPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [quote, setQuote] = useState<CheckoutQuote | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [paymentResult, setPaymentResult] = useState<string | null>(null);
+
+  // The bank returns here with ?payment=failed&reason=… when no order could be created.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") !== "failed") return;
+    setPaymentResult(PAYMENT_FAILURE_MESSAGES[params.get("reason") ?? ""] ?? PAYMENT_FAILURE_MESSAGES.payment_failed);
+  }, []);
 
   useEffect(() => {
     if (authLoading || !token) return;
@@ -439,6 +558,11 @@ export default function CheckoutPage() {
       </nav>
 
       <h1 className="text-2xl font-black text-neutral-900 mb-6">تکمیل خرید</h1>
+      {paymentResult && (
+        <div role="alert" className="mb-6 rounded-xl border border-red-200 bg-danger-50 p-4 text-sm leading-7 text-danger-700">
+          {paymentResult}
+        </div>
+      )}
       <StepBar step={step} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

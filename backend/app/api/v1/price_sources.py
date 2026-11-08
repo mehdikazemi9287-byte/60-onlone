@@ -19,6 +19,7 @@ from app.core.deps import get_db, require_auth
 from app.core.errors import ValidationError
 from app.services import price_source_service
 
+# Admin-operated: supplier self-service is disabled until per-supplier ownership is enforced (no supplier UI uses it).
 bp = Blueprint("price_sources", __name__, url_prefix="/api/v1")
 
 
@@ -51,7 +52,7 @@ def _bool_arg(val) -> bool:
 # ---------------------------------------------------------------------------
 
 @bp.post("/price-sources")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def create_price_source():
     """Create a new price source."""
     db   = get_db()
@@ -81,7 +82,7 @@ def create_price_source():
 
 
 @bp.get("/price-sources")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_price_sources():
     """List price sources, optionally filtered."""
     db          = get_db()
@@ -98,7 +99,7 @@ def list_price_sources():
 
 
 @bp.get("/price-sources/<int:source_id>")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def get_price_source(source_id: int):
     """Get a single price source by ID."""
     db = get_db()
@@ -108,7 +109,7 @@ def get_price_source(source_id: int):
 
 
 @bp.post("/price-sources/<int:source_id>/prices")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def update_price(source_id: int):
     """Report an updated price from this source for a specific offer."""
     db   = get_db()
@@ -134,19 +135,17 @@ def update_price(source_id: int):
 
 
 @bp.get("/price-sources/<int:source_id>/prices")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_prices_by_source(source_id: int):
     """List all price records reported by this price source."""
     db = get_db()
     with db.read_transaction() as conn:
-        results = price_source_service.list_prices_by_source(
-            conn, source_id=source_id
-        )
+        results = price_source_service.list_prices_by_source(conn, source_id)
     return jsonify({"data": results})
 
 
 @bp.get("/price-sources/authoritative-price/<int:offer_id>")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def get_authoritative_price(offer_id: int):
     """Return the winning (authoritative) price for an offer."""
     db = get_db()

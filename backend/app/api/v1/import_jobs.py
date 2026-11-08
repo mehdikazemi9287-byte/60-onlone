@@ -23,6 +23,7 @@ from app.core.deps import get_db, require_auth
 from app.core.errors import NotFoundError, ValidationError
 from app.services import csv_import_service
 
+# Admin-operated: supplier self-service is disabled until per-supplier ownership is enforced (no supplier UI uses it).
 bp = Blueprint("import_jobs", __name__, url_prefix="/api/v1")
 
 
@@ -51,7 +52,7 @@ def _is_admin() -> bool:
 # ---------------------------------------------------------------------------
 
 @bp.post("/import-jobs")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def create_import_job():
     """Create a new CSV import job (no data yet — just the job shell)."""
     db   = get_db()
@@ -78,7 +79,7 @@ def create_import_job():
 
 
 @bp.post("/import-jobs/<int:job_id>/upload")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def upload_csv(job_id: int):
     """Submit CSV text for an existing job; returns preview rows."""
     db   = get_db()
@@ -99,7 +100,7 @@ def upload_csv(job_id: int):
 
 
 @bp.post("/import-jobs/<int:job_id>/confirm")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def confirm_import(job_id: int):
     """Confirm a previewing import job and commit the data."""
     db = get_db()
@@ -114,7 +115,7 @@ def confirm_import(job_id: int):
     if not _is_admin():
         with db.read_transaction() as conn:
             sup = conn.execute(
-                "SELECT id FROM suppliers WHERE user_id = ?",
+                "SELECT supplier_id AS id FROM supplier_access WHERE user_id = ? ORDER BY role='owner' DESC, supplier_id LIMIT 1",
                 (g.current_user["id"],),
             ).fetchone()
         if sup is None or int(job.get("supplier_id", -1)) != sup["id"]:
@@ -130,7 +131,7 @@ def confirm_import(job_id: int):
 
 
 @bp.get("/import-jobs")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def list_import_jobs():
     """List import jobs, optionally filtered by supplier."""
     db          = get_db()
@@ -142,14 +143,13 @@ def list_import_jobs():
         jobs = csv_import_service.list_import_jobs(
             conn,
             supplier_id=supplier_id,
-            limit=limit,
-            offset=offset,
+            limit=limit + offset,
         )
-    return jsonify({"data": jobs})
+    return jsonify({"data": jobs[offset:]})
 
 
 @bp.get("/import-jobs/<int:job_id>")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def get_import_job(job_id: int):
     """Get a single import job by ID."""
     db = get_db()

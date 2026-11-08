@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "second_run": {
+    "آریا": {
+      "source_rows": 344,
+      "identities": 233,
+      "create": 0,
+      "match": 0,
+      "review": 0,
+      "skip": 233,
+      "source_update": 0
+    },
+    "پویا پروتئین": {
+      "source_rows": 167,
+      "identities": 167,
+      "create": 0,
+      "match": 0,
+      "review": 0,
+      "skip": 167,
+      "source_update": 0
+    }
+  },
+  "writes": 0
+}

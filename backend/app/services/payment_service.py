@@ -228,6 +228,8 @@ def reclaim_stale_intent(conn: sqlite3.Connection, intent_id: int, *, actor_user
         conn, payment_intent_id=intent_id, actor_user_id=actor_user_id,
         reason="آزادسازی خودکار پرداخت رهاشده",
     )
+    from app.services import welfare_wallet_service
+    welfare_wallet_service.reverse_spend(conn, idempotency_key=f"intent:{intent_id}")
     restore_stock(conn, intent_id)
     transition(conn, intent_id, "cancelled", failure_reason="abandoned: reclaimed by a later attempt")
     audit_service.record(

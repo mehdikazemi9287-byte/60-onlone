@@ -1,9 +1,45 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Beef, BookOpen, BriefcaseBusiness, Car, CookingPot, Gift, HeartPulse, Laptop, LayoutGrid, Milk, Package, Router, Shirt, ShoppingBasket, Smartphone, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { LayoutGrid } from "lucide-react";
 import { categories } from "@/lib/api";
-import { CategoryCard } from "@/components/product/ProductCard";
-import type { Category } from "@/lib/types";
+import type { TaxNode } from "@/lib/storefront";
+import { toPersianNum } from "@/lib/utils";
 
-function iconFor(slug:string){const s=slug.toLowerCase();if(s.includes("laptop")||s.includes("computer"))return <Laptop/>;if(s.includes("mobile")||s.includes("digital"))return <Smartphone/>;if(s.includes("office"))return <BriefcaseBusiness/>;if(s.includes("network"))return <Router/>;if(s.includes("protein")||s.includes("fresh"))return <Beef/>;if(s.includes("nut"))return <ShoppingBasket/>;if(s.includes("dairy")||s.includes("fruit"))return <Milk/>;if(s.includes("appliance")||s.includes("kitchen"))return <CookingPot/>;if(s.includes("gift"))return <Gift/>;if(s.includes("fashion"))return <Shirt/>;if(s.includes("beauty")||s.includes("health"))return <Sparkles/>;if(s.includes("book"))return <BookOpen/>;if(s.includes("auto"))return <Car/>;if(s.includes("mother")||s.includes("child"))return <HeartPulse/>;if(s.includes("supermarket"))return <ShoppingBasket/>;return <Package/>}
-export default function CategoryIndexPage(){const[items,setItems]=useState<Category[]|null>(null);const[error,setError]=useState<string|null>(null);useEffect(()=>{let cancelled=false;categories.list().then(list=>!cancelled&&setItems(list.filter(item=>item.product_count>0))).catch(e=>{if(!cancelled){setError(e instanceof Error?e.message:"خطا در دریافت دسته‌بندی‌ها");setItems([])}});return()=>{cancelled=true}},[]);return <div className="internal-page container-page py-6 md:py-10"><div className="internal-hero mb-6"><div className="internal-hero-icon"><LayoutGrid className="h-7 w-7"/></div><div><span className="section-kicker">دسترسی سریع</span><h1>دسته‌بندی‌های دارای محصول</h1><p>فقط بخش‌هایی نمایش داده می‌شوند که در حال حاضر محصول ثبت‌شده دارند.</p></div></div>{error?<div role="alert" className="card border-red-200 bg-red-50 p-6 text-center text-sm text-red-700"><b className="block mb-1">دریافت دسته‌بندی‌ها ناموفق بود</b>{error}</div>:items===null?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{Array.from({length:8}).map((_,i)=><div key={i} className="card h-36 skeleton"/>)}</div>:items.length?<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{items.map(c=><CategoryCard key={c.slug} name={c.name} href={`/category/${c.slug}`} count={c.product_count} icon={iconFor(c.slug)}/>)}</div>:<div className="card py-16 text-center text-neutral-500"><Package className="mx-auto mb-3 h-10 w-10 text-neutral-300"/><p className="font-bold text-neutral-700">دسته‌بندی دارای محصولی یافت نشد</p><p className="mt-1 text-sm">لطفاً بعداً دوباره بررسی کنید.</p></div>}</div>}
+// Real taxonomy only: a node appears when at least one REAL product sits under it.
+export default function CategoryIndexPage() {
+  const [tree, setTree] = useState<TaxNode[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let off = false;
+    categories.tree().then((t) => !off && setTree(t)).catch((e) => !off && (setError(e instanceof Error ? e.message : "خطا"), setTree([])));
+    return () => { off = true; };
+  }, []);
+  return (
+    <div className="internal-page container-page py-6 md:py-10" dir="rtl">
+      <div className="internal-hero mb-6">
+        <div className="internal-hero-icon"><LayoutGrid className="h-7 w-7" /></div>
+        <div>
+          <span className="section-kicker">دسترسی سریع</span>
+          <h1>دسته‌بندی کالاها</h1>
+          <p>ساختار دسته‌ها از کالاهای واقعی کاتالوگ ساخته شده است؛ دسته‌ی بدون کالا نمایش داده نمی‌شود.</p>
+        </div>
+      </div>
+      {error ? <div role="alert" className="card border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">{error}</div>
+        : tree === null ? <div className="grid gap-4 md:grid-cols-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="card h-40 skeleton" />)}</div>
+        : !tree.length ? <div className="card p-8 text-center text-neutral-600">هنوز دسته‌ای با کالای واقعی ثبت نشده است.</div>
+        : <div className="grid gap-4 md:grid-cols-2">{tree.map((d) => (
+          <section key={d.slug} className="card p-5">
+            <h2 className="mb-3 flex items-center justify-between text-lg font-black text-brand-navy">
+              <Link href={`/category/${d.slug}`} className="hover:text-brand-blue">{d.name_fa}</Link>
+              <span className="text-xs font-bold text-neutral-500">{toPersianNum(d.product_count)} محصول</span></h2>
+            <div className="space-y-3">{d.children.map((c) => (
+              <div key={c.slug}>
+                <Link href={`/category/${c.slug}`} className="text-sm font-bold text-neutral-900 hover:text-brand-blue">{c.name_fa} <span className="text-xs font-normal text-neutral-500">({toPersianNum(c.product_count)})</span></Link>
+                {c.children.length > 0 && <div className="mt-1.5 flex flex-wrap gap-1.5">{c.children.map((s) => (
+                  <Link key={s.slug} href={`/category/${s.slug}`} className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs text-neutral-700 hover:bg-sky-50 hover:text-brand-blue">{s.name_fa} ({toPersianNum(s.product_count)})</Link>))}</div>}
+              </div>))}</div>
+          </section>))}</div>}
+    </div>
+  );
+}

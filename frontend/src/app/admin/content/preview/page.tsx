@@ -1,0 +1,1 @@
+import ContentPreview from "@/components/admin/ContentPreview";export default function Page(){return <ContentPreview/>;}

@@ -1,8 +1,9 @@
 "use client";
 
+import { addProductToOrgDraft } from "@/lib/procurement/draft";
+
 import Link from "next/link";
 import { useState } from "react";
-import { ImageOff } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { formatPrice, toPersianNum } from "@/lib/utils";
@@ -105,11 +106,15 @@ function AddToCartButton({ productId, onAdd }: { productId: number; onAdd?: (id:
 
 // ── Product card ──────────────────────────────────────────────────────────────
 
+/** Source images under 200px (e.g. 40×40 supplier thumbnails) look broken when scaled up; show the no-image state instead. */
+export const isTinyImage = (el: HTMLImageElement) => el.naturalWidth > 0 && Math.min(el.naturalWidth, el.naturalHeight) < 200;
+
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (id: number) => void;
 }
 
+/** Unpriced catalog item: add it to the organizational order draft (not a sale). */
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const wishlist = useWishlist();
   const [imageFailed, setImageFailed] = useState(false);
@@ -125,18 +130,23 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       className="group card card-hover overflow-hidden flex flex-col h-full block border-neutral-200/70"
     >
       {/* Image — fixed-height, Fit/Contain so every card reads at a consistent scale */}
-      <div className="relative overflow-hidden bg-neutral-50 aspect-square flex-shrink-0 border-b border-neutral-100">
+      <div className={`relative overflow-hidden bg-neutral-50 flex-shrink-0 border-b border-neutral-100 ${hasRealImage ? "aspect-square" : "aspect-[5/2]"}`}>
         {hasRealImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.image_url}
             alt={product.name}
             onError={() => setImageFailed(true)}
+            onLoad={(e) => { if (isTinyImage(e.currentTarget)) setImageFailed(true); }}
             className="w-full h-full object-contain p-6 md:p-7 group-hover:scale-[1.03] transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-brand-gray" aria-hidden>
-            <span className="flex flex-col items-center gap-2 text-neutral-400"><ImageOff className="h-8 w-8" strokeWidth={1.4} /><span className="text-[11px] font-medium">تصویر موجود نیست</span></span>
+          <div className="w-full h-full flex items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#fff7e6,#eef3f7_70%)]" aria-hidden>
+            {/* No verified photo: a compact brand/category band instead of a large empty box. */}
+            <span className="flex items-center gap-2 px-3 text-right">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-base font-black text-brand-navy shadow-sm ring-1 ring-neutral-200/70">{(product.brand || product.name).slice(0, 1)}</span>
+              <span className="min-w-0"><span className="block truncate text-xs font-black text-brand-navy">{product.brand || ""}</span><span className="block truncate text-[11px] text-neutral-500">{product.category?.name ?? ""}</span></span>
+            </span>
           </div>
         )}
 
@@ -178,6 +188,11 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {product.name}
         </h3>
 
+        {(product.variant_count ?? 0) > 1 && (
+          <span className="w-fit rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-bold text-sky-800 ring-1 ring-sky-100">
+            {toPersianNum(product.variant_count!)} مدل/اندازه{product.variant_labels?.length ? `: ${product.variant_labels[0]} تا ${product.variant_labels[product.variant_labels.length - 1]}` : ""}
+          </span>
+        )}
         <div className="h-4 flex items-center gap-1.5">
           {product.rating != null && product.rating > 0 && (
             <>
@@ -196,17 +211,30 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 {formatPrice(product.original_price_minor)}
               </span>
             )}
-            <span className="text-base font-black text-brand-navy tabular-nums">
-              {product.price_minor == null ? "استعلام قیمت" : formatPrice(product.price_minor)}
-            </span>
+            {(product as { price_hidden?: boolean }).price_hidden ? (
+              <a href="/business" className="inline-flex w-fit items-center rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-700">قیمت فقط برای مشتریان سازمانی</a>
+            ) : product.price_minor == null && product.list_price_minor ? (
+              <>
+                <span className="text-[10px] font-bold text-neutral-500">آخرین قیمت اعلامی تأمین‌کننده</span>
+                <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from || (product.variant_count ?? 1) > 1 ? "از " : ""}{formatPrice(product.list_price_minor)}</span>
+              </>
+            ) : product.price_minor == null ? (
+              <span className="inline-flex w-fit items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 ring-1 ring-amber-200">قیمت با استعلام</span>
+            ) : (
+              <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from ? "از " : ""}{formatPrice(product.price_minor)}</span>
+            )}
           </div>
-          {product.purchasable && product.stock !== 0 && <AddToCartButton productId={product.id} onAdd={onAddToCart} />}
+          {product.purchasable && product.stock !== 0 && (product.variant_count ?? 1) <= 1 && <AddToCartButton productId={product.id} onAdd={onAddToCart} />}
+          {product.purchasable && (product.variant_count ?? 1) > 1 && <span className="rounded-lg bg-brand-navy px-2.5 py-1.5 text-xs font-bold text-white">انتخاب اندازه</span>}
         </div>
+        {product.price_minor == null && (
+          <span className="flex min-h-10 items-center justify-center rounded-lg bg-[#C4461C] px-2 text-center text-xs font-bold text-white">{product.org_only ? "ویژه خرید سازمانی" : product.list_price_minor ? "انتخاب و استعلام" : "درخواست قیمت روز"}</span>
+        )}
 
         {product.stock != null && product.stock < 10 && product.stock > 0 && (
           <p className="text-2xs text-brand-coral">تنها {toPersianNum(product.stock)} عدد باقی مانده</p>
         )}
-        {product.stock === 0 && <p className="rounded-lg bg-neutral-100 px-2 py-1 text-center text-xs font-bold text-neutral-500">در حال حاضر ناموجود</p>}
+        {product.stock === 0 && product.price_minor != null && <p className="rounded-lg bg-neutral-100 px-2 py-1 text-center text-xs font-bold text-neutral-500">در حال حاضر ناموجود</p>}
       </div>
     </Link>
   );
@@ -242,7 +270,7 @@ export function CategoryCard({ name, href, count, icon, color = "bg-brand-blueLi
       </div>
       <div>
         <p className="text-sm font-semibold text-neutral-900 group-hover:text-brand-blue transition-colors">{name}</p>
-        {count != null && <p className="text-2xs text-neutral-400 mt-0.5">{count} محصول</p>}
+        {count != null && <p className={cn("text-2xs mt-0.5", count > 0 ? "text-neutral-400" : "text-amber-600")}>{count > 0 ? `${count} محصول` : "در حال تکمیل محصولات"}</p>}
       </div>
     </Link>
   );
@@ -257,12 +285,14 @@ export function ProductGrid({
 }: {
   products: Product[];
   onAddToCart?: (id: number) => void;
-  cols?: 2 | 3 | 4;
+  cols?: 2 | 3 | 4 | 5 | 6;
 }) {
   const gridCols = {
     2: "grid-cols-1 sm:grid-cols-2",
-    3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+    3: "grid-cols-2 lg:grid-cols-3",
     4: "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+    5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+    6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6",
   }[cols];
 
   return (

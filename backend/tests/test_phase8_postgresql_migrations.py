@@ -1884,7 +1884,7 @@ class TestPgVatAccounting(_PgBase):
         # Read the payment_intents row to verify the PSP was given exactly cash_minor
         with self._db.read_transaction() as conn:
             intent = conn.execute(
-                "SELECT cash_minor, amount_minor FROM payment_intents WHERE order_id = ?",
+                "SELECT pi.cash_minor FROM payment_intents pi JOIN orders o ON o.payment_intent_id = pi.id WHERE o.id = ?",
                 (order_id,),
             ).fetchone()
 

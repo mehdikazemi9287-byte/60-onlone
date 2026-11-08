@@ -27,6 +27,7 @@ from app.core.deps import get_db, require_auth
 from app.core.errors import ValidationError
 from app.services import identifier_service, inventory_source_service, price_source_service
 
+# Admin-operated: supplier self-service is disabled until per-supplier ownership is enforced (no supplier UI uses it).
 bp = Blueprint("scanner", __name__, url_prefix="/api/v1")
 
 
@@ -104,7 +105,7 @@ def _resolve(
 # ---------------------------------------------------------------------------
 
 @bp.get("/scanner/resolve")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def scanner_resolve():
     """Resolve a barcode / identifier via query string.
 
@@ -123,7 +124,7 @@ def scanner_resolve():
 
 
 @bp.post("/scanner/lookup")
-@require_auth("supplier", "admin")
+@require_auth("admin")
 def scanner_lookup():
     """Resolve a barcode / identifier via POST body (scanner-device friendly).
 

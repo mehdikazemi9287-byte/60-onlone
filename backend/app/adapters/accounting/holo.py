@@ -100,3 +100,29 @@ class HoloAccountingAdapter(AccountingAdapter):
             "HOLO: upsert_supplier — REAL PROVIDER: NOT IMPLEMENTED.",
             code="not_implemented",
         )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 5B — Holoo voucher import file from the canonical finance export.
+# Holoo imports journal vouchers from Excel: معین / تفصیلی / بدهکار / بستانکار.
+# ─────────────────────────────────────────────────────────────────────────────
+
+from app.adapters.accounting.finance_formats import (  # noqa: E402
+    FinanceExportFormatter,
+    jalali,
+    voucher_rows,
+)
+
+
+class HolooFinanceFormatter(FinanceExportFormatter):
+    connector = "HOLOO"
+    label = "هلو — فایل اکسل ورود سند"
+
+    HEADER = ["تاریخ", "شماره سند", "کد معین", "کد تفصیلی", "شرح", "بدهکار", "بستانکار"]
+
+    def render(self, export: dict) -> dict:
+        numbers = {d["doc_number"]: n for n, d in enumerate(export["documents"], start=1)}
+        rows = [[jalali(d["doc_date"]), numbers[d["doc_number"]], v["account_code"], v["detail_code"],
+                 f"{v['description']} ({d['doc_number']})", v["debit_minor"], v["credit_minor"]]
+                for d, _i, v in voucher_rows(export)]
+        return self._csv(export, self.HEADER, rows, "vouchers")

@@ -161,6 +161,22 @@ def _transition(
         """,
         (fulfillment_order_id, from_status, to_status, actor_type, actor_user_id, reason),
     )
+    _notify_customer(conn, fulfillment_order_id, to_status)
+
+
+FO_NOTICE = {"dispatched": "مرسوله سفارش {n} ارسال شد", "delivered": "مرسوله سفارش {n} تحویل شد"}
+
+
+def _notify_customer(conn: sqlite3.Connection, fulfillment_order_id: int, to_status: str) -> None:
+    """Tell the customer when a shipment of their order leaves or arrives (in-app; same transaction)."""
+    if to_status not in FO_NOTICE:
+        return
+    o = conn.execute("""SELECT o.user_id, o.order_number FROM fulfillment_orders fo JOIN orders o ON o.id = fo.order_id
+                        WHERE fo.id = ?""", (fulfillment_order_id,)).fetchone()
+    if o and o["user_id"]:
+        from app.services.commerce_ops_service import notify
+        notify(conn, o["user_id"], "order_status", FO_NOTICE[to_status].format(n=o["order_number"]), None,
+               f"/orders/{o['order_number']}")
 
 
 # ---------------------------------------------------------------------------
@@ -256,8 +272,10 @@ def create_fulfillment_orders(
             INSERT INTO fulfillment_orders
                 (order_id, supplier_id, supplier_location_id, status,
                  routing_score, routing_reason_json, routing_candidates_json,
-                 fulfillment_type, gross_payable_minor, promised_prep_at, routing_history_json)
-            VALUES (?,?,?, 'assigned', ?,?,?, ?,?,?, '[]')
+                 fulfillment_type, gross_payable_minor, promised_prep_at, routing_history_json,
+                 affiliate_bonus_bps)
+            VALUES (?,?,?, 'assigned', ?,?,?, ?,?,?, '[]',
+                    (SELECT COALESCE(affiliate_bonus_bps, 0) FROM suppliers WHERE id=?))
             """,
             (
                 order_id, supplier_id, location_id,
@@ -266,7 +284,7 @@ def create_fulfillment_orders(
                 sample_res.to_audit_json(),
                 selected.fulfillment_type,
                 gross_payable,
-                promised_prep_at,
+                promised_prep_at, supplier_id,
             ),
         )
         fo_id = int(cursor.lastrowid)
@@ -382,6 +400,7 @@ def plan_fulfillment(
             quantity_needed   = int(item["quantity"]),
             customer_province = customer_province,
             customer_city     = customer_city,
+            offer_id          = item.get("offer_id"),
         )
         if not res.selected:
             raise FulfillmentUnavailableError(
@@ -507,8 +526,10 @@ def confirm_fulfillment_orders_from_plan(
             INSERT INTO fulfillment_orders
                 (order_id, supplier_id, supplier_location_id, status,
                  routing_score, routing_reason_json, routing_candidates_json,
-                 fulfillment_type, gross_payable_minor, promised_prep_at, routing_history_json)
-            VALUES (?,?,?, 'assigned', ?,?,?, ?,?,?, '[]')
+                 fulfillment_type, gross_payable_minor, promised_prep_at, routing_history_json,
+                 affiliate_bonus_bps)
+            VALUES (?,?,?, 'assigned', ?,?,?, ?,?,?, '[]',
+                    (SELECT COALESCE(affiliate_bonus_bps, 0) FROM suppliers WHERE id=?))
             """,
             (
                 order_id, supplier_id, location_id,
@@ -517,7 +538,7 @@ def confirm_fulfillment_orders_from_plan(
                 json.dumps(sample.get("routing_candidates", []), ensure_ascii=False),
                 sample.get("fulfillment_type", "delivery"),
                 gross_payable,
-                promised_prep_at,
+                promised_prep_at, supplier_id,
             ),
         )
         fo_id = int(cursor.lastrowid)
@@ -1015,8 +1036,7 @@ def list_fulfillment_orders_for_order(
 
 
 def get_supplier_for_user(conn: sqlite3.Connection, user_id: int) -> dict | None:
-    row = conn.execute(
-        "SELECT * FROM suppliers WHERE user_id = ? AND status = 'active'",
-        (user_id,),
-    ).fetchone()
+    from app.services.access_admin_service import current_supplier_id
+    sid = current_supplier_id(conn, user_id)
+    row = conn.execute("SELECT * FROM suppliers WHERE id = ? AND status = 'active'", (sid,)).fetchone() if sid else None
     return dict(row) if row else None

@@ -229,6 +229,14 @@ def _apply_migration_sqlite(
 ) -> None:
     """Apply one migration on SQLite using executescript() with BEGIN/COMMIT."""
     conn = db.connection
+    if version == '0043' and name == 'nullable_master_unit_pack':
+        from app.core import catalog_nullable_migration
+        expected = re.search(r"implementation-sha256: ([a-f0-9]{64})", sql)
+        actual = hashlib.sha256(Path(catalog_nullable_migration.__file__).read_bytes()).hexdigest()
+        if expected is None or actual != expected.group(1):
+            raise MigrationError("Nullable migration implementation digest mismatch")
+        catalog_nullable_migration.apply(conn, checksum=checksum, now=now)
+        return
     script = (
         "BEGIN;\n"
         f"{sql}\n"
@@ -266,6 +274,10 @@ def _apply_migration_pg(
                 upper = stmt.strip().upper()
                 # Skip embedded transaction-control statements (migration artefacts).
                 if upper in ("BEGIN", "BEGIN IMMEDIATE", "COMMIT", "ROLLBACK"):
+                    continue
+                # Skip comment-only chunks (e.g. trailing "-- Step 5" notes): psycopg2 >= 2.9.10 refuses
+                # to execute an empty query.
+                if not re.sub(r"--[^\n]*|/\*.*?\*/", "", stmt, flags=re.S).strip():
                     continue
                 cur.execute(stmt)
 

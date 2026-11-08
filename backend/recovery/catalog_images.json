@@ -1,0 +1,832 @@
+{
+  "source": "existing authoritative master image URLs; exact bytes",
+  "records": [
+    {
+      "source_url": "http://95.38.183.168/public/images/products/mikrotik-hex-s.webp",
+      "master_ids": [
+        185
+      ],
+      "existing_file": "frontend/public/images/products/mikrotik-hex-s.webp",
+      "local_url": "/images/catalog/9b899e8a23453fdaa62c9417c0a5baa8d38934a8443a65ac86387bdf5f9704e5.webp",
+      "sha256": "9b899e8a23453fdaa62c9417c0a5baa8d38934a8443a65ac86387bdf5f9704e5",
+      "bytes": 21862,
+      "status": "recovered"
+    },
+    {
+      "source_url": "http://95.38.183.168/public/images/products/samsung-galaxy-a55-5g.jpg",
+      "master_ids": [
+        183
+      ],
+      "existing_file": "frontend/public/images/products/samsung-galaxy-a55-5g.jpg",
+      "local_url": "/images/catalog/14b7c31a5da75da1d870d0a9a1e8a494fd9ee945de1ca4a4aac25977153b0b9e.jpg",
+      "sha256": "14b7c31a5da75da1d870d0a9a1e8a494fd9ee945de1ca4a4aac25977153b0b9e",
+      "bytes": 35811,
+      "status": "recovered"
+    },
+    {
+      "source_url": "http://95.38.183.168/public/images/products/samsung-galaxy-tab-a9.png",
+      "master_ids": [
+        184
+      ],
+      "existing_file": "frontend/public/images/products/samsung-galaxy-tab-a9.png",
+      "local_url": "/images/catalog/9328cd1caacdf2cdb7d769e6dfe4df3aec69f5511acbf9e99a7ffe5ae77e3f5c.png",
+      "sha256": "9328cd1caacdf2cdb7d769e6dfe4df3aec69f5511acbf9e99a7ffe5ae77e3f5c",
+      "bytes": 66757,
+      "status": "recovered"
+    },
+    {
+      "source_url": "http://95.38.183.168/public/images/products/tabiat-consumer-edible-oil-16kg.png",
+      "master_ids": [
+        138
+      ],
+      "existing_file": "frontend/public/images/products/tabiat-consumer-edible-oil-16kg.png",
+      "local_url": "/images/catalog/6a77b46f318343d639794b427b2809733dfcf2d8bcd90dacf861a5ffce838070.png",
+      "sha256": "6a77b46f318343d639794b427b2809733dfcf2d8bcd90dacf861a5ffce838070",
+      "bytes": 263289,
+      "status": "recovered"
+    },
+    {
+      "source_url": "http://95.38.183.168/public/images/products/tabiat-frying-oil-16kg.png",
+      "master_ids": [
+        139
+      ],
+      "existing_file": "frontend/public/images/products/tabiat-frying-oil-16kg.png",
+      "local_url": "/images/catalog/27f801b9f76f3c39086995b9bb6d2dd26fd4b084b3e2aca4a666391b5c8d93a8.png",
+      "sha256": "27f801b9f76f3c39086995b9bb6d2dd26fd4b084b3e2aca4a666391b5c8d93a8",
+      "bytes": 241271,
+      "status": "recovered"
+    },
+    {
+      "source_url": "http://95.38.183.168/public/images/products/tabiat-soya-oil-16kg.png",
+      "master_ids": [
+        140
+      ],
+      "existing_file": "frontend/public/images/products/tabiat-soya-oil-16kg.png",
+      "local_url": "/images/catalog/6112bb49441e135b5ffa7dd1d2455a37e459c52e4823907a897306b2432a0be5.png",
+      "sha256": "6112bb49441e135b5ffa7dd1d2455a37e459c52e4823907a897306b2432a0be5",
+      "bytes": 260532,
+      "status": "recovered"
+    },
+    {
+      "source_url": "http://www.entekhabeman.com/images/thumbs/0024797_-akt-p1650st_625.jpeg",
+      "master_ids": [
+        172
+      ],
+      "fetched_url": "https://www.entekhabeman.com/images/thumbs/0024797_-akt-p1650st_625.jpeg",
+      "local_url": "/images/catalog/8580e1349bdf634440a7be3e4d8b5c0ff90c52bb38f8997bddd776b47d365894.jpg",
+      "sha256": "8580e1349bdf634440a7be3e4d8b5c0ff90c52bb38f8997bddd776b47d365894",
+      "bytes": 32575,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/1371/-680129963-023.jpg",
+      "master_ids": [
+        105
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/1371/-680129963-023.jpg",
+      "local_url": "/images/catalog/c77179003f1b53c13b2b482838a67435a20073f1278bd36d12b486f7859669bc.jpg",
+      "sha256": "c77179003f1b53c13b2b482838a67435a20073f1278bd36d12b486f7859669bc",
+      "bytes": 1644654,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/1372/-679675402-029 copy.jpg",
+      "master_ids": [
+        107
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/1372/-679675402-029%20copy.jpg",
+      "local_url": "/images/catalog/bccfd7eb2ae15b9fa60fb2944330a0e741943ddcef771e733e342df1c4593da6.jpg",
+      "sha256": "bccfd7eb2ae15b9fa60fb2944330a0e741943ddcef771e733e342df1c4593da6",
+      "bytes": 123363,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/1373/-679675386-026 copy.jpg",
+      "master_ids": [
+        91
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/1373/-679675386-026%20copy.jpg",
+      "local_url": "/images/catalog/d3ce85ea1f5c658a30181c4a97aef7bd0249289d142bfc3728bec6941f2df95e.jpg",
+      "sha256": "d3ce85ea1f5c658a30181c4a97aef7bd0249289d142bfc3728bec6941f2df95e",
+      "bytes": 126833,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/1375/-680076187-DSC02651.JPG (1).jpeg",
+      "master_ids": [
+        98
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/1375/-680076187-DSC02651.JPG%20%281%29.jpeg",
+      "local_url": "/images/catalog/c5bc3d33018a27ed4bb1ff3c4bd954d08bdb1306c8489ce91fd05eb841904135.jpg",
+      "sha256": "c5bc3d33018a27ed4bb1ff3c4bd954d08bdb1306c8489ce91fd05eb841904135",
+      "bytes": 630882,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/آجیل-رویال/-680129416-020.jpg",
+      "master_ids": [
+        97
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/%D8%A2%D8%AC%DB%8C%D9%84-%D8%B1%D9%88%DB%8C%D8%A7%D9%84/-680129416-020.jpg",
+      "local_url": "/images/catalog/7c69971d061130b6029d43db6222c84d2ce6d56aa01ea31b771c79d1cf58b08b.jpg",
+      "sha256": "7c69971d061130b6029d43db6222c84d2ce6d56aa01ea31b771c79d1cf58b08b",
+      "bytes": 1795354,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/آجیل-سالاد/-680129402-017.jpg",
+      "master_ids": [
+        109
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/%D8%A2%D8%AC%DB%8C%D9%84-%D8%B3%D8%A7%D9%84%D8%A7%D8%AF/-680129402-017.jpg",
+      "local_url": "/images/catalog/095cff1120eac7df4e5e30576e86e08129ffdcf11bd21299798fb4841b417dc9.jpg",
+      "sha256": "095cff1120eac7df4e5e30576e86e08129ffdcf11bd21299798fb4841b417dc9",
+      "bytes": 1272664,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/آجیل-سبزمز/-679814789-4cfe5fa4-c3e7-4df7-8ed2-48926c3581ae.jpg",
+      "master_ids": [
+        94
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/%D8%A2%D8%AC%DB%8C%D9%84-%D8%B3%D8%A8%D8%B2%D9%85%D8%B2/-679814789-4cfe5fa4-c3e7-4df7-8ed2-48926c3581ae.jpg",
+      "local_url": "/images/catalog/49afb3b98340b55260ee7483e5797d3c965b2ff896faf626f6641dee6d08e263.jpg",
+      "sha256": "49afb3b98340b55260ee7483e5797d3c965b2ff896faf626f6641dee6d08e263",
+      "bytes": 93644,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/آجیل-شب-یلدا-/-چهارشنبه-سوری/-679814791-8afd6f1e-9f68-4c52-a229-952a3244489e.jpg",
+      "master_ids": [
+        95
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/%D8%A2%D8%AC%DB%8C%D9%84-%D8%B4%D8%A8-%DB%8C%D9%84%D8%AF%D8%A7-/-%DA%86%D9%87%D8%A7%D8%B1%D8%B4%D9%86%D8%A8%D9%87-%D8%B3%D9%88%D8%B1%DB%8C/-679814791-8afd6f1e-9f68-4c52-a229-952a3244489e.jpg",
+      "local_url": "/images/catalog/590f7ec8dd09c86b97f2b9b0ef2cca49b15e4008bdf58a219a1263e166671c62.jpg",
+      "sha256": "590f7ec8dd09c86b97f2b9b0ef2cca49b15e4008bdf58a219a1263e166671c62",
+      "bytes": 79362,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/آجیل-مخصوص-سلامت/-680129412-019.jpg",
+      "master_ids": [
+        100
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D8%B5%D9%88%D8%B5-%D8%B3%D9%84%D8%A7%D9%85%D8%AA/-680129412-019.jpg",
+      "local_url": "/images/catalog/b70ea6694c79fc35d195c89ff2878598051b53616b3c4b99f27dffe4945cef1f.jpg",
+      "sha256": "b70ea6694c79fc35d195c89ff2878598051b53616b3c4b99f27dffe4945cef1f",
+      "bytes": 1903935,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/آجیل-مشکل-گشا-بسته-500-گرمی-/-680017588-DSC01660 copy.jpg",
+      "master_ids": [
+        102
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%B4%DA%A9%D9%84-%DA%AF%D8%B4%D8%A7-%D8%A8%D8%B3%D8%AA%D9%87-500-%DA%AF%D8%B1%D9%85%DB%8C-/-680017588-DSC01660%20copy.jpg",
+      "local_url": "/images/catalog/d49d10d243fc7cb51d07ce25f0046226d8e98ab60b0000896727d4f793f8b550.jpg",
+      "sha256": "d49d10d243fc7cb51d07ce25f0046226d8e98ab60b0000896727d4f793f8b550",
+      "bytes": 877836,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/آجیل-مغز-تند/-679674777-002 copy.jpg",
+      "master_ids": [
+        104
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%BA%D8%B2-%D8%AA%D9%86%D8%AF/-679674777-002%20copy.jpg",
+      "local_url": "/images/catalog/306270c87440357ad5618d9415363d8f0c73fbbc0ed718c7f0ef394882c4094f.jpg",
+      "sha256": "306270c87440357ad5618d9415363d8f0c73fbbc0ed718c7f0ef394882c4094f",
+      "bytes": 121833,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/آجیل-مخلوط/آجیل-چهار-مغز-خام/-679674812-007 copy.jpg",
+      "master_ids": [
+        103
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%A2%D8%AC%DB%8C%D9%84-%D9%85%D8%AE%D9%84%D9%88%D8%B7/%D8%A2%D8%AC%DB%8C%D9%84-%DA%86%D9%87%D8%A7%D8%B1-%D9%85%D8%BA%D8%B2-%D8%AE%D8%A7%D9%85/-679674812-007%20copy.jpg",
+      "local_url": "/images/catalog/1f5ba3845e62bc3cbe7e0ef8d26191d8d7ea61eb49a23bf2922e0e8cf46f6e14.jpg",
+      "sha256": "1f5ba3845e62bc3cbe7e0ef8d26191d8d7ea61eb49a23bf2922e0e8cf46f6e14",
+      "bytes": 135886,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/تخمه/تخمه-کدوگوشتی-قره-قروتی/-680133983-تخمه کدو گوشتی قره قروتی.JPG",
+      "master_ids": [
+        93
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D8%AA%D8%AE%D9%85%D9%87/%D8%AA%D8%AE%D9%85%D9%87-%DA%A9%D8%AF%D9%88%DA%AF%D9%88%D8%B4%D8%AA%DB%8C-%D9%82%D8%B1%D9%87-%D9%82%D8%B1%D9%88%D8%AA%DB%8C/-680133983-%D8%AA%D8%AE%D9%85%D9%87%20%DA%A9%D8%AF%D9%88%20%DA%AF%D9%88%D8%B4%D8%AA%DB%8C%20%D9%82%D8%B1%D9%87%20%D9%82%D8%B1%D9%88%D8%AA%DB%8C.JPG",
+      "local_url": "/images/catalog/31f848541444384157f156c3ab1212a08c97c39ccfa4f5020e6d6db49f9f19f0.jpg",
+      "sha256": "31f848541444384157f156c3ab1212a08c97c39ccfa4f5020e6d6db49f9f19f0",
+      "bytes": 821419,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/نخودچی/نخودچی-شور/-680133045-DSC04685 copy.jpg",
+      "master_ids": [
+        92
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D9%86%D8%AE%D9%88%D8%AF%DA%86%DB%8C/%D9%86%D8%AE%D9%88%D8%AF%DA%86%DB%8C-%D8%B4%D9%88%D8%B1/-680133045-DSC04685%20copy.jpg",
+      "local_url": "/images/catalog/9e49852ff0c5be1888e9dc0634f2f016534eafe4c95881768e7f3cbee2845fb6.jpg",
+      "sha256": "9e49852ff0c5be1888e9dc0634f2f016534eafe4c95881768e7f3cbee2845fb6",
+      "bytes": 636699,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/پسته-و-پسته-شامی/32433/-680017607-DSC01680 copy.jpg",
+      "master_ids": [
+        108
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D9%BE%D8%B3%D8%AA%D9%87-%D9%88-%D9%BE%D8%B3%D8%AA%D9%87-%D8%B4%D8%A7%D9%85%DB%8C/32433/-680017607-DSC01680%20copy.jpg",
+      "local_url": "/images/catalog/04ae4003f2e4ed1a7d1f59ea2e76b3605505b0f3e7853fd872062483d820472b.jpg",
+      "sha256": "04ae4003f2e4ed1a7d1f59ea2e76b3605505b0f3e7853fd872062483d820472b",
+      "bytes": 407258,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/پسته-و-پسته-شامی/32440/-680129969-احمد آقایی شور.jpg",
+      "master_ids": [
+        110
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D9%BE%D8%B3%D8%AA%D9%87-%D9%88-%D9%BE%D8%B3%D8%AA%D9%87-%D8%B4%D8%A7%D9%85%DB%8C/32440/-680129969-%D8%A7%D8%AD%D9%85%D8%AF%20%D8%A2%D9%82%D8%A7%DB%8C%DB%8C%20%D8%B4%D9%88%D8%B1.jpg",
+      "local_url": "/images/catalog/f8ac01b05ce0525339e0a8dd97d052c4bf4534e617aca4b37e595fd1047da6c6.jpg",
+      "sha256": "f8ac01b05ce0525339e0a8dd97d052c4bf4534e617aca4b37e595fd1047da6c6",
+      "bytes": 1689943,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/پسته-و-پسته-شامی/معجون-پسته-بزرگ/-680129421-021.jpg",
+      "master_ids": [
+        101
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D9%BE%D8%B3%D8%AA%D9%87-%D9%88-%D9%BE%D8%B3%D8%AA%D9%87-%D8%B4%D8%A7%D9%85%DB%8C/%D9%85%D8%B9%D8%AC%D9%88%D9%86-%D9%BE%D8%B3%D8%AA%D9%87-%D8%A8%D8%B2%D8%B1%DA%AF/-680129421-021.jpg",
+      "local_url": "/images/catalog/2baa1faa33c92eeca5893943ceeb06751c4842667c0f5dbc1763984201e9ad3a.jpg",
+      "sha256": "2baa1faa33c92eeca5893943ceeb06751c4842667c0f5dbc1763984201e9ad3a",
+      "bytes": 2476818,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/پسته-و-پسته-شامی/معجون-پسته-کوچک/-680129419-021.jpg",
+      "master_ids": [
+        99
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D9%BE%D8%B3%D8%AA%D9%87-%D9%88-%D9%BE%D8%B3%D8%AA%D9%87-%D8%B4%D8%A7%D9%85%DB%8C/%D9%85%D8%B9%D8%AC%D9%88%D9%86-%D9%BE%D8%B3%D8%AA%D9%87-%DA%A9%D9%88%DA%86%DA%A9/-680129419-021.jpg",
+      "local_url": "/images/catalog/2baa1faa33c92eeca5893943ceeb06751c4842667c0f5dbc1763984201e9ad3a.jpg",
+      "sha256": "2baa1faa33c92eeca5893943ceeb06751c4842667c0f5dbc1763984201e9ad3a",
+      "bytes": 2476818,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/آجیل/پسته-و-پسته-شامی/پسته-شامی-با-پوست-شور/-680158072-DSC05718.JPG",
+      "master_ids": [
+        96
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%A2%D8%AC%DB%8C%D9%84/%D9%BE%D8%B3%D8%AA%D9%87-%D9%88-%D9%BE%D8%B3%D8%AA%D9%87-%D8%B4%D8%A7%D9%85%DB%8C/%D9%BE%D8%B3%D8%AA%D9%87-%D8%B4%D8%A7%D9%85%DB%8C-%D8%A8%D8%A7-%D9%BE%D9%88%D8%B3%D8%AA-%D8%B4%D9%88%D8%B1/-680158072-DSC05718.JPG",
+      "local_url": "/images/catalog/bdef5379f22756bd817acfec6e6912c14b142eee5c13ffd4c18587d23292c087.jpg",
+      "sha256": "bdef5379f22756bd817acfec6e6912c14b142eee5c13ffd4c18587d23292c087",
+      "bytes": 638112,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/خرما-و-شیره/کادویی-سبد-خرما-مغزدار/-680076078-DSC02670.JPG (1).jpeg",
+      "master_ids": [
+        111
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%AE%D8%B1%D9%85%D8%A7-%D9%88-%D8%B4%DB%8C%D8%B1%D9%87/%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C-%D8%B3%D8%A8%D8%AF-%D8%AE%D8%B1%D9%85%D8%A7-%D9%85%D8%BA%D8%B2%D8%AF%D8%A7%D8%B1/-680076078-DSC02670.JPG%20%281%29.jpeg",
+      "local_url": "/images/catalog/0d34c449cb9dd1b0c35ad24b400a152bba7d0027eb0f8790fdf4e1f21c927a2f.jpg",
+      "sha256": "0d34c449cb9dd1b0c35ad24b400a152bba7d0027eb0f8790fdf4e1f21c927a2f",
+      "bytes": 514533,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/دمنوش-و-قهوه/دمنوش-کادویی-ترمه/-680163210-DSC06083.JPG",
+      "master_ids": [
+        112
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%D8%AF%D9%85%D9%86%D9%88%D8%B4-%D9%88-%D9%82%D9%87%D9%88%D9%87/%D8%AF%D9%85%D9%86%D9%88%D8%B4-%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C-%D8%AA%D8%B1%D9%85%D9%87/-680163210-DSC06083.JPG",
+      "local_url": "/images/catalog/33c657bae8d646702dc50726178d374197ef7aad2114a858bb5b0e51c129e4c2.jpg",
+      "sha256": "33c657bae8d646702dc50726178d374197ef7aad2114a858bb5b0e51c129e4c2",
+      "bytes": 932699,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/کادویی/سبد/کادویی-سبد-شماره-1/-680017414-DSC01502 copy.jpg",
+      "master_ids": [
+        115
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C/%D8%B3%D8%A8%D8%AF/%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C-%D8%B3%D8%A8%D8%AF-%D8%B4%D9%85%D8%A7%D8%B1%D9%87-1/-680017414-DSC01502%20copy.jpg",
+      "local_url": "/images/catalog/c39a5e4fe9057b924f00c5145dceba7f7600c3788d997ef06a8ee8e4b88b22ec.jpg",
+      "sha256": "c39a5e4fe9057b924f00c5145dceba7f7600c3788d997ef06a8ee8e4b88b22ec",
+      "bytes": 842644,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/کادویی/سبد/کادویی-سبد-شماره-11/-679675482-034 copy.jpg",
+      "master_ids": [
+        113
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C/%D8%B3%D8%A8%D8%AF/%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C-%D8%B3%D8%A8%D8%AF-%D8%B4%D9%85%D8%A7%D8%B1%D9%87-11/-679675482-034%20copy.jpg",
+      "local_url": "/images/catalog/5ae7934da4e7d99b65a76bef30c478ea55ac33496a20ad0186a8bde90dd1b9ff.jpg",
+      "sha256": "5ae7934da4e7d99b65a76bef30c478ea55ac33496a20ad0186a8bde90dd1b9ff",
+      "bytes": 235656,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://fastcdn.pro/FileGallery/tavazostore.com/کادویی/سبد/کادویی-سبد-شماره-33/-680186153-کادویی شماره 33.JPG",
+      "master_ids": [
+        114
+      ],
+      "fetched_url": "https://fastcdn.pro/FileGallery/tavazostore.com/%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C/%D8%B3%D8%A8%D8%AF/%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C-%D8%B3%D8%A8%D8%AF-%D8%B4%D9%85%D8%A7%D8%B1%D9%87-33/-680186153-%DA%A9%D8%A7%D8%AF%D9%88%DB%8C%DB%8C%20%D8%B4%D9%85%D8%A7%D8%B1%D9%87%2033.JPG",
+      "local_url": "/images/catalog/3a30bc8720ae582140060b6ea6cdb03e7c59e85276fff904402d576c95b3635f.jpg",
+      "sha256": "3a30bc8720ae582140060b6ea6cdb03e7c59e85276fff904402d576c95b3635f",
+      "bytes": 353127,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://kalleh.com/wp-content/uploads/2019/06/پنیر-لبنه-350.png",
+      "master_ids": [
+        181
+      ],
+      "fetched_url": "https://kalleh.com/wp-content/uploads/2019/06/%D9%BE%D9%86%DB%8C%D8%B1-%D9%84%D8%A8%D9%86%D9%87-350.png",
+      "local_url": "/images/catalog/951d2e32c9b8d630f4abac03a28882002d7a2a6f2ac8ee490b7099f7481fe54a.png",
+      "sha256": "951d2e32c9b8d630f4abac03a28882002d7a2a6f2ac8ee490b7099f7481fe54a",
+      "bytes": 80224,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://kalleh.com/wp-content/uploads/2022/07/ماست-کفیر-کم‌-چرب-پروبیوتیک-ناری-750-گرمی.png",
+      "master_ids": [
+        180
+      ],
+      "fetched_url": "https://kalleh.com/wp-content/uploads/2022/07/%D9%85%D8%A7%D8%B3%D8%AA-%DA%A9%D9%81%DB%8C%D8%B1-%DA%A9%D9%85%E2%80%8C-%DA%86%D8%B1%D8%A8-%D9%BE%D8%B1%D9%88%D8%A8%DB%8C%D9%88%D8%AA%DB%8C%DA%A9-%D9%86%D8%A7%D8%B1%DB%8C-750-%DA%AF%D8%B1%D9%85%DB%8C.png",
+      "local_url": "/images/catalog/3f443d3d2d45ecdb5f90258e7d2543535ecaf65c880a7e6b280158241bdded6f.png",
+      "sha256": "3f443d3d2d45ecdb5f90258e7d2543535ecaf65c880a7e6b280158241bdded6f",
+      "bytes": 100539,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://kalleh.com/wp-content/uploads/2024/02/شیر-پر-چرب-3-درصد.png",
+      "master_ids": [
+        179
+      ],
+      "fetched_url": "https://kalleh.com/wp-content/uploads/2024/02/%D8%B4%DB%8C%D8%B1-%D9%BE%D8%B1-%DA%86%D8%B1%D8%A8-3-%D8%AF%D8%B1%D8%B5%D8%AF.png",
+      "local_url": "/images/catalog/0d50df9b3570c6ff39e5af44b0d65bce5f7131461fb34e6dfc654fdf13a435a4.png",
+      "sha256": "0d50df9b3570c6ff39e5af44b0d65bce5f7131461fb34e6dfc654fdf13a435a4",
+      "bytes": 54523,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://kalleh.com/wp-content/uploads/2024/03/بستنی-ژلاتو-آلو.png",
+      "master_ids": [
+        182
+      ],
+      "fetched_url": "https://kalleh.com/wp-content/uploads/2024/03/%D8%A8%D8%B3%D8%AA%D9%86%DB%8C-%DA%98%D9%84%D8%A7%D8%AA%D9%88-%D8%A2%D9%84%D9%88.png",
+      "local_url": "/images/catalog/97145565a68969e07a87451edc0df3bf43088903907fc64ad4e8710e31cef978.png",
+      "sha256": "97145565a68969e07a87451edc0df3bf43088903907fc64ad4e8710e31cef978",
+      "bytes": 90826,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://mobile140.com/storage/Data/90ffc721-fbda-461e-bd5e-e275efde4257.png",
+      "master_ids": [
+        173
+      ],
+      "fetched_url": "https://mobile140.com/storage/Data/90ffc721-fbda-461e-bd5e-e275efde4257.png",
+      "local_url": "/images/catalog/82ac88029ca6ee2a0d7ae0479debacb73246b706f311d1740115cd74f353436c.png",
+      "sha256": "82ac88029ca6ee2a0d7ae0479debacb73246b706f311d1740115cd74f353436c",
+      "bytes": 79411,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://snowa.ir/wp-content/uploads/2023/01/1-33.jpg",
+      "master_ids": [
+        170
+      ],
+      "fetched_url": "https://snowa.ir/wp-content/uploads/2023/01/1-33.jpg",
+      "local_url": "/images/catalog/7d97e2db63f0e0f0f3b292c4164ab10841731b58c559892800c2da730b518ce6.jpg",
+      "sha256": "7d97e2db63f0e0f0f3b292c4164ab10841731b58c559892800c2da730b518ce6",
+      "bytes": 196582,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://snowa.ir/wp-content/uploads/2023/01/13-SWM-94616.svg",
+      "master_ids": [
+        169
+      ],
+      "fetched_url": "https://snowa.ir/wp-content/uploads/2023/01/13-SWM-94616.svg",
+      "status": "blocked",
+      "error": "Unsupported content: image/svg+xml prefix_hex=3c73766720786d6c6e733d22687474703a2f2f77"
+    },
+    {
+      "source_url": "https://snowa.ir/wp-content/uploads/2023/04/1-2.jpg",
+      "master_ids": [
+        171
+      ],
+      "fetched_url": "https://snowa.ir/wp-content/uploads/2023/04/1-2.jpg",
+      "local_url": "/images/catalog/671d21d1f8424ea14c5676bf56953cc639744490571fc27a409f828beee10430.jpg",
+      "sha256": "671d21d1f8424ea14c5676bf56953cc639744490571fc27a409f828beee10430",
+      "bytes": 167094,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://snowa.ir/wp-content/uploads/2023/07/SN4-2023SW_7-600x600.jpg",
+      "master_ids": [
+        168
+      ],
+      "fetched_url": "https://snowa.ir/wp-content/uploads/2023/07/SN4-2023SW_7-600x600.jpg",
+      "local_url": "/images/catalog/0ef240b62e167981906dc8e6f7a9c0f124ef4b40f896caa3e54bde9f6bcc70e7.jpg",
+      "sha256": "0ef240b62e167981906dc8e6f7a9c0f124ef4b40f896caa3e54bde9f6bcc70e7",
+      "bytes": 31431,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2023/01/oil.png",
+      "master_ids": [
+        142,
+        143
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2023/01/oil.png",
+      "local_url": "/images/catalog/6f821c01b97d4ad8719c5513132e0c38741a175aa8433fea1d54e82b44b4ae6d.png",
+      "sha256": "6f821c01b97d4ad8719c5513132e0c38741a175aa8433fea1d54e82b44b4ae6d",
+      "bytes": 1678,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2023/02/Anbarbo-10.png",
+      "master_ids": [
+        152
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2023/02/Anbarbo-10.png",
+      "local_url": "/images/catalog/1ea8e0d8b359367edd06c8cf45f474ffc591ec68fe5a5e37dba027496fb863ec.png",
+      "sha256": "1ea8e0d8b359367edd06c8cf45f474ffc591ec68fe5a5e37dba027496fb863ec",
+      "bytes": 152711,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2023/02/rice_mockup_hashemi-copy_01.png",
+      "master_ids": [
+        147,
+        148,
+        149,
+        150
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2023/02/rice_mockup_hashemi-copy_01.png",
+      "local_url": "/images/catalog/6135efd64c495cba0dfcf43c71b93df21b9410d7a475ab702ddc16788a2e185f.png",
+      "sha256": "6135efd64c495cba0dfcf43c71b93df21b9410d7a475ab702ddc16788a2e185f",
+      "bytes": 1082837,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2023/03/oil-halab16.png",
+      "master_ids": [
+        137
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2023/03/oil-halab16.png",
+      "local_url": "/images/catalog/88e48e327a5602a6807c446b5980a46e0abf1c0c8bf4bd55a35f6b2f8c503f5f.png",
+      "sha256": "88e48e327a5602a6807c446b5980a46e0abf1c0c8bf4bd55a35f6b2f8c503f5f",
+      "bytes": 1256601,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2024/07/oil-p-5.png",
+      "master_ids": [
+        141
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2024/07/oil-p-5.png",
+      "local_url": "/images/catalog/569925142fdaa1445e042ff11030900a937f73b9eaa4d46d039faf10ddc530f6.png",
+      "sha256": "569925142fdaa1445e042ff11030900a937f73b9eaa4d46d039faf10ddc530f6",
+      "bytes": 714460,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/2nd-crop-rice-10kg.webp",
+      "master_ids": [
+        145
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/2nd-crop-rice-10kg.webp",
+      "local_url": "/images/catalog/e9273f4d8210a0fa5dfa7512850474700be1c2dd22e1d7ab6cfeef55c00cc64b.webp",
+      "sha256": "e9273f4d8210a0fa5dfa7512850474700be1c2dd22e1d7ab6cfeef55c00cc64b",
+      "bytes": 286010,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/برنج-ایرانی-عنبربو.webp",
+      "master_ids": [
+        151
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/%D8%A8%D8%B1%D9%86%D8%AC-%D8%A7%DB%8C%D8%B1%D8%A7%D9%86%DB%8C-%D8%B9%D9%86%D8%A8%D8%B1%D8%A8%D9%88.webp",
+      "local_url": "/images/catalog/247c506959391914fa3ffe11a5411c5162f4f3b3329d832c062a93c47b7ec3dc.webp",
+      "sha256": "247c506959391914fa3ffe11a5411c5162f4f3b3329d832c062a93c47b7ec3dc",
+      "bytes": 271810,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/برنج-ایرانی-هاشمی.webp",
+      "master_ids": [
+        146
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/%D8%A8%D8%B1%D9%86%D8%AC-%D8%A7%DB%8C%D8%B1%D8%A7%D9%86%DB%8C-%D9%87%D8%A7%D8%B4%D9%85%DB%8C.webp",
+      "local_url": "/images/catalog/174b670b997a2b9c0b8af322a3add612408d2f9c977741d8a0be44e52a98078c.webp",
+      "sha256": "174b670b997a2b9c0b8af322a3add612408d2f9c977741d8a0be44e52a98078c",
+      "bytes": 93336,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/برنج-ایرانی-کشت-دوم2.webp",
+      "master_ids": [
+        144
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/%D8%A8%D8%B1%D9%86%D8%AC-%D8%A7%DB%8C%D8%B1%D8%A7%D9%86%DB%8C-%DA%A9%D8%B4%D8%AA-%D8%AF%D9%88%D9%852.webp",
+      "local_url": "/images/catalog/0128ba97aa5b9f4af82eecce3877d57ee6292665572d87606d42fb7fbc2fac43.webp",
+      "sha256": "0128ba97aa5b9f4af82eecce3877d57ee6292665572d87606d42fb7fbc2fac43",
+      "bytes": 98072,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/برنج-پاکستانی.webp",
+      "master_ids": [
+        136
+      ],
+      "fetched_url": "https://tabiatsabz.ir/wp-content/uploads/2024/12/%D8%A8%D8%B1%D9%86%D8%AC-%D9%BE%D8%A7%DA%A9%D8%B3%D8%AA%D8%A7%D9%86%DB%8C.webp",
+      "local_url": "/images/catalog/b1ae3754f3121f762be82378b0715718df829327b3edb5c259beabbb01d86499.webp",
+      "sha256": "b1ae3754f3121f762be82378b0715718df829327b3edb5c259beabbb01d86499",
+      "bytes": 92524,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/fish/سایت مهیا.png",
+      "master_ids": [
+        135
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/fish/%D8%B3%D8%A7%DB%8C%D8%AA%20%D9%85%D9%87%DB%8C%D8%A7.png",
+      "local_url": "/images/catalog/ed12c1d45fa2d70406fe589e608ddec2d608321449ca0dc1259ee3df537ee6f8.png",
+      "sha256": "ed12c1d45fa2d70406fe589e608ddec2d608321449ca0dc1259ee3df537ee6f8",
+      "bytes": 152060,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/ماهی a/آزاد1.png",
+      "master_ids": [
+        132
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%D9%85%D8%A7%D9%87%DB%8C%20a/%D8%A2%D8%B2%D8%A7%D8%AF1.png",
+      "local_url": "/images/catalog/cd44f90f5392490ef2c8a9be2bfc9d97c33d0b6aa2ca23cc325966ef543c70eb.png",
+      "sha256": "cd44f90f5392490ef2c8a9be2bfc9d97c33d0b6aa2ca23cc325966ef543c70eb",
+      "bytes": 63959,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/ماهی a/آزاد2.png",
+      "master_ids": [
+        131
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%D9%85%D8%A7%D9%87%DB%8C%20a/%D8%A2%D8%B2%D8%A7%D8%AF2.png",
+      "local_url": "/images/catalog/3bca164687ca326d7517c27f8890a6dadc501b377a2cb9f45a908b584f629bd6.png",
+      "sha256": "3bca164687ca326d7517c27f8890a6dadc501b377a2cb9f45a908b584f629bd6",
+      "bytes": 70576,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/ماهی a/قزل-آلا-تازه.png",
+      "master_ids": [
+        133
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%D9%85%D8%A7%D9%87%DB%8C%20a/%D9%82%D8%B2%D9%84-%D8%A2%D9%84%D8%A7-%D8%AA%D8%A7%D8%B2%D9%87.png",
+      "local_url": "/images/catalog/c57bbeb761ab7a4aad1ce78fa9cd993b549c632243568193ce7c657ef82d45b6.png",
+      "sha256": "c57bbeb761ab7a4aad1ce78fa9cd993b549c632243568193ce7c657ef82d45b6",
+      "bytes": 68187,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوساله/راسته.png",
+      "master_ids": [
+        119
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D8%A7%D9%84%D9%87/%D8%B1%D8%A7%D8%B3%D8%AA%D9%87.png",
+      "local_url": "/images/catalog/9e504e1bdd5b6c1ddd7d33a0a54c986c25c80a7dbd7dddd0a900f05014a1b2fa.png",
+      "sha256": "9e504e1bdd5b6c1ddd7d33a0a54c986c25c80a7dbd7dddd0a900f05014a1b2fa",
+      "bytes": 307637,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوساله/ران-گوساله-1.png",
+      "master_ids": [
+        120
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D8%A7%D9%84%D9%87/%D8%B1%D8%A7%D9%86-%DA%AF%D9%88%D8%B3%D8%A7%D9%84%D9%87-1.png",
+      "local_url": "/images/catalog/5aa4ab814b7446cc445d612561017f2d5fe6e1edff86ee7aae58a39737b590f0.png",
+      "sha256": "5aa4ab814b7446cc445d612561017f2d5fe6e1edff86ee7aae58a39737b590f0",
+      "bytes": 398457,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوساله/سردست-گوساله.png",
+      "master_ids": [
+        118
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D8%A7%D9%84%D9%87/%D8%B3%D8%B1%D8%AF%D8%B3%D8%AA-%DA%AF%D9%88%D8%B3%D8%A7%D9%84%D9%87.png",
+      "local_url": "/images/catalog/e077eedef3d518b26378a53e0b44898645ffb92092b4d41e7129bbc8ef430ce1.png",
+      "sha256": "e077eedef3d518b26378a53e0b44898645ffb92092b4d41e7129bbc8ef430ce1",
+      "bytes": 374216,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوسفند A/راسته-بی-استخوان-copy.png",
+      "master_ids": [
+        127
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF%20A/%D8%B1%D8%A7%D8%B3%D8%AA%D9%87-%D8%A8%DB%8C-%D8%A7%D8%B3%D8%AA%D8%AE%D9%88%D8%A7%D9%86-copy.png",
+      "local_url": "/images/catalog/638c48bdca30fcf5ee56f6c6687257e41d6cd2b8ddc69aed5ec844b9766ab81c.png",
+      "sha256": "638c48bdca30fcf5ee56f6c6687257e41d6cd2b8ddc69aed5ec844b9766ab81c",
+      "bytes": 60730,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوسفند A/ران-گوسفند1-copy.png",
+      "master_ids": [
+        123
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF%20A/%D8%B1%D8%A7%D9%86-%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF1-copy.png",
+      "local_url": "/images/catalog/99835177324c018be4bf34cdfc6c2ecec1c818062c7832b3df5e08d6c2a0f221.png",
+      "sha256": "99835177324c018be4bf34cdfc6c2ecec1c818062c7832b3df5e08d6c2a0f221",
+      "bytes": 62689,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوسفند A/سردست1-copy.png",
+      "master_ids": [
+        125
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF%20A/%D8%B3%D8%B1%D8%AF%D8%B3%D8%AA1-copy.png",
+      "local_url": "/images/catalog/64b7a11953fdc2e184fc0f90ac638d6a06bf1a13ee18f7f9b1fd4dd1d64783fa.png",
+      "sha256": "64b7a11953fdc2e184fc0f90ac638d6a06bf1a13ee18f7f9b1fd4dd1d64783fa",
+      "bytes": 61754,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوسفند A/قلوه-گاه-بی-استخوان-copy.png",
+      "master_ids": [
+        128
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF%20A/%D9%82%D9%84%D9%88%D9%87-%DA%AF%D8%A7%D9%87-%D8%A8%DB%8C-%D8%A7%D8%B3%D8%AA%D8%AE%D9%88%D8%A7%D9%86-copy.png",
+      "local_url": "/images/catalog/3c2f2e2f0506abb326e4f55420adce276e2bbe35bb3fbcd0704385cd83ecddff.png",
+      "sha256": "3c2f2e2f0506abb326e4f55420adce276e2bbe35bb3fbcd0704385cd83ecddff",
+      "bytes": 62079,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوسفند A/ماهیچه-1-copy.png",
+      "master_ids": [
+        129
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF%20A/%D9%85%D8%A7%D9%87%DB%8C%DA%86%D9%87-1-copy.png",
+      "local_url": "/images/catalog/cca81a15bad05358bdb28703a93d30f1144bc2ac91e5b4814f1614106937bead.png",
+      "sha256": "cca81a15bad05358bdb28703a93d30f1144bc2ac91e5b4814f1614106937bead",
+      "bytes": 63587,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/new label products pic/گوسفند A/گردن-copy.png",
+      "master_ids": [
+        130
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF%20A/%DA%AF%D8%B1%D8%AF%D9%86-copy.png",
+      "local_url": "/images/catalog/25b79bee3a01827df06a7ebe725ef11b6d9c33ff1989200c3767f2168dbe6cbc.png",
+      "sha256": "25b79bee3a01827df06a7ebe725ef11b6d9c33ff1989200c3767f2168dbe6cbc",
+      "bytes": 67074,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/niloufar/ghalam.jpg",
+      "master_ids": [
+        121
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/niloufar/ghalam.jpg",
+      "status": "recovered",
+      "local_url": "/images/catalog/d1c64603155db3fff487c3e818cc3b50ca370d6d03c4a0136635f7b42b5dc64f.jpg",
+      "sha256": "d1c64603155db3fff487c3e818cc3b50ca370d6d03c4a0136635f7b42b5dc64f",
+      "bytes": 13750882
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/niloufar/قلم 1-621125 copy.jpg",
+      "master_ids": [
+        116
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/niloufar/%D9%82%D9%84%D9%85%201-621125%20copy.jpg",
+      "status": "recovered",
+      "local_url": "/images/catalog/807a1d8a81cb818c7b72ab65e6c8d7a64ea4eb9da987915a095d160e1bd28f49.jpg",
+      "sha256": "807a1d8a81cb818c7b72ab65e6c8d7a64ea4eb9da987915a095d160e1bd28f49",
+      "bytes": 11729391
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com//uploads/saba/گردن-گوساله.jpg",
+      "master_ids": [
+        117
+      ],
+      "fetched_url": "https://www.mahyaprotein.com//uploads/saba/%DA%AF%D8%B1%D8%AF%D9%86-%DA%AF%D9%88%D8%B3%D8%A7%D9%84%D9%87.jpg",
+      "local_url": "/images/catalog/6301cafe7aaeeef8365d75e6313a6d125af509e8e3a5787a3bc78e439b2a3e07.jpg",
+      "sha256": "6301cafe7aaeeef8365d75e6313a6d125af509e8e3a5787a3bc78e439b2a3e07",
+      "bytes": 143163,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com/uploads/new label products pic/ماهی a/قزل-آلا-تازه.png",
+      "master_ids": [
+        134
+      ],
+      "fetched_url": "https://www.mahyaprotein.com/uploads/new%20label%20products%20pic/%D9%85%D8%A7%D9%87%DB%8C%20a/%D9%82%D8%B2%D9%84-%D8%A2%D9%84%D8%A7-%D8%AA%D8%A7%D8%B2%D9%87.png",
+      "local_url": "/images/catalog/c57bbeb761ab7a4aad1ce78fa9cd993b549c632243568193ce7c657ef82d45b6.png",
+      "sha256": "c57bbeb761ab7a4aad1ce78fa9cd993b549c632243568193ce7c657ef82d45b6",
+      "bytes": 68187,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com/uploads/new label products pic/گوساله/ران-گوساله-2.png",
+      "master_ids": [
+        122
+      ],
+      "fetched_url": "https://www.mahyaprotein.com/uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D8%A7%D9%84%D9%87/%D8%B1%D8%A7%D9%86-%DA%AF%D9%88%D8%B3%D8%A7%D9%84%D9%87-2.png",
+      "local_url": "/images/catalog/c7f9bfb5b4cfc3279ecfb2c4fd7964206d6affcf0fdddad3136c0656ed4f0fad.png",
+      "sha256": "c7f9bfb5b4cfc3279ecfb2c4fd7964206d6affcf0fdddad3136c0656ed4f0fad",
+      "bytes": 375365,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com/uploads/new label products pic/گوسفند A/ران-گوسفند2-copy.png",
+      "master_ids": [
+        124
+      ],
+      "fetched_url": "https://www.mahyaprotein.com/uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF%20A/%D8%B1%D8%A7%D9%86-%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF2-copy.png",
+      "local_url": "/images/catalog/2d4f633c7b79dce8944548077b046723b5121570c1755d84a41fdaec816149b0.png",
+      "sha256": "2d4f633c7b79dce8944548077b046723b5121570c1755d84a41fdaec816149b0",
+      "bytes": 61886,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.mahyaprotein.com/uploads/new label products pic/گوسفند A/سردست2-copy.png",
+      "master_ids": [
+        126
+      ],
+      "fetched_url": "https://www.mahyaprotein.com/uploads/new%20label%20products%20pic/%DA%AF%D9%88%D8%B3%D9%81%D9%86%D8%AF%20A/%D8%B3%D8%B1%D8%AF%D8%B3%D8%AA2-copy.png",
+      "local_url": "/images/catalog/6bb54be62d825fb669977b4a3755a3e93a60536c413d1013958b23a47c87ebd7.png",
+      "sha256": "6bb54be62d825fb669977b4a3755a3e93a60536c413d1013958b23a47c87ebd7",
+      "bytes": 61012,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.technolife.com/image/color_image_TLP-15459_1a1a1a_6e05e209-4199-4374-8f6a-d9f36dfcf212.png",
+      "master_ids": [
+        174
+      ],
+      "fetched_url": "https://www.technolife.com/image/color_image_TLP-15459_1a1a1a_6e05e209-4199-4374-8f6a-d9f36dfcf212.png",
+      "local_url": "/images/catalog/32bdfe2ba7f92626e1c07854371c20e699d30637df8caa2164d3d1bea944d74d.png",
+      "sha256": "32bdfe2ba7f92626e1c07854371c20e699d30637df8caa2164d3d1bea944d74d",
+      "bytes": 97578,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.technolife.com/image/color_image_TLP-4905_1a1a1a_f540edf8-99e5-427e-9e0d-493be185897e.png",
+      "master_ids": [
+        176
+      ],
+      "fetched_url": "https://www.technolife.com/image/color_image_TLP-4905_1a1a1a_f540edf8-99e5-427e-9e0d-493be185897e.png",
+      "local_url": "/images/catalog/1bd876306f9df73a16deaac216b391451477d48e2764a7d86cd796d16583961d.webp",
+      "sha256": "1bd876306f9df73a16deaac216b391451477d48e2764a7d86cd796d16583961d",
+      "bytes": 13442,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.technolife.com/image/color_image_TLP-50474_1a1a1a_15c553b3-7c48-4d9e-a9ec-e00334c82f4b.png",
+      "master_ids": [
+        177
+      ],
+      "fetched_url": "https://www.technolife.com/image/color_image_TLP-50474_1a1a1a_15c553b3-7c48-4d9e-a9ec-e00334c82f4b.png",
+      "local_url": "/images/catalog/d39f7956877e35115fab49ce6cf3add580153c17565046468eee67fca92fe586.png",
+      "sha256": "d39f7956877e35115fab49ce6cf3add580153c17565046468eee67fca92fe586",
+      "bytes": 742063,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.technolife.com/image/color_image_TLP-6084_8f8f8f_74bd359d-7d11-467d-9490-38dea8cd0bd8.png",
+      "master_ids": [
+        175
+      ],
+      "fetched_url": "https://www.technolife.com/image/color_image_TLP-6084_8f8f8f_74bd359d-7d11-467d-9490-38dea8cd0bd8.png",
+      "local_url": "/images/catalog/9487424e9c2e1b1bc8a063baa57defef9a786a3f0e265f709ec751899db745f9.webp",
+      "sha256": "9487424e9c2e1b1bc8a063baa57defef9a786a3f0e265f709ec751899db745f9",
+      "bytes": 70980,
+      "status": "recovered"
+    },
+    {
+      "source_url": "https://www.technolife.com/image/color_image_TLP-8200_1a1a1a_2a84e6fa-5a03-4ef9-9275-24df874588f7.png",
+      "master_ids": [
+        178
+      ],
+      "fetched_url": "https://www.technolife.com/image/color_image_TLP-8200_1a1a1a_2a84e6fa-5a03-4ef9-9275-24df874588f7.png",
+      "local_url": "/images/catalog/18d337a22dbf990af69bd322d330edf5590e7762e29807f5d84bf202d496658f.png",
+      "sha256": "18d337a22dbf990af69bd322d330edf5590e7762e29807f5d84bf202d496658f",
+      "bytes": 13296,
+      "status": "recovered"
+    }
+  ]
+}

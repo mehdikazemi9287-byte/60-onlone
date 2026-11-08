@@ -27,11 +27,13 @@ class AppTestCase(unittest.TestCase):
     seed_data = True
 
     def setUp(self) -> None:
+        os.environ["TEST_SALES_OVERRIDE"] = "1"
         self.tmpdir = tempfile.mkdtemp(prefix="70online-test-")
         db_path = os.path.join(self.tmpdir, "test.db")
         self.settings = Settings(
             secret_key=TEST_SECRET,
             database_url=f"sqlite:///{db_path}",
+            app_env="test",
             jwt_algorithm="HS256",
             access_token_ttl_seconds=3600,
             currency="IRR",

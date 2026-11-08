@@ -1,0 +1,13 @@
+{
+  "time": "2026-10-05T17:33:30.247308+00:00",
+  "root": "/home/ubuntu/60online-authoritative",
+  "branch": "phase234-20260906T204535Z",
+  "head": "9d06e4dbe6cf9a065ad87834e87a761396949a86",
+  "git_status_before": " M backend/app/api/v1/procurement.py\n M backend/app/main.py\n M backend/app/services/procurement_service.py\n M frontend/src/app/layout.tsx\n M frontend/src/app/page.tsx\n M frontend/src/app/products/[id]/ProductDetail.tsx\n M frontend/src/components/OrganizationPanel.tsx\n M frontend/src/components/catalog/CatalogBrowser.tsx\n M frontend/src/components/home/PackBuilder.tsx\n M frontend/src/components/product/ProductCard.tsx\n?? .closure-source/\n?? AGENTS.md\n?? backend/app/api/v1/organization_finance_policy.py\n?? backend/app/api/v1/organization_operations.py\n?? backend/app/services/organization_finance_policy.py\n?? backend/app/services/organization_operations_service.py\n?? backend/migrations/0034_organization_intake.sql\n?? backend/migrations/0035_organization_operations.sql\n?? backend/tests/test_organization_finance_policy.py\n?? backend/tests/test_organization_intake.py\n?? backend/tests/test_organization_operations.py\n?? backend/tests/test_organization_operations_context.py\n?? data/\n?? docs/\n?? frontend/public/images/catalog/2eadf74d0a5769e09b5526fd093df1774cbd15b1a3b6c22574a94688d25073c0.png\n?? frontend/public/images/catalog/6301f832205b2c48852c79a1bd96d1e3273f3ed5c14cd887d56bad5333ec8be2.png\n?? frontend/public/images/catalog/d2bb1ca86dd79f1082225fa1a99694f53f00e06a8870e18120183426136d74dd.png\n?? frontend/public/images/catalog/f975c2a8680fb97bf8587f011aaa5f7bf5b574bf9ac8a2afb64ee32701978b5e.png\n?? frontend/src/app/operations/\n?? frontend/src/app/organization/\n?? frontend/src/app/premium.css\n?? frontend/src/components/catalog/CatalogLoading.tsx\n?? frontend/src/components/product/ProductMedia.tsx\n?? releases/\n",
+  "production_source_readonly": "/home/ubuntu/60online-authoritative/releases/20260925-canonical/data/70online.db",
+  "candidate": "/home/ubuntu/60online-authoritative/data/catalog-import-20261006/candidate.db",
+  "isolation": "SQLite online backup into new directory; no service mounts target this directory",
+  "production_changed": false,
+  "scope": "PDF extraction, existing catalog schema import, isolated QA; no UI edits",
+  "prior_visual_org_delta": "QA pending; preserved"
+}

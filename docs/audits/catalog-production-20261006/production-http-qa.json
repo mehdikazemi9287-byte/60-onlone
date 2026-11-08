@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "production_ingress": "http://127.0.0.1 (actual nginx Production routing)",
+  "PDPs": 400,
+  "supplier_search": "PASS",
+  "null_price_no_direct_purchase": 400,
+  "exact_images_http_verified": 3
+}

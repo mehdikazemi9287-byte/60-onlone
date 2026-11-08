@@ -132,7 +132,15 @@ def build_quote(
                 details={"max_redeemable_coins": max_allowed},
             )
     redeem_discount_minor = redeem_coins * loyalty_service.REDEEM_MINOR_PER_COIN
-    subtotal_minor = gross_subtotal_minor - redeem_discount_minor
+    # Subscribe & Save: a confirmed recurring run, while the cart is exactly its list (platform-funded).
+    recurring_run_id, recurring_discount_minor = None, 0
+    cart_row = conn.execute("SELECT id FROM carts WHERE user_id=? AND status='active'", (user_id,)).fetchone()
+    if cart_row is not None and cart["items"]:
+        from app.services import recurring_service
+        recurring_run_id, recurring_discount_minor = recurring_service.discount_for_cart(
+            conn, user_id=user_id, cart_id=int(cart_row["id"]), lines=cart["items"])
+        recurring_discount_minor = min(recurring_discount_minor, gross_subtotal_minor - redeem_discount_minor)
+    subtotal_minor = gross_subtotal_minor - redeem_discount_minor - recurring_discount_minor
 
     # ── VAT calculation ────────────────────────────────────────────────────────
     # Taxable base is the (discount-adjusted) merchandise subtotal; shipping
@@ -176,6 +184,9 @@ def build_quote(
         "redeem_coins": redeem_coins,
         "redeem_discount_minor": redeem_discount_minor,
         "redeem_discount": format_minor(redeem_discount_minor, exponent),
+        "recurring_run_id": recurring_run_id,
+        "recurring_discount_minor": recurring_discount_minor,
+        "recurring_discount": format_minor(recurring_discount_minor, exponent),
         # credit / cash split
         "has_organization_credit": False,
         "organization": None,

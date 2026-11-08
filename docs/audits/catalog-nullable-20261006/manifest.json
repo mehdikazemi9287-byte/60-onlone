@@ -1,0 +1,74 @@
+{
+  "owned_delta_files": [
+    {
+      "path": "backend/app/core/catalog_nullable_migration.py",
+      "sha256": "b8df376536ea6a9c4cf46bfec10e64ba623660b2d8551cc287b75d992602c37f"
+    },
+    {
+      "path": "backend/app/core/migrator.py",
+      "sha256": "ff87ad4dbb2a2347f1bea1f2c40f85d49c17614e316062c24e7d5691e4e2356f"
+    },
+    {
+      "path": "backend/migrations/0043_nullable_master_unit_pack.sql",
+      "sha256": "e5ddb93f7bdfc996e4e848dcf28e6417a3fbc15b9c4d23853fde2fe797ab5199"
+    },
+    {
+      "path": "backend/migrations_postgresql/0043_nullable_master_unit_pack.sql",
+      "sha256": "822e83b589ddc4b4c62a93d73881149883ea1ed9b7171e255dc0d3ad779a00e0"
+    },
+    {
+      "path": "backend/app/services/master_catalog_service.py",
+      "sha256": "4a062416a237de643945bd07d658aa1b44b4cb6b771fc0d75ac8f0571870604d"
+    },
+    {
+      "path": "backend/app/api/v1/master_catalog.py",
+      "sha256": "09a7ff9fa5f262668e9862ef9543b985ac4beb61f4de338111c2f4e0072ad6a9"
+    },
+    {
+      "path": "backend/app/services/catalog_bulk_import_service.py",
+      "sha256": "069c82e0062d2e7cbdb7471f2598b6b155ee851d3f437d1f59391543f6812fa5"
+    },
+    {
+      "path": "backend/app/services/procurement_service.py",
+      "sha256": "da9f16a8b2c034c4bfa025622ca06ba954c4c4da49cda15c7c503c16f91f0a7c"
+    },
+    {
+      "path": "backend/app/adapters/connectors/csv_connector.py",
+      "sha256": "2159e661d974dc3746531e5b25151e472b9274bb4c82486900708c3363578cc9"
+    },
+    {
+      "path": "backend/scripts/import_pdf_catalog.py",
+      "sha256": "4508463f39478729f676eff430b393ceded38df6b8cfa4b14fcab853fa585649"
+    },
+    {
+      "path": "backend/tests/test_catalog_nullable_candidate.py",
+      "sha256": "9133c74da4c963d8b60d8f8d6a8d6072b1edc1ffe10e3a14867537c3a8104056"
+    },
+    {
+      "path": "frontend/src/components/catalog/RequestProductPicker.tsx",
+      "sha256": "341678f08c09fb8d410c6a9c2a44b3c83d807b59628e659df2fe57fea19e92d4"
+    },
+    {
+      "path": "frontend/src/components/OrganizationPanel.tsx",
+      "sha256": "c9612769451c310ff6f8a139db8bdd3f0a59f1ab40bef6bc3478073cd0b6d593"
+    },
+    {
+      "path": "frontend/src/components/home/PackBuilder.tsx",
+      "sha256": "8c63e7149051bcdeb0fc84c9de583a01fba6388305d589620e869e65f11d98c2"
+    },
+    {
+      "path": "frontend/src/components/PurchaseDocument.tsx",
+      "sha256": "b0f00ca4ace02f4e2d3d008792be20facd9bf9b0be58d8893508b4d15e939afd"
+    },
+    {
+      "path": "frontend/src/app/organization/requests/page.tsx",
+      "sha256": "1d8d34604e197761d7ba7b5721db0eb3eff8146f8de8a169864a5a21a432fbe9"
+    },
+    {
+      "path": "frontend/src/app/operations/requests/page.tsx",
+      "sha256": "02de20eceaafe074f8dd30d9186f6b7ac5ee4345ed95fc295e6fd2fd5ad45e9d"
+    }
+  ],
+  "existing_dirty_changes_preserved": true,
+  "Production_changed": false
+}

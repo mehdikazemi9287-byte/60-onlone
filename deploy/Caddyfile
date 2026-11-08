@@ -1,0 +1,47 @@
+# Automatic HTTPS (Let's Encrypt) for both brands. DNS A records of both domains (and www) must point at this host.
+{
+	email {$ACME_EMAIL}
+}
+
+(app) {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+	# The API (incl. media and feeds under /api/v1) goes to Flask; everything else to Next.js
+	@api path /api/*
+	handle @api {
+		reverse_proxy backend:8000 {
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+	handle {
+		reverse_proxy frontend:3000
+	}
+	request_body {
+		max_size 20MB
+	}
+	log {
+		output stdout
+		format json
+	}
+}
+
+{$MAIN_DOMAIN} {
+	import app
+}
+
+www.{$MAIN_DOMAIN} {
+	redir https://{$MAIN_DOMAIN}{uri} permanent
+}
+
+{$VAMBI_DOMAIN} {
+	import app
+}
+
+www.{$VAMBI_DOMAIN} {
+	redir https://{$VAMBI_DOMAIN}{uri} permanent
+}

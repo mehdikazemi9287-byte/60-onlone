@@ -15,7 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import load_settings  # noqa: E402
-from app.core.db import Database  # noqa: E402
+from app.core.db import Database, make_backend  # noqa: E402
 from app.services import loyalty_service  # noqa: E402
 
 
@@ -24,7 +24,7 @@ def main() -> int:
         print("disabled: LOYALTY_EXPIRY_DAYS is not configured with an approved positive value")
         return 0
     settings = load_settings()
-    db = Database(settings.sqlite_path)
+    db = make_backend(settings.database_url)
 
     with db.read_transaction() as conn:
         user_ids = [

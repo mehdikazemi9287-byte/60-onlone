@@ -1,0 +1,5 @@
+-- Applied atomically by app.core.catalog_nullable_migration via the existing
+-- migrator. SQLite reconstruction preserves all populated values, IDs, checks,
+-- foreign keys and indexes; original table retained as rollback-only archive.
+-- No DROP, DELETE, restore-overwrite, fabricated defaults or business updates.
+-- implementation-sha256: b8df376536ea6a9c4cf46bfec10e64ba623660b2d8551cc287b75d992602c37f

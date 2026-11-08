@@ -6,6 +6,10 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+# NEXT_PUBLIC_* are baked into the client bundle at build time
+ARG NEXT_PUBLIC_API_URL=""
+ARG NEXT_PUBLIC_MAIN_SITE=""
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL NEXT_PUBLIC_MAIN_SITE=$NEXT_PUBLIC_MAIN_SITE
 RUN npm run build
 
 ENV NODE_ENV=production

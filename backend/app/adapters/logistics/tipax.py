@@ -41,6 +41,10 @@ class TipaxCarrierAdapter(CarrierAdapter):
 
     provider_code = "tipax"
     implementation_status = "not_implemented"
+    # Phase 5C: carrier status code -> normalized tracking status. PROVISIONAL codes,
+    # to be confirmed against official docs; overridable per carrier via
+    # logistics_carriers.status_map_json.
+    TRACKING_STATUS_MAP: dict[str, str] = {"REGISTERED": "created", "COLLECTED": "picked_up", "IN_HUB": "in_transit", "IN_TRANSIT": "in_transit", "OUT_FOR_DELIVERY": "out_for_delivery", "DELIVERED": "delivered", "UNDELIVERED": "failed", "RETURNED": "returned"}
 
     def __init__(self, config: dict | None = None):
         self._config = config or {}

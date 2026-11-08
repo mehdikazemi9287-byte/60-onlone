@@ -51,3 +51,10 @@ export function relativeTime(date: Date): string {
 export function clamp(val: number, min: number, max: number): number {
   return Math.min(Math.max(val, min), max);
 }
+
+/** Jalali date (fa-IR) of an ISO/SQL timestamp, e.g. «۱۴۰۵/۷/۱۲»; empty when missing/invalid. */
+export function faDate(value: string | null | undefined): string {
+  if (!value) return "";
+  const d = new Date(value.includes("T") ? value : value.replace(" ", "T") + "Z");
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fa-IR-u-ca-persian");
+}

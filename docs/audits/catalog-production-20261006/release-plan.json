@@ -1,0 +1,26 @@
+{
+  "plan_sha256": "eb6d0755b5d4b57a70faa65678fc955ba5fb4bcd51c23815876e7471888b203c",
+  "summary": {
+    "آریا": {
+      "source_rows": 344,
+      "identities": 233,
+      "create": 233,
+      "match": 0,
+      "review": 0,
+      "skip": 0,
+      "source_update": 0
+    },
+    "پویا پروتئین": {
+      "source_rows": 167,
+      "identities": 167,
+      "create": 167,
+      "match": 0,
+      "review": 0,
+      "skip": 0,
+      "source_update": 0
+    }
+  },
+  "migration_checksum": "e5ddb93f7bdfc996e4e848dcf28e6417a3fbc15b9c4d23853fde2fe797ab5199",
+  "verified_records": 400,
+  "quarantined_excluded": 1
+}

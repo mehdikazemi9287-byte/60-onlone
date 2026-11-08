@@ -16,6 +16,7 @@ Column names match migration 0005 exactly:
 from __future__ import annotations
 
 import datetime
+import json
 from typing import Any
 
 from app.core.errors import ConflictError, PermissionError_, NotFoundError, ValidationError
@@ -25,12 +26,15 @@ from app.services.procurement_service import _assert_org_member, _can_procure, _
 # ── Number generation ──────────────────────────────────────────────────────────
 
 def _next_rfq_number(conn, organization_id: int) -> str:
+    # rfq_number is globally unique, not organization-scoped. The caller owns
+    # the serialized write transaction; preserve every previously issued value.
     today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d")
-    count = conn.execute(
-        "SELECT COUNT(*) FROM rfqs WHERE organization_id=?",
-        (organization_id,),
+    prefix = f"RFQ-{today}-"
+    highest = conn.execute(
+        "SELECT COALESCE(MAX(CAST(SUBSTR(rfq_number, ?) AS INTEGER)),0) FROM rfqs WHERE rfq_number LIKE ?",
+        (len(prefix)+1, prefix+"%"),
     ).fetchone()[0]
-    return f"RFQ-{today}-{count + 1:04d}"
+    return f"{prefix}{highest+1:04d}"
 
 
 def _next_quote_number(conn, organization_id: int) -> str:
@@ -69,6 +73,7 @@ def _rfq_item_dict(row) -> dict:
         "purchase_request_item_id": row["purchase_request_item_id"],
         "master_product_id": row["master_product_id"],
         "free_text_description": row["free_text_description"],
+        "product_name_fa": row["product_name_fa"] if "product_name_fa" in row.keys() else row["free_text_description"],
         "quantity": row["quantity_requested"],  # expose as 'quantity' for API compatibility
         "unit": row["unit"],
         "notes": row["notes"],
@@ -113,6 +118,8 @@ def _quote_dict(row) -> dict:
         "notes": row["notes"],
         "submitted_at": row["submitted_at"],
         "created_at": row["created_at"],
+        "revision": row["revision"] if "revision" in keys else 1,
+        "warranty_terms": row["warranty_terms"] if "warranty_terms" in keys else None,
     }
 
 
@@ -125,6 +132,10 @@ def _quote_item_dict(row) -> dict:
         "quantity": row["quantity_available"],  # alias
         "total_price_minor": row["total_minor"],  # alias
         "notes": row["notes"],
+        "discount_minor": row["discount_minor"],
+        "vat_amount_minor": row["vat_amount_minor"],
+        "alternative_description": row["alternative_description"] if "alternative_description" in row.keys() else None,
+        "delivery_date": row["delivery_date"] if "delivery_date" in row.keys() else None,
     }
 
 
@@ -152,7 +163,7 @@ def create_rfq(
     ).fetchone()
     if not pr_row:
         raise NotFoundError("درخواست خرید یافت نشد")
-    if pr_row["status"] not in ("approved", "sourcing"):
+    if pr_row["status"] not in ("approved", "sourcing", "quoted"):
         raise ConflictError(
             f"درخواست خرید باید در وضعیت 'approved' باشد (وضعیت فعلی: '{pr_row['status']}')"
         )
@@ -160,6 +171,18 @@ def create_rfq(
     title = (title or "").strip()
     if not title:
         raise ValidationError("عنوان استعلام الزامی است")
+
+    if items is not None:
+        if not isinstance(items,list) or not items or len(items)>50:
+            raise ValidationError("اقلام استعلام نامعتبر است")
+        from app.services.procurement_coverage import requested,link,committed
+        approved_items,awarded=committed(conn,purchase_request_id);prepared=[];seen=set()
+        for item in items:
+            if not isinstance(item,dict):raise ValidationError("ردیف استعلام نامعتبر است")
+            original=link(item,approved_items);qty=item.get("quantity")
+            if type(qty) is not int or not 1<=qty<=original['quantity']-awarded[original['id']] or original['id'] in seen:raise ValidationError("مقدار یا ردیف تکراری استعلام نامعتبر است")
+            seen.add(original['id']);prepared.append({**item,'purchase_request_item_id':original['id'],'master_product_id':original['master_product_id'],'free_text_description':original['free_text_description'],'unit':original['unit']})
+        items=prepared
 
     rfq_number = _next_rfq_number(conn, organization_id)
     cur = conn.execute(
@@ -172,6 +195,7 @@ def create_rfq(
     )
     rfq_id = cur.lastrowid
 
+    from app.services.product_channel_policy import require_master
     pr_items = items or []
     if not pr_items:
         # Copy all PR items
@@ -180,6 +204,7 @@ def create_rfq(
             (purchase_request_id,),
         ).fetchall()
         for pri in pr_items_rows:
+            require_master(conn,pri["master_product_id"],"organization")
             conn.execute(
                 """INSERT INTO rfq_items
                    (rfq_id, purchase_request_item_id, master_product_id,
@@ -190,6 +215,7 @@ def create_rfq(
             )
     else:
         for item in pr_items:
+            require_master(conn,item.get("master_product_id"),"organization")
             qty = item.get("quantity", 0)
             if not isinstance(qty, int) or qty < 1:
                 raise ValidationError("تعداد باید عدد صحیح مثبت باشد")
@@ -226,7 +252,7 @@ def get_rfq(conn, rfq_id: int, *, actor_user_id: int, organization_id: int) -> d
         raise NotFoundError("استعلام یافت نشد")
     rfq = _rfq_dict(row)
     items = conn.execute(
-        "SELECT * FROM rfq_items WHERE rfq_id=? ORDER BY id", (rfq_id,)
+        "SELECT ri.*,mp.canonical_name_fa AS product_name_fa FROM rfq_items ri LEFT JOIN master_products mp ON mp.id=ri.master_product_id WHERE ri.rfq_id=? ORDER BY ri.id", (rfq_id,)
     ).fetchall()
     rfq["items"] = [_rfq_item_dict(i) for i in items]
     suppliers = conn.execute(
@@ -260,7 +286,7 @@ def list_rfqs(
     result = []
     for r in rows:
         rfq = _rfq_dict(r)
-        items = conn.execute("SELECT * FROM rfq_items WHERE rfq_id=? ORDER BY id", (r["id"],)).fetchall()
+        items = conn.execute("SELECT ri.*,mp.canonical_name_fa AS product_name_fa FROM rfq_items ri LEFT JOIN master_products mp ON mp.id=ri.master_product_id WHERE ri.rfq_id=? ORDER BY ri.id", (r["id"],)).fetchall()
         rfq["items"] = [_rfq_item_dict(i) for i in items]
         suppliers = conn.execute("SELECT * FROM rfq_suppliers WHERE rfq_id=? ORDER BY id", (r["id"],)).fetchall()
         rfq["suppliers"] = [_rfq_supplier_dict(s) for s in suppliers]
@@ -283,9 +309,13 @@ def invite_supplier_to_rfq(
     if row["status"] not in ("draft", "open"):
         raise ConflictError(f"استعلام در وضعیت '{row['status']}' قابل دعوت نیست")
 
-    sup = conn.execute("SELECT id FROM suppliers WHERE id=?", (supplier_id,)).fetchone()
+    sup = conn.execute("SELECT id, provenance FROM suppliers WHERE id=?", (supplier_id,)).fetchone()
     if not sup:
         raise NotFoundError("تأمین‌کننده یافت نشد")
+    org_prov = conn.execute("SELECT provenance FROM organizations WHERE id=?", (organization_id,)).fetchone()["provenance"]
+    if (org_prov == "real") != (sup["provenance"] == "real"):
+        raise ConflictError("تأمین‌کننده نمایشی/آزمایشی و سازمان واقعی (یا برعکس) نمی‌توانند در یک استعلام باشند",
+                            code="provenance_mismatch")
 
     existing = conn.execute(
         "SELECT id FROM rfq_suppliers WHERE rfq_id=? AND supplier_id=?",
@@ -317,6 +347,8 @@ def open_rfq(conn, rfq_id: int, *, actor_user_id: int, organization_id: int) -> 
     if row["status"] != "draft":
         raise ConflictError(f"استعلام در وضعیت '{row['status']}' است و قابل باز کردن نیست")
 
+    from app.services.product_channel_policy import require_references
+    require_references(conn,"rfq_items","rfq_id",rfq_id)
     count = conn.execute("SELECT COUNT(*) FROM rfq_suppliers WHERE rfq_id=?", (rfq_id,)).fetchone()[0]
     if count == 0:
         raise ValidationError("حداقل یک تأمین‌کننده باید دعوت شده باشد")
@@ -382,6 +414,7 @@ def submit_supplier_quote(
     delivery_lead_days: int | None = None,
     validity_days: int | None = None,
     notes: str | None = None,
+    warranty_terms: str | None = None,
     vat_rate_bps: int | None = None,
     # When None (default), the STANDARD rate is looked up from tax_rates for today.
     # Pass an explicit int only when the caller has already resolved the rate
@@ -402,9 +435,9 @@ def submit_supplier_quote(
 
     rfq_supplier_id = inv_row["id"]
 
-    if not items:
-        raise ValidationError("حداقل یک ردیف قیمت الزامی است")
-    if shipping_cost_minor < 0:
+    if not isinstance(items,list) or not 1 <= len(items) <= 50 or any(not isinstance(i,dict) for i in items):
+        raise ValidationError("یک تا ۵۰ ردیف قیمت معتبر لازم است")
+    if isinstance(shipping_cost_minor,bool) or not isinstance(shipping_cost_minor,int) or shipping_cost_minor < 0:
         raise ValidationError("هزینه ارسال نمی‌تواند منفی باشد")
 
     organization_id = rfq_row["organization_id"]
@@ -419,23 +452,42 @@ def submit_supplier_quote(
     # Build items with computed totals
     prepared_items = []
     items_total = 0
+    seen_items=set()
     for item in items:
         rfq_item_id = item.get("rfq_item_id")
-        unit_price = item.get("unit_price_minor", 0)
+        unit_price = item.get("unit_price_minor")
         qty = item.get("quantity")
-        if rfq_item_id is None:
+        if isinstance(rfq_item_id,bool) or not isinstance(rfq_item_id,int) or rfq_item_id < 1:
             raise ValidationError("شناسه ردیف استعلام الزامی است")
-        if unit_price is None or unit_price < 0:
+        if rfq_item_id in seen_items:
+            raise ValidationError("ردیف استعلام تکراری است")
+        seen_items.add(rfq_item_id)
+        if isinstance(unit_price,bool) or not isinstance(unit_price,int) or unit_price < 0:
             raise ValidationError("قیمت واحد نمی‌تواند منفی باشد")
         rfq_item_row = conn.execute(
             "SELECT * FROM rfq_items WHERE id=? AND rfq_id=?", (rfq_item_id, rfq_id)
         ).fetchone()
         if not rfq_item_row:
             raise NotFoundError(f"ردیف استعلام {rfq_item_id} یافت نشد")
+        from app.services.product_channel_policy import require_master
+        require_master(conn,rfq_item_row["master_product_id"],"organization")
         actual_qty = qty if qty is not None else rfq_item_row["quantity_requested"]
-        if not isinstance(actual_qty, int) or actual_qty < 1:
+        if isinstance(actual_qty,bool) or not isinstance(actual_qty, int) or actual_qty < 1:
             raise ValidationError("تعداد باید عدد صحیح مثبت باشد")
-        item_total = unit_price * actual_qty
+        discount = item.get("discount_minor", 0)
+        if isinstance(discount, bool) or not isinstance(discount, int) or not 0 <= discount <= unit_price * actual_qty:
+            raise ValidationError("تخفیف ردیف نامعتبر است")
+        alternative = item.get("alternative_description")
+        if alternative is not None and (not isinstance(alternative, str) or len(alternative) > 1000):
+            raise ValidationError("شرح کالای جایگزین نامعتبر است")
+        delivery_date = item.get("delivery_date")
+        if delivery_date is not None:
+            try:
+                if not isinstance(delivery_date, str) or datetime.date.fromisoformat(delivery_date).isoformat() != delivery_date:
+                    raise ValueError()
+            except (TypeError, ValueError):
+                raise ValidationError("تاریخ تحویل باید به صورت YYYY-MM-DD باشد")
+        item_total = unit_price * actual_qty - discount
         # BLOCKER 5: integer floor division — no float arithmetic on money
         vat_amount = (item_total * vat_rate_bps) // 10_000
         prepared_items.append({
@@ -444,9 +496,11 @@ def submit_supplier_quote(
             "quantity_available": actual_qty,
             "vat_rate_bps": vat_rate_bps,
             "vat_amount_minor": vat_amount,
-            "discount_minor": 0,
+            "discount_minor": discount,
             "total_minor": item_total,
             "notes": item.get("notes"),
+            "alternative_description": alternative,
+            "delivery_date": delivery_date,
         })
         items_total += item_total
 
@@ -456,21 +510,45 @@ def submit_supplier_quote(
     shipping_vat = (shipping_cost_minor * vat_rate_bps) // 10_000
     total_vat = items_vat + shipping_vat
     grand_total = items_total + shipping_cost_minor + total_vat
+    if grand_total > 9007199254740991:
+        raise ValidationError("مبلغ پیشنهاد بیش از دامنه عدد صحیح قابل نمایش است")
 
-    cur = conn.execute(
-        """INSERT INTO supplier_quotes
-           (rfq_id, supplier_id, rfq_supplier_id, quote_number, status,
-            total_items_minor, shipping_cost_minor, grand_total_minor,
-            vat_amount_minor, shipping_vat_minor, shipping_vat_rate_bps,
-            payment_terms, delivery_lead_days, validity_days, notes, submitted_at)
-           VALUES (?,?,?,?,'submitted',?,?,?,?,?,?,?,?,?,?,?)""",
-        (rfq_id, supplier_id, rfq_supplier_id, quote_number,
-         items_total, shipping_cost_minor, grand_total,
-         items_vat, shipping_vat, vat_rate_bps,
-         payment_terms, delivery_lead_days, validity_days, notes, now),
-    )
-    quote_id = cur.lastrowid
-
+    if warranty_terms is not None and (not isinstance(warranty_terms, str) or len(warranty_terms) > 1000):
+        raise ValidationError("شرایط گارانتی نامعتبر است")
+    previous = conn.execute(
+        "SELECT * FROM supplier_quotes WHERE rfq_id=? AND supplier_id=?", (rfq_id, supplier_id)
+    ).fetchone()
+    if previous and previous["status"] != "submitted":
+        raise ConflictError("پیشنهاد قبلی نهایی شده و قابل بازنگری نیست")
+    if previous:
+        # Revision: one quote row per supplier (UNIQUE); earlier revisions are kept
+        # in the append-only supplier_quote_revisions table before the row changes.
+        _snapshot_quote_revision(conn, previous["id"])
+        quote_id = previous["id"]
+        conn.execute(
+            """UPDATE supplier_quotes SET total_items_minor=?, shipping_cost_minor=?, grand_total_minor=?,
+                   vat_amount_minor=?, shipping_vat_minor=?, shipping_vat_rate_bps=?, payment_terms=?,
+                   delivery_lead_days=?, validity_days=?, notes=?, warranty_terms=?, submitted_at=?,
+                   updated_at=?, revision=revision+1 WHERE id=?""",
+            (items_total, shipping_cost_minor, grand_total, items_vat, shipping_vat, vat_rate_bps,
+             payment_terms, delivery_lead_days, validity_days, notes, warranty_terms, now, now, quote_id),
+        )
+        conn.execute("DELETE FROM supplier_quote_items WHERE supplier_quote_id=?", (quote_id,))
+    else:
+        cur = conn.execute(
+            """INSERT INTO supplier_quotes
+               (rfq_id, supplier_id, rfq_supplier_id, quote_number, status,
+                total_items_minor, shipping_cost_minor, grand_total_minor,
+                vat_amount_minor, shipping_vat_minor, shipping_vat_rate_bps,
+                payment_terms, delivery_lead_days, validity_days, notes, submitted_at)
+               VALUES (?,?,?,?,'submitted',?,?,?,?,?,?,?,?,?,?,?)""",
+            (rfq_id, supplier_id, rfq_supplier_id, quote_number,
+             items_total, shipping_cost_minor, grand_total,
+             items_vat, shipping_vat, vat_rate_bps,
+             payment_terms, delivery_lead_days, validity_days, notes, now),
+        )
+        quote_id = cur.lastrowid
+        conn.execute("UPDATE supplier_quotes SET warranty_terms=? WHERE id=?", (warranty_terms, quote_id))
     for item in prepared_items:
         conn.execute(
             """INSERT INTO supplier_quote_items
@@ -481,14 +559,40 @@ def submit_supplier_quote(
              item["quantity_available"], item["vat_rate_bps"], item["vat_amount_minor"],
              item["discount_minor"], item["total_minor"], item["notes"]),
         )
+        conn.execute(
+            "UPDATE supplier_quote_items SET alternative_description=?, delivery_date=? WHERE id=last_insert_rowid()",
+            (item["alternative_description"], item["delivery_date"]),
+        )
+
+    _snapshot_quote_revision(conn, quote_id)
 
     # Update rfq_suppliers status to responded
     conn.execute(
-        "UPDATE rfq_suppliers SET status='responded' WHERE rfq_id=? AND supplier_id=?",
-        (rfq_id, supplier_id),
+        "UPDATE rfq_suppliers SET status='responded', responded_at=? WHERE rfq_id=? AND supplier_id=?",
+        (now, rfq_id, supplier_id),
     )
+    from app.services import procurement_notify
+    procurement_notify.on_quote_submitted(conn, rfq_id=rfq_id, supplier_id=supplier_id)
 
     return get_supplier_quote(conn, quote_id)
+
+
+def _snapshot_quote_revision(conn, quote_id: int) -> None:
+    """Record the quote as it stands now; the revisions table is append-only."""
+    q = conn.execute("SELECT * FROM supplier_quotes WHERE id=?", (quote_id,)).fetchone()
+    snap = _quote_dict(q)
+    snap["items"] = [_quote_item_dict(i) for i in conn.execute(
+        "SELECT * FROM supplier_quote_items WHERE supplier_quote_id=? ORDER BY id", (quote_id,))]
+    conn.execute(
+        "INSERT OR IGNORE INTO supplier_quote_revisions (supplier_quote_id, revision, snapshot_json) VALUES (?,?,?)",
+        (quote_id, q["revision"], json.dumps(snap, ensure_ascii=False)),
+    )
+
+
+def list_quote_revisions(conn, quote_id: int) -> list[dict]:
+    return [{"revision": r["revision"], "created_at": r["created_at"], "quote": json.loads(r["snapshot_json"])}
+            for r in conn.execute(
+                "SELECT * FROM supplier_quote_revisions WHERE supplier_quote_id=? ORDER BY revision", (quote_id,))]
 
 
 def get_supplier_quote(conn, quote_id: int) -> dict:
@@ -535,7 +639,7 @@ def get_rfq_comparison(conn, rfq_id: int, *, actor_user_id: int, organization_id
     if rfq_row["status"] not in ("closed", "open", "awarded"):
         raise ConflictError("مقایسه فقط برای استعلام‌های باز، بسته یا جایزه‌یافته امکان‌پذیر است")
 
-    rfq_items = conn.execute("SELECT * FROM rfq_items WHERE rfq_id=? ORDER BY id", (rfq_id,)).fetchall()
+    rfq_items = conn.execute("SELECT ri.*,mp.canonical_name_fa AS product_name_fa FROM rfq_items ri LEFT JOIN master_products mp ON mp.id=ri.master_product_id WHERE ri.rfq_id=? ORDER BY ri.id", (rfq_id,)).fetchall()
     quotes = conn.execute("SELECT * FROM supplier_quotes WHERE rfq_id=? ORDER BY id", (rfq_id,)).fetchall()
 
     comparison_quotes = []
@@ -572,6 +676,10 @@ def get_rfq_comparison(conn, rfq_id: int, *, actor_user_id: int, organization_id
             "delivery_lead_days": q["delivery_lead_days"],
             "validity_days": q["validity_days"],
             "submitted_at": q["submitted_at"],
+            "revision": q["revision"],
+            "warranty_terms": q["warranty_terms"],
+            "vat_amount_minor": (q["vat_amount_minor"] or 0) + (q["shipping_vat_minor"] or 0),
+            "discount_minor": sum(qi["discount_minor"] or 0 for qi in q_items),
             "items": [_quote_item_dict(qi) for qi in q_items],
         })
 
@@ -613,6 +721,8 @@ def award_rfq(
     if rfq_row["status"] != "closed":
         raise ConflictError(f"فقط استعلام بسته قابل جایزه دادن است (وضعیت: '{rfq_row['status']}')")
 
+    from app.services.product_channel_policy import require_references
+    require_references(conn,"rfq_items","rfq_id",rfq_id)
     win_quote = conn.execute(
         "SELECT * FROM supplier_quotes WHERE id=? AND rfq_id=?", (winning_quote_id, rfq_id)
     ).fetchone()
@@ -620,6 +730,9 @@ def award_rfq(
         raise NotFoundError("قیمت‌نامه برنده یافت نشد")
     if win_quote["status"] != "submitted":
         raise ConflictError("قیمت‌نامه برنده باید در وضعیت 'submitted' باشد")
+
+    from app.services.procurement_coverage import proposal
+    covered=proposal(conn,rfq_row['purchase_request_id'],winning_quote_id) if rfq_row['purchase_request_id'] else True
 
     now = _now()
 
@@ -637,8 +750,8 @@ def award_rfq(
 
     if rfq_row["purchase_request_id"]:
         conn.execute(
-            "UPDATE purchase_requests SET status='awarded', updated_at=? WHERE id=?",
-            (now, rfq_row["purchase_request_id"]),
+            "UPDATE purchase_requests SET status=?, updated_at=? WHERE id=?",
+            ("awarded" if covered else "sourcing", now, rfq_row["purchase_request_id"]),
         )
 
     _audit(conn, organization_id=organization_id, actor_user_id=actor_user_id,
@@ -667,7 +780,7 @@ def list_supplier_invited_rfqs(conn, supplier_id: int) -> list[dict]:
         rfq = _rfq_dict(r)
         rfq["supplier_status"] = r["supplier_status"]
         rfq["invited_at"] = r["invited_at"]
-        items = conn.execute("SELECT * FROM rfq_items WHERE rfq_id=? ORDER BY id", (r["id"],)).fetchall()
+        items = conn.execute("SELECT ri.*,mp.canonical_name_fa AS product_name_fa FROM rfq_items ri LEFT JOIN master_products mp ON mp.id=ri.master_product_id WHERE ri.rfq_id=? ORDER BY ri.id", (r["id"],)).fetchall()
         rfq["items"] = [_rfq_item_dict(i) for i in items]
         result.append(rfq)
     return result

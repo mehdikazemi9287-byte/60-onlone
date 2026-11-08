@@ -1,0 +1,149 @@
+-- Phase 6: category attribute schemas (inherited down the tree), typed attribute values, variation themes,
+-- listing policies, external category mappings and units of measure. Additive only.
+-- Number convention: every measure/number value is an INTEGER in milli-canonical units (canonical × 1000),
+-- e.g. 1.5 kg → weight_g canonical g → 1 500 000. units.factor_to_canonical = milli-canonical per 1 unit.
+
+-- Taxonomy nodes created by the Phase 6 seed (NULL = pre-existing/real); empty seeded nodes stay out of the legacy flat list.
+ALTER TABLE categories ADD COLUMN seed_source TEXT;
+
+CREATE TABLE units (
+    code                TEXT PRIMARY KEY,
+    name_fa             TEXT NOT NULL,
+    kind                TEXT NOT NULL,
+    factor_to_canonical BIGINT NOT NULL CHECK (factor_to_canonical > 0),
+    is_canonical        INTEGER NOT NULL DEFAULT 0 CHECK (is_canonical IN (0,1)),
+    aliases             TEXT NOT NULL DEFAULT ''
+);
+INSERT INTO units (code, name_fa, kind, factor_to_canonical, is_canonical, aliases) VALUES
+ ('mg', 'میلی‌گرم', 'weight', 1, 0, 'میلی گرم,میلیگرم,mg'),
+ ('g', 'گرم', 'weight', 1000, 1, 'گرم,گرمی,گ,gr,gram,g'),
+ ('kg', 'کیلوگرم', 'weight', 1000000, 0, 'کیلوگرم,کیلو گرم,کیلو,کیلویی,کیلوگرمی,kg,kilo'),
+ ('ml', 'میلی‌لیتر', 'volume', 1000, 1, 'میلی لیتر,میلیلیتر,میلی‌لیتر,سی سی,سی‌سی,cc,ml'),
+ ('l', 'لیتر', 'volume', 1000000, 0, 'لیتر,لیتری,lit,litre,liter,l'),
+ ('mm', 'میلی‌متر', 'length', 1000, 1, 'میلی متر,میلیمتر,میلی‌متر,mm'),
+ ('cm', 'سانتی‌متر', 'length', 10000, 0, 'سانتی متر,سانتیمتر,سانتی‌متر,سانت,cm'),
+ ('m', 'متر', 'length', 1000000, 0, 'متر,m'),
+ ('w', 'وات', 'power', 1000, 1, 'وات,w,watt'),
+ ('kw', 'کیلووات', 'power', 1000000, 0, 'کیلووات,کیلو وات,kw'),
+ ('pcs', 'عدد', 'count', 1000, 1, 'عدد,عددی,تایی,pcs,pc'),
+ ('gsm', 'گرم بر متر مربع', 'grammage', 1000, 1, 'گرم,گرمی,gsm,g/m2'),
+ ('month', 'ماه', 'time', 1000, 1, 'ماه,ماهه,month');
+
+CREATE TABLE attribute_definitions (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    code          TEXT NOT NULL UNIQUE,
+    name_fa       TEXT NOT NULL,
+    data_type     TEXT NOT NULL CHECK (data_type IN ('text','number','integer','boolean','enum','multi_enum','measure','date')),
+    unit_kind     TEXT,
+    canonical_unit TEXT REFERENCES units(code),
+    min_value     INTEGER,
+    max_value     INTEGER,
+    regex         TEXT,
+    help_fa       TEXT,
+    status        TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','archived')),
+    created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    CHECK (data_type <> 'measure' OR (unit_kind IS NOT NULL AND canonical_unit IS NOT NULL))
+);
+
+CREATE TABLE attribute_options (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    attribute_id INTEGER NOT NULL REFERENCES attribute_definitions(id) ON DELETE CASCADE,
+    code         TEXT NOT NULL,
+    label_fa     TEXT NOT NULL,
+    sort         INTEGER NOT NULL DEFAULT 0,
+    is_active    INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+    UNIQUE (attribute_id, code)
+);
+
+-- NULL flag = inherit from the nearest ancestor row (root default 0); inherit=0 stops propagation to descendants.
+CREATE TABLE category_attributes (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id       INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    attribute_id      INTEGER NOT NULL REFERENCES attribute_definitions(id) ON DELETE CASCADE,
+    required          INTEGER CHECK (required IS NULL OR required IN (0,1)),
+    is_filterable     INTEGER CHECK (is_filterable IS NULL OR is_filterable IN (0,1)),
+    is_variant_axis   INTEGER CHECK (is_variant_axis IS NULL OR is_variant_axis IN (0,1)),
+    is_searchable     INTEGER CHECK (is_searchable IS NULL OR is_searchable IN (0,1)),
+    display_group_fa  TEXT,
+    sort              INTEGER,
+    inherit           INTEGER NOT NULL DEFAULT 1 CHECK (inherit IN (0,1)),
+    UNIQUE (category_id, attribute_id)
+);
+CREATE INDEX idx_category_attributes_attr ON category_attributes(attribute_id);
+
+-- Amazon-style variation themes: axes = comma-separated attribute codes (e.g. 'weight_g,pack_count').
+CREATE TABLE category_variation_themes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    code        TEXT NOT NULL,
+    name_fa     TEXT NOT NULL,
+    axes        TEXT NOT NULL,
+    is_default  INTEGER NOT NULL DEFAULT 1 CHECK (is_default IN (0,1)),
+    UNIQUE (category_id, code)
+);
+ALTER TABLE product_families ADD COLUMN variation_theme_code TEXT;
+
+-- Typed values per variant (master_products). value_key = option code for multi_enum rows, '' otherwise.
+CREATE TABLE product_attribute_values (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    master_product_id INTEGER NOT NULL REFERENCES master_products(id) ON DELETE CASCADE,
+    attribute_id      INTEGER NOT NULL REFERENCES attribute_definitions(id) ON DELETE CASCADE,
+    value_key         TEXT NOT NULL DEFAULT '',
+    value_text        TEXT,
+    value_number      BIGINT,  -- milli-canonical; BIGINT so PostgreSQL holds e.g. 10 m = 10 000 000
+    value_bool        INTEGER CHECK (value_bool IS NULL OR value_bool IN (0,1)),
+    option_id         INTEGER REFERENCES attribute_options(id),
+    unit_entered      TEXT,
+    raw_value         TEXT,
+    source            TEXT NOT NULL DEFAULT 'seller' CHECK (source IN ('seller','admin','backfill','import')),
+    created_at        TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at        TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    UNIQUE (master_product_id, attribute_id, value_key)
+);
+CREATE INDEX idx_pav_option ON product_attribute_values(attribute_id, option_id, master_product_id);
+CREATE INDEX idx_pav_number ON product_attribute_values(attribute_id, value_number, master_product_id);
+CREATE INDEX idx_pav_bool ON product_attribute_values(attribute_id, value_bool, master_product_id);
+
+-- Listing policy per category; every NULL field inherits from the nearest ancestor policy.
+CREATE TABLE category_listing_policies (
+    id                        INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id               INTEGER NOT NULL UNIQUE REFERENCES categories(id) ON DELETE CASCADE,
+    required_attribute_codes  TEXT,
+    min_images                INTEGER CHECK (min_images IS NULL OR min_images BETWEEN 0 AND 20),
+    title_template            TEXT,
+    max_title_length          INTEGER CHECK (max_title_length IS NULL OR max_title_length BETWEEN 10 AND 500),
+    banned_words              TEXT,
+    withdrawal_exempt_default TEXT CHECK (withdrawal_exempt_default IS NULL OR withdrawal_exempt_default IN ('none','perishable','custom_made','hygiene','digital')),
+    requires_cold_chain       INTEGER CHECK (requires_cold_chain IS NULL OR requires_cold_chain IN (0,1)),
+    is_perishable             INTEGER CHECK (is_perishable IS NULL OR is_perishable IN (0,1)),
+    is_fragile                INTEGER CHECK (is_fragile IS NULL OR is_fragile IN (0,1)),
+    is_hazardous              INTEGER CHECK (is_hazardous IS NULL OR is_hazardous IN (0,1)),
+    tax_category              TEXT,
+    return_window_days        INTEGER CHECK (return_window_days IS NULL OR return_window_days BETWEEN 0 AND 90),
+    commission_hint_bps       INTEGER CHECK (commission_hint_bps IS NULL OR commission_hint_bps BETWEEN 0 AND 10000),
+    meta_title_template       TEXT,
+    meta_description_template TEXT,
+    updated_at                TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+
+-- Feed/channel mappings (Torob, Basalam, Digikala, Google, GS1 GPC). Empty external_code = not mapped yet.
+CREATE TABLE category_external_mappings (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    category_id   INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    source        TEXT NOT NULL CHECK (source IN ('torob','basalam','digikala','emalls','google','gs1_gpc')),
+    external_code TEXT NOT NULL DEFAULT '',
+    external_name TEXT,
+    UNIQUE (category_id, source)
+);
+
+-- Cached listing-quality score (recomputed on validate / value writes).
+CREATE TABLE catalog_quality_scores (
+    master_product_id INTEGER PRIMARY KEY REFERENCES master_products(id) ON DELETE CASCADE,
+    category_id       INTEGER REFERENCES categories(id),
+    score             INTEGER NOT NULL CHECK (score BETWEEN 0 AND 100),
+    missing_required  INTEGER NOT NULL DEFAULT 0,
+    checklist_json    TEXT NOT NULL DEFAULT '[]',
+    computed_at       TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+);
+CREATE INDEX idx_catalog_quality_score ON catalog_quality_scores(score);
