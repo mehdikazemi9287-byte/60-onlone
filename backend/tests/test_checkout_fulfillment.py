@@ -1,7 +1,7 @@
 """Phase 3 mandatory tests: Fulfillment-First Checkout.
 
 Most important acceptance principle:
-    NO CUSTOMER SHOULD BE SUCCESSFULLY CHARGED FOR AN ORDER THAT 70ONLINE HAS NOT
+    NO CUSTOMER SHOULD BE SUCCESSFULLY CHARGED FOR AN ORDER THAT 60ONLINE HAS NOT
     SUCCESSFULLY PLANNED AND RESERVED FOR FULFILLMENT.
 
 Coverage:
@@ -938,7 +938,7 @@ class TestAliceOrgSplitLocalFulfillment(_CheckoutBase):
     def test_alice_org_split_local_fulfillment_complete(self):
         """16 assertions (first checkout) + 11 assertions (idempotency replay).
 
-        NO CUSTOMER SHOULD BE SUCCESSFULLY CHARGED FOR AN ORDER THAT 70ONLINE HAS
+        NO CUSTOMER SHOULD BE SUCCESSFULLY CHARGED FOR AN ORDER THAT 60ONLINE HAS
         NOT SUCCESSFULLY PLANNED AND RESERVED FOR FULFILLMENT.
         """
         import json as _json

@@ -63,7 +63,7 @@ from app.services import (
 )
 from app.services.integration_event_service import fan_out_business_event
 
-log = logging.getLogger("70online.checkout")
+log = logging.getLogger("60online.checkout")
 
 ENDPOINT = "POST /api/v1/checkout"
 REQUIRED_ADDRESS_FIELDS = ("recipient_name", "recipient_phone", "province", "city", "line1")

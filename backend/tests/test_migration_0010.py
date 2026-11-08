@@ -64,7 +64,7 @@ class Migration0010PopulatedDBTest(unittest.TestCase):
     """Migration 0009→0010 must succeed and create all new tables."""
 
     def setUp(self) -> None:
-        self.tmpdir  = tempfile.mkdtemp(prefix="70online-mig0010-test-")
+        self.tmpdir  = tempfile.mkdtemp(prefix="60online-mig0010-test-")
         self.db_path = os.path.join(self.tmpdir, "test0010.db")
         self.staging = Path(self.tmpdir) / "migrations"
         self.staging.mkdir()

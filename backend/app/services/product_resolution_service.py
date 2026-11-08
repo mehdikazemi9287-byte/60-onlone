@@ -550,7 +550,7 @@ def resolve_product(
     knowledge_adapter_key: str | None = None,
 ) -> dict:
     """
-    Resolve external product data to a canonical 70online product.
+    Resolve external product data to a canonical 60online product.
 
     Resolution priority:
     1. Barcode/GTIN → product_identifiers (confidence=10000 bps)

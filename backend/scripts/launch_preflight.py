@@ -22,8 +22,10 @@ BLOCKER, WARN, OK, INFO = "BLOCKER", "WARN", "OK", "INFO"
 MIN_PRODUCTS = 50          # a storefront with fewer buyable items looks empty on day one
 REQUIRED_DOCS = ("buyer_terms", "seller_terms", "privacy")
 SEED_PASSWORDS = {          # scripts/seed.py demo accounts — must not survive into production
-    "demo@70online.ir": "Demo!2345", "admin@70online.ir": "Admin!2345", "hr@parsco.ir": "Hr!23456789",
+    "demo@60online.ir": "Demo!2345", "admin@60online.ir": "Admin!2345", "hr@parsco.ir": "Hr!23456789",
     "alice@parsco.ir": "Alice!23456", "bob@parsco.ir": "Bob!23456789",
+    # databases seeded before the 60online rename still carry the old demo domain
+    "demo@70online.ir": "Demo!2345", "admin@70online.ir": "Admin!2345",
 }
 
 

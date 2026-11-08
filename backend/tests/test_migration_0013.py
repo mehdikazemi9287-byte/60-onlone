@@ -48,7 +48,7 @@ FINANCE_TABLES = [
 class Migration0013Test(unittest.TestCase):
 
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp(prefix="70online-mig0013-")
+        self.tmpdir = tempfile.mkdtemp(prefix="60online-mig0013-")
         self.db_path = os.path.join(self.tmpdir, "test0013.db")
         self.staging = Path(self.tmpdir) / "migrations"
         self.staging.mkdir()

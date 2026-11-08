@@ -5,7 +5,7 @@ from common import *
 
 with sync_playwright() as p:
     b, ctx, page = browser(p, mobile=True)
-    step("login demo (UI)", login_ui(page, "demo@70online.ir", "Demo!2345", "/me/recurring"))
+    step("login demo (UI)", login_ui(page, "demo@60online.ir", "Demo!2345", "/me/recurring"))
     visit(page, "/me/recurring", "recurring")
     try:
         page.get_by_role("button", name="ساخت فهرست جدید").click()

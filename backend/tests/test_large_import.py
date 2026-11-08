@@ -36,7 +36,7 @@ def _apply_all(db: Database, staging_dir: Path) -> None:
 class LargeImportTest(unittest.TestCase):
 
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp(prefix="70online-large-")
+        self.tmpdir = tempfile.mkdtemp(prefix="60online-large-")
         self.db_path = os.path.join(self.tmpdir, "large.db")
         self.staging = Path(self.tmpdir) / "migrations"
         self.staging.mkdir()

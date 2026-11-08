@@ -56,7 +56,7 @@ def add_member(
 ) -> dict:
     """Attach an existing user account to the organization.
 
-    MVP-compatible invite: the person must already have a 70online account.
+    MVP-compatible invite: the person must already have a 60online account.
     A full email-invitation flow (token, acceptance page, expiry) is NOT
     implemented in Phase 2 — see AUDIT_EVIDENCE.md.
     """
@@ -78,7 +78,7 @@ def add_member(
         ).fetchone()
         if user is None:
             raise NotFoundError(
-                "کاربری با این ایمیل در ۷۰آنلاین ثبت‌نام نکرده است. "
+                "کاربری با این ایمیل در شصت‌آنلاین ثبت‌نام نکرده است. "
                 "ابتدا باید حساب بسازد، سپس او را اضافه کنید.",
                 code="user_not_registered",
             )

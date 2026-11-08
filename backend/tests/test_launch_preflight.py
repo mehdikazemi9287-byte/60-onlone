@@ -14,12 +14,12 @@ class PreflightTest(AppTestCase):
         rows = {k: (lvl, msg) for lvl, k, msg in lp.db_checks(self.db)}
         self.assertEqual(rows["migrations"][0], lp.OK)
         self.assertEqual(rows["seed_accounts"][0], lp.BLOCKER)          # test DB is seeded with demo users
-        self.assertIn("admin@70online.ir", rows["seed_accounts"][1])
+        self.assertIn("admin@60online.ir", rows["seed_accounts"][1])
         self.assertEqual(rows["legal_documents"][0], lp.BLOCKER)        # drafts carry a zero hash
         for key in ("admin", "vat", "sellers", "catalog", "tariffs", "organizations", "payout_hold"):
             self.assertIn(key, rows)
         with self.db.write_transaction() as conn:
-            conn.execute("UPDATE users SET is_active=0 WHERE email_normalized LIKE '%@70online.ir' OR email_normalized LIKE '%@parsco.ir'")
+            conn.execute("UPDATE users SET is_active=0 WHERE email_normalized LIKE '%@60online.ir' OR email_normalized LIKE '%@parsco.ir'")
         rows = {k: lvl for lvl, k, _ in lp.db_checks(self.db)}
         self.assertEqual(rows["seed_accounts"], lp.OK)
 

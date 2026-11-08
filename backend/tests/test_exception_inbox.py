@@ -28,7 +28,7 @@ def _apply_all(db: Database, staging_dir: Path) -> None:
 class ExceptionInboxTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp(prefix="70online-exc-")
+        self.tmpdir = tempfile.mkdtemp(prefix="60online-exc-")
         self.db_path = os.path.join(self.tmpdir, "test.db")
         self.staging = Path(self.tmpdir) / "migrations"
         self.staging.mkdir()

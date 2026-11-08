@@ -3,7 +3,7 @@ import re, sys
 sys.path.insert(0, "/tmp/e2e")
 from common import *
 
-EMAIL, PW = "demo@70online.ir", "Demo!2345"
+EMAIL, PW = "demo@60online.ir", "Demo!2345"
 
 with sync_playwright() as p:
     b, ctx, page = browser(p, mobile=True)
