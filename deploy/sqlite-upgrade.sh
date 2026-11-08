@@ -19,7 +19,7 @@ BK=/root/backups-60online
 ENV_FILE="$OLD/secrets/backend.env"
 TS=$(date +%Y%m%d-%H%M)
 # PyPI index for the backend build; set PIP_MIRROR=... when pypi.org is unreachable from the host
-PIP_MIRROR="${PIP_MIRROR:-https://pypi.org/simple}"
+PIP_MIRROR="${PIP_MIRROR:-${2:-https://pypi.org/simple}}"   # or 2nd argument: stage <index-url>
 
 need() { [ -f "$ENV_FILE" ] || { echo "!! $ENV_FILE not found"; exit 1; }; }
 
