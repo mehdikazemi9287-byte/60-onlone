@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest, ApiError } from "@/lib/api";
 import { formatPrice, toPersianNum } from "@/lib/utils";
 import { VambiHeroLogo } from "./VambiShell";
+import { WatchButton } from "@/components/price-watch/WatchButton";
 
 type Offer = { seller: string; city: string | null; price_incl_vat_minor: number | null; lead_time_days: number | null;
   stock_state: string; best: boolean };
@@ -120,7 +121,10 @@ export function VambiSearch() {
                   </tbody>
                 </table>
               )}
-              <a href={`${MAIN}/products/${encodeURIComponent(it.slug)}`} className="mt-3 inline-block text-sm font-bold text-[#1748C9]">مشاهده و خرید ←</a>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <a href={`${MAIN}/products/${encodeURIComponent(it.slug)}`} className="inline-block text-sm font-bold text-[#1748C9]">مشاهده و خرید ←</a>
+                <WatchButton slug={it.slug} />
+              </div>
             </li>
           );
         })}

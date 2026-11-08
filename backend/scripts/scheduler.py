@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 JOBS = [
     ("run_partner_webhooks", 60, None),
     ("release_abandoned_payments", 300, None),
+    ("run_price_alerts", 3600, None),   # tiered Vambi price alerts (hourly, idempotent per hour)
     ("run_recurring", 86_400, 3),        # 06:30 Tehran
     ("run_credit_cycle", 86_400, 1),
     ("expire_loyalty_coins", 86_400, 2),
