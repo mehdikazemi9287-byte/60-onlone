@@ -68,6 +68,8 @@
 - ✅ QA نهایی هشدار قیمت: قبول شد (۱۷ آبان)؛ جزئیات در PROGRESS.md
 - ⏳ تست مایگریشن‌های 0079 و 0080 روی PostgreSQL واقعی
 - ⏳ PR از `marketplace-roadmap` به `main` (این کارها هنوز در main نیستند؛ تداخلی با صفحهٔ اول جدید ندارند)
+- ⏳ قبل از استقرار روی سرور: `docker run --rm -v $PWD/deploy/Caddyfile:/etc/caddy/Caddyfile caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile`. بخش لاگ جدید (حذف `code` و `state` از آدرس‌ها) با خود Caddy آزموده نشده است.
+- ⏳ آزمون ورود مشترک روی دو دامنهٔ واقعی با HTTPS، بعد از DNS و SSL.
 - ⏳ استقرار روی سرور (فقط با تأیید کارن)
 
 ## محدودیت‌های شناخته‌شده
