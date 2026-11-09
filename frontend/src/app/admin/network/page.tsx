@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { toPersianNum } from "@/lib/utils";
 import {
-  apiUrl, CONTRACT_STATUSES, DATA_SOURCE_FA, STATUS_CLASS, STATUS_FA,
-  type AdminBranch, type AdminChain, type ContractStatus, type ImportResult, type Sector,
+  apiUrl, CONTRACT_STATUSES, DATA_SOURCE_FA, DATA_SOURCES, network, STATUS_CLASS, STATUS_FA,
+  type AdminBranch, type AdminChain, type ContractStatus, type ImportResult, type NamedRef, type Sector,
+  type SyncLocationsResult,
 } from "@/lib/network";
 
 const field = "mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm";
@@ -72,18 +73,20 @@ export default function AdminNetwork() {
 /* ---------------------------------------------------------------- chains */
 
 type ChainDraft = { slug: string; name: string; brand_name: string; website: string; contract_status: ContractStatus;
-  contract_signed_on: string; contract_reference: string; notes: string; sectors: string[] };
+  contract_signed_on: string; contract_reference: string; notes: string; sectors: string[]; supplier_id: string };
 
 const toDraft = (c?: AdminChain): ChainDraft => ({
   slug: c?.slug ?? "", name: c?.name ?? "", brand_name: c?.brand_name ?? "", website: c?.website ?? "",
   contract_status: c?.contract_status ?? "prospect", contract_signed_on: c?.contract_signed_on ?? "",
   contract_reference: c?.contract_reference ?? "", notes: c?.notes ?? "", sectors: c?.sectors.map((s) => s.slug) ?? [],
+  supplier_id: c?.supplier_id != null ? String(c.supplier_id) : "",
 });
 
 const draftBody = (d: ChainDraft) => ({
   slug: d.slug.trim(), name: d.name, brand_name: d.brand_name || null, website: d.website.trim() || null,
   contract_status: d.contract_status, contract_signed_on: d.contract_signed_on || null,
   contract_reference: d.contract_reference || null, notes: d.notes || null, sectors: d.sectors,
+  supplier_id: d.supplier_id.trim() ? Number(d.supplier_id.trim()) : null,
 });
 
 function ChainFields({ d, setD, sectors }: { d: ChainDraft; setD: (d: ChainDraft) => void; sectors: Sector[] }) {
@@ -102,6 +105,7 @@ function ChainFields({ d, setD, sectors }: { d: ChainDraft; setD: (d: ChainDraft
         </select></label>
       <label className="text-sm">شمارهٔ قرارداد<input className={field} dir="ltr" value={d.contract_reference} onChange={set("contract_reference")} /></label>
       <label className="text-sm">تاریخ امضا (میلادی)<input className={field} type="date" dir="ltr" value={d.contract_signed_on} onChange={set("contract_signed_on")} /></label>
+      <label className="text-sm">شناسهٔ فروشندهٔ پلتفرم (supplier_id؛ خالی = وصل نیست)<input className={field} inputMode="numeric" dir="ltr" pattern="[0-9]*" value={d.supplier_id} onChange={set("supplier_id")} /></label>
       <label className="text-sm md:col-span-2">یادداشت<textarea className={field} rows={2} value={d.notes} onChange={set("notes")} /></label>
       {sectors.length > 0 && (
         <fieldset className="md:col-span-2">
@@ -148,6 +152,21 @@ function ChainsTable({ token, chains, sectors, onSaved, setMsg }: {
   const [editing, setEditing] = useState<number | null>(null);
   const [d, setD] = useState<ChainDraft>(toDraft());
   const [busy, setBusy] = useState(false);
+  const [syncing, setSyncing] = useState<number | null>(null);
+  const [syncResult, setSyncResult] = useState<SyncLocationsResult | null>(null);
+  const sync = async (c: AdminChain) => {
+    const ok = window.confirm(
+      `برای شعبه‌های فعالِ «${c.name}» که هنوز مکان فروشنده ندارند، مکان فروشنده (فروشندهٔ #${c.supplier_id}) ساخته می‌شود.\n\n` +
+      "مکان‌های تازه «غیرفعال» و با همهٔ گزینه‌های تحویل خاموش ساخته می‌شوند و هیچ چیزی سفارش‌پذیر نمی‌شود. " +
+      "پس از تأیید با زنجیره که کدام شعبه ارسال، تحویل یا مراجعهٔ حضوری دارد، باید آن‌ها را در پنل فروشنده فعال کنید.\n\nادامه می‌دهید؟");
+    if (!ok) return;
+    setSyncing(c.id); setMsg(null); setSyncResult(null);
+    try {
+      const out = await apiRequest<SyncLocationsResult>(`/admin/network/chains/${c.id}/sync-locations`, { token, method: "POST", body: "{}" });
+      setSyncResult(out); await onSaved();
+    } catch (err) { setMsg({ ok: false, text: (err as Error).message }); }
+    finally { setSyncing(null); }
+  };
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editing == null) return;
@@ -162,7 +181,7 @@ function ChainsTable({ token, chains, sectors, onSaved, setMsg }: {
   return (
     <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-neutral-200">
       <table className="w-full text-right text-sm">
-        <thead className="text-xs text-neutral-500"><tr>{["زنجیره", "حوزه‌ها", "وضعیت قرارداد", "شمارهٔ / تاریخ قرارداد", "شعبهٔ فعال", "سایر شعبه‌ها", "استان", ""].map((h, i) => <th key={i} className="p-3 font-medium">{h}</th>)}</tr></thead>
+        <thead className="text-xs text-neutral-500"><tr>{["زنجیره", "حوزه‌ها", "وضعیت قرارداد", "شمارهٔ / تاریخ قرارداد", "فروشندهٔ پلتفرم", "شعبهٔ فعال", "سایر شعبه‌ها", "استان", ""].map((h, i) => <th key={i} className="p-3 font-medium">{h}</th>)}</tr></thead>
         <tbody>
           {chains.map((c) => {
             const other = CONTRACT_STATUSES.filter((s) => s !== "active").reduce((n, s) => n + (c.branch_counts[s] ?? 0), 0);
@@ -173,15 +192,35 @@ function ChainsTable({ token, chains, sectors, onSaved, setMsg }: {
                 <td className="p-3 text-xs">{c.sectors.map((s) => s.name).join("، ") || "—"}</td>
                 <td className="p-3"><Badge s={c.contract_status} /></td>
                 <td className="p-3 text-xs" dir="ltr">{[c.contract_reference, c.contract_signed_on].filter(Boolean).join(" · ") || "—"}</td>
+                <td className="p-3 text-xs" dir="ltr">{c.supplier_id != null ? `#${c.supplier_id}` : "—"}</td>
                 <td className="p-3 tabular-nums">{toPersianNum(c.branch_counts.active ?? 0)}</td>
                 <td className="p-3 text-xs">{other ? CONTRACT_STATUSES.filter((s) => s !== "active" && c.branch_counts[s])
                   .map((s) => `${STATUS_FA[s]}: ${toPersianNum(c.branch_counts[s])}`).join("، ") : "—"}</td>
                 <td className="p-3 tabular-nums">{toPersianNum(c.province_count)}</td>
-                <td className="p-3"><button className={ghost} onClick={() => { setEditing(editing === c.id ? null : c.id); setD(toDraft(c)); }}>{editing === c.id ? "بستن" : "ویرایش"}</button></td>
+                <td className="p-3"><div className="flex flex-col gap-1">
+                  <button className={ghost} onClick={() => { setEditing(editing === c.id ? null : c.id); setD(toDraft(c)); }}>{editing === c.id ? "بستن" : "ویرایش"}</button>
+                  <button className={ghost} disabled={syncing === c.id || c.contract_status !== "active" || c.supplier_id == null}
+                    title={c.contract_status !== "active" ? "فقط زنجیرهٔ دارای قرارداد فعال" : c.supplier_id == null ? "اول supplier_id را ثبت کنید" : undefined}
+                    onClick={() => void sync(c)}>{syncing === c.id ? "در حال ساخت…" : "ساخت مکان فروشنده برای شعبه‌های فعال"}</button>
+                </div></td>
               </tr>,
+              syncResult?.chain_id === c.id && (
+                <tr key={`${c.id}-sync`} className="bg-green-50/50">
+                  <td colSpan={9} className="p-3 text-sm">
+                    <p className="font-bold">{syncResult.note}</p>
+                    <p className="mt-1">مکان تازه: {toPersianNum(syncResult.created.length)} · کل شعبه‌های متصل به مکان فروشنده: {toPersianNum(syncResult.linked_total)} · وضعیت مکان‌های تازه: <span dir="ltr">{syncResult.new_location_status}</span></p>
+                    {syncResult.created.length > 0 && (
+                      <ul className="mt-1 list-inside list-disc text-xs" dir="ltr">
+                        {syncResult.created.map((x) => <li key={x.branch_id}>{x.branch_code} → location #{x.supplier_location_id}</li>)}
+                      </ul>
+                    )}
+                    <button type="button" className="mt-2 text-xs underline" onClick={() => setSyncResult(null)}>بستن</button>
+                  </td>
+                </tr>
+              ),
               editing === c.id && (
                 <tr key={`${c.id}-edit`} className="bg-neutral-50">
-                  <td colSpan={8} className="p-3">
+                  <td colSpan={9} className="p-3">
                     <form onSubmit={save} className="grid gap-3 md:grid-cols-2" aria-label={`ویرایش ${c.name}`}>
                       <ChainFields d={d} setD={setD} sectors={sectors} />
                       <div className="flex gap-2 md:col-span-2">
@@ -209,6 +248,7 @@ function BranchesTable({ token, chains, setMsg }: { token: string; chains: Admin
   const [status, setStatus] = useState("");
   const [items, setItems] = useState<AdminBranch[] | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [form, setForm] = useState<{ branch?: AdminBranch } | null>(null);
 
   const load = async () => {
     setItems(null);
@@ -243,12 +283,22 @@ function BranchesTable({ token, chains, setMsg }: { token: string; chains: Admin
             <option value="">همه</option>{CONTRACT_STATUSES.map((s) => <option key={s} value={s}>{STATUS_FA[s]}</option>)}
           </select></label>
       </div>
-      <p className="text-xs text-neutral-500">شعبهٔ تازه را از بخش «ورود CSV شعبه‌ها» ثبت کنید؛ هر ردیف باید منبع داده و مرجع آن را داشته باشد.</p>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" className={btn} disabled={chains.length === 0} onClick={() => setForm({})}>ثبت یک شعبه</button>
+        <p className="text-xs text-neutral-500">برای ثبت گروهی از «ورود CSV شعبه‌ها» استفاده کنید. هر شعبه باید منبع داده و مرجع آن را داشته باشد.</p>
+      </div>
+      {form && <BranchForm token={token} chains={chains} branch={form.branch} setMsg={setMsg}
+        onClose={() => setForm(null)}
+        onSaved={(out, created) => {
+          setForm(null);
+          setMsg({ ok: true, text: created ? "شعبه ثبت شد." : "تغییرات شعبه ذخیره شد." });
+          setItems((xs) => (created ? (xs ? [out, ...xs] : [out]) : xs?.map((x) => (x.id === out.id ? out : x)) ?? null));
+        }} />}
       <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-neutral-200">
         {items === null && <p className="p-6 text-center text-sm text-neutral-400">در حال بارگذاری…</p>}
         {items && items.length > 0 && (
           <table className="w-full text-right text-sm">
-            <thead className="text-xs text-neutral-500"><tr>{["کد / عنوان", "زنجیره", "استان / شهر", "نشانی", "مختصات", "منبع داده", "وضعیت شعبه", "نمایش عمومی"].map((h) => <th key={h} className="p-3 font-medium">{h}</th>)}</tr></thead>
+            <thead className="text-xs text-neutral-500"><tr>{["کد / عنوان", "زنجیره", "استان / شهر", "نشانی", "مختصات", "منبع داده", "مکان فروشنده", "وضعیت شعبه", "نمایش عمومی", ""].map((h) => <th key={h} className="p-3 font-medium">{h}</th>)}</tr></thead>
             <tbody>
               {items.map((b) => (
                 <tr key={b.id} className="border-t border-neutral-100 align-top">
@@ -258,6 +308,7 @@ function BranchesTable({ token, chains, setMsg }: { token: string; chains: Admin
                   <td className="p-3 text-xs">{b.address ?? "—"}{b.phone && <div dir="ltr">{b.phone}</div>}</td>
                   <td className="p-3 text-xs" dir="ltr">{b.latitude != null ? `${b.latitude}, ${b.longitude}` : "—"}</td>
                   <td className="p-3 text-xs">{DATA_SOURCE_FA[b.data_source] ?? b.data_source}<div className="text-neutral-500">{b.source_reference}</div></td>
+                  <td className="p-3 text-xs" dir="ltr">{b.supplier_location_id != null ? `#${b.supplier_location_id}` : "—"}</td>
                   <td className="p-3">
                     <select aria-label={`وضعیت ${b.title}`} className="rounded-lg border border-neutral-300 px-2 py-1 text-xs" disabled={busyId === b.id}
                       value={b.contract_status} onChange={(e) => void setBranchStatus(b, e.target.value as ContractStatus)}>
@@ -265,6 +316,7 @@ function BranchesTable({ token, chains, setMsg }: { token: string; chains: Admin
                     </select>
                   </td>
                   <td className="p-3 text-xs">{b.public ? <span className="font-bold text-green-700">بله</span> : "خیر"}</td>
+                  <td className="p-3"><button className={ghost} onClick={() => setForm({ branch: b })}>ویرایش</button></td>
                 </tr>
               ))}
             </tbody>
@@ -408,5 +460,102 @@ function SectorsPanel({ token, sectors, reload, setMsg }: { token: string; secto
         <div className="flex items-end"><button className={btn} disabled={busy}>{busy ? "در حال ثبت…" : "افزودن حوزه"}</button></div>
       </form>
     </div>
+  );
+}
+
+/* ---------------------------------------------------------------- single branch create / edit */
+
+type BranchDraft = { chain_slug: string; branch_code: string; title: string; province: string; city: string; district: string;
+  address: string; latitude: string; longitude: string; phone: string; contract_status: ContractStatus;
+  data_source: (typeof DATA_SOURCES)[number] | ""; source_reference: string };
+
+const toBranchDraft = (b?: AdminBranch): BranchDraft => ({
+  chain_slug: b?.chain.slug ?? "", branch_code: b?.branch_code ?? "", title: b?.title ?? "", province: b?.province.slug ?? "",
+  city: b?.city ?? "", district: b?.district ?? "", address: b?.address ?? "",
+  latitude: b?.latitude != null ? String(b.latitude) : "", longitude: b?.longitude != null ? String(b.longitude) : "",
+  phone: b?.phone ?? "", contract_status: b?.contract_status ?? "prospect", data_source: b?.data_source ?? "",
+  source_reference: b?.source_reference ?? "",
+});
+
+function BranchForm({ token, chains, branch, setMsg, onClose, onSaved }: {
+  token: string; chains: AdminChain[]; branch?: AdminBranch; setMsg: (m: Msg) => void;
+  onClose: () => void; onSaved: (b: AdminBranch, created: boolean) => void;
+}) {
+  const [d, setD] = useState<BranchDraft>(() => toBranchDraft(branch));
+  const [provinces, setProvinces] = useState<NamedRef[] | null>(null);
+  const [errors, setErrors] = useState<{ field: string | null; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    // The 31 provinces are reference data served by the public coverage endpoint.
+    network.coverage().then((r) => setProvinces(r.provinces.map((p) => ({ slug: p.slug, name: p.name }))))
+      .catch((e) => setErrors({ field: null, text: (e as Error).message }));
+  }, []);
+
+  const set = (k: keyof BranchDraft) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD({ ...d, [k]: e.target.value });
+  const err = (k: string) => errors?.field === k
+    ? <span role="alert" className="mt-1 block text-xs font-bold text-red-700">{errors.text}</span> : null;
+  const cls = (k: string) => `${field} ${errors?.field === k ? "border-red-500" : ""}`;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true); setErrors(null); setMsg(null);
+    const body: Record<string, unknown> = {
+      branch_code: d.branch_code, title: d.title || null, province: d.province, city: d.city,
+      district: d.district || null, address: d.address || null, latitude: d.latitude.trim() || null,
+      longitude: d.longitude.trim() || null, phone: d.phone.trim() || null, contract_status: d.contract_status,
+      data_source: d.data_source, source_reference: d.source_reference,
+    };
+    if (!branch) body.chain_slug = d.chain_slug; // PUT rejects chain_slug; city is always sent with province
+    try {
+      const out = await apiRequest<AdminBranch>(branch ? `/admin/network/branches/${branch.id}` : "/admin/network/branches",
+        { token, method: branch ? "PUT" : "POST", body: JSON.stringify(body) });
+      onSaved(out, !branch);
+    } catch (ex) {
+      const f = ex instanceof ApiError ? ex.details?.field ?? null : null;
+      setErrors({ field: typeof f === "string" ? f : null, text: (ex as Error).message });
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <form onSubmit={submit} aria-label={branch ? `ویرایش شعبهٔ ${branch.title}` : "ثبت شعبهٔ تازه"}
+      className="grid gap-3 rounded-xl border border-[#102B7A] bg-white p-4 md:grid-cols-3">
+      <h2 className="font-black md:col-span-3">{branch ? `ویرایش شعبه: ${branch.title}` : "ثبت شعبهٔ تازه"}</h2>
+      {errors && !errors.field && <p role="alert" className="rounded-lg bg-red-50 p-2 text-sm text-red-700 md:col-span-3">{errors.text}</p>}
+      <label className="text-sm">زنجیره
+        {branch ? <input className={field} value={branch.chain.name} disabled /> : (
+          <select className={cls("chain_slug")} required value={d.chain_slug} onChange={set("chain_slug")}>
+            <option value="">انتخاب کنید</option>{chains.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
+          </select>)}
+        {err("chain_slug")}</label>
+      <label className="text-sm">کد شعبه<input className={cls("branch_code")} required dir="ltr" value={d.branch_code} onChange={set("branch_code")} />{err("branch_code")}</label>
+      <label className="text-sm">عنوان شعبه<input className={cls("title")} value={d.title} onChange={set("title")} />{err("title")}</label>
+      <label className="text-sm">استان
+        <select className={cls("province")} required value={d.province} onChange={set("province")} disabled={!provinces}>
+          <option value="">{provinces ? "انتخاب کنید" : "در حال بارگذاری…"}</option>
+          {provinces?.map((p) => <option key={p.slug} value={p.slug}>{p.name}</option>)}
+        </select>{err("province")}</label>
+      <label className="text-sm">شهر<input className={cls("city")} required value={d.city} onChange={set("city")} />{err("city")}</label>
+      <label className="text-sm">محله / منطقه<input className={cls("district")} value={d.district} onChange={set("district")} />{err("district")}</label>
+      <label className="text-sm md:col-span-2">نشانی<input className={cls("address")} value={d.address} onChange={set("address")} />{err("address")}</label>
+      <label className="text-sm">تلفن<input className={cls("phone")} dir="ltr" inputMode="tel" value={d.phone} onChange={set("phone")} />{err("phone")}</label>
+      <label className="text-sm">عرض جغرافیایی (latitude)<input className={cls("latitude")} dir="ltr" inputMode="decimal" placeholder="35.7" value={d.latitude} onChange={set("latitude")} />{err("latitude")}</label>
+      <label className="text-sm">طول جغرافیایی (longitude)<input className={cls("longitude")} dir="ltr" inputMode="decimal" placeholder="51.4" value={d.longitude} onChange={set("longitude")} />{err("longitude")}</label>
+      <label className="text-sm">وضعیت شعبه
+        <select className={cls("contract_status")} value={d.contract_status} onChange={set("contract_status")}>
+          {CONTRACT_STATUSES.map((s) => <option key={s} value={s}>{STATUS_FA[s]}</option>)}
+        </select>{err("contract_status")}</label>
+      <label className="text-sm">منبع داده
+        <select className={cls("data_source")} required value={d.data_source} onChange={set("data_source")}>
+          <option value="">انتخاب کنید</option>
+          {DATA_SOURCES.map((s) => <option key={s} value={s}>{DATA_SOURCE_FA[s]}</option>)}
+        </select>{err("data_source")}</label>
+      <label className="text-sm md:col-span-2">مرجع منبع (شمارهٔ نامه، نام فایل، نشانی صفحه یا گزارش بازدید)
+        <input className={cls("source_reference")} required value={d.source_reference} onChange={set("source_reference")} />{err("source_reference")}</label>
+      <p className="text-xs text-neutral-500 md:col-span-3">مختصات اختیاری است ولی باید هر دو با هم و داخل محدودهٔ ایران باشند. چیزی را حدس نزنید؛ فقط از منبع ثبت‌شده وارد کنید.</p>
+      <div className="flex gap-2 md:col-span-3">
+        <button className={btn} disabled={busy}>{busy ? "در حال ذخیره…" : branch ? "ذخیرهٔ تغییرات" : "ثبت شعبه"}</button>
+        <button type="button" className={ghost} onClick={onClose}>انصراف</button>
+      </div>
+    </form>
   );
 }

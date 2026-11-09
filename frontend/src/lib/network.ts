@@ -70,6 +70,21 @@ export type ImportResult = {
   results: { line: number; action: "create" | "update" | "error"; branch_code: string | null; error?: string; code?: string | null }[];
 };
 
+export type SyncLocationsResult = {
+  chain_id: number; supplier_id: number;
+  created: { branch_id: number; branch_code: string; supplier_location_id: number }[];
+  linked_total: number; new_location_status: string; note: string;
+};
+
+export type OrgCoverage = {
+  organization_id: number; organization_city: string | null;
+  places: { province: NamedRef; city: string; orders: number; branches_in_city: number; branches_in_province: number;
+    coverage: "city" | "province" | "none" }[];
+  unresolved_places: { province: string; city: string; orders: number }[];
+  summary: { city: number; province: number; none: number };
+  basis: string;
+};
+
 const qs = (params: Record<string, string | undefined>) => {
   const p = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v) p.set(k, v);
