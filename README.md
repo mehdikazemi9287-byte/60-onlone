@@ -81,7 +81,7 @@
   - سندهای ممیزی و `docs/agents/BASELINE.md`، که شواهد تاریخ‌دار هستند.
 - `launch_preflight.py` حساب‌های نمونهٔ قدیمی با دامنهٔ `@70online.ir` را هم پیدا می‌کند.
 
-> **کارهای در جریان و برنامهٔ ادامه:** [docs/NEXT-STEPS-2026-11-08.md](docs/NEXT-STEPS-2026-11-08.md).
+> **کارهای در جریان و برنامهٔ ادامه:** [docs/NEXT-STEPS-2026-11-08.md](docs/NEXT-STEPS-2026-11-08.md)، آخرین وضعیت: [docs/audits/customer-journey-2026-11-09.md](docs/audits/customer-journey-2026-11-09.md) (بخش «و»)؛ برنامهٔ اطلاع‌رسانی وامبی: [docs/vambi-comms-plan.md](docs/vambi-comms-plan.md).
 > **گزارش کامل و کارهای بعدی:** [docs/HANDOFF-homepage-2026-11-08.md](docs/HANDOFF-homepage-2026-11-08.md). فایل‌های طرح صفحهٔ اول در `docs/design/homepage-2026-11/` و راهنمای انتقال کد به سرور در `docs/runbooks/server-file-transfer.md` است.
 
 ## ساختار مخزن
