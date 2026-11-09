@@ -529,6 +529,24 @@ class PriceAlertsReviewTest(PriceAlertFixtures):
         self.assertEqual(ConsoleSms.texts, [])
         self.assertTrue(all("نیستید" in n["title"] for n in self.notes(self.s1["headers"], kind="price_alert_seller")))
 
+    def test_user_daily_limit_counts_buyer_and_seller_digests_together(self):
+        os.environ["PRICE_ALERT_USER_DAILY_SMS"] = "1"
+        _, consumer = self.new_customer()
+        self.verify_phone(consumer)
+        uid = self.client.get("/api/v1/auth/me", headers=consumer).get_json()["user"]["id"]
+        self.watch(consumer)
+        self.tick()
+        # The same person already got a seller digest today (seller panel of their own shop).
+        with self.db.write_transaction() as conn:
+            conn.execute("""INSERT INTO price_alert_sms (user_id, run_hour, day, item_count, status, created_at, parts, kind)
+                            VALUES (?, 'earlier:s', ?, 1, 'sent', ?, 1, 'seller')""",
+                         (uid, svc._day(self.now), svc._stamp(self.now)))
+        self.set_price(self.offer1, price=900_000)
+        r = self.tick(hours=1)
+        self.assertEqual(len(self.notes(consumer)), 1)   # in-site alert still arrives
+        self.assertEqual(ConsoleSms.texts, [])           # but the shared daily SMS allowance is spent
+        self.assertGreaterEqual(r["sms"]["skipped_cap"], 1)
+
     # B4 — one failing item never aborts the run
     def test_bad_row_is_skipped_not_fatal(self):
         _, consumer = self.new_customer()

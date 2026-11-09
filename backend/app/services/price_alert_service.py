@@ -21,7 +21,7 @@ notification or chart, and cannot set a target price.
 
 Delivery: an in-site notification for every alert (organization-level bodies carry no price: a notification
 outlives membership). SMS only to a verified phone, batched into ONE digest per user, kind (buyer/seller) and run;
-at most one SMS per item per user per Tehran day; PRICE_ALERT_USER_DAILY_SMS digests per user and day (default 2);
+at most one SMS per item per user per Tehran day; PRICE_ALERT_USER_DAILY_SMS digests per user and day, buyer and seller digests counted together (default 2);
 global daily budgets in billed parts (PRICE_ALERT_DAILY_SMS_PARTS_CAP 1500, PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP 500);
 held 22:00–08:00 Tehran; sellers can turn their SMS off. SMS texts carry no prices and sanitized titles.
 The job is bounded (3 s SMS timeout, stop after 3 consecutive provider failures, PRICE_ALERT_JOB_BUDGET_S = 120 s
@@ -851,8 +851,9 @@ def _reserve_digest(conn, uid: int, kind: str, now, sender, stats: dict):
         mark(ids, "unavailable")
         stats["unavailable"] += len(ids)
         return None
-    sent_today = conn.execute("SELECT COUNT(*) FROM price_alert_sms WHERE user_id=? AND day=? AND kind=? AND status IN ('sending','sent')",
-                              (uid, day, kind)).fetchone()[0]
+    # The per-person limit counts buyer AND seller digests together: one phone, one daily allowance.
+    sent_today = conn.execute("SELECT COUNT(*) FROM price_alert_sms WHERE user_id=? AND day=? AND status IN ('sending','sent')",
+                              (uid, day)).fetchone()[0]
     text = _digest_text([r["sms_text"] for r in take])
     parts = sms_parts(text)
     cap = _env_int("PRICE_ALERT_DAILY_SMS_PARTS_CAP", 1500) if kind == "buyer" else _env_int("PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP", 500)

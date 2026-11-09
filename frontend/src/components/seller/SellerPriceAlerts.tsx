@@ -53,7 +53,7 @@ export function SellerPriceAlerts({ token }: { token: string }) {
           <ul className="divide-y text-sm">{lost.map((i) => (
             <li key={`${i.product.id}-${i.level}`} className="flex flex-wrap justify-between gap-2 py-2">
               <span className="min-w-0 font-bold">{i.product.title_fa} <span className="text-xs font-normal text-neutral-500">· سطح {i.level_fa}</span></span>
-              <span className="text-xs text-neutral-600">قیمت شما: {i.own_price_minor != null ? formatPrice(i.own_price_minor) : "—"} · {faDate(i.updated_at)}</span>
+              <span className="text-xs text-neutral-600">قیمت شما (بدون مالیات): {i.own_price_minor != null ? formatPrice(i.own_price_minor) : "—"} · {faDate(i.updated_at)}</span>
             </li>
           ))}</ul>
         )}

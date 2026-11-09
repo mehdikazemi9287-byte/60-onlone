@@ -12,7 +12,7 @@
 | جستجو و مقایسهٔ فروشنده‌ها (نسخهٔ اول) | ساخته شد |
 | لوگو و ظاهر جدا | ساخته شد |
 | هشدار قیمت سطح‌بندی‌شده | ساخته شد و بازبینی شد؛ مانده: QA نهایی و استقرار |
-| ورود مشترک با شصت آنلاین | مانده (لازم اگر وامبی روی دامنهٔ جدا باشد) |
+| ورود مشترک با شصت آنلاین | ساخته شد (شاخهٔ `vambi-sso`)؛ مانده: بازبینی امنیتی، QA و استقرار |
 | استقرار روی vambi.ir | مانده (با تأیید کارن) |
 
 ## فایل‌های وامبی در ریپو
@@ -30,6 +30,7 @@
 - `frontend/src/components/vambi/`: `VambiSearch`، `VambiShell`
 - `frontend/public/vambi/`: لوگو (`mark.svg`، `icon.svg`)
 - `frontend/src/middleware.ts`: نمایش `/vambi` روی دامنهٔ vambi.ir (`VAMBI_HOSTS`)
+- ورود مشترک: `frontend/src/lib/sso.ts`، صفحه‌های `app/sso/vambi/` (روی شصت آنلاین) و `app/sso/callback/` (روی وامبی)، `components/vambi/VambiLoginButton.tsx`؛ بک‌اند `backend/app/services/sso_service.py`، مایگریشن `0082_sso_codes.sql`، تست `backend/tests/test_sso.py`
 - مشترک با شصت آنلاین: `components/price-watch/WatchButton.tsx`، `lib/priceWatch.ts`، صفحهٔ `app/me/price-alerts/`، کارت `components/seller/SellerPriceAlerts.tsx`
 
 ## تنظیمات (env)
@@ -41,7 +42,8 @@
 | `NEXT_PUBLIC_MAIN_SITE` | فرانت | `https://60online.ir` برای لینک «مشاهده و خرید» |
 | `STOREFRONT_PRICE_VISIBILITY` | بک‌اند | دیده‌شدن قیمت؛ روی وامبی هم اعمال می‌شود |
 | `KAVENEGAR_SENDER` | بک‌اند | شمارهٔ خط پیامک متنی هشدارها |
-| `PRICE_ALERT_USER_DAILY_SMS` | بک‌اند | سقف پیامک خلاصه برای هر کاربر در روز (پیش‌فرض ۲) |
+| `PRICE_ALERT_USER_DAILY_SMS` | بک‌اند | سقف پیامک خلاصه برای هر نفر در روز، خریدار و فروشنده با هم (پیش‌فرض ۲) |
+| `SSO_ALLOWED_ORIGINS` | بک‌اند | (اختیاری) دامنه‌های مجاز ورود مشترک، با کاما، دقیقاً مثل `https://vambi.ir`. پیش‌فرض: `https://<VAMBI_DOMAIN>` و `https://www.<VAMBI_DOMAIN>`. در production فقط https پذیرفته می‌شود؛ بیرون از production، `http://localhost` هم مجاز است |
 | `PRICE_ALERT_DAILY_SMS_PARTS_CAP` | بک‌اند | سقف روزانهٔ بخش‌های پیامک خریدارها (پیش‌فرض ۱۵۰۰) |
 | `PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP` | بک‌اند | سقف جدا برای فروشنده‌ها (پیش‌فرض ۵۰۰) |
 | `PRICE_ALERT_JOB_BUDGET_S` | بک‌اند | حداکثر زمان هر اجرای کار ساعتی (پیش‌فرض ۱۲۰ ثانیه) |
@@ -60,12 +62,16 @@
 ## چک‌لیست راه‌اندازی وامبی (باید حتماً چک شود)
 - ⏳ DNS و SSL دامنهٔ vambi.ir (کارن)
 - ⏳ `https://vambi.ir` در `CORS_ORIGINS`، و `vambi.ir,www.vambi.ir` (بدون https) در `VAMBI_HOSTS` روی سرور
-- ⏳ ورود مشترک دو دامنه (ساخته نشده)
+- ⏳ ورود مشترک دو دامنه: ساخته شد؛ مانده: بازبینی امنیتی، QA، و تست روی دامنهٔ واقعی (`NEXT_PUBLIC_MAIN_SITE=https://60online.ir` باید در build فرانت باشد)
 - ⏳ `KAVENEGAR_SENDER` و تست یک پیامک واقعی
 - ✅ QA نهایی هشدار قیمت: قبول شد (۱۷ آبان)؛ جزئیات در PROGRESS.md
 - ⏳ تست مایگریشن‌های 0079 و 0080 روی PostgreSQL واقعی
 - ⏳ PR از `marketplace-roadmap` به `main` (این کارها هنوز در main نیستند؛ تداخلی با صفحهٔ اول جدید ندارند)
 - ⏳ استقرار روی سرور (فقط با تأیید کارن)
+
+## محدودیت‌های شناخته‌شده
+- **پراکسی پیش‌نمایش فقط‌خواندنی است:** `frontend/src/app/api/v1/[...path]/route.ts` (پراکسی Next.js به Flask، برای پیش‌نمایش) فقط GET/HEAD/OPTIONS را رد می‌کند (به‌جز سازندهٔ پک) و بقیه را با `405 preview_read_only` جواب می‌دهد. پس در پیش‌نمایش، «زیر نظر بگیر»، تنظیمات هشدار و ورود مشترک (`/auth/sso/*`) کار نمی‌کنند. این عمداً تغییر داده نشد؛ روی سرور اصلی Caddy مسیر `/api/*` را مستقیم به Flask می‌دهد و این محدودیت وجود ندارد.
+- صفحهٔ `/sso/callback` بیرون از `/vambi` است، پس قاب مشترک سایت (هدر/فوتر شصت آنلاین) زیرش رندر می‌شود؛ خود صفحه با یک پنل تمام‌صفحه آن را می‌پوشاند و فقط چند لحظه دیده می‌شود.
 
 ## اگر کار نیمه‌کاره ماند (برای جلسهٔ بعدی)
 - شاخه: `marketplace-roadmap`. آخرین وضعیت در [PROGRESS.md](PROGRESS.md) و چک‌لیست بالا.
