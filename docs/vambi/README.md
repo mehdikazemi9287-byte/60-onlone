@@ -43,7 +43,8 @@
 | `STOREFRONT_PRICE_VISIBILITY` | بک‌اند | دیده‌شدن قیمت؛ روی وامبی هم اعمال می‌شود |
 | `KAVENEGAR_SENDER` | بک‌اند | شمارهٔ خط پیامک متنی هشدارها |
 | `PRICE_ALERT_USER_DAILY_SMS` | بک‌اند | سقف پیامک خلاصه برای هر نفر در روز، خریدار و فروشنده با هم (پیش‌فرض ۲) |
-| `SSO_ALLOWED_ORIGINS` | بک‌اند | (اختیاری) دامنه‌های مجاز ورود مشترک، با کاما، دقیقاً مثل `https://vambi.ir`. پیش‌فرض: `https://<VAMBI_DOMAIN>` و `https://www.<VAMBI_DOMAIN>`. در production فقط https پذیرفته می‌شود؛ بیرون از production، `http://localhost` هم مجاز است |
+| `SSO_ALLOWED_ORIGINS` | بک‌اند | (اختیاری) دامنه‌های مجاز ورود مشترک، با کاما، دقیقاً مثل `https://vambi.ir`. پیش‌فرض: `https://<VAMBI_DOMAIN>` و `https://www.<VAMBI_DOMAIN>`. در production فقط https پذیرفته می‌شود |
+| `SSO_ALLOW_LOCALHOST` | بک‌اند | فقط برای توسعه: با `1` (و فقط بیرون از production)، `http://localhost` و `http://127.0.0.1` هم مقصد مجاز ورود مشترک می‌شوند. پیش‌فرض: خاموش |
 | `PRICE_ALERT_DAILY_SMS_PARTS_CAP` | بک‌اند | سقف روزانهٔ بخش‌های پیامک خریدارها (پیش‌فرض ۱۵۰۰) |
 | `PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP` | بک‌اند | سقف جدا برای فروشنده‌ها (پیش‌فرض ۵۰۰) |
 | `PRICE_ALERT_JOB_BUDGET_S` | بک‌اند | حداکثر زمان هر اجرای کار ساعتی (پیش‌فرض ۱۲۰ ثانیه) |

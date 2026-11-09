@@ -56,9 +56,17 @@ class SsoTest(AppTestCase):
             self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (422, "sso_origin_not_allowed"), bad)
         self.assertEqual(self.issue(origin="https://www.vambi.ir").status_code, 200)
 
-    def test_localhost_only_outside_production(self):
-        self.assertTrue(sso_service.is_allowed_origin("http://localhost:3000", production=False))
-        self.assertFalse(sso_service.is_allowed_origin("http://localhost:3000", production=True))
+    def test_localhost_only_with_flag_and_outside_production(self):
+        os.environ.pop("SSO_ALLOW_LOCALHOST", None)
+        self.assertFalse(sso_service.is_allowed_origin("http://localhost:3000", production=False))
+        r = self.issue(origin="http://localhost:3000")  # test app is APP_ENV=test, flag off → refused
+        self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (422, "sso_origin_not_allowed"))
+        with mock.patch.dict(os.environ, {"SSO_ALLOW_LOCALHOST": "1"}):
+            self.assertTrue(sso_service.is_allowed_origin("http://localhost:3000", production=False))
+            self.assertTrue(sso_service.is_allowed_origin("http://127.0.0.1:8080", production=False))
+            self.assertFalse(sso_service.is_allowed_origin("http://localhost:3000", production=True))
+            self.assertFalse(sso_service.is_allowed_origin("http://localhost.evil.example", production=False))
+            self.assertEqual(self.issue(origin="http://localhost:3000").status_code, 200)
         with mock.patch.dict(os.environ, {"SSO_ALLOWED_ORIGINS": "http://vambi.test,https://a.example"}):
             self.assertEqual(sso_service.allowed_origins(production=True), {"https://a.example"})
             self.assertFalse(sso_service.is_allowed_origin(VAMBI, production=True))
@@ -98,6 +106,15 @@ class SsoTest(AppTestCase):
         code = self.code()
         self.assertInvalid(self.exchange(code, state="Z" * 24))
         self.assertInvalid(self.exchange(code))
+
+    def test_refused_callback_burns_code(self):
+        # The callback page burns a code whose state it refuses by exchanging it with a random state;
+        # after that even the right state (e.g. read from a log) cannot redeem it.
+        code = self.code()
+        self.assertInvalid(self.exchange(code, state="R" * 64))
+        self.assertInvalid(self.exchange(code))
+        with self.db.read_transaction() as conn:
+            self.assertIsNotNone(conn.execute("SELECT used_at FROM sso_codes").fetchone()[0])
 
     def test_wrong_origin_fails(self):
         code = self.code()

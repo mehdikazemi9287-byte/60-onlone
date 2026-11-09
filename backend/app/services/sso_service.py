@@ -4,9 +4,9 @@ Flow: a signed-in 60online user asks for a code for an allow-listed sister origi
 <origin>/sso/callback?code=..&state=..; that origin swaps the code for an ordinary session token (exchange).
 
 - Allowed targets come only from server config: SSO_ALLOWED_ORIGINS (comma-separated, exact origins), defaulting to
-  https://<VAMBI_DOMAIN> and https://www.<VAMBI_DOMAIN> (VAMBI_DOMAIN defaults to vambi.ir). Outside production
-  http://localhost / http://127.0.0.1 (any port) are also accepted for development. In production only https origins
+  https://<VAMBI_DOMAIN> and https://www.<VAMBI_DOMAIN> (VAMBI_DOMAIN defaults to vambi.ir). In production only https origins
   are ever honoured, even if listed.
+  http://localhost / http://127.0.0.1 (any port) are accepted only with SSO_ALLOW_LOCALHOST=1 AND outside production.
 - Only SHA-256 hashes of the code and the state are stored. Codes live CODE_TTL_SECONDS and are single-use: the
   exchange marks the row used with UPDATE ... WHERE used_at IS NULL AND expires_at > now and checks rowcount, then
   commits before checking state/origin/user, so any misuse burns the code.
@@ -89,7 +89,7 @@ def allowed_origins(production: bool) -> set[str]:
 def is_allowed_origin(origin: str, production: bool) -> bool:
     if origin in allowed_origins(production):
         return True
-    if production:
+    if production or os.environ.get("SSO_ALLOW_LOCALHOST", "").strip() != "1":
         return False
     host = urlsplit(origin).hostname or ""
     return origin.startswith("http://") and host in _LOCAL_HOSTS
