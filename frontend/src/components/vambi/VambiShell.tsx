@@ -1,4 +1,5 @@
 import { Nunito } from "next/font/google";
+import { VambiLoginButton } from "./VambiLoginButton";
 
 // Vambi's own chrome: no 60Online header/footer — an independent identity inside the same ecosystem.
 // Logo vectors: Figma file "Vambi — Logo" (component Vambi/Mark), exported to /public/vambi/mark.svg.
@@ -38,7 +39,7 @@ export function VambiShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-[#DCE3F7] bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2">
           <a href="/vambi"><VambiMark /></a>
-          <a href="/login" className="rounded-full bg-[#102B7A] px-4 py-2 text-sm font-bold text-white">ورود مشتریان</a>
+          <VambiLoginButton />
         </div>
       </header>
       <main className="flex-1">{children}</main>

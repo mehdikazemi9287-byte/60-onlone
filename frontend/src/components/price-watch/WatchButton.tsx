@@ -7,6 +7,7 @@ import { Eye } from "lucide-react";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { priceWatch } from "@/lib/priceWatch";
+import { startLogin } from "@/lib/sso";
 
 const STYLES = {
   main: { btn: "border-brand-navy text-brand-navy", link: "text-brand-blue" },
@@ -37,7 +38,8 @@ export function WatchButton({ slug, variant = "main", fullWidth = false, classNa
   }, [watched]);
 
   const watch = async () => {
-    if (!token) { window.location.href = `/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`; return; }
+    // Logged out: plain /login on the main site; on vambi.ir sign in through the 60online account (lib/sso.ts).
+    if (!token) { startLogin(); return; }
     setBusy(true); setError(null);
     try {
       const { watch: w } = await priceWatch.create(token, { slug });
