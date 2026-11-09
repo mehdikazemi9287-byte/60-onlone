@@ -63,3 +63,7 @@ approval. Do not commit, push or deploy merely because a task passed QA.
 
 The bootstrap is documentation-only. It does not authorize changes to application
 code, DBs, services or Production, or changes to either protected area's UI/UX.
+
+
+## درس‌ها و قواعد (الزامی)
+پیش از هر تغییر، `LESSONS.md` در ریشهٔ مخزن را بخوانید و چک‌لیست انتهای آن را پیش از اعلام «انجام شد» رعایت کنید. اشتباه تازه را به همان فایل اضافه کنید.
