@@ -7,7 +7,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ApiError } from "@/lib/api";
-import { sso, takePending } from "@/lib/sso";
+import { burnCode, sso, takePending } from "@/lib/sso";
 
 export default function SsoCallbackPage() {
   return (
@@ -31,7 +31,8 @@ function SsoCallback() {
     try { window.history.replaceState(null, "", "/sso/callback"); } catch {}
     const pending = takePending();
     if (!code || !state || !pending || pending.state !== state) {
-      setError("این لینک ورود مال این مرورگر نیست یا قبلاً استفاده شده. دوباره روی «ورود» بزن.");
+      const msg = "این لینک ورود مال این مرورگر نیست یا قبلاً استفاده شده. دوباره روی «ورود» بزن.";
+      burnCode(code).finally(() => setError(msg));
       return;
     }
     sso.exchange(code, pending.state)

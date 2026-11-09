@@ -24,9 +24,21 @@
 	request_body {
 		max_size 20MB
 	}
+	# Access log without secrets: the shared-login one-time code and state travel in the query of
+	# /sso/callback (and so also in the Referer of the requests that page makes), so `code` and `state` are
+	# dropped from every logged URI and the Referer header is not logged at all.
 	log {
 		output stdout
-		format json
+		format filter {
+			wrap json
+			fields {
+				request>uri query {
+					delete code
+					delete state
+				}
+				request>headers>Referer delete
+			}
+		}
 	}
 }
 

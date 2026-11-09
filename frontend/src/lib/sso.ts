@@ -39,6 +39,13 @@ export function startLogin(returnPath = window.location.pathname + window.locati
   window.location.assign(`${MAIN_SITE}/sso/vambi?${qs}`);
 }
 
+/** Spend a code this browser refuses (state mismatch): exchanging it with a random state makes the server burn it,
+ * so a copy of the URL (e.g. from an access log) cannot be redeemed during its 60 seconds. Result ignored. */
+export async function burnCode(code: string): Promise<void> {
+  if (!/^[A-Za-z0-9_-]{20,128}$/.test(code)) return;
+  try { await sso.exchange(code, randomState()); } catch { /* expected: the server answers sso_invalid */ }
+}
+
 /** Read and forget what startLogin() stored. */
 export function takePending(): { state: string; back: string } | null {
   try {
