@@ -9,6 +9,7 @@
 --
 -- A branch may later be linked to a platform supplier location (supplier_location_id) so the existing in-person
 -- pickup code and the org-pack allocation engine can serve employees from their nearest contracted branch.
+-- Coordinates are decimal-degree TEXT, like supplier_locations: the schema forbids float column types.
 -- 31 provinces. center_lat/center_lng = approximate coordinates of the provincial capital, used only to place
 -- the coverage bubble on the overview map; they are not a boundary and not an address.
 CREATE TABLE IF NOT EXISTS network_provinces (
@@ -16,8 +17,8 @@ CREATE TABLE IF NOT EXISTS network_provinces (
     slug            TEXT    NOT NULL UNIQUE,
     name_fa         TEXT    NOT NULL UNIQUE,
     capital_fa      TEXT    NOT NULL,
-    center_lat      DOUBLE PRECISION    NOT NULL,
-    center_lng      DOUBLE PRECISION    NOT NULL,
+    center_lat      TEXT    NOT NULL,
+    center_lng      TEXT    NOT NULL,
     official_code   TEXT,
     sort_order      INTEGER NOT NULL DEFAULT 0
 );
@@ -77,8 +78,8 @@ CREATE TABLE IF NOT EXISTS chain_branches (
     city_id               INTEGER REFERENCES network_cities(id) ON DELETE SET NULL,
     district              TEXT,
     address               TEXT,
-    latitude              DOUBLE PRECISION,
-    longitude             DOUBLE PRECISION,
+    latitude              TEXT,
+    longitude             TEXT,
     phone                 TEXT,
     contract_status       TEXT    NOT NULL DEFAULT 'prospect'
                                   CHECK (contract_status IN ('prospect', 'negotiating', 'active', 'paused', 'ended')),
@@ -95,37 +96,37 @@ CREATE INDEX IF NOT EXISTS ix_chain_branches_chain ON chain_branches(chain_id, c
 CREATE INDEX IF NOT EXISTS ix_chain_branches_province ON chain_branches(province_id, contract_status);
 
 INSERT INTO network_provinces (slug, name_fa, capital_fa, center_lat, center_lng, sort_order) VALUES
-    ('east-azerbaijan', 'آذربایجان شرقی', 'تبریز', 38.08, 46.29, 1),
-    ('west-azerbaijan', 'آذربایجان غربی', 'ارومیه', 37.55, 45.07, 2),
-    ('ardabil', 'اردبیل', 'اردبیل', 38.25, 48.30, 3),
-    ('isfahan', 'اصفهان', 'اصفهان', 32.65, 51.67, 4),
-    ('alborz', 'البرز', 'کرج', 35.84, 50.94, 5),
-    ('ilam', 'ایلام', 'ایلام', 33.64, 46.42, 6),
-    ('bushehr', 'بوشهر', 'بوشهر', 28.97, 50.84, 7),
-    ('tehran', 'تهران', 'تهران', 35.69, 51.39, 8),
-    ('chaharmahal-bakhtiari', 'چهارمحال و بختیاری', 'شهرکرد', 32.33, 50.86, 9),
-    ('south-khorasan', 'خراسان جنوبی', 'بیرجند', 32.87, 59.22, 10),
-    ('razavi-khorasan', 'خراسان رضوی', 'مشهد', 36.30, 59.61, 11),
-    ('north-khorasan', 'خراسان شمالی', 'بجنورد', 37.47, 57.33, 12),
-    ('khuzestan', 'خوزستان', 'اهواز', 31.32, 48.67, 13),
-    ('zanjan', 'زنجان', 'زنجان', 36.68, 48.49, 14),
-    ('semnan', 'سمنان', 'سمنان', 35.57, 53.40, 15),
-    ('sistan-baluchestan', 'سیستان و بلوچستان', 'زاهدان', 29.50, 60.86, 16),
-    ('fars', 'فارس', 'شیراز', 29.59, 52.58, 17),
-    ('qazvin', 'قزوین', 'قزوین', 36.27, 50.00, 18),
-    ('qom', 'قم', 'قم', 34.64, 50.88, 19),
-    ('kurdistan', 'کردستان', 'سنندج', 35.31, 47.00, 20),
-    ('kerman', 'کرمان', 'کرمان', 30.28, 57.08, 21),
-    ('kermanshah', 'کرمانشاه', 'کرمانشاه', 34.31, 47.07, 22),
-    ('kohgiluyeh-boyer-ahmad', 'کهگیلویه و بویراحمد', 'یاسوج', 30.67, 51.59, 23),
-    ('golestan', 'گلستان', 'گرگان', 36.84, 54.43, 24),
-    ('gilan', 'گیلان', 'رشت', 37.28, 49.58, 25),
-    ('lorestan', 'لرستان', 'خرم‌آباد', 33.49, 48.36, 26),
-    ('mazandaran', 'مازندران', 'ساری', 36.56, 53.06, 27),
-    ('markazi', 'مرکزی', 'اراک', 34.09, 49.69, 28),
-    ('hormozgan', 'هرمزگان', 'بندرعباس', 27.18, 56.27, 29),
-    ('hamadan', 'همدان', 'همدان', 34.80, 48.51, 30),
-    ('yazd', 'یزد', 'یزد', 31.90, 54.37, 31);
+    ('east-azerbaijan', 'آذربایجان شرقی', 'تبریز', '38.08', '46.29', 1),
+    ('west-azerbaijan', 'آذربایجان غربی', 'ارومیه', '37.55', '45.07', 2),
+    ('ardabil', 'اردبیل', 'اردبیل', '38.25', '48.30', 3),
+    ('isfahan', 'اصفهان', 'اصفهان', '32.65', '51.67', 4),
+    ('alborz', 'البرز', 'کرج', '35.84', '50.94', 5),
+    ('ilam', 'ایلام', 'ایلام', '33.64', '46.42', 6),
+    ('bushehr', 'بوشهر', 'بوشهر', '28.97', '50.84', 7),
+    ('tehran', 'تهران', 'تهران', '35.69', '51.39', 8),
+    ('chaharmahal-bakhtiari', 'چهارمحال و بختیاری', 'شهرکرد', '32.33', '50.86', 9),
+    ('south-khorasan', 'خراسان جنوبی', 'بیرجند', '32.87', '59.22', 10),
+    ('razavi-khorasan', 'خراسان رضوی', 'مشهد', '36.30', '59.61', 11),
+    ('north-khorasan', 'خراسان شمالی', 'بجنورد', '37.47', '57.33', 12),
+    ('khuzestan', 'خوزستان', 'اهواز', '31.32', '48.67', 13),
+    ('zanjan', 'زنجان', 'زنجان', '36.68', '48.49', 14),
+    ('semnan', 'سمنان', 'سمنان', '35.57', '53.40', 15),
+    ('sistan-baluchestan', 'سیستان و بلوچستان', 'زاهدان', '29.50', '60.86', 16),
+    ('fars', 'فارس', 'شیراز', '29.59', '52.58', 17),
+    ('qazvin', 'قزوین', 'قزوین', '36.27', '50.00', 18),
+    ('qom', 'قم', 'قم', '34.64', '50.88', 19),
+    ('kurdistan', 'کردستان', 'سنندج', '35.31', '47.00', 20),
+    ('kerman', 'کرمان', 'کرمان', '30.28', '57.08', 21),
+    ('kermanshah', 'کرمانشاه', 'کرمانشاه', '34.31', '47.07', 22),
+    ('kohgiluyeh-boyer-ahmad', 'کهگیلویه و بویراحمد', 'یاسوج', '30.67', '51.59', 23),
+    ('golestan', 'گلستان', 'گرگان', '36.84', '54.43', 24),
+    ('gilan', 'گیلان', 'رشت', '37.28', '49.58', 25),
+    ('lorestan', 'لرستان', 'خرم‌آباد', '33.49', '48.36', 26),
+    ('mazandaran', 'مازندران', 'ساری', '36.56', '53.06', 27),
+    ('markazi', 'مرکزی', 'اراک', '34.09', '49.69', 28),
+    ('hormozgan', 'هرمزگان', 'بندرعباس', '27.18', '56.27', 29),
+    ('hamadan', 'همدان', 'همدان', '34.80', '48.51', 30),
+    ('yazd', 'یزد', 'یزد', '31.90', '54.37', 31);
 
 -- Starting sectors named by the business; more are added from the admin panel.
 INSERT INTO chain_sectors (slug, name_fa, sort_order, created_at) VALUES

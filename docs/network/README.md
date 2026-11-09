@@ -87,7 +87,14 @@ chain_slug,branch_code,title,province,city,district,address,latitude,longitude,p
 
 ## آزمون
 - `backend/tests/test_retail_network.py` (۹ تست): قاعدهٔ نمایش، پنهان ماندن فیلدهای مدیریتی، دادهٔ آزمایشی، شرط قرارداد برای فعال‌سازی، فیلترها و پوشش، اعتبارسنجی شعبه، دسترسی فقط مدیر، CSV آزمایشی/نهایی/به‌روزرسانی، و حوزه‌ها.
-- همین ۹ تست روی PostgreSQL 16 واقعی هم اجرا و موفق شد. مهاجرت PostgreSQL: `migrations_postgresql/0081_retail_network.sql` (مختصات `DOUBLE PRECISION`).
+- همین ۹ تست روی PostgreSQL 16 واقعی هم اجرا و موفق شد. مهاجرت PostgreSQL: `migrations_postgresql/0081_retail_network.sql`.
+- مختصات به‌صورت متن عددی ذخیره می‌شود (مثل `supplier_locations`)، چون قاعدهٔ پروژه ستون اعشاری (REAL/FLOAT) را ممنوع کرده است. API آن را عدد برمی‌گرداند.
+
+## صفحه‌های سایت
+- `/network`: نقشهٔ ایران با دایرهٔ پوشش هر استان، فیلتر حوزه و زنجیره، فهرست استان‌ها و زنجیره‌ها
+- `/network/<استان>` و `/network/chain/<زنجیره>`
+- `/admin/network`: زنجیره‌ها، حوزه‌ها، شعبه‌ها و ورود CSV (اول آزمایشی، بعد «ثبت نهایی»)
+- نقشه: Leaflet 1.9.4 با کاشی OpenStreetMap، بدون کلید API. اگر نقشه بار نشود، فهرست‌ها کامل کار می‌کنند.
 
 ## مانده
 - وارد کردن فهرست واقعی شعبه‌ها پس از قرارداد هر زنجیره (کار تجاری، نه فنی)

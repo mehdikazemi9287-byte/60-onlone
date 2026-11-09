@@ -66,7 +66,12 @@ def _status(v, field: str = "contract_status") -> str:
     return v
 
 
-def _coord(v, rng: tuple[float, float], field: str) -> float | None:
+def _num(v) -> float | None:
+    """Coordinates are stored as decimal TEXT (no float columns); the API returns them as numbers."""
+    return None if v in (None, "") else float(v)
+
+
+def _coord(v, rng: tuple[float, float], field: str) -> str | None:
     if v is None or v == "":
         return None
     try:
@@ -75,7 +80,7 @@ def _coord(v, rng: tuple[float, float], field: str) -> float | None:
         raise ValidationError(f"«{field}» عدد نیست", code="invalid_coordinate", details={"field": field}) from None
     if not rng[0] <= f <= rng[1]:
         raise ValidationError(f"«{field}» خارج از محدودهٔ ایران است", code="invalid_coordinate", details={"field": field})
-    return round(f, 6)
+    return f"{f:.6f}"
 
 
 # ---------------------------------------------------------------- reference data
@@ -279,7 +284,7 @@ def _chain_by_slug(conn: sqlite3.Connection, slug) -> sqlite3.Row:
 def _branch_view(r, *, admin: bool) -> dict:
     d = {"id": r["id"], "title": r["title"] or r["chain_name"], "chain": {"slug": r["chain_slug"], "name": r["chain_name"]},
          "province": {"slug": r["province_slug"], "name": r["province_name"]}, "city": r["city_name"],
-         "district": r["district"], "address": r["address"], "latitude": r["latitude"], "longitude": r["longitude"],
+         "district": r["district"], "address": r["address"], "latitude": _num(r["latitude"]), "longitude": _num(r["longitude"]),
          "phone": r["phone"]}
     if admin:
         d.update({"branch_code": r["branch_code"], "contract_status": r["contract_status"],
@@ -498,7 +503,7 @@ def public_coverage(conn: sqlite3.Connection, *, sector: str | None = None) -> d
         "GROUP BY p.id, p.slug, p.name_fa, p.capital_fa, p.center_lat, p.center_lng, p.sort_order ORDER BY p.sort_order",
         args).fetchall()
     provinces = [{"slug": r["slug"], "name": r["name_fa"], "capital": r["capital_fa"],
-                  "center": [r["center_lat"], r["center_lng"]], "branches": int(r["branches"]),
+                  "center": [_num(r["center_lat"]), _num(r["center_lng"])], "branches": int(r["branches"]),
                   "chains": int(r["chains"]), "cities": int(r["cities"]), "covered": int(r["branches"]) > 0}
                  for r in rows]
     return {"provinces": provinces,
@@ -542,5 +547,5 @@ def public_province(conn: sqlite3.Connection, slug: str) -> dict:
     for b in net["items"]:
         cities[b["city"] or "—"] = cities.get(b["city"] or "—", 0) + 1
     return {"slug": p["slug"], "name": p["name_fa"], "capital": p["capital_fa"],
-            "center": [p["center_lat"], p["center_lng"]], "branches": net["items"], "truncated": net["truncated"],
+            "center": [_num(p["center_lat"]), _num(p["center_lng"])], "branches": net["items"], "truncated": net["truncated"],
             "cities": [{"name": k, "branches": v} for k, v in sorted(cities.items(), key=lambda kv: -kv[1])]}
