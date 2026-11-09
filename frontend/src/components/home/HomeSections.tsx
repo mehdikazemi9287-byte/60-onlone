@@ -125,7 +125,7 @@ function Hero({ content }: { content?: { title?: string; body?: string; link?: s
 
 // ── Service shortcuts ──────────────────────────────────────────────────────
 const SERVICES: [typeof Gift, string, string][] = [
-  [Building2, "خرید سازمانی", "/org"], [Boxes, "پک‌ساز", "/pack-builder"], [Gift, "هدیه‌ی کارکنان", "/packs/employee-gift"], [Wallet, "کیف پول رفاهی", "/wallet"],
+  [Building2, "خرید سازمانی", "/org"], [Boxes, "پک‌ساز", "/pack-builder"], [Gift, "هدیه‌ی کارکنان", "/packs/employee-gift"], [Wallet, "کیف پول رفاهی", "/benefits"],
   [ClipboardList, "درخواست قیمت عمده", "/requests/new"], [Coins, "وامبی", "/vambi"], [Store, "غرفه‌ها", "/shops"], [Truck, "پیگیری سفارش", "/orders"],
 ];
 function Services() {
@@ -148,7 +148,7 @@ function OrgPrices({ items }: { items: Product[] | null }) {
       <span aria-hidden className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full border-[14px] border-white/10" />
       <div className="mb-4 flex items-center justify-between gap-3">
         <div><h2 id="org-prices" className="text-xl font-black text-white md:text-[26px]">قیمت سازمانی</h2>
-          <p className="mt-0.5 text-xs font-medium text-[#FFE9DF] md:text-sm">قیمت‌ها فقط برای اعضای سازمان‌های طرف قرارداد نمایش داده می‌شود</p></div>
+          <p className="mt-0.5 text-xs font-medium text-[#FFE9DF] md:text-sm">قیمت قراردادی سازمان شما پس از ورود نمایش داده می‌شود</p></div>
         <Link href="/business/catalog" className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold text-white">مشاهده‌ی همه<ArrowLeft className="h-4 w-4" /></Link>
       </div>
       <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 md:overflow-visible">

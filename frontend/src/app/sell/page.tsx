@@ -54,11 +54,32 @@ export default function SellPage() {
     return <div className="internal-page container-page py-20 text-center text-neutral-400">در حال بارگذاری…</div>;
   }
   if (!token) {
+    // A first-time seller sees what they get and what to prepare before being asked to sign in.
+    // Figures come from the same sources as the sign-up form below (terms endpoint and FIELDS).
     return (
-      <div className="internal-page container-page py-16 text-center">
-        <h1 className="mb-3 text-xl font-black">غرفه‌ات را در شصت آنلاین بساز</h1>
-        <p className="mb-6 text-neutral-600">برای ساخت غرفه اول وارد حساب شو.</p>
-        <Link href="/login?next=/sell" className="rounded-xl bg-neutral-900 px-5 py-2 font-bold text-white">ورود</Link>
+      <div className="internal-page container-page max-w-3xl py-10 md:py-14">
+        <h1 className="mb-2 text-2xl font-black text-neutral-900 md:text-3xl">غرفه‌ات را در شصت آنلاین بساز</h1>
+        <p className="mb-6 text-neutral-600">به اعضای سازمان‌های طرف قرارداد، مشتری‌های عادی و خریدارهای عمده بفروش.</p>
+        <ul className="mb-8 grid gap-3 sm:grid-cols-3">
+          <li className="rounded-2xl border border-neutral-200 bg-[#FFFFFF] p-4"><b className="block text-neutral-900">ساخت غرفه رایگان</b><span className="text-sm text-neutral-600">هزینهٔ ثبت ندارد</span></li>
+          <li className="rounded-2xl border border-neutral-200 bg-[#FFFFFF] p-4"><b className="block text-neutral-900">کارمزد فقط از فروش</b><span className="text-sm text-neutral-600">غرفه‌دار ۹٪، فروش سازمانی ۵٪</span></li>
+          <li className="rounded-2xl border border-neutral-200 bg-[#FFFFFF] p-4"><b className="block text-neutral-900">تسویه</b><span className="text-sm text-neutral-600">{holdDays.toLocaleString("fa-IR")} روز بعد از تحویل سفارش</span></li>
+        </ul>
+        <h2 className="mb-3 text-lg font-black text-neutral-900">مراحل</h2>
+        <ol className="mb-8 list-decimal space-y-2 pr-5 text-neutral-700">
+          <li>ورود یا ثبت‌نام با شمارهٔ همراه</li>
+          <li>فرم غرفه: نوع فروشنده (غرفه‌دار، برند رسمی یا شریک)، مشخصات و آدرس غرفه</li>
+          <li>بررسی درخواست توسط شصت آنلاین</li>
+          <li>بعد از تأیید: ثبت کالا، قیمت و موجودی از پنل فروشنده</li>
+        </ol>
+        <h2 className="mb-3 text-lg font-black text-neutral-900">آنچه لازم است آماده کنی</h2>
+        <ul className="mb-8 list-disc space-y-1 pr-5 text-neutral-700">
+          {FIELDS.map((f) => <li key={f.key}>{f.label}{f.optional ? " (اختیاری)" : ""}</li>)}
+        </ul>
+        <div className="flex flex-wrap gap-3">
+          <Link href="/login?next=/sell" className="rounded-xl bg-neutral-900 px-6 py-3 font-bold text-white">ورود و ساخت غرفه</Link>
+          <Link href="/terms" className="rounded-xl border border-neutral-300 px-6 py-3 font-bold text-neutral-800">قوانین غرفه‌داری</Link>
+        </div>
       </div>
     );
   }
