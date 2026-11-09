@@ -149,3 +149,77 @@ class RetailNetworkTest(AppTestCase):
         r = self.client.post("/api/v1/admin/network/chains", headers=self.admin,
                              json={"slug": "s", "name": "آزمایشی", "sectors": ["nope"]})
         self.assertEqual(r.get_json()["error"]["code"], "unknown_sector")
+
+
+class NetworkFulfillmentLinkTest(AppTestCase):
+    """Branch → supplier-location sync and organization coverage."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.admin = self.admin_headers()
+
+    def _chain_with_branches(self, supplier_id=None):
+        body = {"slug": "linked", "name": "زنجیرهٔ آزمایشی پیوسته", "contract_status": "active",
+                "contract_reference": "TEST-2", "sectors": ["fmcg"]}
+        if supplier_id is not None:
+            body["supplier_id"] = supplier_id
+        chain = self.client.post("/api/v1/admin/network/chains", json=body, headers=self.admin).get_json()
+        for code, prov, city, status in (("K1", "تهران", "تهران", "active"), ("K2", "خراسان رضوی", "مشهد", "active"),
+                                         ("K3", "قم", "قم", "negotiating")):
+            r = self.client.post("/api/v1/admin/network/branches", headers=self.admin, json={
+                "chain_slug": "linked", "branch_code": code, "province": prov, "city": city, "contract_status": status,
+                "title": f"شعبهٔ {code}", "phone": "02100000000", **SRC})
+            self.assertEqual(r.status_code, 201, r.get_json())
+        return chain
+
+    def test_sync_requires_supplier_link(self):
+        chain = self._chain_with_branches()
+        r = self.client.post(f"/api/v1/admin/network/chains/{chain['id']}/sync-locations", headers=self.admin)
+        self.assertEqual(r.get_json()["error"]["code"], "chain_not_supplier")
+
+    def test_sync_creates_inactive_locations_once(self):
+        sup = self.create_test_supplier()
+        chain = self._chain_with_branches(supplier_id=sup["supplier_id"])
+        url = f"/api/v1/admin/network/chains/{chain['id']}/sync-locations"
+        first = self.client.post(url, headers=self.admin).get_json()
+        self.assertEqual(sorted(x["branch_code"] for x in first["created"]), ["K1", "K2"])  # not the negotiating one
+        with self.db.read_transaction() as conn:
+            locs = conn.execute(
+                "SELECT province, city, status, can_pickup, can_local_delivery, can_intercity_shipping, public_title "
+                "FROM supplier_locations WHERE id IN (%s) ORDER BY id" % ",".join(
+                    str(x["supplier_location_id"]) for x in first["created"])).fetchall()
+        self.assertEqual([(l["province"], l["city"]) for l in locs], [("تهران", "تهران"), ("خراسان رضوی", "مشهد")])
+        self.assertTrue(all(l["status"] == "inactive" and not (l["can_pickup"] or l["can_local_delivery"]
+                                                               or l["can_intercity_shipping"]) for l in locs))
+        again = self.client.post(url, headers=self.admin).get_json()
+        self.assertEqual((again["created"], again["linked_total"]), ([], 2))
+        branches = self.client.get("/api/v1/admin/network/branches?chain=linked", headers=self.admin).get_json()["items"]
+        self.assertEqual(sum(1 for b in branches if b["supplier_location_id"]), 2)
+
+    def test_organization_coverage(self):
+        self._chain_with_branches()
+        product = self.product()
+        self.set_stock(product["id"], 10)
+        org, org_admin, _, employee = self.org_fixture(credit_minor=200_000_000)
+        self.add_to_cart(employee["headers"], product["id"], 1)
+        r = self.checkout(employee["headers"])
+        self.assertIn(r.status_code, (200, 201), r.get_json())
+        with self.db.write_transaction() as conn:
+            row = conn.execute("SELECT id FROM orders WHERE organization_id=?", (org["id"],)).fetchone()
+            self.assertIsNotNone(row, "employee checkout should record the organization on the order")
+            # Second and third destinations: copies of the same real order with other cities (test DB only).
+            cols = [c[1] for c in conn.execute("PRAGMA table_info(orders)") if c[1] != "id"]
+            for n, (prov, city) in enumerate((("قم", "قم"), ("ناکجا", "هیچ‌جا"))):
+                sel = ", ".join("?" if c in ("shipping_province", "shipping_city", "order_number") else c for c in cols)
+                args = [v for c in cols for v in ((prov,) if c == "shipping_province" else (city,) if c == "shipping_city"
+                                                   else (f"TEST-COV-{n}",) if c == "order_number" else ())]
+                conn.execute(f"INSERT INTO orders ({', '.join(cols)}) SELECT {sel} FROM orders WHERE id=?", [*args, row["id"]])
+        cov = self.client.get(f"/api/v1/organizations/{org['id']}/network-coverage", headers=org_admin)
+        self.assertEqual(cov.status_code, 200, cov.get_json())
+        data = cov.get_json()
+        by_city = {p["city"]: p["coverage"] for p in data["places"]}
+        self.assertEqual(by_city, {"تهران": "city", "قم": "none"})  # Qom branch is only negotiating
+        self.assertEqual(data["unresolved_places"][0]["province"], "ناکجا")
+        # employees (non-admin members) cannot read it
+        self.assertEqual(self.client.get(f"/api/v1/organizations/{org['id']}/network-coverage",
+                                         headers=employee["headers"]).status_code, 403)

@@ -549,3 +549,74 @@ def public_province(conn: sqlite3.Connection, slug: str) -> dict:
     return {"slug": p["slug"], "name": p["name_fa"], "capital": p["capital_fa"],
             "center": [_num(p["center_lat"]), _num(p["center_lng"])], "branches": net["items"], "truncated": net["truncated"],
             "cities": [{"name": k, "branches": v} for k, v in sorted(cities.items(), key=lambda kv: -kv[1])]}
+
+
+# ---------------------------------------------------------------- chain → platform supplier locations (admin)
+
+def sync_chain_locations(conn: sqlite3.Connection, chain_id: int) -> dict:
+    """Give each active branch of a chain a supplier location, so the existing fulfillment engine
+    (same city → same province → national) and the in-person pickup code can use the branch.
+
+    New locations are created INACTIVE with every delivery capability off: nothing becomes orderable
+    until an admin confirms with the chain which branches deliver, ship or serve walk-ins.
+    Idempotent: branches already linked to a location are left alone.
+    """
+    chain = conn.execute("SELECT * FROM retail_chains WHERE id=?", (chain_id,)).fetchone()
+    if chain is None:
+        raise NotFoundError("زنجیره یافت نشد")
+    if chain["supplier_id"] is None:
+        raise ValidationError("اول زنجیره را به یک فروشندهٔ پلتفرم وصل کنید (supplier_id)", code="chain_not_supplier")
+    if chain["contract_status"] != "active":
+        raise ValidationError("فقط زنجیرهٔ دارای قرارداد فعال", code="chain_not_active")
+    rows = conn.execute(_BRANCH_SELECT + " WHERE b.chain_id=? AND b.contract_status='active' "
+                        "AND b.supplier_location_id IS NULL ORDER BY b.id", (chain_id,)).fetchall()
+    stamp = _now()
+    created = []
+    for r in rows:
+        loc = conn.execute(
+            "INSERT INTO supplier_locations (supplier_id, province, city, district, address, latitude, longitude, "
+            "status, can_pickup, can_local_delivery, can_intercity_shipping, public_title, public_phone, "
+            "created_at, updated_at) VALUES (?,?,?,?,?,?,?, 'inactive', 0, 0, 0, ?,?,?,?)",
+            (chain["supplier_id"], r["province_name"], r["city_name"], r["district"], r["address"], r["latitude"],
+             r["longitude"], r["title"] or chain["name_fa"], r["phone"], stamp, stamp)).lastrowid
+        conn.execute("UPDATE chain_branches SET supplier_location_id=?, updated_at=? WHERE id=?", (loc, stamp, r["id"]))
+        created.append({"branch_id": r["id"], "branch_code": r["branch_code"], "supplier_location_id": int(loc)})
+    linked = conn.execute("SELECT COUNT(*) AS n FROM chain_branches WHERE chain_id=? AND supplier_location_id IS NOT NULL",
+                          (chain_id,)).fetchone()["n"]
+    return {"chain_id": chain_id, "supplier_id": chain["supplier_id"], "created": created,
+            "linked_total": int(linked), "new_location_status": "inactive",
+            "note": "مکان‌های تازه غیرفعال و بدون قابلیت ارسال ساخته شدند؛ پس از تأیید با زنجیره در پنل فروشنده فعال کنید."}
+
+
+# ---------------------------------------------------------------- organization coverage
+
+def organization_coverage(conn: sqlite3.Connection, organization_id: int) -> dict:
+    """Where this organization's orders ship (and its own city), and how many contracted branches serve each
+    place. Built only from the organization's real orders; no guessing of employee locations."""
+    org = conn.execute("SELECT id, city FROM organizations WHERE id=?", (organization_id,)).fetchone()
+    if org is None:
+        raise NotFoundError("سازمان یافت نشد")
+    places: dict[tuple[str, str], int] = {}
+    for r in conn.execute("SELECT shipping_province, shipping_city, COUNT(*) AS n FROM orders "
+                          "WHERE organization_id=? AND status NOT IN ('cancelled','refunded') "
+                          "GROUP BY shipping_province, shipping_city", (organization_id,)).fetchall():
+        key = (normalize_fa(r["shipping_province"]), normalize_fa(r["shipping_city"]))
+        places[key] = places.get(key, 0) + int(r["n"])
+    out, unresolved = [], []
+    for (prov, city), n in sorted(places.items(), key=lambda kv: -kv[1]):
+        try:
+            p = resolve_province(conn, prov)
+        except ValidationError:
+            unresolved.append({"province": prov, "city": city, "orders": n})
+            continue
+        base = ("SELECT COUNT(*) AS n FROM chain_branches b JOIN retail_chains c ON c.id=b.chain_id "
+                "LEFT JOIN network_cities ci ON ci.id=b.city_id WHERE " + _PUBLIC + " AND b.province_id=?")
+        in_prov = int(conn.execute(base, (p["id"],)).fetchone()["n"])
+        in_city = int(conn.execute(base + " AND ci.name_fa=?", (p["id"], city)).fetchone()["n"])
+        out.append({"province": {"slug": p["slug"], "name": p["name_fa"]}, "city": city, "orders": n,
+                    "branches_in_city": in_city, "branches_in_province": in_prov,
+                    "coverage": "city" if in_city else ("province" if in_prov else "none")})
+    return {"organization_id": organization_id, "organization_city": org["city"], "places": out,
+            "unresolved_places": unresolved,
+            "summary": {k: sum(1 for x in out if x["coverage"] == k) for k in ("city", "province", "none")},
+            "basis": "شهرهای مقصد سفارش‌های همین سازمان (به‌جز لغوشده و مرجوع‌شده)"}

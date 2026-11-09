@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify, request
 
-from app.core.deps import client_ip, current_user, get_db, require_auth
+from app.core.deps import client_ip, current_user, get_db, require_auth, require_org_role
 from app.core.errors import ValidationError
 from app.services import audit_service
 from app.services import retail_network_service as svc
@@ -191,3 +191,22 @@ def admin_import():
             _audit(conn, "network.branch.import", "chain_branch", None,
                    {"created": out["created"], "updated": out["updated"], "errors": out["errors"]})
         return jsonify(out)
+
+
+@bp.post("/admin/network/chains/<int:chain_id>/sync-locations")
+@require_auth("admin")
+def admin_sync_locations(chain_id: int):
+    with get_db().write_transaction() as conn:
+        out = svc.sync_chain_locations(conn, chain_id)
+        _audit(conn, "network.chain.sync_locations", "retail_chain", chain_id,
+               {"created": len(out["created"]), "supplier_id": out["supplier_id"]})
+        return jsonify(out)
+
+
+# ---------------------------------------------------------------- organization panel
+
+@bp.get("/organizations/<int:org_id>/network-coverage")
+@require_org_role("organization_admin")
+def org_coverage(org_id: int):
+    with get_db().read_transaction() as conn:
+        return jsonify(svc.organization_coverage(conn, org_id))
