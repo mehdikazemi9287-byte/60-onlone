@@ -72,6 +72,7 @@ from app.api.v1 import affiliates as affiliates_api
 from app.api.v1 import catalog_schema as catalog_schema_api
 from app.api.v1 import price_feeds as price_feeds_api
 from app.api.v1 import vambi as vambi_api
+from app.api.v1 import admin_vambi as admin_vambi_api
 from app.api.v1 import b2b as b2b_api
 from app.api.v1 import price_alerts as price_alerts_api
 from app.api.v1 import retail_network as retail_network_api
@@ -218,6 +219,7 @@ def create_app(
         catalog_schema_api.bp,
         price_feeds_api.bp,
         vambi_api.bp,
+        admin_vambi_api.bp,
         b2b_api.bp,
         price_alerts_api.bp,
         retail_network_api.bp,
