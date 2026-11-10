@@ -368,6 +368,9 @@ def _complete_attempt(
              redeem_coins, redeem_discount_minor),
         )
         order_id = int(cursor.lastrowid)
+        # Vambi attribution (metric only): the buyer arrived via a Vambi link within 7 days. Never fails the order.
+        from app.services import vambi_launch_service
+        vambi_launch_service.attribute_order(conn, order_id=order_id, user_id=user_id)
         if welfare_minor:
             conn.execute("UPDATE orders SET welfare_minor = ? WHERE id = ?", (welfare_minor, order_id))
         recurring_discount = int(dict(intent).get("recurring_discount_minor") or 0)

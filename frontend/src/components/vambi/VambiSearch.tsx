@@ -16,6 +16,10 @@ type Res = { items: Item[]; total: number; total_pages: number; price_hidden?: b
 
 const MAIN = process.env.NEXT_PUBLIC_MAIN_SITE ?? "";
 const STOCK_FA: Record<string, string> = { in_stock: "موجود", out_of_stock: "ناموجود", unknown: "نامشخص" };
+// «مشاهده و خرید»: ?ref=vambi lets the product page credit a later order to Vambi (first-party, via the existing
+// referral capture); the click itself only adds one to today's counter (no token, no body).
+const API = process.env.NEXT_PUBLIC_API_URL ?? "";
+const countClick = () => { fetch(`${API}/api/v1/vambi/click`, { method: "POST", keepalive: true }).catch(() => {}); };
 const SORTS = [["relevance", "مرتبط‌ترین"], ["sellers", "بیشترین فروشنده"], ["price_asc", "ارزان‌ترین"]] as const;
 
 export function VambiSearch() {
@@ -122,7 +126,7 @@ export function VambiSearch() {
                 </table>
               )}
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                <a href={`${MAIN}/products/${encodeURIComponent(it.slug)}`} className="inline-block text-sm font-bold text-[#1748C9]">مشاهده و خرید ←</a>
+                <a href={`${MAIN}/products/${encodeURIComponent(it.slug)}?ref=vambi`} onClick={countClick} className="inline-block text-sm font-bold text-[#1748C9]">مشاهده و خرید ←</a>
                 <WatchButton slug={it.slug} variant="vambi" />
               </div>
             </li>

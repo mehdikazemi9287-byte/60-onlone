@@ -17,7 +17,7 @@ export const adminNavigation = [
  {label:"محتوا و ویرایش بصری",href:"/admin/content",icon:FileText}, {label:"کتابخانه رسانه",href:"/admin/media",icon:Image},
  {label:"اعلان‌ها و پیام‌ها",href:"/admin/notifications",icon:Bell}, {label:"دسترسی‌ها و سیاست‌ها",href:"/admin/access",icon:ShieldCheck},
  {label:"مشتریان شخصی",href:"/admin/customers",icon:Users}, {label:"سفارش‌های شخصی",href:"/admin/orders",icon:Package}, {label:"کاربران پلتفرم",href:"/admin/users",icon:Users},
- {label:"گزارش‌ها",href:"/admin/reports",icon:BarChart3}, {label:"تنظیمات",href:"/admin/settings",icon:Settings2}, {label:"تاریخچه تغییرات",href:"/admin/audit",icon:History},
+ {label:"گزارش‌ها",href:"/admin/reports",icon:BarChart3}, {label:"وامبی: آمادگی و سنجش",href:"/admin/vambi",icon:BarChart3}, {label:"تنظیمات",href:"/admin/settings",icon:Settings2}, {label:"تاریخچه تغییرات",href:"/admin/audit",icon:History},
 ];
 const EditorState=createContext<(dirty:boolean)=>void>(()=>{});
 export const useAdminEditorState=()=>useContext(EditorState);

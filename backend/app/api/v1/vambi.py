@@ -1,6 +1,9 @@
 """وامبی (Vambi): جستجو و مقایسهٔ قیمت درون اکوسیستم شصت آنلاین.
 
-  GET /api/v1/vambi/search?q=&category=&page=&sort=relevance|price_asc|sellers
+  GET  /api/v1/vambi/search?q=&category=&page=&sort=relevance|price_asc|sellers
+  POST /api/v1/vambi/click      one «مشاهده و خرید» click → today's counter (204; nothing about the visitor is stored)
+A first-page search with a query or category adds one to today's search counter: a number only — no query text,
+no user id, no IP (vambi_launch_service.bump).
 Each result is one exact product (SKU) with every in-ecosystem seller's offer side by side: VAT-inclusive price,
 lead time, stock and city. Only marketplace sellers/shops — nothing outside the ecosystem is crawled or shown, and
 nothing is fed out. Price visibility follows STOREFRONT_PRICE_VISIBILITY (this path is a public catalog surface).
@@ -10,13 +13,17 @@ from __future__ import annotations
 from flask import Blueprint, g, jsonify, request
 
 from app.api.v1.marketplace import _viewer_orgs
-from app.core.deps import get_db
+from app.core.deps import client_ip, get_db
 from app.core.errors import ValidationError
+from app.core.rate_limiter import InMemoryRateLimiter
 from app.services import storefront_service as store
+from app.services import vambi_launch_service as launch
 
 bp = Blueprint("vambi", __name__, url_prefix="/api/v1/vambi")
 PAGE_SIZE = 12
 MAX_OFFERS = 8
+# Click counting is a vanity number: cap one address at 30 counted clicks a minute (in memory only, never stored).
+_CLICKS = InMemoryRateLimiter(30, 60)
 
 
 def _summary(offers: list[dict]) -> dict:
@@ -38,6 +45,8 @@ def search():
     except ValueError:
         raise ValidationError("صفحه نامعتبر است") from None
     orgs = _viewer_orgs()
+    if page == 1 and (q or request.args.get("category")):
+        launch.bump_safely(get_db(), "search")
     with get_db().read_transaction() as conn:
         res = store.search(conn, q=q or None, category=request.args.get("category") or None, group="sku",
                            sort="price_asc" if sort == "price_asc" else "relevance", page=page, page_size=PAGE_SIZE)
@@ -61,3 +70,10 @@ def search():
             items.sort(key=lambda i: -i["summary"]["seller_count"])
         return jsonify({"q": q, "page": page, "total": res.get("total", len(items)),
                         "total_pages": res.get("total_pages", 1), "items": items})
+
+
+@bp.post("/click")
+def click():
+    if _CLICKS.is_allowed(client_ip() or "-"):
+        launch.bump_safely(get_db(), "buy_click")
+    return "", 204
