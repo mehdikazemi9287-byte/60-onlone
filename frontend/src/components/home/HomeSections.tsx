@@ -16,7 +16,7 @@ import { useGoodImages } from "@/lib/imageQuality";
 import { storefront, type PackDetail } from "@/lib/storefront";
 import type { Category, Product } from "@/lib/types";
 import { formatTomanExact, toPersianNum } from "@/lib/utils";
-import { PackCard, UI, loadPackDetails } from "@/components/packs/PackCard";
+import { UI, loadPackDetails, packImages } from "@/components/packs/PackCard";
 
 const ACCENT = "#C4461C"; // used by the protected pack section
 const C = { blue: "#034EA2", navy: "#0A2735", orange: "#E0501F", orangeL: "#FF6D41", ink: "#1B2430", gray: "#5F6875", line: "#E4E8EE", bg: "#F3F5F8", blueL: "#E8F0FB", orangeT: "#FDECE5" };
@@ -272,18 +272,38 @@ function Packs() {
   const good = useGoodImages((shown ?? []).flatMap((p) => p.items.map((i) => i.image_url)));
   const used = new Set<string>();
   if (shown && !shown.length) return null;
+  // Compact band (user, 2026-11-10: the full pack cards took too much of the homepage). The full cards
+  // stay on /pack-builder; here each pack is one small tile linking to its page.
   return (
-    <section id="packs" className="scroll-mt-28 space-y-4 rounded-[20px] p-4 md:p-6" style={{ background: UI.mint }}>
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><div><p className="text-xs font-bold" style={{ color: ACCENT }}>پک‌ساز 60Online</p><H2>بودجه یا نیازت را بگو؛ پک مناسب بساز.</H2>
-        <p className="mt-1 text-sm leading-6" style={{ color: UI.ink }}>برای خانه، هدیه، مناسبت یا سازمان؛ پک آماده را انتخاب کنید، بر اساس بودجه بسازید یا اقلام را خودتان بچینید.</p></div>
-        <Link href="/pack-builder" className="flex h-12 shrink-0 items-center justify-center rounded-xl px-8 text-sm font-bold text-white" style={{ background: UI.ink }}>شروع پک‌سازی</Link></div>
-      <div className="grid gap-4 md:grid-cols-3">
-        {(shown ?? [null, null, null]).map((p, i) => p ? <PackCard key={p.slug} p={p} good={good} used={used} /> : <span key={i} className="h-96 animate-pulse rounded-2xl bg-white/70" />)}
+    <section id="packs" className="scroll-mt-28 grid gap-4 rounded-[20px] border border-[#D6E4D9] p-4 shadow-[0_6px_18px_rgba(16,24,40,0.06)] md:grid-cols-[minmax(0,320px)_1fr] md:items-center md:p-5" style={{ background: UI.mint }}>
+      <div className="flex flex-col gap-2">
+        <p className="text-xs font-bold" style={{ color: ACCENT }}>پک‌ساز 60Online</p>
+        <H2>بودجه یا نیازت را بگو؛ پک مناسب بساز.</H2>
+        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-bold" style={{ color: UI.ink }}>
+          <Link href="/pack-builder" className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-bold text-white" style={{ background: UI.ink }}>شروع پک‌سازی</Link>
+          <Link href="/pack-builder?mode=budget" className="inline-flex min-h-11 items-center gap-1">بر اساس بودجه <ArrowLeft className="h-4 w-4" /></Link>
+          <Link href="/pack-builder?mode=scratch" className="inline-flex min-h-11 items-center gap-1">ساخت دستی <ArrowLeft className="h-4 w-4" /></Link>
+        </div>
       </div>
-      <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm font-bold" style={{ color: UI.ink }}>
-        <Link href="/pack-builder" className="inline-flex min-h-11 items-center gap-1">همه پک‌های آماده <ArrowLeft className="h-4 w-4" /></Link>
-        <Link href="/pack-builder?mode=budget" className="inline-flex min-h-11 items-center gap-1">ساخت بر اساس بودجه <ArrowLeft className="h-4 w-4" /></Link>
-        <Link href="/pack-builder?mode=scratch" className="inline-flex min-h-11 items-center gap-1">ساخت دستی <ArrowLeft className="h-4 w-4" /></Link>
+      <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 md:grid md:grid-cols-3 md:overflow-visible">
+        {(shown ?? [null, null, null]).map((p, i) => {
+          if (!p) return <span key={i} className="h-28 w-64 shrink-0 animate-pulse rounded-2xl bg-white/70 md:w-auto" />;
+          const pics = packImages(p, good, 3, used);
+          return (
+            <Link key={p.slug} href={`/packs/${p.slug}`} className="flex w-64 shrink-0 snap-start items-center gap-3 rounded-2xl border border-[#E3E8EF] bg-[#FFFFFF] p-3 transition hover:-translate-y-0.5 hover:shadow-md md:w-auto">
+              <span className="min-w-0 flex-1">
+                <b className="line-clamp-1 text-sm font-black" style={{ color: UI.ink }}>{p.title_fa}</b>
+                <span className="mt-0.5 block line-clamp-1 text-xs" style={{ color: UI.muted }}>{p.purpose_fa}</span>
+                <span className="mt-1 block text-xs font-bold" style={{ color: UI.muted }}>{toPersianNum(p.item_count)} نوع کالا</span>
+              </span>
+              <span className="flex h-16 w-24 shrink-0 items-center justify-center gap-1 rounded-xl p-1" style={{ background: UI.warm }}>
+                {pics.length ? pics.slice(0, 2).map((src) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={src} src={src} alt="" loading="lazy" className="h-full w-1/2 rounded-lg bg-[#FFFFFF] object-contain p-0.5" />))
+                  : <Boxes className="h-7 w-7" style={{ color: UI.muted }} strokeWidth={1.4} />}
+              </span>
+            </Link>);
+        })}
       </div>
     </section>
   );
