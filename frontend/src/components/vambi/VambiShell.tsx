@@ -39,12 +39,16 @@ export function VambiShell({ children }: { children: React.ReactNode }) {
       <header className="border-b border-[#DCE3F7] bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2">
           <a href="/vambi"><VambiMark /></a>
-          <VambiLoginButton />
+          <nav className="flex items-center gap-3" aria-label="وامبی">
+            <a href="/vambi/about" className="text-sm font-bold text-[#1748C9] hover:text-[#0B2A80]">وامبی چیست؟</a>
+            <VambiLoginButton />
+          </nav>
         </div>
       </header>
       <main className="flex-1">{children}</main>
       <footer className="border-t border-[#DCE3F7] py-6 text-center text-xs text-neutral-600">
-        وامبی فقط فروشنده‌های معتبرِ عضو اکوسیستم شصت آنلاین را مقایسه می‌کند.
+        وامبی فقط فروشنده‌های معتبرِ عضو اکوسیستم شصت آنلاین را مقایسه می‌کند.{" "}
+        <a href="/vambi/about" className="font-bold text-[#1748C9] underline-offset-4 hover:underline">بیشتر بدانید</a>
       </footer>
     </div>
   );
