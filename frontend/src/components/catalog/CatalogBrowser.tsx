@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { CatalogSkeleton } from "./CatalogSkeleton";
 import { catalog, categories } from "@/lib/api";
 import { ProductGrid } from "@/components/product/ProductCard";
 import type { Product } from "@/lib/types";
@@ -101,7 +102,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
       <div className="min-w-0">
       <p className="mb-4 text-sm" aria-live="polite">{loading ? "در حال دریافت…" : toPersianNum(total) + " محصول"}</p>
       {error ? <p role="alert" className="rounded-xl bg-red-50 p-5 text-red-800">{error}</p>
-        : loading ? <div className="min-h-64 animate-pulse rounded-xl bg-neutral-100" />
+        : loading ? <CatalogSkeleton />
         : items.length ? <ProductGrid products={items} cols={3} />
         : <div className="card p-8 text-center text-neutral-600">{avail ? "در حال حاضر کالای قابل خرید آنلاین در این بخش نیست؛ فیلتر را بردارید تا کالاهای قابل استعلام را ببینید." : "کالایی برای این جستجو یافت نشد. املای دیگری را امتحان کنید یا درخواست تأمین ثبت کنید."}
             <div className="mt-3"><Link href={`/requests/new${q ? `?q=${encodeURIComponent(q)}` : ""}`} className="font-bold text-brand-blue">ثبت درخواست تأمین کالا</Link></div></div>}
