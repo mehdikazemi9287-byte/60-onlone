@@ -28,6 +28,14 @@ The job is bounded (3 s SMS timeout, stop after 3 consecutive provider failures,
 total), works in short transactions with a SAVEPOINT per item, and on PostgreSQL takes an advisory lock so
 overlapping runs serialize. A rerun in the same hour sends nothing twice (state transitions + unique dedupe keys
 + one reserved digest row per user, kind and hour). Retention: history and events older than 120 days are deleted.
+
+SMS lifecycle (audit 2026-11-10, migration 0083). Event: pending -> reserved -> sent | failed | unknown, or
+pending -> canceled (watch paused/deleted, its SMS or the seller SMS turned off: consent is re-read when the digest
+is reserved, and the change itself cancels the queue) / skipped_* / none / unavailable. Digest row:
+reserved -> sending -> sent | failed | unknown. An event is "sent" only after the provider accepted the digest.
+recover_stuck (run before every dispatch) releases a reservation that never reached the provider (back to pending)
+and marks a "sending" row older than SMS_LEASE_MINUTES as unknown (never retried blindly); stale rows do not count
+against the daily caps.
 """
 from __future__ import annotations
 
@@ -75,6 +83,7 @@ PENDING_MAX_HOURS = 24          # an SMS line older than this is dropped (in-sit
 SMS_TIMEOUT_S = 3.0
 MAX_CONSECUTIVE_FAILURES = 3
 JOB_BUDGET_S = 120              # PRICE_ALERT_JOB_BUDGET_S; leftovers wait for the next run
+SMS_LEASE_MINUTES = 15          # a reserved/sending digest older than this is stale: recover_stuck resolves it
 RETENTION_DAYS = 120
 TEHRAN = _dt.timedelta(hours=3, minutes=30)  # Iran has had no DST since 2022
 
@@ -446,11 +455,22 @@ def update_watch(conn, user, watch_id: int, data: dict, now=None) -> dict:
             sets["state_json"] = None  # new quantity = new baseline on the next run (no alert from the switch itself)
         sets["updated_at"] = _stamp(now)
         conn.execute(f"UPDATE price_watches SET {', '.join(f'{k}=?' for k in sets)} WHERE id=?", (*sets.values(), watch_id))
+        if sets.get("active") == 0:
+            _cancel_pending(conn, "watch_id=?", (watch_id,), "watch_paused")
+        elif sets.get("sms_enabled") == 0:
+            _cancel_pending(conn, "watch_id=?", (watch_id,), "sms_disabled")
     return _view(conn, user, _own(conn, int(user["id"]), watch_id), visible)
+
+
+def _cancel_pending(conn, where: str, params: tuple, reason: str) -> int:
+    """Consent changed: queued SMS lines not yet reserved for a digest are canceled (in-site notices stay)."""
+    return conn.execute(f"UPDATE price_alert_events SET sms_status='canceled', sms_reason=? WHERE sms_status='pending' AND {where}",
+                        (reason, *params)).rowcount
 
 
 def delete_watch(conn, user, watch_id: int) -> None:
     _own(conn, int(user["id"]), watch_id)
+    _cancel_pending(conn, "watch_id=? AND user_id=?", (watch_id, int(user["id"])), "watch_deleted")  # before SET NULL
     conn.execute("DELETE FROM price_watches WHERE id=? AND user_id=?", (watch_id, int(user["id"])))
 
 
@@ -692,6 +712,8 @@ def set_seller_sms(conn, user_id: int, enabled) -> dict:
     conn.execute("""INSERT INTO price_alert_user_prefs (user_id, seller_sms, updated_at) VALUES (?,?,?)
                     ON CONFLICT (user_id) DO UPDATE SET seller_sms=excluded.seller_sms, updated_at=excluded.updated_at""",
                  (user_id, int(enabled), _stamp(_now())))
+    if not enabled:
+        _cancel_pending(conn, "user_id=? AND level='seller'", (user_id,), "seller_sms_off")
     return {"sms_enabled": enabled}
 
 
@@ -814,17 +836,40 @@ def _reserve_digest(conn, uid: int, kind: str, now, sender, stats: dict):
     hour, day = _hour(now), _day(now)
     run_key = hour if kind == "buyer" else f"{hour}:s"
     seller_kind = "=" if kind == "seller" else "<>"
-    pending = conn.execute(f"""SELECT id, product_id, sms_text, created_at FROM price_alert_events
-                               WHERE user_id=? AND sms_status='pending' AND level {seller_kind} 'seller' ORDER BY id""",
-                           (uid,)).fetchall()
+    rows = conn.execute(f"""SELECT e.id, e.product_id, e.sms_text, e.created_at,
+                                   w.id AS w_id, w.active AS w_active, w.sms_enabled AS w_sms
+                            FROM price_alert_events e LEFT JOIN price_watches w ON w.id=e.watch_id AND w.user_id=e.user_id
+                            WHERE e.user_id=? AND e.sms_status='pending' AND e.level {seller_kind} 'seller' ORDER BY e.id""",
+                         (uid,)).fetchall()
+    if not rows:
+        return None
+    # Consent is re-read now, not taken from the moment the event was created (SO-02 / N3).
+    pending, cancel = [], {}
+    seller_off = kind == "seller" and not _seller_sms_on(conn, uid)
+    for r in rows:
+        if kind == "seller":
+            reason = "seller_sms_off" if seller_off else None
+        else:
+            reason = ("watch_deleted" if r["w_id"] is None else "watch_paused" if not r["w_active"]
+                      else "sms_disabled" if not r["w_sms"] else None)
+        if reason:
+            cancel.setdefault(reason, []).append(r["id"])
+        else:
+            pending.append(r)
+    for reason, cids in cancel.items():
+        conn.execute(f"UPDATE price_alert_events SET sms_status='canceled', sms_reason=? WHERE id IN ({','.join('?' * len(cids))})",
+                     (reason, *cids))
+        stats["canceled"] += len(cids)
     if not pending:
         return None
     if conn.execute("SELECT 1 FROM price_alert_sms WHERE user_id=? AND run_hour=?", (uid, run_key)).fetchone():
         return None  # this hour's digest already went out; the rest waits for the next run
     cutoff = _stamp(now - _dt.timedelta(hours=PENDING_MAX_HOURS))
+    lease = _stamp(now - _dt.timedelta(minutes=SMS_LEASE_MINUTES))
+    # Per item and day: anything that may have reached the phone (sent, unknown, in flight) blocks a second line.
     texted_today = {int(r[0]) for r in conn.execute(
         """SELECT DISTINCT e.product_id FROM price_alert_events e JOIN price_alert_sms s ON s.id=e.sms_id
-           WHERE e.user_id=? AND s.day=? AND s.kind=? AND s.status IN ('sending','sent')""", (uid, day, kind))}
+           WHERE e.user_id=? AND s.day=? AND s.kind=? AND s.status IN ('reserved','sending','sent','unknown')""", (uid, day, kind))}
     take, skip, seen = [], [], set()
     for r in pending:
         pid = int(r["product_id"])
@@ -852,33 +897,62 @@ def _reserve_digest(conn, uid: int, kind: str, now, sender, stats: dict):
         stats["unavailable"] += len(ids)
         return None
     # The per-person limit counts buyer AND seller digests together: one phone, one daily allowance.
-    sent_today = conn.execute("SELECT COUNT(*) FROM price_alert_sms WHERE user_id=? AND day=? AND status IN ('sending','sent')",
-                              (uid, day)).fetchone()[0]
+    # Caps count accepted digests and live (non-stale) reservations only; a stuck row never eats the allowance.
+    counted = "(status='sent' OR (status IN ('reserved','sending') AND COALESCE(attempt_at, created_at) >= ?))"
+    sent_today = conn.execute(f"SELECT COUNT(*) FROM price_alert_sms WHERE user_id=? AND day=? AND {counted}",
+                              (uid, day, lease)).fetchone()[0]
     text = _digest_text([r["sms_text"] for r in take])
     parts = sms_parts(text)
     cap = _env_int("PRICE_ALERT_DAILY_SMS_PARTS_CAP", 1500) if kind == "buyer" else _env_int("PRICE_ALERT_SELLER_DAILY_SMS_PARTS_CAP", 500)
-    used = conn.execute("SELECT COALESCE(SUM(parts),0) FROM price_alert_sms WHERE day=? AND kind=? AND status IN ('sending','sent')",
-                        (day, kind)).fetchone()[0]
+    used = conn.execute(f"SELECT COALESCE(SUM(parts),0) FROM price_alert_sms WHERE day=? AND kind=? AND {counted}",
+                        (day, kind, lease)).fetchone()[0]
     if sent_today >= _env_int("PRICE_ALERT_USER_DAILY_SMS", 2) or int(used) + parts > cap:
         mark(ids, "skipped_cap")
         stats["skipped_cap"] += len(ids)
         return None
     cur = conn.execute("""INSERT INTO price_alert_sms (user_id, run_hour, day, item_count, status, created_at, parts, kind)
-                          VALUES (?,?,?,?, 'sending', ?,?,?) ON CONFLICT DO NOTHING""",
+                          VALUES (?,?,?,?, 'reserved', ?,?,?) ON CONFLICT DO NOTHING""",
                        (uid, run_key, day, len(ids), _stamp(now), parts, kind))
     if not cur.rowcount:
         return None  # an overlapping run reserved it first
     sms_id = int(conn.execute("SELECT id FROM price_alert_sms WHERE user_id=? AND run_hour=?", (uid, run_key)).fetchone()[0])
-    conn.execute(f"UPDATE price_alert_events SET sms_status='sent', sms_id=? WHERE id IN ({','.join('?' * len(ids))})", (sms_id, *ids))
+    conn.execute(f"UPDATE price_alert_events SET sms_status='reserved', sms_id=? WHERE id IN ({','.join('?' * len(ids))})", (sms_id, *ids))
     return sms_id, phone["phone_verified"], text
+
+
+def recover_stuck(db, now=None) -> dict:
+    """Resolve digests left behind by a crash or kill (rows older than the lease only). 'reserved' (provider never
+    called) -> released: its events go back to pending and are re-checked against consent and caps on the next
+    reservation. 'sending' (the call may have reached the provider) -> unknown, events unknown: never resent blindly."""
+    now = _now(now)
+    stamp, lease = _stamp(now), _stamp(now - _dt.timedelta(minutes=SMS_LEASE_MINUTES))
+    out = {"released": 0, "unknown": 0}
+    with db.write_transaction() as conn:
+        for r in conn.execute("SELECT id FROM price_alert_sms WHERE status='reserved' AND created_at < ? ORDER BY id",
+                              (lease,)).fetchall():
+            conn.execute("UPDATE price_alert_events SET sms_status='pending', sms_id=NULL WHERE sms_id=? AND sms_status='reserved'",
+                         (r["id"],))
+            conn.execute("UPDATE price_alert_sms SET status='failed', finished_at=? WHERE id=? AND status='reserved'", (stamp, r["id"]))
+            out["released"] += 1
+        for r in conn.execute("SELECT id FROM price_alert_sms WHERE status='sending' AND COALESCE(attempt_at, created_at) < ? ORDER BY id",
+                              (lease,)).fetchall():
+            # 'sent' covers rows written before 0083, when events were marked sent at reservation time.
+            conn.execute("UPDATE price_alert_events SET sms_status='unknown' WHERE sms_id=? AND sms_status IN ('reserved','sent')",
+                         (r["id"],))
+            conn.execute("UPDATE price_alert_sms SET status='unknown', finished_at=? WHERE id=? AND status='sending'", (stamp, r["id"]))
+            out["unknown"] += 1
+    if out["released"] or out["unknown"]:
+        log.warning("price alerts: recovered stale SMS digests %s", out)
+    return out
 
 
 def send_digests(db, sender=None, now=None, deadline=None) -> dict:
     """One digest SMS per user, kind (buyer/seller) and run hour from that user's own pending events (no prices).
     Held during quiet hours (22:00–08:00 Tehran); pending events wait for the first run after 08:00."""
-    from app.adapters.sms import ConsoleSms, SmsError, sender_from_env
+    from app.adapters.sms import ConsoleSms, SmsError, SmsOutcomeUnknown, console_allowed, sender_from_env
     now = _now(now)
-    stats = {"sent": 0, "failed": 0, "skipped_item": 0, "skipped_cap": 0, "unavailable": 0, "held": 0, "deferred": 0}
+    stats = {"sent": 0, "failed": 0, "unknown": 0, "canceled": 0, "skipped_item": 0, "skipped_cap": 0, "unavailable": 0,
+             "held": 0, "deferred": 0, "recovered": recover_stuck(db, now)}
     if quiet_hours(now):
         with db.read_transaction() as conn:
             stats["held"] = int(conn.execute("SELECT COUNT(*) FROM price_alert_events WHERE sms_status='pending'").fetchone()[0])
@@ -886,10 +960,11 @@ def send_digests(db, sender=None, now=None, deadline=None) -> dict:
     if sender is None:
         try:
             sender = sender_from_env()
-        except SmsError:
+        except SmsError as exc:
+            log.error("price alerts: no SMS provider, digests marked unavailable: %s", exc)
             sender = None
-        if isinstance(sender, ConsoleSms) and (os.environ.get("APP_ENV") or "").lower() == "production":
-            sender = None  # never pretend a console "send" is a real SMS in production
+        if isinstance(sender, ConsoleSms) and not console_allowed():
+            sender = None  # never pretend a console "send" is a real SMS outside development/test (N1)
     if sender is not None and hasattr(sender, "timeout"):
         sender.timeout = min(float(sender.timeout), SMS_TIMEOUT_S)  # the scheduler is sequential: never block it long
     with db.read_transaction() as conn:
@@ -906,18 +981,27 @@ def send_digests(db, sender=None, now=None, deadline=None) -> dict:
         if reserved is None:
             continue
         sms_id, to, text = reserved
+        with db.write_transaction() as conn:  # committed BEFORE the call: a crash from here on is "unknown", not "sent"
+            started = conn.execute("UPDATE price_alert_sms SET status='sending', attempt_at=? WHERE id=? AND status='reserved'",
+                                   (_stamp(now), sms_id)).rowcount
+        if not started:
+            continue  # resolved meanwhile (recover_stuck in an overlapping run)
+        ref = None
         try:  # network call outside the DB transaction; the reservation already blocks a second send this hour
-            sender.send_text(to, text)
-            ok = True
+            ref = sender.send_text(to, text)
+            outcome = "sent"
+        except SmsOutcomeUnknown:
+            log.warning("price alert digest SMS outcome unknown for user %s", uid)
+            outcome = "unknown"
         except Exception:  # noqa: BLE001 — a provider failure must not stop the job
             log.warning("price alert digest SMS failed for user %s", uid)
-            ok = False
+            outcome = "failed"
         with db.write_transaction() as conn:
-            conn.execute("UPDATE price_alert_sms SET status=? WHERE id=?", ("sent" if ok else "failed", sms_id))
-            if not ok:
-                conn.execute("UPDATE price_alert_events SET sms_status='failed' WHERE sms_id=?", (sms_id,))
-        failures = 0 if ok else failures + 1
-        stats["sent" if ok else "failed"] += 1
+            conn.execute("UPDATE price_alert_sms SET status=?, provider_ref=?, finished_at=? WHERE id=? AND status='sending'",
+                         (outcome, str(ref)[:64] if ref is not None else None, _stamp(now), sms_id))
+            conn.execute("UPDATE price_alert_events SET sms_status=? WHERE sms_id=? AND sms_status='reserved'", (outcome, sms_id))
+        failures = 0 if outcome == "sent" else failures + 1
+        stats[outcome] += 1
     return stats
 
 

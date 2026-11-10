@@ -13,6 +13,10 @@
 - انتشار قابلیت‌های vambi-sso یعنی rebuild backend از mirror، اجرای migrationهای 0079 تا 0082 روی کپی DB، و rollback؛ runbook آن پیش از انتشار نوشته شود.
 - متن اعتماد صفحهٔ محصول تابع وضعیت قیمت باشد؛ کالای استعلامی ادعای «قیمت تأییدشده» یا «موجودی تأییدشده» نداشته باشد.
 - lint باید exit=0 بدهد (`next/link` برای مسیر داخلی). build موفق جای lint را نمی‌گیرد.
+- `backend/entrypoint.sh` هنگام بالا آمدن migration را خودکار اجرا می‌کند. image تازهٔ بک‌اند هرگز اول روی DB زنده بالا نیاید؛ اول `sqlite-upgrade.sh stage` روی کپی (راهنما: `docs/runbooks/release-price-alerts.md`).
+- تغییر CHECK در SQLite یعنی بازسازی جدول در یک تراکنش (الگوی 0021 و 0083). twin جدول در PostgreSQL دستی نوشته شود، با DROP/ADD CONSTRAINT، و روی PostgreSQL واقعی آزموده شود.
+- compose ساخته‌شده با `sqlite-upgrade.sh` سرویس worker ندارد. job هشدار قیمت بدون worker اجرا نمی‌شود.
+- build فرانت در محیط بی‌دسترسی به Google Fonts شکست می‌خورد. بررسی کامپایل با `NEXT_FONT_GOOGLE_MOCKED_RESPONSES` جای build واقعی سرور را نمی‌گیرد.
 
 ## قواعد مشترک همهٔ پروژه‌های گروه (از ممیزی ۱۸ و ۱۹ آبان ۱۴۰۵)
 

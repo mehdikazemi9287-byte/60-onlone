@@ -5,6 +5,10 @@
 
 > شاخهٔ کاری: `retail-network` (شامل `marketplace-roadmap`) — آخرین به‌روزرسانی این فایل: ۱۸ آبان ۱۴۰۵ (2026-11-09)
 > ادامهٔ کار: [docs/NEXT-STEPS-2026-11-09.md](docs/NEXT-STEPS-2026-11-09.md)
+> **دور اصلاح ممیزی ۱۹ آبان ۱۴۰۵:** شاخهٔ `fix/audit-2026-11-10`. این شاخه vambi-sso و اصلاح‌های main را با هم دارد و صف پیامک هشدار قیمت، متن اعتماد قیمت، lint و Pillow را اصلاح می‌کند.
+> - وضعیت: کدنویسی و آزمون انجام شد؛ **ادغام در main و استقرار انجام نشده**.
+> - گزارش: [docs/audit/fix-2026-11-10.md](docs/audit/fix-2026-11-10.md)
+> - راهنمای انتشار: [docs/runbooks/release-price-alerts.md](docs/runbooks/release-price-alerts.md)
 
 ## وضعیت فعلی
 

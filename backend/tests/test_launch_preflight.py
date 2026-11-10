@@ -28,7 +28,7 @@ class PreflightTest(AppTestCase):
         good = {"APP_ENV": "production", "PUBLIC_BASE_URL": "https://60online.ir", "CORS_ORIGINS": "https://60online.ir",
                 "SECRET_KEY": "k" * 64, "PAYMENT_PROVIDER": "sepehr", "SEPEHR_TERMINAL_ID": "123",
                 "STOREFRONT_SALES_ENABLED": "1", "LEGAL_REQUIRE_BUYER_TERMS": "1", "SMS_PROVIDER": "kavenegar",
-                "KAVENEGAR_API_KEY": "x", "KAVENEGAR_TEMPLATE": "t", "RATE_LIMIT_PER_MINUTE": "120",
+                "KAVENEGAR_API_KEY": "x", "KAVENEGAR_TEMPLATE": "t", "KAVENEGAR_SENDER": "1000", "RATE_LIMIT_PER_MINUTE": "120",
                 "MEDIA_ROOT": d, "DOCUMENT_STORAGE_DIR": d, "STOREFRONT_PRICE_VISIBILITY": "organizations",
                 "TRUSTED_PROXY_HOPS": "1", "OTP_DAILY_SMS_CAP": "3000"}
         with mock.patch.dict(os.environ, good, clear=True):
@@ -36,3 +36,6 @@ class PreflightTest(AppTestCase):
         with mock.patch.dict(os.environ, {**good, "COMMERCE_TEST_MODE": "1", "CORS_ORIGINS": "http://localhost:3000"}, clear=True):
             bad = {k for lvl, k, _ in lp.config_checks() if lvl == lp.BLOCKER}
         self.assertEqual(bad, {"COMMERCE_TEST_MODE", "CORS_ORIGINS"})
+        no_sms = {k: v for k, v in good.items() if k != "SMS_PROVIDER"}  # audit N1: console is refused on servers
+        with mock.patch.dict(os.environ, no_sms, clear=True):
+            self.assertIn("SMS_PROVIDER", {k for lvl, k, _ in lp.config_checks() if lvl == lp.BLOCKER})
