@@ -10,7 +10,7 @@
 
 ## اجرا
 ```bash
-cd tools/homepage-qa
+cd tools/homepage-qa   # حالا هدر و فوتر سراسری را هم با صفحهٔ اول رندر می‌کند
 mkdir -p images/catalog && cp ../../frontend/public/images/catalog/* images/catalog/
 S=$PWD/stubs; F=$(cd ../.. && pwd)/frontend/src/components/home/HomeSections.tsx
 esbuild entry.tsx --bundle --outfile=app.js --jsx=automatic --define:process.env.NODE_ENV='"production"' \
