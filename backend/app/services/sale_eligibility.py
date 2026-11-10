@@ -103,6 +103,29 @@ def eligible_offer_db(db, product_id: int):
     return offer
 
 
+
+def catalog_price_sql(product_expression: str) -> str:
+    """Internal SQL expression for ordering only; expression is never user input.
+
+    Reuse the exact eligibility predicate rather than a separate price policy.
+    The returned page still resolves full offers before serializing prices.
+    """
+    override = _test_override_enabled()
+    if not sales_enabled() and not override:
+        return "NULL"
+    source = _sql()
+    source = "SELECT so.selling_price_minor " + source[source.index("FROM seller_offers"):]
+    source = source.replace("so.product_id = ?", f"so.product_id = {product_expression}", 1)
+    expression = f"({source})"
+    if override:
+        fallback = f"""(SELECT fallback_product.base_price_minor FROM products fallback_product
+            WHERE fallback_product.id={product_expression}
+            AND fallback_product.is_active=1 AND fallback_product.base_price_minor>0
+            AND {policy.product_sql('fallback_product.id', 'retail')})"""
+        expression = f"COALESCE({expression}, {fallback})"
+    return expression
+
+
 def eligible_offers_db(db, product_ids) -> dict:
     """Resolve catalog offers in bounded batches with the same fail-closed policy.
 
