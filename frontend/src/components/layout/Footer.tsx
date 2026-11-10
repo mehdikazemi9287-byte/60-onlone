@@ -1,11 +1,64 @@
+"use client";
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, Globe2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { categories as categoriesApi } from "@/lib/api";
+import type { Category } from "@/lib/types";
 
-const GROUPS = [
-  { title: "راهنمای خرید", links: [{label:"راهنمای خرید",href:"/help/buying"},{label:"سوالات متداول",href:"/help/faq"},{label:"جستجوی کالا",href:"/search"}] },
-  { title: "خدمات مشتریان", links: [{label:"تماس با ما",href:"/contact"},{label:"پیگیری سفارش‌ها",href:"/orders"},{label:"شرایط استفاده",href:"/terms"}] },
-  { title: "خدمات سازمانی", links: [{label:"درخواست حساب سازمانی و فروشگاهی",href:"/business"},{label:"خرید سازمانی",href:"/org"},{label:"پک‌ساز",href:"/pack-builder"},{label:"پورتال تأمین‌کننده",href:"/supplier"}] },
-  { title: "حقوقی و اعتماد", links: [{label:"حریم خصوصی",href:"/privacy"},{label:"شرایط و قوانین",href:"/terms"}] },
+// Matches Figma "هدر و فوتر سراسری" (node 19:224). Contact details and trust
+// badges (اینماد / ساماندهی) are intentionally absent until official data exists.
+const LINKS: [string, string][] = [
+  ["خرید سازمانی", "/org"],
+  ["پک‌ساز", "/pack-builder"],
+  ["شبکهٔ فروشگاه‌های طرف قرارداد", "/stores"],
+  ["در شصت‌آنلاین بفروشید", "/sell"],
+  ["پیگیری سفارش", "/orders"],
 ];
-export function Footer(){return <footer className="bg-brand-navy text-white/70"><div className="container-wide py-10 md:py-12"><div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-6"><div className="sm:col-span-2"><Link href="/" className="mb-4 inline-flex items-center gap-3"><span className="relative h-11 w-11 overflow-hidden rounded-xl bg-white"><Image src="/brand/60online-logo.jpeg" alt="60Online" fill sizes="44px" className="object-contain p-1" /></span><span><b className="block text-lg font-black text-white">60Online</b><small className="text-white/50">خرید برای خانه و سازمان</small></span></Link><p className="max-w-sm text-sm leading-7 text-white/55">دسترسی یکپارچه به کالاها، دسته‌بندی‌ها و مسیر خرید سازمانی.</p><div className="mt-5 inline-flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3"><Globe2 className="h-5 w-5 text-amber-300"/><span><b className="block text-xs text-white">نسخه وب 60Online</b></span></div></div>{GROUPS.map((g)=><div key={g.title}><h3 className="mb-3 text-sm font-bold text-white">{g.title}</h3><ul className="space-y-2.5">{g.links.map((l)=><li key={l.href+l.label}><Link href={l.href} className="text-sm text-white/55 transition-colors hover:text-amber-300">{l.label}</Link></li>)}</ul></div>)}</div></div><div className="border-t border-white/10"><div className="container-wide flex flex-col items-center justify-between gap-2 py-4 text-xs text-white/45 sm:flex-row"><span>تمام حقوق این وب‌سایت متعلق به 60Online است.</span><span>© ۱۴۰۵ 60Online</span></div></div></footer>;}
+const HELP: [string, string][] = [
+  ["راهنمای خرید", "/help/buying"],
+  ["پرسش‌های متداول", "/help/faq"],
+  ["قوانین و مقررات", "/terms"],
+  ["حریم خصوصی", "/privacy"],
+  ["تماس با ما", "/contact"],
+];
+
+function Col({ title, items }: { title: string; items: [string, string][] }) {
+  return (
+    <div>
+      <h3 className="mb-4 text-sm font-black text-[#1B2430]">{title}</h3>
+      <ul className="space-y-3">
+        {items.map(([label, href]) => (
+          <li key={href + label}><Link href={href} className="text-sm text-[#5F6875] hover:text-[#034EA2]">{label}</Link></li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function Footer() {
+  const [cats, setCats] = useState<[string, string][]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    categoriesApi.list()
+      .then((items: Category[]) => !cancelled && setCats(items.filter(i => i.product_count > 0).sort((a, b) => b.product_count - a.product_count).slice(0, 5).map((i): [string, string] => [i.name, `/category/${i.slug}`])))
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  return (
+    <footer className="mt-10 border-t border-[#E3E8EF] bg-[#FFFFFF]">
+      <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-4 py-10 sm:grid-cols-2 md:px-8 md:py-12 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div>
+          <Link href="/" className="inline-flex items-center gap-2">
+            <span className="relative block h-12 w-12"><Image src="/brand/60online-logo.jpeg" alt="" fill sizes="48px" className="object-contain mix-blend-multiply" /></span>
+            <b className="text-2xl font-black text-[#034EA2]">شصت‌آنلاین</b>
+          </Link>
+          <p className="mt-3 max-w-xs text-sm leading-7 text-[#5F6875]">مارکت‌پلیس سازمانی و عمده‌فروشی؛ خرید برای سازمان، کارکنان و خانه.</p>
+        </div>
+        {cats.length > 0 && <Col title="دسته‌بندی‌های پرطرفدار" items={cats} />}
+        <Col title="خدمات" items={LINKS} />
+        <Col title="راهنما و قوانین" items={HELP} />
+      </div>
+      <div className="border-t border-[#EEF1F5] py-4 text-center text-xs text-[#7A8594]">© ۱۴۰۵ شصت‌آنلاین</div>
+    </footer>
+  );
+}

@@ -7,3 +7,4 @@ const items=[P(1,'پسته','04ae4003f2e4ed1a7d1f59ea2e76b3605505b0f3e7853fd8720
 export const catalog={list:async()=>({items,total:items.length})};
 export const categories={list:async()=>[supermarket,nuts,stationery,protein,dairy]};
 export const apiRequest=async()=>{throw new Error('offline')};
+export const cart={get:async()=>({item_count:0})};

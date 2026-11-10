@@ -275,12 +275,12 @@ function Packs() {
   // Compact band (user, 2026-11-10: the full pack cards took too much of the homepage). The full cards
   // stay on /pack-builder; here each pack is one small tile linking to its page.
   return (
-    <section id="packs" className="scroll-mt-28 grid gap-4 rounded-[20px] border border-[#D6E4D9] p-4 shadow-[0_6px_18px_rgba(16,24,40,0.06)] md:grid-cols-[minmax(0,320px)_1fr] md:items-center md:p-5" style={{ background: UI.mint }}>
+    <section id="packs" className="scroll-mt-28 grid gap-4 rounded-[20px] border border-[#D6E4D9] p-4 shadow-[0_6px_18px_rgba(16,24,40,0.06)] md:grid-cols-[minmax(0,350px)_1fr] md:items-center md:p-5" style={{ background: UI.mint }}>
       <div className="flex flex-col gap-2">
-        <p className="text-xs font-bold" style={{ color: ACCENT }}>پک‌ساز 60Online</p>
-        <H2>بودجه یا نیازت را بگو؛ پک مناسب بساز.</H2>
-        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-bold" style={{ color: UI.ink }}>
-          <Link href="/pack-builder" className="inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-bold text-white" style={{ background: UI.ink }}>شروع پک‌سازی</Link>
+        <p className="text-xs font-bold" style={{ color: ACCENT }}>پک‌ساز شصت‌آنلاین</p>
+        <H2>بودجه یا نیازت را بگو؛<br className="hidden md:block" /> پک مناسب بساز.</H2>
+        <div className="mt-1 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-sm font-bold" style={{ color: UI.ink }}>
+          <Link href="/pack-builder" className="inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-bold text-[#FFFFFF]" style={{ background: UI.ink }}>شروع پک‌سازی</Link>
           <Link href="/pack-builder?mode=budget" className="inline-flex min-h-11 items-center gap-1">بر اساس بودجه <ArrowLeft className="h-4 w-4" /></Link>
           <Link href="/pack-builder?mode=scratch" className="inline-flex min-h-11 items-center gap-1">ساخت دستی <ArrowLeft className="h-4 w-4" /></Link>
         </div>
