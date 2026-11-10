@@ -147,12 +147,11 @@ def search_products(
     clause = " AND ".join(where)
     rows = db.query(
         f"""
-        SELECT p.*, c.slug AS category_slug, c.name_fa AS category_name_fa,
-               COALESCE(i.quantity_available, 0) AS quantity_available,
+        SELECT p.id, p.master_product_id, p.slug, p.sku, p.title_fa, p.brand_fa, p.currency,
+               c.slug AS category_slug, c.name_fa AS category_name_fa,
                mp.image_urls_json AS image_urls_json, dp.supply_channel AS policy_channel
         FROM products p
         JOIN categories c ON c.id = p.category_id
-        LEFT JOIN inventory i ON i.product_id = p.id
         LEFT JOIN master_products mp ON mp.id = p.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
         WHERE {clause}
         """,
@@ -175,7 +174,7 @@ def search_products(
         publication_params.append(category_slug.strip())
     publication_rows = db.query(
         f"""
-        SELECT cp.*, mp.canonical_name_fa, mp.brand, mp.description_fa,
+        SELECT cp.master_product_id, cp.slug, cp.category_slug, cp.currency, mp.canonical_name_fa, mp.brand,
                mp.image_urls_json, dp.supply_channel AS policy_channel,dp.sku AS profile_sku, c.name_fa AS category_name_fa
         FROM catalog_publications cp
         JOIN master_products mp ON mp.id = cp.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
@@ -184,8 +183,9 @@ def search_products(
         """,
         publication_params,
     )
+    offers = sale_eligibility.eligible_offers_db(db, (r["id"] for r in rows))
     items = [
-        _product_dict(r, exponent, sale_eligibility.eligible_offer_db(db, int(r["id"])))
+        _product_dict(r, exponent, offers.get(int(r["id"])))
         for r in rows
     ]
     items.extend(_publication_dict(r, exponent) for r in publication_rows)
