@@ -8,6 +8,7 @@ import { faDate } from "@/lib/utils";
 import { Card, Flash, ListState, btnCls, btnGhost, inputCls, n } from "@/components/commerce/ui";
 import { SellerInPerson } from "@/components/inperson/SellerInPerson";
 import { SellerDirect } from "./SellerDirect";
+import { SellerPriceAlerts } from "./SellerPriceAlerts";
 import { SellerAffiliateBonus } from "@/components/affiliate/SellerAffiliateBonus";
 import { ProductAttributesCard } from "./ProductAttributesForm";
 
@@ -33,6 +34,7 @@ export function SellerTools({ token, isBrand }: { token: string; isBrand: boolea
     <div className="space-y-4">
       <nav aria-label="ابزارهای فروشنده" className="flex gap-2 overflow-x-auto pb-1 text-sm">
         {isBrand && <a href="#brand" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">ثبت برند</a>}
+        <a href="#price-alerts" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">هشدار بهترین پیشنهاد</a>
         <a href="#attributes" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">مشخصات کالاها</a>
         <a href="#shipments" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">ارسال سفارش‌ها</a>
         <a href="#exports" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">خروجی مالی</a>
@@ -40,6 +42,7 @@ export function SellerTools({ token, isBrand }: { token: string; isBrand: boolea
         <a href="#affiliate" className="shrink-0 rounded-full bg-neutral-100 px-3 py-1.5">همکاری در فروش</a>
       </nav>
       {isBrand && <BrandRegistrationCard token={token} />}
+      <SellerPriceAlerts token={token} />
       <ProductAttributesCard token={token} />
       <ShipmentsCard token={token} />
       <ExportsCard token={token} />

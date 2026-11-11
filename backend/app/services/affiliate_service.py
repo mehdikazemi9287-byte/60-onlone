@@ -3,6 +3,8 @@
 - Anyone (an organization employee, a content creator, a shop itself) creates a personal code;
   links look like /?ref=CODE. A logged-in buyer's landing is recorded; the last referral within
   7 days wins. Self-referral earns nothing.
+- The code "vambi" is reserved: ?ref=vambi marks a visitor who came from a Vambi «مشاهده و خرید» link
+  (first-party attribution, vambi_launch_service), never an affiliate earning.
 - When a seller part of an order is delivered and its payable is recorded, an earning is
   accrued: platform base rate (by category) paid out of the platform's commission — never more
   than the commission itself — plus the seller's optional extra rate, which is added to that
@@ -22,6 +24,7 @@ from app.core.errors import ConflictError, NotFoundError, ValidationError
 
 REFERRAL_DAYS = 7
 _CODE = re.compile(r"^[A-Za-z0-9]{4,24}$")
+RESERVED_CODES = {"vambi"}  # ?ref=vambi = Vambi attribution (vambi_launch_service), not an affiliate
 _OPEN_RETURN = ("requested", "approved", "received", "refund_pending")
 
 
@@ -45,7 +48,7 @@ def join(conn: sqlite3.Connection, *, user_id: int, code: str | None = None, acc
     if code is not None:
         if not isinstance(code, str) or not _CODE.fullmatch(code):
             raise ValidationError("کد معرف فقط حروف و عدد لاتین، ۴ تا ۲۴ نویسه", details={"field": "code"})
-        if conn.execute("SELECT 1 FROM affiliates WHERE lower(code)=lower(?)", (code,)).fetchone():
+        if code.lower() in RESERVED_CODES or conn.execute("SELECT 1 FROM affiliates WHERE lower(code)=lower(?)", (code,)).fetchone():
             raise ConflictError("این کد قبلاً گرفته شده است", code="affiliate_code_taken")
     else:
         code = "R" + secrets.token_hex(4).upper()
@@ -57,6 +60,9 @@ def join(conn: sqlite3.Connection, *, user_id: int, code: str | None = None, acc
 def record_landing(conn: sqlite3.Connection, *, buyer_user_id: int, code: str, now: _dt.datetime | None = None) -> dict:
     if not isinstance(code, str) or not _CODE.fullmatch(code):
         raise ValidationError("کد معرف نامعتبر است")
+    if code.lower() == "vambi":
+        from app.services import vambi_launch_service
+        return vambi_launch_service.record_referral(conn, user_id=buyer_user_id, now=now)
     a = conn.execute("SELECT id, user_id FROM affiliates WHERE lower(code)=lower(?) AND status='active'", (code,)).fetchone()
     if a is None:
         raise NotFoundError("کد معرف یافت نشد")

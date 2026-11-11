@@ -180,6 +180,9 @@ def update(conn, *, supplier_id: int, offer_id: int, actor: int, data: dict) -> 
                updated_at=datetime('now') WHERE id=?""",
         (c["supplier_sku"], c["selling_price_minor"], c["stock_quantity"], c["min_order_quantity"], c["max_order_quantity"],
          c["lead_time_days"], c["pricing_mode"], c["channel"], c["valid_until"], c["source_reference"], stamp, stamp, offer_id))
+    if int(c["selling_price_minor"]) != int(before["selling_price_minor"]):  # same audit trail as update_offer_price
+        conn.execute("INSERT INTO offer_price_history (offer_id, old_price_minor, new_price_minor, changed_by_supplier_id) "
+                     "VALUES (?,?,?,?)", (offer_id, int(before["selling_price_minor"]), int(c["selling_price_minor"]), supplier_id))
     _write_tiers(conn, offer_id, c["tiers"], actor, stamp or (before["tiers"][0]["confirmed_at"] if before["tiers"] else _now()))
     after = _snapshot(conn, offer_id)
     _event(conn, offer_id, actor, "updated", before, after)

@@ -161,3 +161,31 @@ def phone_link_verify():
         conn, challenge_id=cid, user_id=uid, phone=body.get("phone"), code=body.get("code"),
         secret=settings.secret_key, ip_address=client_ip()))
     return jsonify({"phone_verified": phone})
+
+
+# ── Shared login with sister sites (vambi.ir ↔ 60online.ir) ──
+
+@bp.post("/sso/issue")
+@require_auth()
+def sso_issue():
+    """A signed-in 60online user gets a 60-second one-time code for an allow-listed origin (see sso_service)."""
+    from app.services import sso_service
+    body = _json_body()
+    settings = get_settings()
+    with get_db().write_transaction() as conn:
+        out = sso_service.issue(conn, user_id=current_user()["id"], target_origin=body.get("target_origin"),
+                                state=body.get("state"), production=settings.is_production, ip_address=client_ip())
+    return jsonify(out)
+
+
+@bp.post("/sso/exchange")
+def sso_exchange():
+    """Swap a one-time code for an ordinary session token, issued exactly like OTP login does."""
+    from app.services import sso_service
+    body = _json_body()
+    settings = get_settings()
+    uid = sso_service.claim(get_db(), code=body.get("code"), state=body.get("state"),
+                            request_origin=request.headers.get("Origin"), ip_address=client_ip())
+    token, user = _otp_token(uid)
+    return jsonify({"access_token": token, "token_type": "Bearer", "expires_in": settings.access_token_ttl_seconds,
+                    "user": user})
