@@ -837,6 +837,9 @@ def complete_redirect_payment(
     if not isinstance(provider, RedirectPaymentProvider):
         return {"ok": False, "reason": "unsupported_provider"}
 
+    # Keys starting with "_" are reserved for values the server sets from its own records below;
+    # a browser/gateway callback can never supply them.
+    callback = {k: v for k, v in callback.items() if not str(k).startswith("_")}
     invoice_id = provider.invoice_id_of(callback)
     intent = None
     if invoice_id:
@@ -847,6 +850,9 @@ def complete_redirect_payment(
         provider.reverse(callback)
         return {"ok": False, "reason": "unknown_payment"}
 
+    # The gateway session handle we stored when the redirect was opened (trusted, from our DB).
+    # Gateways that re-fetch the payment server-to-server (VandaPay) use only this, never a browser id.
+    callback = {**callback, "_provider_ref": intent["provider_ref"]}
     reference = intent["reference"]
     if intent["status"] == "captured":
         with db.write_transaction() as conn:
