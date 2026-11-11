@@ -133,7 +133,7 @@ function WatchRow({ w, token, onChange, onDelete }: { w: PriceWatch; token: stri
     <li className={`rounded-xl border p-3 ${w.active ? "border-neutral-200" : "border-dashed border-neutral-300 opacity-80"}`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <a href={`${MAIN_SITE}/products/${encodeURIComponent(w.product.slug)}?ref=vambi`} className="font-bold text-neutral-900 hover:text-brand-blue">{w.product.title_fa}</a>
+          <a href={`/p/${encodeURIComponent(w.product.slug)}`} className="font-bold text-neutral-900 hover:text-brand-blue">{w.product.title_fa}</a>
           <p className="text-xs text-neutral-500">سطح: {w.level_fa}{orgLevel && ` · برای ${n(w.quantity)} عدد`} · از {faDate(w.created_at)}{!w.active && " · متوقف"}</p>
         </div>
         <div className="text-left text-sm">

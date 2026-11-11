@@ -7,22 +7,13 @@ import { startLogin } from "@/lib/sso";
 import { formatPrice, toPersianNum } from "@/lib/ui";
 import { VambiHeroLogo } from "./VambiShell";
 import { WatchButton } from "@/components/WatchButton";
+import { OfferTable } from "@/components/OfferTable";
+import { buyUrl, countClick, imageSrc, MAIN, type Offer, type Summary } from "@/lib/catalog";
 
-type Offer = { seller: string; city: string | null; price_incl_vat_minor: number | null; lead_time_days: number | null;
-  stock_state: string; best: boolean };
 type Item = { slug: string; title: string; brand: string | null; image_url: string | null; category: string | null;
-  summary: { seller_count: number; min_price_minor: number | null; max_price_minor: number | null;
-    fastest_lead_days: number | null; in_stock_count: number }; offers: Offer[] };
+  summary: Summary; offers: Offer[] };
 type Res = { items: Item[]; total: number; total_pages: number; price_hidden?: boolean };
 
-const MAIN = process.env.NEXT_PUBLIC_MAIN_SITE ?? "";
-// Catalog photos live on the main site; a relative path would 404 on vambi.ir.
-const imageSrc = (u: string) => (u.startsWith("/") && !u.startsWith("//") ? `${MAIN.replace(/\/+$/, "")}${u}` : u);
-const STOCK_FA: Record<string, string> = { in_stock: "موجود", out_of_stock: "ناموجود", unknown: "نامشخص" };
-// «مشاهده و خرید»: ?ref=vambi lets the product page credit a later order to Vambi (first-party, via the existing
-// referral capture); the click itself only adds one to today's counter (no token, no body).
-const API = process.env.NEXT_PUBLIC_API_URL ?? "";
-const countClick = () => { fetch(`${API}/api/v1/vambi/click`, { method: "POST", keepalive: true }).catch(() => {}); };
 const SORTS = [["relevance", "مرتبط‌ترین"], ["sellers", "بیشترین فروشنده"], ["price_asc", "ارزان‌ترین"]] as const;
 
 export function VambiSearch() {
@@ -78,7 +69,7 @@ export function VambiSearch() {
 
       {res?.price_hidden && (
         <p className="mb-4 rounded-2xl bg-[#FFF6DD] p-4 text-sm text-[#6B4A00]">
-          قیمت و خرید فقط برای مشتریان سازمانی طرف قرارداد است. <button type="button" onClick={() => startLogin()} className="font-bold underline">ورود</button> · <a href="/business" className="font-bold underline">درخواست حساب سازمانی</a>
+          قیمت و خرید فقط برای مشتریان سازمانی طرف قرارداد است. <button type="button" onClick={() => startLogin()} className="font-bold underline">ورود</button> · <a href={`${MAIN}/business`} className="font-bold underline">درخواست حساب سازمانی</a>
         </p>
       )}
       {error && <p role="alert" className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</p>}
@@ -96,7 +87,7 @@ export function VambiSearch() {
                   {it.image_url && <img src={imageSrc(it.image_url)} alt="" className="h-full w-full object-contain" loading="lazy" />}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-bold leading-7 text-neutral-900">{it.title}</h2>
+                  <h2 className="font-bold leading-7 text-neutral-900"><a href={`/p/${encodeURIComponent(it.slug)}`} className="hover:text-[#1748C9]">{it.title}</a></h2>
                   <p className="text-xs text-neutral-500">{[it.brand, it.category].filter(Boolean).join(" · ")}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                     <span className="font-black text-[#1748C9]">
@@ -114,22 +105,13 @@ export function VambiSearch() {
                 </button>
               )}
               {expanded && (
-                <table className="mt-3 w-full text-sm">
-                  <thead><tr className="text-right text-xs text-neutral-500"><th className="py-1 font-medium">فروشنده</th><th className="font-medium">قیمت (با مالیات)</th><th className="font-medium">تحویل</th><th className="font-medium">موجودی</th></tr></thead>
-                  <tbody>
-                    {it.offers.map((o, i) => (
-                      <tr key={i} className="border-t border-[#E6EBF8]">
-                        <td className="py-2">{o.seller}{o.city ? <span className="text-xs text-neutral-500"> · {o.city}</span> : null}{o.best && <span className="mr-2 inline-block whitespace-nowrap rounded-full bg-[#FFB21E] px-2 text-[11px] font-bold text-[#102B7A]">پیشنهاد برتر</span>}</td>
-                        <td className="tabular-nums">{o.price_incl_vat_minor != null ? formatPrice(o.price_incl_vat_minor) : "—"}</td>
-                        <td>{o.lead_time_days != null ? `${toPersianNum(o.lead_time_days)} روز` : "—"}</td>
-                        <td>{STOCK_FA[o.stock_state] ?? o.stock_state}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="mt-3"><OfferTable offers={it.offers} caption={`فروشنده‌های ${it.title}`} /></div>
               )}
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                <a href={`${MAIN}/products/${encodeURIComponent(it.slug)}?ref=vambi`} onClick={countClick} className="inline-block text-sm font-bold text-[#1748C9]">مشاهده و خرید ←</a>
+                <span className="flex flex-wrap gap-4">
+                  <a href={`/p/${encodeURIComponent(it.slug)}`} className="inline-block text-sm font-bold text-[#1748C9]">همهٔ فروشنده‌ها و جزئیات ←</a>
+                  <a href={buyUrl(it.slug)} onClick={countClick} className="inline-block text-sm font-bold text-neutral-600">خرید در شصت آنلاین</a>
+                </span>
                 <WatchButton slug={it.slug} variant="vambi" />
               </div>
             </li>
