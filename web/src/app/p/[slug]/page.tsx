@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ProductView } from "@/components/ProductView";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -22,5 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
+  // Real 404 for search engines when the product doesn't exist (prices still load client-side, per viewer).
+  const origin = (process.env.VAMBI_API_ORIGIN ?? "").replace(/\/+$/, "");
+  if (origin) {
+    const r = await fetch(`${origin}/api/v1/vambi/products/${encodeURIComponent(slug)}`, { next: { revalidate: 3600 } }).catch(() => null);
+    if (r?.status === 404) notFound();
+  }
   return <ProductView slug={slug} />;
 }

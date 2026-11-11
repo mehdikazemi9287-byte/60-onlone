@@ -37,9 +37,9 @@ export function VambiShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col bg-[#F5F7FD]">
       <header className="border-b border-[#DCE3F7] bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-2">
-          <a href="/"><VambiMark /></a>
-          <nav className="flex items-center gap-3" aria-label="وامبی">
-            <a href="/about" className="text-sm font-bold text-[#1748C9] hover:text-[#0B2A80]">وامبی چیست؟</a>
+          <a href="/" className="shrink-0" aria-label="وامبی، صفحهٔ اول"><VambiMark /></a>
+          <nav className="flex min-w-0 items-center gap-2 whitespace-nowrap sm:gap-3" aria-label="وامبی">
+            <a href="/about" className="hidden text-sm font-bold sm:inline text-[#1748C9] hover:text-[#0B2A80]">وامبی چیست؟</a>
             <a href="/alerts" className="text-sm font-bold text-[#1748C9] hover:text-[#0B2A80]">زیر نظر</a>
             <VambiLoginButton />
           </nav>

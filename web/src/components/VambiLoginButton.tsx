@@ -18,5 +18,5 @@ export function VambiLoginButton() {
       <button type="button" onClick={logout} className="text-xs font-bold text-neutral-600 underline">خروج</button>
     </span>
   );
-  return <button type="button" onClick={() => startLogin()} className={cls}>ورود با حساب شصت آنلاین</button>;
+  return <button type="button" onClick={() => startLogin()} className={cls}>ورود<span className="hidden sm:inline"> با حساب شصت آنلاین</span></button>;
 }
