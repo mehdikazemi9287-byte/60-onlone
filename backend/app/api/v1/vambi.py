@@ -41,7 +41,7 @@ def _rows(offers: list[dict]) -> list[dict]:
                     "lead_time_days": o["lead_time_days"], "stock_state": o["stock_state"], "best": o["eligible"]}
                    for o in offers),
                   # hidden prices: order must not leak who is cheaper either
-                  key=(lambda o: o["seller"]) if hidden else
+                  key=(lambda o: (o["seller"], o["city"] or "", o["lead_time_days"] or 0, o["stock_state"])) if hidden else
                   (lambda o: (o["price_incl_vat_minor"] is None, o["price_incl_vat_minor"] or 0)))
     if hidden:
         for o in rows:

@@ -109,7 +109,7 @@ TEHRAN = _dt.timedelta(hours=3, minutes=30)  # Iran has had no DST since 2022
 MAX_DAYS = 365
 
 
-def _utcnow() -> _dt.datetime:
+def _now_utc() -> _dt.datetime:
     return _dt.datetime.now(_dt.timezone.utc)
 
 
@@ -128,7 +128,7 @@ def _parse(s) -> _dt.datetime | None:
 
 
 def tehran_day(now: _dt.datetime | None = None) -> str:
-    return ((now or _utcnow()).astimezone(_dt.timezone.utc) + TEHRAN).date().isoformat()
+    return ((now or _now_utc()).astimezone(_dt.timezone.utc) + TEHRAN).date().isoformat()
 
 
 def bump(conn, metric: str, now: _dt.datetime | None = None) -> None:
@@ -149,7 +149,7 @@ def bump_safely(db, metric: str) -> None:
 
 
 def record_referral(conn, *, user_id: int, now: _dt.datetime | None = None) -> dict:
-    t = now or _utcnow()
+    t = now or _now_utc()
     conn.execute("INSERT INTO vambi_referrals (user_id, landed_at, expires_at) VALUES (?,?,?)",
                  (user_id, _iso(t), _iso(t + _dt.timedelta(days=REFERRAL_DAYS))))
     return {"recorded": True, "source": REF_CODE, "expires_in_days": REFERRAL_DAYS}
@@ -157,7 +157,7 @@ def record_referral(conn, *, user_id: int, now: _dt.datetime | None = None) -> d
 
 def attribute_order(conn, *, order_id: int, user_id: int, now: _dt.datetime | None = None) -> bool:
     """At order creation: link the order to the buyer's latest live Vambi referral, if any. Never raises."""
-    stamp = _iso(now or _utcnow())
+    stamp = _iso(now or _now_utc())
     conn.execute("SAVEPOINT vambi_attr")
     try:
         ref = conn.execute("""SELECT id FROM vambi_referrals WHERE user_id=? AND substr(landed_at,1,19)<=substr(?,1,19)
@@ -209,7 +209,7 @@ def price_update_rate(conn, *, since: _dt.datetime, now: _dt.datetime) -> dict:
 
 
 def metrics(conn, *, days: int = 30, now: _dt.datetime | None = None) -> dict:
-    now = now or _utcnow()
+    now = now or _now_utc()
     days = max(1, min(MAX_DAYS, int(days)))
     first_day = tehran_day(now - _dt.timedelta(days=days - 1))
     since = now - _dt.timedelta(days=days)
