@@ -59,7 +59,8 @@ class ConfigTest(unittest.TestCase):
                     continue
                 if "SECRET_KEY" in stripped and ("=" in stripped and '"' in stripped or "'" in stripped):
                     # Allowed: reading it from the environment by name.
-                    if "_require(" in stripped or "os.environ" in stripped:
+                    # (environ.get(...) = an injectable env mapping, e.g. vandapay.enabled_from_env)
+                    if "_require(" in stripped or "os.environ" in stripped or "environ.get(\"" in stripped:
                         continue
                     offenders.append(f"{path.name}:{lineno}: {stripped}")
         self.assertEqual(offenders, [], f"hard-coded secret candidates: {offenders}")

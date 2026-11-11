@@ -1,0 +1,137 @@
+{
+  "description": "Shared VandaPay webhook signature vectors. Signature = lowercase hex(HMAC_SHA256(secret, t + '.' + raw_body_utf8)). Tolerance 300 s (|now - t| <= 300). Used by sdk-js, sdk-python and the WooCommerce plugin tests.",
+  "secret": "whsec_test_9f2c1b7a4e6d8c0b",
+  "tolerance_seconds": 300,
+  "sign_vectors": [
+    {
+      "secret": "whsec_test_9f2c1b7a4e6d8c0b",
+      "timestamp": 1762675200,
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "signature": "1bdc4857c03f2c3a5921e737031cc45f2d1bd1e1846eda21293f8db89a5c98de"
+    },
+    {
+      "secret": "s",
+      "timestamp": 0,
+      "body": "",
+      "signature": "2572e102ebbc88d57bc0ef48471ee28bb7fc8c6e9c0558b3c8e5d276f84ac9c3"
+    },
+    {
+      "secret": "whsec_ü_unicode",
+      "timestamp": 1700000000,
+      "body": "{\"a\":\"سلام\"}",
+      "signature": "0f4f0907f00c0d90759d55264138078dcbb481c82fc60adc1c0d0b7ca205bd4d"
+    }
+  ],
+  "verify_cases": [
+    {
+      "name": "valid",
+      "header": "t=1762675200,v1=1bdc4857c03f2c3a5921e737031cc45f2d1bd1e1846eda21293f8db89a5c98de",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": true
+    },
+    {
+      "name": "valid_within_tolerance_past",
+      "header": "t=1762674901,v1=c1bd5e8b93bdfbccff1274b20b5d41aa2d5910911eaf85b2f32db2c5f5033880",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": true
+    },
+    {
+      "name": "valid_multiple_v1_one_matches",
+      "header": "t=1762675200,v1=0000000000000000000000000000000000000000000000000000000000000000,v1=1bdc4857c03f2c3a5921e737031cc45f2d1bd1e1846eda21293f8db89a5c98de",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": true,
+      "note": "secret rotation: any v1 may match"
+    },
+    {
+      "name": "valid_with_spaces",
+      "header": "t=1762675200, v1=1bdc4857c03f2c3a5921e737031cc45f2d1bd1e1846eda21293f8db89a5c98de",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": true
+    },
+    {
+      "name": "tampered_body",
+      "header": "t=1762675200,v1=1bdc4857c03f2c3a5921e737031cc45f2d1bd1e1846eda21293f8db89a5c98de",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":1200000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "signature_mismatch"
+    },
+    {
+      "name": "wrong_secret",
+      "header": "t=1762675200,v1=0454f1a258a0ce3b6bb17ab6029d8ab1cd28a52f9f2691621ba8d0056247c2f4",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "signature_mismatch"
+    },
+    {
+      "name": "timestamp_too_old",
+      "header": "t=1762674899,v1=4774df3fb1223bf49bec239907041704a8415bfb88c9963fe7f48f3d664898ab",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "timestamp_out_of_tolerance"
+    },
+    {
+      "name": "timestamp_too_far_future",
+      "header": "t=1762675501,v1=8a946142de9c7ada229a1fbc73e6a5d9866fcec205e4d0b7aa07da36d299b375",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "timestamp_out_of_tolerance"
+    },
+    {
+      "name": "missing_v1",
+      "header": "t=1762675200",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "malformed_header"
+    },
+    {
+      "name": "missing_t",
+      "header": "v1=1bdc4857c03f2c3a5921e737031cc45f2d1bd1e1846eda21293f8db89a5c98de",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "malformed_header"
+    },
+    {
+      "name": "empty_header",
+      "header": "",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "malformed_header"
+    },
+    {
+      "name": "non_numeric_t",
+      "header": "t=abc,v1=1bdc4857c03f2c3a5921e737031cc45f2d1bd1e1846eda21293f8db89a5c98de",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "malformed_header"
+    },
+    {
+      "name": "uppercase_hex_rejected",
+      "header": "t=1762675200,v1=1BDC4857C03F2C3A5921E737031CC45F2D1BD1E1846EDA21293F8DB89A5C98DE",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "signature_mismatch",
+      "note": "signatures are lowercase hex; compare exact"
+    },
+    {
+      "name": "timestamp_mismatch_signed_other_t",
+      "header": "t=1762675200,v1=064b67a1be8b8318ee1024bcbb141d80401afaac1e04473b1eee8bcfe6df1301",
+      "body": "{\"id\":\"evt_01JC9V8K2M\",\"type\":\"payment_intent.succeeded\",\"created_at\":\"2025-11-09T08:00:00Z\",\"data\":{\"id\":\"pi_8c1f3a\",\"status\":\"succeeded\",\"amount\":12000000,\"currency\":\"IRR\",\"order_ref\":\"WC-1045\",\"description\":\"تور کیش ۳ شب\",\"refunded_amount\":0}}",
+      "now": 1762675200,
+      "valid": false,
+      "error": "signature_mismatch"
+    }
+  ]
+}
