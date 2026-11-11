@@ -12,6 +12,8 @@
 - [ ] `https://vambi.ir` در `CORS_ORIGINS`؛ `vambi.ir,www.vambi.ir` (بدون https) در `VAMBI_HOSTS`
 - [ ] `NEXT_PUBLIC_MAIN_SITE=https://60online.ir` هنگام ساخت فرانت؛ `SSO_ALLOW_LOCALHOST` روی سرور تنظیم نشود
 - [ ] بکاپ دیتابیس، بعد مهاجرت‌های 0079 تا 0083
+- [ ] ساخت و استقرار برنامهٔ `web/` این ریپو به‌عنوان سرویس جدا و اتصال `vambi.ir` به آن
+- [ ] `https://vambi.ir` در `SSO_ALLOWED_ORIGINS`
 - [ ] استقرار (فقط با تأیید کارن)
 
 ## بعد از استقرار

@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { font-family: "Vazirmatn Variable", Vazirmatn, system-ui, sans-serif; color: #171717; }
+.font-logo { font-family: Nunito, "Vazirmatn Variable", system-ui, sans-serif; }
+:focus-visible { outline: 2px solid #FF8A00; outline-offset: 2px; }

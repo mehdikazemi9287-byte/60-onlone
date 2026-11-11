@@ -1,0 +1,57 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "target": "ES2017"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".next-admin-commerce-allocation-final/types/**/*.ts",
+    ".next-admin-commerce-offer-final/types/**/*.ts",
+    ".next-admin-commerce/types/**/*.ts",
+    ".next-admin-direct-product-final/types/**/*.ts",
+    ".next-admin-direct-product/types/**/*.ts",
+    ".next-admin-identity-final/types/**/*.ts",
+    ".next-admin-offer-review/types/**/*.ts",
+    ".next-admin-ops-session/types/**/*.ts",
+    ".next-admin-product-content-final/types/**/*.ts",
+    ".next-admin-product-content/types/**/*.ts",
+    ".next-admin-review2/types/**/*.ts",
+    ".next-admin-taxonomy/types/**/*.ts",
+    ".next-admin-taxonomy2/types/**/*.ts",
+    ".next-product-management-final/types/**/*.ts",
+    ".next-product-management-final2/types/**/*.ts",
+    ".next-product-management/types/**/*.ts",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    ".next-admin-commerce-allocation-final2/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
