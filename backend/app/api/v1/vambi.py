@@ -1,6 +1,7 @@
 """وامبی (Vambi): جستجو و مقایسهٔ قیمت درون اکوسیستم شصت آنلاین.
 
   GET  /api/v1/vambi/search?q=&category=&page=&sort=relevance|price_asc|sellers
+  GET  /api/v1/vambi/products/<slug>   one product, every seller side by side (Vambi product page)
   POST /api/v1/vambi/click      one «مشاهده و خرید» click → today's counter (204; nothing about the visitor is stored)
 A first-page search with a query or category adds one to today's search counter: a number only — no query text,
 no user id, no IP (vambi_launch_service.bump).
@@ -34,6 +35,35 @@ def _summary(offers: list[dict]) -> dict:
             "in_stock_count": sum(1 for o in offers if o.get("stock_state") == "in_stock")}
 
 
+def _rows(offers: list[dict]) -> list[dict]:
+    hidden = getattr(g, "price_hidden", False)
+    rows = sorted(({"seller": o["seller"], "city": o["seller_city"], "price_incl_vat_minor": o["price_incl_vat_minor"],
+                    "lead_time_days": o["lead_time_days"], "stock_state": o["stock_state"], "best": o["eligible"]}
+                   for o in offers),
+                  # hidden prices: order must not leak who is cheaper either
+                  key=(lambda o: o["seller"]) if hidden else
+                  (lambda o: (o["price_incl_vat_minor"] is None, o["price_incl_vat_minor"] or 0)))
+    if hidden:
+        for o in rows:
+            o["best"] = False
+    return rows
+
+
+@bp.get("/products/<slug>")
+def product(slug: str):
+    """Vambi product page: identity, breadcrumbs and every in-ecosystem seller. Nothing else from the store page
+    (cart, list prices, related) so Vambi stays a comparison surface; price privacy applies as on search."""
+    with get_db().read_transaction() as conn:
+        d = store.product(conn, slug[:200], viewer_org_ids=_viewer_orgs())
+        rows = _rows(d["offers"])
+    p = d["product"]
+    return jsonify({"slug": p["slug"], "title": p["title_fa"], "brand": p["brand_fa"], "description": p["description_fa"],
+                    "images": (p["images"] or [])[:6], "specs": p["specs"][:20],
+                    "category": d["breadcrumbs"][-1]["name_fa"] if d["breadcrumbs"] else None,
+                    "breadcrumbs": [b["name_fa"] for b in d["breadcrumbs"]],
+                    "summary": _summary(rows), "offers": rows})
+
+
 @bp.get("/search")
 def search():
     q = (request.args.get("q") or "").strip()[:120]
@@ -52,17 +82,7 @@ def search():
                            sort="price_asc" if sort == "price_asc" else "relevance", page=page, page_size=PAGE_SIZE)
         items = []
         for c in res["items"]:
-            offers = store.offers_for(conn, c["id"], viewer_org_ids=orgs)
-            hidden = getattr(g, "price_hidden", False)
-            rows = sorted(({"seller": o["seller"], "city": o["seller_city"], "price_incl_vat_minor": o["price_incl_vat_minor"],
-                            "lead_time_days": o["lead_time_days"], "stock_state": o["stock_state"], "best": o["eligible"]}
-                           for o in offers),
-                          # hidden prices: order must not leak who is cheaper either
-                          key=(lambda o: o["seller"]) if hidden else
-                          (lambda o: (o["price_incl_vat_minor"] is None, o["price_incl_vat_minor"] or 0)))
-            if hidden:
-                for o in rows:
-                    o["best"] = False
+            rows = _rows(store.offers_for(conn, c["id"], viewer_org_ids=orgs))
             items.append({"slug": c["slug"], "title": c.get("title_fa") or c.get("title"), "brand": c.get("brand_fa"),
                           "image_url": c.get("image_url"), "category": c.get("category_name_fa"),
                           "summary": _summary(rows), "offers": rows[:MAX_OFFERS]})

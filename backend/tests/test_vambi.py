@@ -44,3 +44,24 @@ class VambiTest(Phase6Base):
             self.assertTrue(all(o["price_incl_vat_minor"] is None for o in i["offers"]))
         self.assertEqual(self.client.get("/api/v1/vambi/search?sort=price_asc").status_code, 403)
         self.assertEqual(self.client.get("/api/v1/vambi/search", headers={"User-Agent": "TorobBot"}).status_code, 403)
+
+    def _slug(self):
+        r = self.client.get("/api/v1/vambi/search?q=روغن").get_json()
+        return next(i["slug"] for i in r["items"] if i["summary"]["seller_count"] == 2)
+
+    def test_product_page_lists_every_seller_cheapest_first(self):
+        d = self.client.get(f"/api/v1/vambi/products/{self._slug()}").get_json()
+        self.assertEqual(d["summary"]["seller_count"], 2)
+        prices = [o["price_incl_vat_minor"] for o in d["offers"]]
+        self.assertEqual(prices, sorted(prices))
+        self.assertNotIn("cta", d)  # comparison only: no cart fields
+        self.assertEqual(self.client.get("/api/v1/vambi/products/no-such-thing").status_code, 404)
+
+    @mock.patch.dict(os.environ, {"STOREFRONT_PRICE_VISIBILITY": "organizations"})
+    def test_product_page_hides_prices_and_order(self):
+        with mock.patch.dict(os.environ, {"STOREFRONT_PRICE_VISIBILITY": "public"}):
+            slug = self._slug()
+        d = self.client.get(f"/api/v1/vambi/products/{slug}").get_json()
+        self.assertTrue(d["price_hidden"])
+        self.assertTrue(all(o["price_incl_vat_minor"] is None and not o["best"] for o in d["offers"]))
+        self.assertEqual([o["seller"] for o in d["offers"]], sorted(o["seller"] for o in d["offers"]))
