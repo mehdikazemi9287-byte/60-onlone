@@ -6,3 +6,4 @@
 | [finance.md](finance.md) | نرم‌افزارهای مالی و سامانهٔ مودیان (فاز 5B) |
 | [logistics.md](logistics.md) | لجستیک و استانداردها (فاز 5C) |
 | [vandapay.md](vandapay.md) | پرداخت با ونداپی (خاموش به‌طور پیش‌فرض) |
+| [vambi-feed.md](vambi-feed.md) | فید فقط‌خواندنی وامبی (همهٔ سطح‌های قیمت) و ورود مشترک |
