@@ -41,7 +41,7 @@ def checkout():
     provider_name = settings.payment_provider
     chosen = body.get("payment_provider")
     if chosen is not None:
-        allowed = set(current_app.extensions.get("external_credit_providers", [])) | {settings.payment_provider}
+        allowed = set(_extra_providers(current_app)) | {settings.payment_provider}
         if chosen not in allowed:
             raise ValidationError("این روش پرداخت فعال نیست", code="payment_provider_unavailable")
         provider_name = chosen
@@ -107,7 +107,35 @@ def payment_options():
     for name in current_app.extensions.get("external_credit_providers", []):
         opts.append({"provider": name, "kind": "external_credit", "label": PROVIDERS[name][0],
                      "note": "اعتبار را خود این شرکت می‌دهد؛ شرایط و اقساط با اوست."})
+    if current_app.extensions.get("vandapay_provider"):
+        from app.adapters.payment.vandapay import LABEL as VANDAPAY_LABEL
+        opts.append({"provider": current_app.extensions["vandapay_provider"], "kind": "vandapay",
+                     "label": VANDAPAY_LABEL,
+                     "note": "پرداخت در صفحهٔ ونداپی با اعتبار سازمانی، کارت هدیه، اعتبار باشگاه یا کارت بانکی."})
     return jsonify({"options": opts})
+
+
+def _extra_providers(app) -> list[str]:
+    """Redirect providers enabled from env besides the card gateway (external credit, VandaPay)."""
+    extra = list(app.extensions.get("external_credit_providers", []))
+    if app.extensions.get("vandapay_provider"):
+        extra.append(app.extensions["vandapay_provider"])
+    return extra
+
+
+@bp.post("/payments/vandapay/webhook")
+def vandapay_webhook():
+    """VandaPay server-to-server events. Signature on the raw body; state is re-read from the API."""
+    from flask import current_app
+    from app.services import vandapay_webhook_service
+    if not current_app.extensions.get("vandapay_provider"):
+        return jsonify({"error": {"code": "not_found", "message": "یافت نشد"}}), 404
+    status, body = vandapay_webhook_service.handle(
+        get_db(), raw_body=request.get_data(cache=True),
+        signature_header=request.headers.get("VandaPay-Signature"),
+        exponent=get_settings().currency_exponent, ip_address=client_ip(),
+    )
+    return jsonify(body), status
 
 
 @bp.route("/payments/<provider>/callback", methods=["GET", "POST"])
@@ -115,7 +143,7 @@ def payment_callback(provider: str):
     """The bank returns the customer's browser here (no auth header on this hop)."""
     settings = get_settings()
     from flask import current_app
-    known = {settings.payment_provider, *current_app.extensions.get("external_credit_providers", [])}
+    known = {settings.payment_provider, *_extra_providers(current_app)}
     if provider not in known or provider == "mock":
         return redirect("/checkout?" + urlencode({"payment": "failed", "reason": "unknown_gateway"}), 303)
     callback = {**request.args.to_dict(), **request.form.to_dict()}

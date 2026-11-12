@@ -124,6 +124,14 @@ def create_app(
         _payment_registry.register(_provider)
         app.extensions["external_credit_providers"].append(_provider.name)
 
+    # VandaPay («پرداخت با ونداپی»): off unless VANDAPAY_* env is set; live keys only in production.
+    from app.adapters.payment.vandapay import enabled_from_env as _vandapay_from_env
+    app.extensions["vandapay_provider"] = None
+    _vandapay = _vandapay_from_env(app_env=settings.app_env, demo_mode=settings.demo_mode)
+    if _vandapay is not None:
+        _payment_registry.register(_vandapay)
+        app.extensions["vandapay_provider"] = _vandapay.name
+
     @app.after_request
     def _private_cache_control(response):
         if request.headers.get("Authorization") or request.path.startswith("/api/v1/admin/"):

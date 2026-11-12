@@ -282,7 +282,7 @@ function ConfirmStep({
     setPlacing(true);
     setError(null);
     try {
-      const external = payOptions.find((o) => o.provider === provider && o.kind === "external_credit");
+      const external = payOptions.find((o) => o.provider === provider && o.kind !== "card");
       let proforma: string | undefined;
       try { proforma = new URLSearchParams(window.location.search).get("proforma") ?? undefined; } catch {}
       const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, useWelfare, proforma);
