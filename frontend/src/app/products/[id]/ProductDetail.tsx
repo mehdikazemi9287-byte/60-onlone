@@ -16,6 +16,7 @@ import { PRICING_MODE_FA, SALE_BLOCKER_FA, storefront, type Card, type Offer, ty
 import { cn, faDate, formatPrice, toPersianNum } from "@/lib/utils";
 import { isTinyImage } from "@/components/product/ProductCard";
 import { BuyBoxOffers } from "@/components/product/BuyBoxOffers";
+import { WatchButton } from "@/components/price-watch/WatchButton";
 
 const STOCK_FA: Record<Offer["stock_state"], string> = { in_stock: "موجود", out_of_stock: "ناموجود", unknown: "موجودی تأییدنشده" };
 
@@ -203,8 +204,10 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
                   <Link href={`/requests/new?slug=${encodeURIComponent(p.slug)}&quantity=${qty}`} className="flex min-h-11 flex-1 items-center justify-center rounded-xl bg-brand-coral px-3 py-3 text-center text-sm font-bold text-white">استعلام قیمت / درخواست خرید</Link>
                 </div>
               )}
-              {d.cta !== "add_to_cart" && personalAllowed && (
+              {d.cta !== "add_to_cart" && personalAllowed ? (
                 <StockAlert slug={p.slug} />
+              ) : (
+                <WatchButton slug={p.slug} fullWidth />
               )}
               {msg && <p role="status" className={cn("rounded-xl px-3 py-2 text-sm", msg.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800")}>{msg.text}{msg.ok && <> — <Link href="/cart" className="font-bold underline">مشاهده سبد</Link></>}</p>}
               <div className="border-t border-neutral-100 pt-3">
