@@ -10,6 +10,7 @@ Run it again after every fix and once more right before switching DNS.
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import sys
@@ -64,7 +65,10 @@ def config_checks() -> list[tuple[str, str, str]]:
     add(OK if _on("STOREFRONT_SALES_ENABLED") else WARN, "STOREFRONT_SALES_ENABLED", "خاموش = سایت فقط ویترین است و خرید ممکن نیست")
     add(OK if _on("LEGAL_REQUIRE_BUYER_TERMS") else BLOCKER, "LEGAL_REQUIRE_BUYER_TERMS", "پذیرش شرایط خرید باید در پرداخت ثبت شود")
     sms_ok = os.environ.get("SMS_PROVIDER") == "kavenegar" and os.environ.get("KAVENEGAR_API_KEY") and os.environ.get("KAVENEGAR_TEMPLATE")
-    add(OK if sms_ok else WARN, "SMS_PROVIDER", "ورود پیامکی بدون کاوه‌نگار کار نمی‌کند")
+    add(OK if sms_ok else BLOCKER, "SMS_PROVIDER",
+        "بدون کاوه‌نگار ورود پیامکی و هشدار قیمت کار نمی‌کند (فرستندهٔ console بیرون از development/test رد می‌شود)")
+    add(OK if os.environ.get("KAVENEGAR_SENDER") else WARN, "KAVENEGAR_SENDER", "خط اختصاصی برای پیامک متنی هشدار قیمت")
+    add(OK if importlib.util.find_spec("PIL") else BLOCKER, "Pillow", "آپلود تصویر مدیریت به Pillow نیاز دارد (requirements.txt)")
     for f in ("FEATURE_INSTALLMENTS", "FEATURE_DEBT_SALE", "FEATURE_SELLER_ADVANCES"):
         add(WARN if _on(f) else OK, f, "اعتبار/اقساط فقط با مجوز و قرارداد نهاد مالی روشن شود")
     try:

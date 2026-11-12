@@ -107,6 +107,13 @@ export default function Requests({
     return (
       <main className="container py-12">
         <h1 className="text-2xl">درخواست و پیگیری</h1>
+        {create && (
+          <p className="my-4">
+            این یک استعلام است، نه خرید قطعی: پس از ورود، کالا و تعداد انتخابی
+            حفظ می‌شود؛ پس از ثبت، شمارهٔ پیگیری می‌گیرید و قیمت، موجودی و
+            زمان تحویل پس از بررسی در «درخواست‌های من» اعلام می‌شود.
+          </p>
+        )}
         <p className="my-4">برای حفظ و پیگیری درخواست، وارد حساب خود شوید.</p>
         <Link
           className="btn-primary"

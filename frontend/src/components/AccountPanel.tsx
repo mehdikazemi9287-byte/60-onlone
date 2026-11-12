@@ -110,6 +110,7 @@ function AccountPanelBody({
         <Link href="/requests">درخواست‌ها</Link>
         <Link href="/orders">سفارش‌ها</Link>
         <Link href="/notifications">اعلان‌ها</Link>
+        <Link href="/me/price-alerts">کالاهای زیر نظر</Link>
         <Link href="/benefits">مزایای کارکنان</Link>
         <Link href="/pack-builder">پک‌ساز</Link>
         <Link href="/org">سازمان</Link>

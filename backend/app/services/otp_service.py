@@ -15,7 +15,7 @@ import re
 import secrets
 import sqlite3
 
-from app.adapters.sms import ConsoleSms, SmsError, sender_from_env
+from app.adapters.sms import ConsoleSms, SmsError, console_allowed, sender_from_env
 from app.core.errors import ApiError, AuthenticationError, ConflictError, ValidationError
 from app.core.security import hash_password
 from app.services import audit_service
@@ -100,7 +100,7 @@ def request_code(conn: sqlite3.Connection, *, phone: str, secret: str, purpose: 
         sender = sender or sender_from_env()
     except SmsError as exc:
         raise SmsUnavailable(str(exc)) from exc
-    if production and isinstance(sender, ConsoleSms):
+    if isinstance(sender, ConsoleSms) and (production or not console_allowed()):  # staging too (audit N1)
         raise SmsUnavailable("سرویس پیامک روی سرور تنظیم نشده است")
     code = f"{secrets.randbelow(1_000_000):06d}"
     # Earlier unused codes for this phone stop working once a new one is issued.

@@ -16,6 +16,8 @@ import { PRICING_MODE_FA, SALE_BLOCKER_FA, storefront, type Card, type Offer, ty
 import { cn, faDate, formatPrice, toPersianNum } from "@/lib/utils";
 import { isTinyImage } from "@/components/product/ProductCard";
 import { BuyBoxOffers } from "@/components/product/BuyBoxOffers";
+import { WatchButton } from "@/components/price-watch/WatchButton";
+import { priceTrustText } from "./price-trust";
 
 const STOCK_FA: Record<Offer["stock_state"], string> = { in_stock: "موجود", out_of_stock: "ناموجود", unknown: "موجودی تأییدنشده" };
 
@@ -203,8 +205,10 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
                   <Link href={`/requests/new?slug=${encodeURIComponent(p.slug)}&quantity=${qty}`} className="flex min-h-11 flex-1 items-center justify-center rounded-xl bg-brand-coral px-3 py-3 text-center text-sm font-bold text-white">استعلام قیمت / درخواست خرید</Link>
                 </div>
               )}
-              {d.cta !== "add_to_cart" && personalAllowed && (
+              {d.cta !== "add_to_cart" && personalAllowed ? (
                 <StockAlert slug={p.slug} />
+              ) : (
+                <WatchButton slug={p.slug} fullWidth />
               )}
               {msg && <p role="status" className={cn("rounded-xl px-3 py-2 text-sm", msg.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800")}>{msg.text}{msg.ok && <> — <Link href="/cart" className="font-bold underline">مشاهده سبد</Link></>}</p>}
               <div className="border-t border-neutral-100 pt-3">
@@ -256,7 +260,7 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">{p.specs.map((s) => <div key={s.label} className="contents"><dt className="text-neutral-500">{s.label}</dt><dd className="font-bold text-neutral-800">{typeof s.value === "object" ? JSON.stringify(s.value) : String(s.value)}</dd></div>)}</dl></div>}
         </section>
       )}
-      <p className="mt-6 flex items-center gap-1 text-xs text-neutral-500"><ShieldCheck className="h-4 w-4" /> مشخصات کالا از منبع رسمی برند ثبت شده است. قیمتی که می‌بینید همیشه قیمت تأییدشده فروشنده است، نه قیمت تخمینی.</p>
+      <p className="mt-6 flex items-center gap-1 text-xs text-neutral-500"><ShieldCheck className="h-4 w-4" /> مشخصات کالا از منبع رسمی برند ثبت شده است. {priceTrustText(d)}</p>
 
       {d.alternatives.length > 0 && <section className="mt-8"><h2 className="mb-3 text-lg font-black text-brand-navy">جایگزین‌های هم‌نوع</h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{d.alternatives.slice(0, 8).map((c) => <MiniCard key={c.slug} c={c} />)}</div></section>}

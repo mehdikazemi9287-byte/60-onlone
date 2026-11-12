@@ -8,3 +8,4 @@ PyJWT==2.13.0
 cryptography==50.0.1   # EdDSA (Ed25519) verification for the Torob feed token
 openpyxl==3.1.5
 gunicorn==23.0.0     # production WSGI server (entrypoint.sh)
+Pillow==13.0.0       # admin image upload: decode, re-encode, strip EXIF (app/api/v1/admin_media.py)

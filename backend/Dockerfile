@@ -12,6 +12,8 @@ ARG PIP_DEFAULT_TIMEOUT=120
 ARG PIP_RETRIES=10
 # Optional PyPI index override, passed at build time (default: pypi.org)
 ARG PIP_INDEX_URL=https://pypi.org/simple
+# requirements.txt includes Pillow (admin image upload); its manylinux wheel needs no system packages on
+# python:3.11-slim. After any requirements change, rebuild this image: an old image has no Pillow.
 RUN pip install --no-cache-dir -r requirements.txt -r requirements-pg.txt
 
 COPY app ./app

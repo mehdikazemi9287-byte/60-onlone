@@ -73,6 +73,8 @@ from app.api.v1 import catalog_schema as catalog_schema_api
 from app.api.v1 import price_feeds as price_feeds_api
 from app.api.v1 import vambi as vambi_api
 from app.api.v1 import b2b as b2b_api
+from app.api.v1 import price_alerts as price_alerts_api
+from app.api.v1 import retail_network as retail_network_api
 from app.api.v1 import admin_partner_api, finance_exports as finance_exports_api, logistics_v2 as logistics_v2_api
 from app.core.config import Settings, load_settings
 from app.core.db import Database, DatabaseBackend, make_backend
@@ -217,6 +219,8 @@ def create_app(
         price_feeds_api.bp,
         vambi_api.bp,
         b2b_api.bp,
+        price_alerts_api.bp,
+        retail_network_api.bp,
     ):
         app.register_blueprint(blueprint)
 
