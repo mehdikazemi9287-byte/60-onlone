@@ -163,6 +163,10 @@ def offers_for(conn, sku_id: int, *, viewer_org_ids: tuple = ()) -> list[dict]:
         scope=policy.effective(conn,sku_id,o["channel"])
         if scope is None:continue
         priced = o["pricing_mode"] in ("fixed", "bulk") and bool(o["price_fresh"]) and o["selling_price_minor"] > 0
+        # Organization-only offer: its price is the wholesale (B2B) tier — only business-account members see it.
+        b2b_hidden = "retail" not in policy.channels(scope) and not viewer_org_ids
+        if b2b_hidden:
+            priced = False
         stock_state = "unknown" if not o["stock_fresh"] else ("in_stock" if o["available"] > 0 else "out_of_stock")
         if o["pricing_mode"] == "out_of_stock":
             stock_state = "out_of_stock"
@@ -170,7 +174,8 @@ def offers_for(conn, sku_id: int, *, viewer_org_ids: tuple = ()) -> list[dict]:
         for t in conn.execute("""SELECT channel, organization_id, min_qty, max_qty, unit_price_minor FROM offer_price_tiers
                                  WHERE offer_id=? AND datetime(confirmed_at) >= datetime('now','-24 hours') ORDER BY channel, min_qty""", (o["id"],)):
             if t["channel"] not in policy.channels(scope):continue
-            if t["channel"] == "organization" and t["organization_id"] and t["organization_id"] not in viewer_org_ids:
+            # A contract tier (organization_id set) is shown only to that organization's members, on ANY channel.
+            if t["organization_id"] is not None and t["organization_id"] not in viewer_org_ids:
                 continue
             if t["channel"] == "organization" and not viewer_org_ids:
                 continue
@@ -183,7 +188,7 @@ def offers_for(conn, sku_id: int, *, viewer_org_ids: tuple = ()) -> list[dict]:
             "min_order_quantity": o["min_order_quantity"] or 1, "max_order_quantity": o["max_order_quantity"],
             "lead_time_days": o["lead_time_days"], "valid_until": o["valid_until"], "tiers": tiers,
             "provenance": o["provenance"], "eligible": bool(eligible and eligible["id"] == o["id"]),
-            "list_price_minor": o["selling_price_minor"] if (o["pricing_mode"] in ("fixed", "bulk") and o["selling_price_minor"] > 0
+            "list_price_minor": o["selling_price_minor"] if (not b2b_hidden and o["pricing_mode"] in ("fixed", "bulk") and o["selling_price_minor"] > 0
                                                              and o["last_price_confirmed_at"]) else None,
             "list_price_at": o["last_price_confirmed_at"],
             # Consumer law: the shown price must include VAT; price_minor stays the net used by checkout.
