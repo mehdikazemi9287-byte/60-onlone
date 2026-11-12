@@ -265,12 +265,77 @@ def products(conn, *, updated_since: _dt.datetime | None, cursor: tuple | None, 
             "next_cursor": encode_cursor(*page[-1]) if more and page else None, "items": items}
 
 
-def pricing_context(conn, user_id: int) -> dict:
-    """Minimal, secret-free pricing eligibility of a 60online user (for the SSO exchange answer)."""
-    rows = conn.execute(
-        """SELECT o.id, o.buyer_kind FROM organization_memberships om JOIN organizations o ON o.id = om.organization_id
+def _membership_view(conn, m, now: _dt.datetime) -> dict:
+    """One active membership in an active business account → role + what it entitles (booleans only, no amounts).
+
+    Uses 60online's own permission helpers so Vambi sees exactly what the organization panel enforces:
+    procurement_service._can_procure/_can_approve, membership_service.ADMIN_ROLES/FINANCE_ROLES,
+    commerce_ops_service (benefit programs: any active member may pick a pack while the program is open),
+    welfare_wallet_service.eligible_plans (active welfare plan covering this membership).
+    """
+    from app.services import membership_service as ms
+    from app.services import procurement_service as pr
+    from app.services import welfare_wallet_service as ww
+    md = {"role": m["role"], "procurement_role": m["procurement_role"]}
+    org = int(m["organization_id"])
+    pack_programs = conn.execute(
+        "SELECT COUNT(*) FROM benefit_programs WHERE organization_id = ? AND status = 'open' "
+        "AND mode IN ('fixed_pack', 'pack_choice')", (org,)).fetchone()[0]
+    credit = False
+    for a in conn.execute("SELECT valid_from, expires_at FROM credit_allocations WHERE membership_id = ? "
+                          "AND status = 'active'", (int(m["id"]),)):
+        start, end = parse_ts(a["valid_from"]), parse_ts(a["expires_at"])
+        if (start is None or start <= now) and (end is None or end > now):
+            credit = True
+            break
+    try:
+        welfare = bool(ww.eligible_plans(conn, int(m["id"])))
+    except Exception:  # an unreadable plan never grants anything
+        welfare = False
+    return {
+        "org_id": org, "org_name": m["display_name"], "buyer_kind": m["buyer_kind"],
+        "role": m["role"], "procurement_role": m["procurement_role"],
+        "is_admin": m["role"] in ms.ADMIN_ROLES,
+        "can_buy_for_org": pr._can_procure(md),
+        "can_approve_purchases": pr._can_approve(md),
+        "can_manage_finance": m["role"] in ms.FINANCE_ROLES,
+        "pack_beneficiary": bool(pack_programs),
+        "welfare_plan_active": welfare,
+        "credit_allocation_active": credit,
+        "price_tiers": ["wholesale", "org"],
+    }
+
+
+def pricing_context(conn, user_id: int, now: _dt.datetime | None = None) -> dict:
+    """Minimal, secret-free pricing eligibility of a 60online user (SSO exchange + entitlement refresh).
+
+    Only ACTIVE memberships of ACTIVE business accounts count; an inactive user gets the public context only.
+    """
+    now = now or _dt.datetime.now(_dt.timezone.utc)
+    user = conn.execute("SELECT is_active FROM users WHERE id = ?", (user_id,)).fetchone()
+    rows = [] if not user or not user["is_active"] else conn.execute(
+        """SELECT om.id, om.organization_id, om.role, om.procurement_role, o.display_name, o.buyer_kind
+           FROM organization_memberships om JOIN organizations o ON o.id = om.organization_id
            WHERE om.user_id = ? AND om.status = 'active' AND o.status = 'active' ORDER BY o.id""", (user_id,)).fetchall()
-    org_ids = [int(r["id"]) for r in rows]
-    return {"tiers": ["public"] + (["wholesale", "org"] if org_ids else []), "org_ids": org_ids,
-            "wholesale_eligible": bool(org_ids),
-            "buyer_kinds": sorted({r["buyer_kind"] for r in rows})}
+    memberships = [_membership_view(conn, r, now) for r in rows]
+    org_ids = [m["org_id"] for m in memberships]
+    return {"active": bool(user and user["is_active"]),
+            "tiers": ["public"] + (["wholesale", "org"] if org_ids else []), "org_ids": org_ids,
+            "wholesale_eligible": bool(org_ids), "buyer_kinds": sorted({m["buyer_kind"] for m in memberships}),
+            "memberships": memberships}
+
+
+def user_ref(user_id: int, secret: str) -> str:
+    """Stable, verifiable reference for a user, issued to Vambi at SSO exchange (no DB row; changes if SECRET_KEY rotates)."""
+    import hashlib
+    import hmac
+    mac = hmac.new(secret.encode(), f"vambi-user-ref:{int(user_id)}".encode(), hashlib.sha256).hexdigest()[:32]
+    return f"u{int(user_id)}.{mac}"
+
+
+def user_from_ref(ref, secret: str) -> int | None:
+    import hmac
+    if not isinstance(ref, str) or len(ref) > 64 or not re.fullmatch(r"u[1-9][0-9]{0,15}\.[0-9a-f]{32}", ref):
+        return None
+    uid = int(ref[1:ref.index(".")])
+    return uid if hmac.compare_digest(user_ref(uid, secret), ref) else None

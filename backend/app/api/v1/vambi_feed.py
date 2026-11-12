@@ -2,9 +2,11 @@
 
   GET /api/v1/feeds/vambi/products?updated_since=<ISO-8601>&cursor=<opaque>&limit=<1..500>
   Authorization: Bearer <VAMBI_FEED_TOKEN>
+  POST /api/v1/sso/vambi/entitlements   {"user_ref": "<from SSO exchange>"}   (same server token)
 
 Off (404) until VAMBI_FEED_TOKEN is set. VAMBI_FEED_TOKEN may hold several comma-separated tokens (rotation);
-each must be at least 32 characters. Rate limit per token: VAMBI_FEED_RATE_PER_MIN (default 60).
+each must be at least 32 characters. Rate limit per token: VAMBI_FEED_RATE_PER_MIN (default 60) for the feed,
+VAMBI_ENTITLEMENTS_RATE_PER_MIN (default 600) for entitlement refreshes.
 The contract (tiers, cursor, tombstones) is in services/vambi_feed_service.py and docs/integrations/vambi-feed.md.
 """
 from __future__ import annotations
@@ -16,12 +18,13 @@ import threading
 
 from flask import Blueprint, jsonify, request
 
-from app.core.deps import get_db
+from app.core.deps import get_db, get_settings
 from app.core.errors import ApiError, AuthenticationError, NotFoundError
 from app.core.rate_limiter import InMemoryRateLimiter
 from app.services import vambi_feed_service as feed
 
 bp = Blueprint("vambi_feed", __name__, url_prefix="/api/v1/feeds/vambi")
+sso_bp = Blueprint("vambi_entitlements", __name__, url_prefix="/api/v1/sso/vambi")
 MIN_TOKEN_LEN = 32
 _limiters: dict = {}
 _lock = threading.Lock()
@@ -53,15 +56,16 @@ def _authenticate() -> str:
     return hashlib.sha256(match.encode()).hexdigest()[:16]
 
 
-def _rate_limit(token_id: str) -> None:
+def _rate_limit(token_id: str, bucket: str = "feed") -> None:
+    env, default = ("VAMBI_FEED_RATE_PER_MIN", 60) if bucket == "feed" else ("VAMBI_ENTITLEMENTS_RATE_PER_MIN", 600)
     try:
-        per_min = max(1, int(os.environ.get("VAMBI_FEED_RATE_PER_MIN", "60")))
+        per_min = max(1, int(os.environ.get(env, str(default))))
     except ValueError:
-        per_min = 60
+        per_min = default
     with _lock:
-        lim = _limiters.get((token_id, per_min))
+        lim = _limiters.get((bucket, token_id, per_min))
         if lim is None:
-            lim = _limiters[(token_id, per_min)] = InMemoryRateLimiter(per_min, 60)
+            lim = _limiters[(bucket, token_id, per_min)] = InMemoryRateLimiter(per_min, 60)
     if not lim.is_allowed(token_id):
         raise FeedRateLimited("تعداد درخواست‌های فید از سقف مجاز بیشتر است",
                               details={"retry_after": lim.retry_after(token_id)})
@@ -77,5 +81,27 @@ def products():
     with get_db().read_transaction() as conn:
         out = feed.products(conn, updated_since=since, cursor=cursor, limit=limit)
     resp = jsonify(out)
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+
+@sso_bp.post("/entitlements")
+def entitlements():
+    """Vambi refreshes a signed-in user's CURRENT pricing context without a new login.
+
+    Unknown/forged/malformed user_ref and deleted users → 404 (uniform). A disabled account or revoked
+    membership answers 200 with the reduced context (active=false and/or fewer memberships)."""
+    from app.services.vambi_feed_service import pricing_context, user_from_ref
+    token_id = _authenticate()
+    _rate_limit(token_id, "entitlements")
+    body = request.get_json(silent=True)
+    ref = body.get("user_ref") if isinstance(body, dict) else None
+    uid = user_from_ref(ref, get_settings().secret_key)
+    with get_db().read_transaction() as conn:
+        exists = uid is not None and conn.execute("SELECT 1 FROM users WHERE id = ?", (uid,)).fetchone()
+        if not exists:
+            raise NotFoundError("کاربر یافت نشد", code="unknown_user_ref")
+        ctx = pricing_context(conn, uid)
+    resp = jsonify({"user_ref": ref, "pricing_context": ctx})
     resp.headers["Cache-Control"] = "no-store"
     return resp

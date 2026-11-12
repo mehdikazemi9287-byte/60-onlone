@@ -156,15 +156,21 @@ class SsoTest(AppTestCase):
 
     def test_exchange_returns_minimal_pricing_context(self):
         r = self.exchange(self.code())
-        self.assertEqual(r.get_json()["pricing_context"],
-                         {"tiers": ["public"], "org_ids": [], "wholesale_eligible": False, "buyer_kinds": []})
+        body = r.get_json()
+        self.assertEqual(body["pricing_context"], {"active": True, "tiers": ["public"], "org_ids": [],
+                                                   "wholesale_eligible": False, "buyer_kinds": [], "memberships": []})
+        self.assertRegex(body["user_ref"], r"^u[0-9]+\.[0-9a-f]{32}$")
         org = self.create_organization(name="سازمان آزمون SSO")["id"]
         suspended = self.create_organization(name="سازمان معلق آزمون", status="suspended")["id"]
         uid = self.client.get("/api/v1/auth/me", headers=self.h).get_json()["user"]["id"]
         with self.db.write_transaction() as conn:
             for oid in (org, suspended):
                 conn.execute("INSERT INTO organization_memberships (organization_id, user_id, role, status) "
-                             "VALUES (?,?, 'employee', 'active')", (oid, uid))
-        ctx = self.exchange(self.code()).get_json()["pricing_context"]
-        self.assertEqual(ctx, {"tiers": ["public", "wholesale", "org"], "org_ids": [org], "wholesale_eligible": True,
-                               "buyer_kinds": ["organization"]})
+                             "VALUES (?,?, 'procurement_agent', 'active')", (oid, uid))
+        body2 = self.exchange(self.code()).get_json()
+        ctx = body2["pricing_context"]
+        self.assertEqual(body2["user_ref"], body["user_ref"])  # stable across logins
+        self.assertEqual((ctx["tiers"], ctx["org_ids"], ctx["wholesale_eligible"], ctx["buyer_kinds"]),
+                         (["public", "wholesale", "org"], [org], True, ["organization"]))
+        [m] = ctx["memberships"]
+        self.assertEqual((m["org_id"], m["role"], m["can_buy_for_org"], m["is_admin"]), (org, "procurement_agent", True, False))

@@ -181,7 +181,7 @@ def sso_issue():
 @bp.post("/sso/exchange")
 def sso_exchange():
     """Swap a one-time code for an ordinary session token, issued exactly like OTP login does, plus the user's
-    pricing eligibility (which 60online price tiers apply: org ids + wholesale/B2B flag; no secrets)."""
+    pricing eligibility (memberships with role and entitlements, wholesale/B2B flag; no secrets) and a user_ref."""
     from app.services import sso_service
     from app.services.vambi_feed_service import pricing_context
     body = _json_body()
@@ -189,7 +189,9 @@ def sso_exchange():
     uid = sso_service.claim(get_db(), code=body.get("code"), state=body.get("state"),
                             request_origin=request.headers.get("Origin"), ip_address=client_ip())
     token, user = _otp_token(uid)
+    from app.services.vambi_feed_service import user_ref
     with get_db().read_transaction() as conn:
         ctx = pricing_context(conn, uid)
+    # user_ref: stable reference for the server-to-server entitlement refresh (/api/v1/sso/vambi/entitlements).
     return jsonify({"access_token": token, "token_type": "Bearer", "expires_in": settings.access_token_ttl_seconds,
-                    "user": user, "pricing_context": ctx})
+                    "user": user, "user_ref": user_ref(uid, settings.secret_key), "pricing_context": ctx})

@@ -226,6 +226,7 @@ def create_app(
         price_feeds_api.bp,
         vambi_api.bp,
         vambi_feed_api.bp,
+        vambi_feed_api.sso_bp,
         b2b_api.bp,
     ):
         app.register_blueprint(blueprint)
