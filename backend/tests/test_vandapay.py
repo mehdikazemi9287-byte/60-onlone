@@ -337,6 +337,23 @@ class VandaPayCheckoutTest(AppTestCase):
         self.assertEqual(len(stored), 1)
         self.assertNotIn("customer_phone", stored[0]["raw_payload"])
 
+    def test_refund_webhook_opens_one_finance_review_item(self):
+        # SO-4 (review 2026-11-12): a panel refund is tracked for finance with a deadline, once per event
+        body, pid = self._start()
+        self.fake.pay(pid)
+        self._webhook({"id": "evt_pay", "type": "payment_intent.succeeded", "data": {"id": pid, "status": "succeeded"}})
+        self.fake.intents[pid]["status"] = "refunded"
+        evt = {"id": "evt_ref", "type": "refund.succeeded", "data": {"intent_id": pid, "amount": 5000, "status": "succeeded"}}
+        r = self._webhook(evt)
+        self.assertEqual((r.status_code, r.get_json()["outcome"]), (200, "refund_review_opened"))
+        self.assertEqual(self._webhook(evt).get_json()["outcome"], "duplicate")
+        with self.db.read_transaction() as conn:
+            rows = conn.execute("SELECT * FROM external_refund_reviews WHERE event_id='evt_ref'").fetchall()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual((rows[0]["status"], rows[0]["owner_role"], rows[0]["amount_minor"]), ("open", "finance", 5000))
+        self.assertTrue(rows[0]["due_at"])
+        self.assertEqual(self._orders(), 1)  # the order itself is not silently changed
+
     def test_webhook_bad_and_stale_signatures_change_nothing(self):
         body, pid = self._start()
         self.fake.pay(pid)

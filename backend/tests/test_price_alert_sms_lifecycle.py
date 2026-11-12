@@ -315,7 +315,7 @@ class Migration0083Test(unittest.TestCase):
                 conn.execute("INSERT INTO price_alert_events (user_id, product_id, level, alert_type, dedupe_key, sms_text, sms_status,"
                              " sms_id, created_at, day) VALUES (?,?, 'consumer', 'price_target', 'k1', 't', 'sent', ?, '2026-11-01T06:00:00Z',"
                              " '2026-11-01')", (uid, pid, sid))
-            self.assertEqual(upgrade(db), ["0083"])
+            self.assertEqual(upgrade(db)[:1], ["0083"])  # later migrations (0084+) may follow
             with db.write_transaction() as conn:
                 self.assertEqual(tuple(conn.execute("SELECT status FROM price_alert_sms").fetchone()), ("sending",))
                 self.assertEqual(tuple(conn.execute("SELECT sms_status, sms_id FROM price_alert_events").fetchone()), ("sent", sid))

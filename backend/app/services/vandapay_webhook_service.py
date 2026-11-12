@@ -59,6 +59,22 @@ def _intent_id_of(event: dict) -> str | None:
     return raw if isinstance(raw, str) and raw else None
 
 
+REFUND_REVIEW_DUE_HOURS = 24
+
+
+def _open_refund_review(db: Database, *, event_id: str, etype: str, vp_intent_id: str, local_id, status, data: dict) -> None:
+    import datetime as _dt
+    amount = data.get("amount")
+    due = (_dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(hours=REFUND_REVIEW_DUE_HOURS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    with db.write_transaction() as conn:
+        conn.execute(
+            "INSERT INTO external_refund_reviews (provider, event_id, event_type, provider_intent_ref, payment_intent_id, "
+            "provider_status, amount_minor, owner_role, due_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'finance', ?) "
+            "ON CONFLICT (provider, event_id) DO NOTHING",
+            (NAME, event_id, etype, vp_intent_id, local_id, status, int(amount) if isinstance(amount, int) else None, due),
+        )
+
+
 def handle(db: Database, *, raw_body: bytes, signature_header: str | None, exponent: int = 0,
            ip_address: str | None = None, now: int | None = None) -> tuple[int, dict]:
     provider = get_payment_provider(NAME)
@@ -107,10 +123,14 @@ def handle(db: Database, *, raw_body: bytes, signature_header: str | None, expon
             return 503, {"error": {"code": "not_final_yet"}}
         return 200, {"received": True, "outcome": "pending"}
     if etype.startswith("refund."):
-        # Refunds made in the VandaPay panel are logged only; order/ledger adjustment is a manual step.
+        # Refunds made in the VandaPay panel do not adjust the shop order/ledger automatically yet. SO-4 (review
+        # 2026-11-12): each event opens ONE tracked review item for finance with a deadline (not just a log line);
+        # stock is never released automatically because money came back.
         log.warning("vandapay refund event %s for intent %s (status %s): manual review", event_id, vp_intent_id, status)
-        _record(db, event_id, {**summary, "result": "refund_logged"})
-        return 200, {"received": True, "outcome": "refund_logged"}
+        _open_refund_review(db, event_id=event_id, etype=etype, vp_intent_id=vp_intent_id, local_id=local["id"],
+                            status=status, data=event.get("data") if isinstance(event.get("data"), dict) else {})
+        _record(db, event_id, {**summary, "result": "refund_review_opened"})
+        return 200, {"received": True, "outcome": "refund_review_opened"}
 
     outcome = checkout_service.complete_redirect_payment(
         db, provider_name=NAME, callback={"invoice_id": str(local["id"])}, exponent=exponent, ip_address=ip_address,
