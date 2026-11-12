@@ -4,7 +4,9 @@ const nextConfig = { distDir: process.env.REVIEW_DIST_DIR || ".next", experiment
   async redirects() {
     return [{ source: "/favicon.ico", destination: "/icon.svg", permanent: true }];
   },
+  compress: true,
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "ui-avatars.com" },

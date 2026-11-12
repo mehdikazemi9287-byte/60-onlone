@@ -103,6 +103,60 @@ def eligible_offer_db(db, product_id: int):
     return offer
 
 
+
+def catalog_price_sql(product_expression: str) -> str:
+    """Internal SQL expression for ordering only; expression is never user input.
+
+    Reuse the exact eligibility predicate rather than a separate price policy.
+    The returned page still resolves full offers before serializing prices.
+    """
+    override = _test_override_enabled()
+    if not sales_enabled() and not override:
+        return "NULL"
+    source = _sql()
+    source = "SELECT so.selling_price_minor " + source[source.index("FROM seller_offers"):]
+    source = source.replace("so.product_id = ?", f"so.product_id = {product_expression}", 1)
+    expression = f"({source})"
+    if override:
+        fallback = f"""(SELECT fallback_product.base_price_minor FROM products fallback_product
+            WHERE fallback_product.id={product_expression}
+            AND fallback_product.is_active=1 AND fallback_product.base_price_minor>0
+            AND {policy.product_sql('fallback_product.id', 'retail')})"""
+        expression = f"COALESCE({expression}, {fallback})"
+    return expression
+
+
+def eligible_offers_db(db, product_ids) -> dict:
+    """Resolve catalog offers in bounded batches with the same fail-closed policy.
+
+    Keep price/provenance/channel checks identical to the single-product path.
+    No result cache: price and stock remain authoritative on every request.
+    """
+    ids = list(dict.fromkeys(int(pid) for pid in product_ids))
+    override = _test_override_enabled()
+    if not ids or (not sales_enabled() and not override):
+        return {}
+    result = {}
+    for start in range(0, len(ids), 400):
+        batch = ids[start:start + 400]
+        placeholders = ",".join("?" for _ in batch)
+        sql = _sql().replace("SELECT so.id,", "SELECT so.product_id, so.id,", 1)
+        sql = sql.replace("so.product_id = ?", f"so.product_id IN ({placeholders})", 1)
+        sql = sql.replace("LIMIT 1", "")
+        for row in db.query(sql, batch):
+            # Ordered by price then id, as in eligible_offer_db.
+            result.setdefault(int(row["product_id"]), row)
+        if override:
+            missing = [pid for pid in batch if pid not in result]
+            if missing:
+                marks = ",".join("?" for _ in missing)
+                fallback = _LEGACY_OVERRIDE_SQL.replace("SELECT 0 AS id,", "SELECT p.id AS product_id, 0 AS id,", 1)
+                fallback = fallback.replace("p.id=?", f"p.id IN ({marks})", 1)
+                for row in db.query(fallback + " AND " + policy.product_sql("p.id", "retail"), missing):
+                    result[int(row["product_id"])] = row
+    return result
+
+
 def unit_price(conn: sqlite3.Connection, offer, quantity: int, channel: str = "retail",
                organization_id: int | None = None) -> int:
     """Offer price for a quantity: the matching confirmed tier (organization contract first), else base."""

@@ -147,7 +147,10 @@ def offers_for(conn, sku_id: int, *, viewer_org_ids: tuple = ()) -> list[dict]:
     vat_bps = _crs.standard_vat_bps(conn)
     prov = _prov_sql()
     rows = conn.execute(f"""
-        SELECT so.*, s.display_name AS seller, s.provenance AS seller_provenance, sl.city AS seller_city,
+        SELECT so.id, so.channel, so.pricing_mode, so.selling_price_minor,
+               so.min_order_quantity, so.max_order_quantity, so.lead_time_days,
+               so.valid_until, so.provenance, so.last_price_confirmed_at,
+               s.display_name AS seller, sl.city AS seller_city,
                (so.stock_quantity - so.stock_reserved) AS available,
                datetime(so.last_price_confirmed_at) >= datetime('now','-24 hours') AS price_fresh,
                datetime(so.last_inventory_confirmed_at) >= datetime('now','-24 hours') AS stock_fresh
@@ -158,9 +161,22 @@ def offers_for(conn, sku_id: int, *, viewer_org_ids: tuple = ()) -> list[dict]:
           AND (so.valid_until IS NULL OR so.valid_until >= date('now'))
         ORDER BY so.selling_price_minor, so.id""", (sku_id,)).fetchall()
     eligible = se.eligible_offer_conn(conn, sku_id)
+    product_policy = policy.sku_policy(conn, sku_id) if rows else None
+    if not product_policy or product_policy["status"] != "active":
+        return []
+    tier_rows = {}
+    offer_ids = [row["id"] for row in rows]
+    for start in range(0, len(offer_ids), 400):
+        chunk = offer_ids[start:start + 400]
+        marks = ",".join("?" for _ in chunk)
+        for tier in conn.execute(f"""SELECT offer_id, channel, organization_id, min_qty, max_qty, unit_price_minor
+            FROM offer_price_tiers WHERE offer_id IN ({marks})
+            AND datetime(confirmed_at) >= datetime('now','-24 hours') ORDER BY channel, min_qty""", chunk):
+            tier_rows.setdefault(tier["offer_id"], []).append(tier)
     out = []
     for o in rows:
-        scope=policy.effective(conn,sku_id,o["channel"])
+        allowed = set(policy.channels(o["channel"])) & set(policy.channels(product_policy["supply_channel"]))
+        scope = "both" if len(allowed) == 2 else next(iter(allowed)) if allowed else None
         if scope is None:continue
         priced = o["pricing_mode"] in ("fixed", "bulk") and bool(o["price_fresh"]) and o["selling_price_minor"] > 0
         # Organization-only offer: its price is the wholesale (B2B) tier — only business-account members see it.
@@ -171,8 +187,7 @@ def offers_for(conn, sku_id: int, *, viewer_org_ids: tuple = ()) -> list[dict]:
         if o["pricing_mode"] == "out_of_stock":
             stock_state = "out_of_stock"
         tiers = {"retail": [], "organization": []}
-        for t in conn.execute("""SELECT channel, organization_id, min_qty, max_qty, unit_price_minor FROM offer_price_tiers
-                                 WHERE offer_id=? AND datetime(confirmed_at) >= datetime('now','-24 hours') ORDER BY channel, min_qty""", (o["id"],)):
+        for t in tier_rows.get(o["id"], []):
             if t["channel"] not in policy.channels(scope):continue
             # A contract tier (organization_id set) is shown only to that organization's members, on ANY channel.
             if t["organization_id"] is not None and t["organization_id"] not in viewer_org_ids:

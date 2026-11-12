@@ -71,7 +71,14 @@ function PackEditor({ token, pack, onClose, onSaved }: { token: string; pack: Ad
   const [items, setItems] = useState<{ master_product_id: number; title_fa: string; quantity: number; required: boolean }[]>(
     pack?.items.map((i) => ({ master_product_id: i.master_product_id, title_fa: i.title_fa, quantity: i.quantity, required: i.required })) ?? []);
   const [q, setQ] = useState(""), [hits, setHits] = useState<Product[]>([]), [busy, setBusy] = useState(false), [err, setErr] = useState(""), [key] = useState(newIdempotencyKey);
-  useEffect(() => { if (q.trim().length < 2) { setHits([]); return; } const t = setTimeout(() => catalog.list({ q, page_size: 12 }).then((r) => setHits(r.items)).catch(() => {}), 250); return () => clearTimeout(t); }, [q]);
+  useEffect(() => {
+    let active = true;
+    setHits([]);
+    if (q.trim().length < 2) return;
+    const t = setTimeout(() => catalog.list({ q, page_size: 12 })
+      .then((r) => { if (active) setHits(r.items); }).catch(() => {}), 300);
+    return () => { active = false; clearTimeout(t); };
+  }, [q]);
   const set = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
   const save = async () => {
     setBusy(true); setErr("");
