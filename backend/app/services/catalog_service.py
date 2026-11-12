@@ -145,19 +145,15 @@ def search_products(
         params.append(category_slug.strip())
 
     clause = " AND ".join(where)
-    rows = db.query(
-        f"""
-        SELECT p.*, c.slug AS category_slug, c.name_fa AS category_name_fa,
-               COALESCE(i.quantity_available, 0) AS quantity_available,
+    product_query = f"""
+        SELECT p.id, p.master_product_id, p.slug, p.sku, p.title_fa, p.brand_fa, p.currency,
+               c.slug AS category_slug, c.name_fa AS category_name_fa,
                mp.image_urls_json AS image_urls_json, dp.supply_channel AS policy_channel
         FROM products p
         JOIN categories c ON c.id = p.category_id
-        LEFT JOIN inventory i ON i.product_id = p.id
         LEFT JOIN master_products mp ON mp.id = p.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
         WHERE {clause}
-        """,
-        params,
-    )
+        """
     publication_where = [
         "cp.is_visible = 1", "mp.status='active'",
         "NOT EXISTS (SELECT 1 FROM products linked WHERE linked.master_product_id=cp.master_product_id AND linked.is_active=1)",
@@ -173,36 +169,47 @@ def search_products(
     if category_slug and category_slug.strip():
         publication_where.append("cp.category_slug = ?")
         publication_params.append(category_slug.strip())
-    publication_rows = db.query(
-        f"""
-        SELECT cp.*, mp.canonical_name_fa, mp.brand, mp.description_fa,
+    publication_query = f"""
+        SELECT cp.master_product_id, cp.slug, cp.category_slug, cp.currency, mp.canonical_name_fa, mp.brand,
                mp.image_urls_json, dp.supply_channel AS policy_channel,dp.sku AS profile_sku, c.name_fa AS category_name_fa
         FROM catalog_publications cp
         JOIN master_products mp ON mp.id = cp.master_product_id LEFT JOIN direct_product_profiles dp ON dp.master_product_id=mp.id
         JOIN categories c ON c.slug = cp.category_slug
         WHERE {' AND '.join(publication_where)}
-        """,
-        publication_params,
-    )
+        """
+    # Only identities and ordering values cross the UNION; LIMIT applies in SQL.
+    product_from = product_query[product_query.index("FROM products p"):]
+    publication_from = publication_query[publication_query.index("FROM catalog_publications cp"):]
+    identities = f"SELECT p.id AS id {product_from} UNION ALL SELECT -cp.master_product_id AS id {publication_from}"
+    combined_params = params + publication_params
+    count = db.query_one(f"SELECT COUNT(*) AS total FROM ({identities}) catalog_count", combined_params)
+    total = int(count["total"])
+    if sort in {"price_asc", "price_desc"}:
+        price = sale_eligibility.catalog_price_sql("p.id")
+        candidates = f"SELECT p.id AS id, {price} AS price_minor {product_from} UNION ALL SELECT -cp.master_product_id AS id, NULL AS price_minor {publication_from}"
+        direction = "ASC" if sort == "price_asc" else "DESC"
+        order = f"CASE WHEN price_minor IS NULL THEN 1 ELSE 0 END, price_minor {direction}, id DESC"
+    else:
+        # Public ratings are intentionally unavailable, so rating shares newest's tie-break.
+        candidates, order = identities, "id DESC"
+    offset = (page - 1) * page_size
+    page_rows = db.query(
+        f"SELECT id FROM ({candidates}) catalog_page ORDER BY {order} LIMIT ? OFFSET ?",
+        combined_params + [page_size, offset],
+    ) if offset < total else []
+    ids = [int(row["id"]) for row in page_rows]
+    product_ids = [pid for pid in ids if pid > 0]
+    publication_ids = [-pid for pid in ids if pid < 0]
+    rows = db.query(product_query + " AND p.id IN (" + ",".join("?" for _ in product_ids) + ")", params + product_ids) if product_ids else []
+    publication_rows = db.query(publication_query + " AND cp.master_product_id IN (" + ",".join("?" for _ in publication_ids) + ")", publication_params + publication_ids) if publication_ids else []
+    offers = sale_eligibility.eligible_offers_db(db, (r["id"] for r in rows))
     items = [
-        _product_dict(r, exponent, sale_eligibility.eligible_offer_db(db, int(r["id"])))
+        _product_dict(r, exponent, offers.get(int(r["id"])))
         for r in rows
     ]
     items.extend(_publication_dict(r, exponent) for r in publication_rows)
-    if sort == "price_asc":
-        items.sort(key=lambda x: (x["price_minor"] is None, x["price_minor"] or 0, -x["id"]))
-    elif sort == "price_desc":
-        items.sort(
-            key=lambda x: (x["price_minor"] is not None, x["price_minor"] or 0, x["id"]),
-            reverse=True,
-        )
-    elif sort == "rating":
-        items.sort(key=lambda x: (x["rating"] is not None, x["rating"] or 0, x["id"]), reverse=True)
-    else:
-        items.sort(key=lambda x: x["id"], reverse=True)
-    total = len(items)
-    offset = (page - 1) * page_size
-    items = items[offset : offset + page_size]
+    indexed = {item["id"]: item for item in items}
+    items = [indexed[pid] for pid in ids]
     return {
         "items": items,
         "page": page,
