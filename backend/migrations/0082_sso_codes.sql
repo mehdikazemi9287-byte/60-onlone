@@ -1,0 +1,17 @@
+-- Shared login vambi.ir <-> 60online.ir (ورود مشترک): one-time codes a signed-in 60online user hands to an
+-- allow-listed sister origin, which swaps the code for an ordinary session token.
+-- Only SHA-256 hashes of the code and of the browser's state are stored; a code lives 60 seconds and is single-use
+-- (used_at is set by an atomic UPDATE ... WHERE used_at IS NULL).
+CREATE TABLE IF NOT EXISTS sso_codes (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    code_hash       TEXT    NOT NULL UNIQUE,
+    user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    target_origin   TEXT    NOT NULL,
+    state_hash      TEXT    NOT NULL,
+    ip_address      TEXT,
+    created_at      TEXT    NOT NULL,
+    expires_at      TEXT    NOT NULL,
+    used_at         TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_sso_codes_user ON sso_codes(user_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_sso_codes_expires ON sso_codes(expires_at);
