@@ -2,8 +2,8 @@
 
   GET /api/v1/vambi/search?q=&category=&page=&sort=relevance|price_asc|sellers
 Each result is one exact product (SKU) with every in-ecosystem seller's offer side by side: VAT-inclusive price,
-lead time, stock and city. Only marketplace sellers/shops — nothing outside the ecosystem is crawled or shown, and
-nothing is fed out. Price visibility follows STOREFRONT_PRICE_VISIBILITY (this path is a public catalog surface).
+lead time, stock and city. Only marketplace sellers/shops — nothing outside the ecosystem is crawled or shown. The
+separate Vambi product (vambi.ir) reads the authenticated server-to-server feed in vambi_feed.py, not this page. Price visibility follows STOREFRONT_PRICE_VISIBILITY (this path is a public catalog surface).
 """
 from __future__ import annotations
 

@@ -1,7 +1,8 @@
 """اکوسیستم بسته: جلوگیری از کشف قیمت.
 
 STOREFRONT_PRICE_VISIBILITY:
-  public        — everyone sees prices (default)
+  public        — everyone sees public prices (default; owner decision 1405/08/21). Organization contract and
+                  wholesale (B2B) tiers are always shown only to their eligible members (storefront_service.offers_for).
   members       — prices only for signed-in users
   organizations — prices only for members of an active organization, sellers and admins (B2B launch)
 For hidden viewers every public catalog response (PUBLIC_CATALOG, any method) has its price fields (any key containing "price" or ending

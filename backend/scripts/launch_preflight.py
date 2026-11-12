@@ -77,8 +77,8 @@ def config_checks() -> list[tuple[str, str, str]]:
     add(WARN if os.environ.get("EXTERNAL_CHANNELS_ENABLED") == "1" else OK, "EXTERNAL_CHANNELS_ENABLED",
         "اکوسیستم بسته: فید ترب و خروجی باسلام خاموش بماند مگر با تصمیم آگاهانه")
     vis = os.environ.get("STOREFRONT_PRICE_VISIBILITY", "public")
-    add(OK if vis == "organizations" else WARN, "STOREFRONT_PRICE_VISIBILITY",
-        f"شروع سازمانی: قیمت فقط برای اعضای سازمان‌ها، فروشندگان و مدیران (الان: {vis})")
+    add(OK if vis in ("public", "members", "organizations") else WARN, "STOREFRONT_PRICE_VISIBILITY",
+        f"تصمیم مالک ۱۴۰۵/۰۸/۲۱: قیمت عمومی، عمومی است (public)؛ قیمت سازمانی و عمده فقط برای مخاطب مجاز (الان: {vis})")
     hops = os.environ.get("TRUSTED_PROXY_HOPS", "")
     add(OK if hops.isdigit() and int(hops) >= 1 else WARN, "TRUSTED_PROXY_HOPS",
         "پشت nginx/Cloudflare باید تعداد پراکسی‌های مورد اعتماد تنظیم شود؛ وگرنه محدودیت نرخ همه را یک IP می‌بیند")

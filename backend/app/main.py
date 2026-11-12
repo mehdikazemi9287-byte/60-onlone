@@ -72,6 +72,7 @@ from app.api.v1 import affiliates as affiliates_api
 from app.api.v1 import catalog_schema as catalog_schema_api
 from app.api.v1 import price_feeds as price_feeds_api
 from app.api.v1 import vambi as vambi_api
+from app.api.v1 import vambi_feed as vambi_feed_api
 from app.api.v1 import b2b as b2b_api
 from app.api.v1 import admin_partner_api, finance_exports as finance_exports_api, logistics_v2 as logistics_v2_api
 from app.core.config import Settings, load_settings
@@ -224,6 +225,7 @@ def create_app(
         catalog_schema_api.bp,
         price_feeds_api.bp,
         vambi_api.bp,
+        vambi_feed_api.bp,
         b2b_api.bp,
     ):
         app.register_blueprint(blueprint)
