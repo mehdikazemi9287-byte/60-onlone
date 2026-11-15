@@ -77,7 +77,7 @@ export default function SellPage() {
           {FIELDS.map((f) => <li key={f.key}>{f.label}{f.optional ? " (اختیاری)" : ""}</li>)}
         </ul>
         <div className="flex flex-wrap gap-3">
-          <Link href="/login?next=/sell" className="rounded-xl bg-neutral-900 px-6 py-3 font-bold text-white">ورود و ساخت غرفه</Link>
+          <Link href="/login?next=/sell" className="rounded-full bg-ink px-6 py-3 font-bold text-white">ورود و ساخت غرفه</Link>
           <Link href="/terms" className="rounded-xl border border-neutral-300 px-6 py-3 font-bold text-neutral-800">قوانین غرفه‌داری</Link>
         </div>
       </div>

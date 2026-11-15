@@ -12,7 +12,7 @@ interface BadgeProps {
 }
 
 const variants: Record<Variant, string> = {
-  primary:   "bg-primary-50  text-primary-700  border-primary-200",
+  primary:   "bg-canvas-sunken text-ink border-transparent",
   secondary: "bg-neutral-100 text-neutral-600  border-neutral-200",
   success:   "bg-success-50  text-success-700  border-green-200",
   warning:   "bg-amber-50    text-amber-700    border-amber-200",

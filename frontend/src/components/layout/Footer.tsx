@@ -25,10 +25,10 @@ const HELP: [string, string][] = [
 function Col({ title, items }: { title: string; items: [string, string][] }) {
   return (
     <div>
-      <h3 className="mb-4 text-sm font-black text-[#1B2430]">{title}</h3>
+      <h3 className="mb-4 text-xs font-semibold tracking-wide text-ink-faint">{title}</h3>
       <ul className="space-y-3">
         {items.map(([label, href]) => (
-          <li key={href + label}><Link href={href} className="text-sm text-[#5F6875] hover:text-[#034EA2]">{label}</Link></li>
+          <li key={href + label}><Link href={href} className="text-sm text-ink-soft transition hover:text-ink">{label}</Link></li>
         ))}
       </ul>
     </div>
@@ -45,20 +45,20 @@ export function Footer() {
     return () => { cancelled = true; };
   }, []);
   return (
-    <footer className="mt-10 border-t border-[#E3E8EF] bg-[#FFFFFF]">
-      <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-4 py-10 sm:grid-cols-2 md:px-8 md:py-12 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <footer className="mt-16 border-t border-line bg-white">
+      <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-4 py-12 sm:grid-cols-2 md:px-8 md:py-16 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <Link href="/" className="inline-flex items-center gap-2">
-            <span className="relative block h-12 w-12"><Image src="/brand/60online-logo.jpeg" alt="" fill sizes="48px" className="object-contain mix-blend-multiply" /></span>
-            <b className="text-2xl font-black text-[#034EA2]">شصت‌آنلاین</b>
+            <span className="relative block h-10 w-10 overflow-hidden rounded-xl"><Image src="/brand/60online-logo.jpeg" alt="" fill sizes="48px" className="object-contain mix-blend-multiply" /></span>
+            <b className="text-xl font-extrabold text-ink">شصت‌آنلاین</b>
           </Link>
-          <p className="mt-3 max-w-xs text-sm leading-7 text-[#5F6875]">مارکت‌پلیس سازمانی و عمده‌فروشی؛ خرید برای سازمان، کارکنان و خانه.</p>
+          <p className="mt-3 max-w-xs text-sm leading-7 text-ink-muted">مارکت‌پلیس سازمانی و عمده‌فروشی؛ خرید برای سازمان، کارکنان و خانه.</p>
         </div>
         {cats.length > 0 && <Col title="دسته‌بندی‌های پرطرفدار" items={cats} />}
         <Col title="خدمات" items={LINKS} />
         <Col title="راهنما و قوانین" items={HELP} />
       </div>
-      <div className="border-t border-[#EEF1F5] py-4 text-center text-xs text-[#7A8594]">© ۱۴۰۵ شصت‌آنلاین</div>
+      <div className="border-t border-line py-5 text-center text-xs text-ink-faint">© ۱۴۰۵ شصت‌آنلاین</div>
     </footer>
   );
 }

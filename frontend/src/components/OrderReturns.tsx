@@ -36,7 +36,7 @@ export function OrderReturns({ token, orderNumber, status, items }: { token: str
             onChange={(e) => setQty({ ...qty, [i.product_id]: Math.min(i.quantity, Math.max(0, Math.floor(Number(e.target.value)) || 0)) })} className="h-10 w-20 rounded-lg border text-center" /></label>)}
         <textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="علت مرجوعی" aria-label="علت مرجوعی" className="w-full rounded-xl border p-3 text-sm" rows={3} />
         {err && <p role="alert" className="text-sm text-red-700">{err}</p>}
-        <div className="flex gap-2"><button type="button" onClick={submit} disabled={busy || reason.trim().length < 3} className="rounded-xl bg-brand-navy px-4 py-2 text-sm font-bold text-white disabled:opacity-50">ثبت درخواست</button>
+        <div className="flex gap-2"><button type="button" onClick={submit} disabled={busy || reason.trim().length < 3} className="rounded-full bg-ink px-4 py-2 text-sm font-bold text-white disabled:opacity-50">ثبت درخواست</button>
           <button type="button" onClick={() => setOpen(false)} className="rounded-xl border px-4 py-2 text-sm">انصراف</button></div>
       </div>}
       {!list.length && !open && <p className="mt-2 text-xs text-neutral-500">درخواستی ثبت نشده است.</p>}

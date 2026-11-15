@@ -21,20 +21,20 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<Variant, string> = {
   primary: [
-    "bg-primary-600 text-white shadow-sm",
+    "bg-ink text-white",
     "hover:bg-primary-700 active:bg-primary-800",
     "disabled:bg-neutral-300 disabled:text-neutral-500 disabled:shadow-none",
   ].join(" "),
 
   secondary: [
-    "bg-primary-50 text-primary-700 border border-primary-200",
+    "bg-canvas-sunken text-ink border border-transparent",
     "hover:bg-primary-100 active:bg-primary-200",
     "disabled:bg-neutral-100 disabled:text-neutral-400 disabled:border-neutral-200",
   ].join(" "),
 
   outline: [
-    "bg-white text-neutral-700 border border-neutral-300 shadow-xs",
-    "hover:bg-neutral-50 hover:border-neutral-400 active:bg-neutral-100",
+    "bg-white text-ink border border-line-strong",
+    "hover:border-ink active:bg-canvas-sunken",
     "disabled:bg-neutral-50 disabled:text-neutral-400",
   ].join(" "),
 
@@ -45,32 +45,32 @@ const variants: Record<Variant, string> = {
   ].join(" "),
 
   danger: [
-    "bg-danger-600 text-white shadow-sm",
+    "bg-danger-600 text-white",
     "hover:bg-danger-700 active:bg-danger-800",
     "disabled:bg-neutral-300 disabled:text-neutral-500",
   ].join(" "),
 
   accent: [
-    "bg-accent-500 text-white shadow-sm font-semibold",
+    "bg-accent-500 text-white font-semibold",
     "hover:bg-accent-600 active:bg-accent-700",
     "disabled:bg-neutral-300 disabled:text-neutral-500",
   ].join(" "),
 };
 
 const sizes: Record<Size, string> = {
-  xs: "h-7  px-2.5 text-xs  gap-1   rounded",
-  sm: "h-8  px-3   text-sm  gap-1.5 rounded",
-  md: "h-9  px-4   text-sm  gap-2   rounded-lg",
-  lg: "h-10 px-5   text-base gap-2  rounded-lg",
-  xl: "h-12 px-6   text-base gap-2  rounded-xl font-semibold",
+  xs: "h-7  px-2.5 text-xs  gap-1   rounded-full",
+  sm: "h-8  px-3   text-sm  gap-1.5 rounded-full",
+  md: "h-10 px-5   text-sm  gap-2   rounded-full",
+  lg: "h-11 px-6   text-base gap-2  rounded-full",
+  xl: "h-12 px-6   text-base gap-2  rounded-full font-semibold",
 };
 
 const iconOnlySizes: Record<Size, string> = {
-  xs: "h-7  w-7  rounded",
-  sm: "h-8  w-8  rounded",
-  md: "h-9  w-9  rounded-lg",
-  lg: "h-10 w-10 rounded-lg",
-  xl: "h-12 w-12 rounded-xl",
+  xs: "h-7  w-7  rounded-full",
+  sm: "h-8  w-8  rounded-full",
+  md: "h-9  w-9  rounded-full",
+  lg: "h-10 w-10 rounded-full",
+  xl: "h-12 w-12 rounded-full",
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────

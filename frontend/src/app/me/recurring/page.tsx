@@ -56,7 +56,7 @@ export default function RecurringPage() {
     <div className="internal-page container-page py-16 text-center">
       <h1 className="mb-3 text-xl font-black">خرید دوره‌ای</h1>
       <p className="mb-6 text-neutral-600">برای ساخت فهرست خرید دوره‌ای وارد حساب شو.</p>
-      <Link href="/login?next=/me/recurring" className="rounded-xl bg-neutral-900 px-5 py-2 font-bold text-white">ورود</Link>
+      <Link href="/login?next=/me/recurring" className="rounded-full bg-ink px-5 py-2 font-bold text-white">ورود</Link>
     </div>
   );
 

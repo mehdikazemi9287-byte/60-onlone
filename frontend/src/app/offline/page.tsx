@@ -9,7 +9,7 @@ export default function OfflinePage() {
       <h1 className="mb-3 text-xl font-black text-neutral-900">اتصال اینترنت برقرار نیست</h1>
       <p className="mb-6 text-sm text-neutral-600">به اینترنت وصل شو و دوباره امتحان کن. سبد خرید و سفارش‌هایت محفوظ است.</p>
       {/* Plain link: a full navigation retries the network. */}
-      <a href="/" className="inline-block rounded-xl bg-neutral-900 px-5 py-2 font-bold text-white">تلاش دوباره</a>
+      <a href="/" className="inline-block rounded-full bg-ink px-5 py-2 font-bold text-white">تلاش دوباره</a>
     </div>
   );
 }

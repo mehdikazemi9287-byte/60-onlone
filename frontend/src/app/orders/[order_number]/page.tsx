@@ -44,7 +44,7 @@ export default function OrderDetailPage() {
     return (
       <div className="internal-page container-page py-24 text-center">
         <h2 className="text-lg font-bold text-neutral-900 mb-2">برای مشاهده این سفارش وارد شوید</h2>
-        <Link href={`/login?next=/orders/${params.order_number}`} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors mt-2">
+        <Link href={`/login?next=/orders/${params.order_number}`} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors mt-2">
           ورود به حساب کاربری
         </Link>
       </div>

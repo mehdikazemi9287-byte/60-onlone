@@ -10,7 +10,11 @@ const config: Config = {
     extend: {
       // ── Brand palette ─────────────────────────────────────────────────────
       colors: {
-        white: "#F9F9F9",
+        white: "#FFFFFF",
+        // ── Minimal Chic (Stitch 2026-11) ink/line/canvas tokens
+        ink: { DEFAULT: "#0A2735", soft: "#33434C", muted: "#6B767D", faint: "#9AA3A8" },
+        line: { DEFAULT: "#ECEDEE", strong: "#DCDFE1" },
+        canvas: { DEFAULT: "#F7F7F5", raised: "#FFFFFF", sunken: "#F1F1EE" },
         amber: {
           50: "#fff5f1",
           100: "#ffede6",
@@ -25,17 +29,17 @@ const config: Config = {
           950: "#0A2735",
         },
         primary: {
-          50: "rgb(0 78 114 / 0.04)",
-          100: "rgb(0 78 114 / 0.08)",
-          200: "rgb(0 78 114 / 0.16)",
-          300: "rgb(0 78 114 / 0.35)",
-          400: "rgb(0 78 114 / 0.7)",
-          500: "#004E72",
-          600: "#004E72",
-          700: "#004E72",
-          800: "#0A2735",
-          900: "#0A2735",
-          950: "#0A2735",
+          50: "rgb(10 39 53 / 0.035)",
+          100: "rgb(10 39 53 / 0.07)",
+          200: "rgb(10 39 53 / 0.14)",
+          300: "rgb(10 39 53 / 0.32)",
+          400: "#004E72",
+          500: "#0A2735",
+          600: "#0A2735",
+          700: "#061821",
+          800: "#061821",
+          900: "#061821",
+          950: "#03100F",
         },
         accent: {
           50: "rgb(255 109 65 / 0.05)",
@@ -68,19 +72,19 @@ const config: Config = {
         },
         // Neutral (same as Tailwind gray but aliased for brand docs)
         neutral: {
-          0: "#F9F9F9",
-          50: "#F9F9F9",
-          100: "#f3f4f6",
-          150: "#eaecf0",
-          200: "#e5e7eb",
-          300: "#d1d5db",
-          400: "#9ca3af",
-          500: "#6b7280",
-          600: "#4b5563",
-          700: "#374151",
-          800: "#1f2937",
-          900: "#111827",
-          950: "#030712",
+          0: "#FFFFFF",
+          50: "#F7F7F5",
+          100: "#F1F1EE",
+          150: "#ECEDEE",
+          200: "#E4E6E7",
+          300: "#CDD1D3",
+          400: "#9AA3A8",
+          500: "#6B767D",
+          600: "#4F5B62",
+          700: "#33434C",
+          800: "#1A2C36",
+          900: "#0A2735",
+          950: "#061821",
         },
         // ── 60Online brand system (navy / action-blue) ──────────────────────
         // This is the approved homepage identity — used by Header, Footer,
@@ -90,8 +94,8 @@ const config: Config = {
         brand: {
           navy: "#0A2735",
           navyLight: "#004E72",
-          blue: "#004E72",
-          blueDark: "#004E72",
+          blue: "#0A2735",
+          blueDark: "#061821",
           blueLight: "rgb(0 78 114 / 0.08)",
           gray: "#F9F9F9",
           coral: "#FF6D41",
@@ -144,12 +148,11 @@ const config: Config = {
         md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
         lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
         xl: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
-        card: "0 1px 4px 0 rgb(0 0 0 / 0.06), 0 2px 12px 0 rgb(0 0 0 / 0.06)",
-        "card-hover":
-          "0 4px 16px 0 rgb(0 78 114 / 0.12), 0 2px 8px 0 rgb(0 0 0 / 0.08)",
-        "primary-glow": "0 0 0 3px rgb(0 78 114 / 0.15)",
-        "brand-card":
-          "0 18px 45px -28px rgb(10 39 53 / 0.35), 0 8px 20px -16px rgb(10 39 53 / 0.18)",
+        card: "0 1px 0 0 rgb(10 39 53 / 0.04)",
+        "card-hover": "0 8px 24px -12px rgb(10 39 53 / 0.18)",
+        "primary-glow": "0 0 0 3px rgb(10 39 53 / 0.10)",
+        "brand-card": "0 1px 0 0 rgb(10 39 53 / 0.03)",
+        soft: "0 12px 32px -20px rgb(10 39 53 / 0.25)",
       },
 
       // ── Animation ──────────────────────────────────────────────────────────

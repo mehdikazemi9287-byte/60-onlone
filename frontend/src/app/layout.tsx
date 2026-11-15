@@ -38,7 +38,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#102A43",
+  themeColor: "#FFFFFF",
   colorScheme: "light",
 };
 
@@ -49,7 +49,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
-      <body className="min-h-screen flex flex-col bg-neutral-50">
+      <body className="min-h-screen flex flex-col bg-canvas">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

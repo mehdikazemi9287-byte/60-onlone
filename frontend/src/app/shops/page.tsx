@@ -23,7 +23,7 @@ export default function ShopsPage() {
     <div className="internal-page container-page py-6 md:py-8">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-xl md:text-2xl font-black text-neutral-900">غرفه‌ها و برندها</h1>
-        <Link href="/sell" className="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-bold text-white">
+        <Link href="/sell" className="rounded-full bg-ink px-4 py-2 text-sm font-bold text-white">
           غرفه‌ات را بساز
         </Link>
       </div>

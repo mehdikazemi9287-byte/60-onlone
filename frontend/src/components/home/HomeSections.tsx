@@ -19,10 +19,10 @@ import { formatTomanExact, toPersianNum } from "@/lib/utils";
 import { UI, loadPackDetails, packImages } from "@/components/packs/PackCard";
 
 const ACCENT = "#C4461C"; // used by the protected pack section
-const C = { blue: "#034EA2", navy: "#0A2735", orange: "#E0501F", orangeL: "#FF6D41", ink: "#1B2430", gray: "#5F6875", line: "#E4E8EE", bg: "#F3F5F8", blueL: "#E8F0FB", orangeT: "#FDECE5" };
+const C = { blue: "#0A2735", navy: "#0A2735", orange: "#FF6D41", orangeL: "#FF6D41", ink: "#0A2735", gray: "#6B767D", line: "#ECEDEE", bg: "#F7F7F5", blueL: "#F1F1EE", orangeT: "#F1F1EE" };
 // Framing: the project's Tailwind `white` is #F9F9F9, so cards use true white plus a hairline and soft shadow.
-const FRAME = "border border-[#E3E8EF] bg-[#FFFFFF] shadow-[0_1px_2px_rgba(16,24,40,0.04),0_6px_18px_rgba(16,24,40,0.06)]";
-const TILE = "border border-[#E3E8EF] bg-[#FFFFFF] transition hover:-translate-y-0.5 hover:border-[#BFD3EE] hover:shadow-[0_8px_22px_rgba(3,78,162,0.12)]";
+const FRAME = "border border-line bg-[#FFFFFF]";
+const TILE = "border border-line bg-[#FFFFFF] transition hover:border-line-strong hover:shadow-[0_10px_30px_-22px_rgba(10,39,53,0.35)]";
 const hasImage = (p: Product) => !!p.image_url && !p.image_url.includes("picsum.photos");
 
 // ── Live catalog, fetched once per page view ───────────────────────────────
@@ -95,7 +95,7 @@ const priceLabel = (p: Product) => (p.purchasable && p.price_minor ? formatToman
 const Card = ({ children, className = "", label }: { children: React.ReactNode; className?: string; label?: string }) => <section aria-label={label} className={`rounded-[20px] p-4 md:p-6 ${FRAME} ${className}`}>{children}</section>;
 function Title({ children, href, more = "مشاهده‌ی همه" }: { children: React.ReactNode; href?: string; more?: string }) {
   return <div className="mb-4 flex items-center justify-between gap-3">
-    <h2 className="flex items-center gap-2.5 text-lg font-black md:text-[22px]" style={{ color: C.ink }}><span className="h-6 w-1.5 rounded-full" style={{ background: `linear-gradient(${C.blue}, ${C.orangeL})` }} />{children}</h2>
+    <h2 className="flex items-center gap-2.5 text-lg font-extrabold md:text-[22px]" style={{ color: C.ink }}>{children}</h2>
     {href && <Link href={href} className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold" style={{ color: C.blue }}>{more}<ArrowLeft className="h-4 w-4" /></Link>}
   </div>;
 }
@@ -105,17 +105,13 @@ const HERO_IMAGES = ["/images/catalog/33c657bae8d646702dc50726178d374197ef7aad21
 function Hero({ content }: { content?: { title?: string; body?: string; link?: string; button_label?: string } }) {
   return (
     <section className={`relative grid overflow-hidden rounded-[24px] p-1.5 md:grid-cols-[1.15fr_1fr] ${FRAME}`} aria-labelledby="home-hero">
-      <div className="relative flex flex-col items-start justify-center gap-4 overflow-hidden rounded-[19px] p-6 md:rounded-l-none md:p-12" style={{ background: `radial-gradient(120% 90% at 100% 0%, #0A63C9 0%, ${C.blue} 55%, #023B7A 100%)` }}>
-        <span aria-hidden className="pointer-events-none absolute -left-16 -top-16 h-56 w-56 rounded-full border-[18px] border-white/10" />
-        <span aria-hidden className="pointer-events-none absolute -bottom-20 left-1/3 h-48 w-48 rounded-full bg-[#FF6D41]/15 blur-2xl" />
-        <span aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "14px 14px" }} />
-        <span className="relative rounded-full px-3.5 py-1.5 text-sm font-bold shadow-sm" style={{ background: C.orangeL, color: C.navy }}>هدیه‌ی پایان سال</span>
-        <h1 id="home-hero" className="relative whitespace-pre-line text-[28px] font-black leading-[1.45] text-white md:text-[40px]">{content?.title || "هدیه‌ی کارکنان، به تعداد،\nبا بسته‌بندی کادویی"}</h1>
-        <p className="relative text-sm leading-7 text-[#DCE7F7] md:text-[17px]">{content?.body || "جعبه‌های آجیل و خشکبار و پک‌های آماده، برای همه‌ی پرسنل سازمان"}</p>
-        <Link href={content?.link || "/packs/employee-gift"} className="relative mt-2 inline-flex h-12 items-center gap-2 rounded-xl bg-[#FFFFFF] px-5 shadow-[0_6px_16px_rgba(0,0,0,0.18)] text-base font-bold" style={{ color: C.blue }}>{content?.button_label || "مشاهده‌ی هدیه‌ها"}<ArrowLeft className="h-5 w-5" /></Link>
+      <div className="relative flex flex-col items-start justify-center gap-4 overflow-hidden rounded-[19px] p-6 md:rounded-l-none md:p-12" style={{ background: C.navy }}>
+        <span className="relative rounded-full border border-white/20 px-3.5 py-1 text-xs font-semibold text-white/80">هدیه‌ی پایان سال</span>
+        <h1 id="home-hero" className="relative whitespace-pre-line text-[26px] font-extrabold leading-[1.5] text-white md:text-[38px]">{content?.title || "هدیه‌ی کارکنان، به تعداد،\nبا بسته‌بندی کادویی"}</h1>
+        <p className="relative text-sm leading-7 text-white/70 md:text-[16px]">{content?.body || "جعبه‌های آجیل و خشکبار و پک‌های آماده، برای همه‌ی پرسنل سازمان"}</p>
+        <Link href={content?.link || "/packs/employee-gift"} className="relative mt-2 inline-flex h-12 items-center gap-2 rounded-full bg-[#FFFFFF] px-6 text-sm font-bold" style={{ color: C.blue }}>{content?.button_label || "مشاهده‌ی هدیه‌ها"}<ArrowLeft className="h-5 w-5" /></Link>
       </div>
-      <div className="relative mt-1.5 flex min-h-[220px] items-center justify-center gap-2 overflow-hidden rounded-[19px] p-6 md:mt-0 md:mr-1.5 md:rounded-r-none" style={{ background: "radial-gradient(80% 80% at 50% 55%, #FFFDF9 0%, #F6EDE2 70%, #EFE2D2 100%)" }}>
-        <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-dashed border-[#D9C3A5]/70" />
+      <div className="relative mt-1.5 flex min-h-[220px] items-center justify-center gap-2 overflow-hidden rounded-[19px] p-6 md:mt-0 md:mr-1.5 md:rounded-r-none" style={{ background: "#F1F1EE" }}>
         <span className="block aspect-square w-[58%] max-w-[300px]"><Img src={HERO_IMAGES[0]} alt="جعبه‌ی هدیه‌ی آجیل" /></span>
         <span className="block aspect-square w-[36%] max-w-[210px] self-end"><Img src={HERO_IMAGES[1]} alt="جعبه‌ی کادویی آجیل" /></span>
       </div>
@@ -130,10 +126,10 @@ const SERVICES: [typeof Gift, string, string][] = [
 ];
 function Services() {
   return (
-    <Card label="خدمات" className="grid grid-cols-4 gap-y-5 md:grid-cols-8 md:[&>a+a]:border-r md:[&>a+a]:border-[#EDF0F4]">
+    <Card label="خدمات" className="grid grid-cols-4 gap-y-5 md:grid-cols-8 md:[&>a+a]:border-r md:[&>a+a]:border-line">
       {SERVICES.map(([Icon, label, href], i) => (
         <Link key={href} href={href} className="group flex flex-col items-center gap-2.5 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full ring-4 ring-[#FFFFFF] shadow-[0_0_0_1px_#E3E8EF] transition group-hover:scale-105 md:h-[68px] md:w-[68px]" style={{ background: i % 2 ? C.orangeT : C.blueL, color: i % 2 ? C.orange : C.blue }}><Icon className="h-7 w-7" strokeWidth={1.8} /></span>
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl transition group-hover:bg-line md:h-[68px] md:w-[68px]" style={{ background: C.blueL, color: C.ink }}><Icon className="h-6 w-6" strokeWidth={1.6} /></span>
           <span className="text-xs font-semibold leading-5 md:text-sm" style={{ color: C.ink }}>{label}</span>
         </Link>))}
     </Card>
@@ -144,17 +140,16 @@ function Services() {
 function OrgPrices({ items }: { items: Product[] | null }) {
   if (items && !items.length) return null;
   return (
-    <section className="relative overflow-hidden rounded-[22px] p-4 shadow-[0_10px_28px_rgba(224,80,31,0.25)] md:p-5" style={{ background: `linear-gradient(135deg, #F06A33 0%, ${C.orange} 55%, #C9431A 100%)` }} aria-labelledby="org-prices">
-      <span aria-hidden className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full border-[14px] border-white/10" />
+    <section className="relative overflow-hidden rounded-[20px] border border-line bg-[#FFFFFF] p-4 md:p-6" aria-labelledby="org-prices">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <div><h2 id="org-prices" className="text-xl font-black text-white md:text-[26px]">قیمت سازمانی</h2>
-          <p className="mt-0.5 text-xs font-medium text-[#FFE9DF] md:text-sm">قیمت قراردادی سازمان شما پس از ورود نمایش داده می‌شود</p></div>
-        <Link href="/business/catalog" className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold text-white">مشاهده‌ی همه<ArrowLeft className="h-4 w-4" /></Link>
+        <div><h2 id="org-prices" className="text-lg font-extrabold text-ink md:text-[22px]">قیمت سازمانی</h2>
+          <p className="mt-0.5 text-xs font-medium text-ink-muted md:text-sm">قیمت قراردادی سازمان شما پس از ورود نمایش داده می‌شود</p></div>
+        <Link href="/business/catalog" className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold text-ink">مشاهده‌ی همه<ArrowLeft className="h-4 w-4" /></Link>
       </div>
       <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 md:overflow-visible">
         {(items ?? Array.from({ length: 6 }, () => null)).map((p, i) => (
-          <Link key={p?.id ?? i} href={p ? `/products/${p.slug}` : "#"} className="flex w-40 shrink-0 snap-start flex-col items-center gap-1.5 rounded-[14px] bg-[#FFFFFF] p-2.5 text-center shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition hover:-translate-y-0.5 md:w-[calc((100%-60px)/6)]">
-            <span className="block aspect-square w-full rounded-[10px] bg-[#F7F9FC] p-2"><Img src={p?.image_url} alt={p?.name} /></span>
+          <Link key={p?.id ?? i} href={p ? `/products/${p.slug}` : "#"} className="flex w-40 shrink-0 snap-start flex-col items-center gap-1.5 rounded-[14px] border border-line bg-[#FFFFFF] p-2.5 text-center transition hover:border-line-strong md:w-[calc((100%-60px)/6)]">
+            <span className="block aspect-square w-full rounded-[10px] bg-canvas p-2"><Img src={p?.image_url} alt={p?.name} /></span>
             <b className="line-clamp-2 min-h-[42px] text-sm leading-[21px]" style={{ color: C.ink }}>{p?.name ?? " "}</b>
             <span className="text-xs" style={{ color: C.gray }}>{p?.brand || p?.category?.name || " "}</span>
             <span className="mt-auto text-[15px] font-black tabular-nums" style={{ color: C.ink }}>{p ? priceLabel(p) : ""}</span>
@@ -165,18 +160,17 @@ function OrgPrices({ items }: { items: Product[] | null }) {
 }
 
 // ── Category promo tiles (largest real categories with their own photo) ───
-const TILE_BG = ["#E3EDFA", "#FFF2D2", "#FCE6D8", "#ECEEFA"];
+const TILE_BG = ["#F1F1EE", "#F3F1EC", "#EEF1F1", "#F2F0EE"];
 type CatPick = { cat: Category; img?: string };
 function Promos({ picks }: { picks: CatPick[] | null }) {
   if (picks && !picks.length) return null;
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
       {(picks ?? Array.from({ length: 4 }, () => null)).slice(0, 4).map((c, i) => (
-        <Link key={c?.cat.slug ?? i} href={c ? `/category/${c.cat.slug}` : "#"} className="relative flex h-40 overflow-hidden rounded-[18px] border border-[#FFFFFF]/70 p-4 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_6px_16px_rgba(16,24,40,0.07)] transition hover:-translate-y-0.5 md:h-44" style={{ background: TILE_BG[i] }}>
-          <span aria-hidden className="absolute -bottom-8 -left-8 h-36 w-36 rounded-full bg-[#FFFFFF]/70 md:h-44 md:w-44" />
+        <Link key={c?.cat.slug ?? i} href={c ? `/category/${c.cat.slug}` : "#"} className="relative flex h-40 overflow-hidden rounded-[18px] p-4 transition hover:brightness-[0.98] md:h-44" style={{ background: TILE_BG[i] }}>
           <span className="z-10 flex h-full flex-col justify-between">
             <b className="line-clamp-2 max-w-[9rem] text-base font-black leading-7 md:text-xl" style={{ color: C.navy }}>{c?.cat.name ?? ""}</b>
-            <span className="inline-flex w-fit items-center gap-1 rounded-full bg-[#FFFFFF] px-3 py-1.5 text-xs font-bold shadow-sm" style={{ color: C.navy }}>مشاهده‌ی کالاها<ArrowLeft className="h-3.5 w-3.5" /></span>
+            <span className="inline-flex w-fit items-center gap-1 rounded-full bg-[#FFFFFF] px-3 py-1.5 text-xs font-bold" style={{ color: C.navy }}>مشاهده‌ی کالاها<ArrowLeft className="h-3.5 w-3.5" /></span>
           </span>
           <span className="absolute bottom-3 left-2 block h-24 w-24 md:h-32 md:w-32">{c?.img && <Img src={c.img} alt="" />}</span>
         </Link>))}
@@ -192,7 +186,7 @@ function Categories({ picks }: { picks: CatPick[] | null }) {
       <div className="grid grid-cols-3 gap-x-3 gap-y-5 md:grid-cols-6">
         {(picks ?? Array.from({ length: 6 }, () => null)).slice(0, 6).map((c, i) => (
           <Link key={c?.cat.slug ?? i} href={c ? `/category/${c.cat.slug}` : "#"} className="group flex flex-col items-center gap-1.5 text-center">
-            <span className="mb-1 flex aspect-square w-full max-w-[132px] items-center justify-center overflow-hidden rounded-full border-4 border-[#FFFFFF] p-4 shadow-[0_0_0_1px_#E3E8EF,0_6px_14px_rgba(16,24,40,0.08)] transition group-hover:shadow-[0_0_0_2px_#034EA2,0_8px_18px_rgba(3,78,162,0.15)]" style={{ background: "radial-gradient(circle at 50% 35%, #FFFFFF 0%, #EEF3F9 75%)" }}>
+            <span className="mb-1 flex aspect-square w-full max-w-[132px] items-center justify-center overflow-hidden rounded-full p-4 transition group-hover:ring-1 group-hover:ring-ink" style={{ background: "#F1F1EE" }}>
               {c?.img ? <Img src={c.img} alt="" /> : <LayoutGrid className="h-10 w-10" style={{ color: i % 2 ? C.orange : C.blue }} strokeWidth={1.6} />}</span>
             <b className="text-sm leading-6 md:text-[15px]" style={{ color: C.ink }}>{c?.cat.name ?? " "}</b>
             <span className="text-xs" style={{ color: C.gray }}>{c ? `${toPersianNum(c.cat.product_count)} کالا` : " "}</span>
@@ -216,7 +210,7 @@ function BrandRow({ brand, items }: { brand: string | null; items: Product[] | n
               <span className="block text-xs" style={{ color: C.gray }}>{p?.brand ?? ""}</span>
               <span className="mt-1 block text-[15px] font-black tabular-nums" style={{ color: C.ink }}>{p ? priceLabel(p) : ""}</span>
             </span>
-            <span className="block h-24 w-24 shrink-0 rounded-[12px] bg-[#F7F9FC] p-1.5"><Img src={p?.image_url} alt={p?.name} /></span>
+            <span className="block h-24 w-24 shrink-0 rounded-[12px] bg-canvas p-1.5"><Img src={p?.image_url} alt={p?.name} /></span>
           </Link>))}
       </div>
     </Card>
@@ -246,14 +240,13 @@ function Brands() {
 // ── Sell on 60Online ───────────────────────────────────────────────────────
 function Seller() {
   return (
-    <section className="relative flex flex-col gap-4 overflow-hidden rounded-[20px] border border-[#CFE0F5] p-5 shadow-[0_6px_18px_rgba(3,78,162,0.08)] md:flex-row md:items-center md:justify-between md:px-8" style={{ background: "linear-gradient(90deg, #EAF2FC 0%, #DCEAFB 100%)" }}>
-      <span aria-hidden className="pointer-events-none absolute -left-12 -bottom-16 h-44 w-44 rounded-full border-[16px] border-[#034EA2]/[0.06]" />
+    <section className="relative flex flex-col gap-4 overflow-hidden rounded-[20px] border border-line bg-[#FFFFFF] p-5 md:flex-row md:items-center md:justify-between md:px-8">
       <span className="flex items-center gap-4">
-        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#FFFFFF] shadow-[0_0_0_6px_rgba(255,255,255,0.6)]" style={{ color: C.blue }}><Store className="h-8 w-8" strokeWidth={1.8} /></span>
+        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-canvas-sunken" style={{ color: C.blue }}><Store className="h-8 w-8" strokeWidth={1.8} /></span>
         <span><b className="block text-xl font-black md:text-[22px]" style={{ color: C.navy }}>در شصت‌آنلاین بفروشید</b>
           <span className="mt-1 block text-sm md:text-[15px]" style={{ color: C.gray }}>غرفه بگیرید و به اعضای سازمان‌های طرف قرارداد بفروشید</span></span>
       </span>
-      <Link href="/sell" className="relative inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl px-6 text-base font-bold text-white" style={{ background: C.blue }}>درخواست غرفه<ArrowLeft className="h-5 w-5" /></Link>
+      <Link href="/sell" className="relative inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold text-white" style={{ background: C.blue }}>درخواست غرفه<ArrowLeft className="h-5 w-5" /></Link>
     </section>
   );
 }
@@ -290,7 +283,7 @@ function Packs() {
           if (!p) return <span key={i} className="h-28 w-64 shrink-0 animate-pulse rounded-2xl bg-white/70 md:w-auto" />;
           const pics = packImages(p, good, 3, used);
           return (
-            <Link key={p.slug} href={`/packs/${p.slug}`} className="flex w-64 shrink-0 snap-start items-center gap-3 rounded-2xl border border-[#E3E8EF] bg-[#FFFFFF] p-3 transition hover:-translate-y-0.5 hover:shadow-md md:w-auto">
+            <Link key={p.slug} href={`/packs/${p.slug}`} className="flex w-64 shrink-0 snap-start items-center gap-3 rounded-2xl border border-[#ECEDEE] bg-[#FFFFFF] p-3 transition hover:-translate-y-0.5 hover:shadow-md md:w-auto">
               <span className="min-w-0 flex-1">
                 <b className="line-clamp-1 text-sm font-black" style={{ color: UI.ink }}>{p.title_fa}</b>
                 <span className="mt-0.5 block line-clamp-1 text-xs" style={{ color: UI.muted }}>{p.purpose_fa}</span>
@@ -356,5 +349,5 @@ export default function FigmaHome({previewContent}:{previewContent?:PageContent}
    hero:<Hero content={hero}/>,services:<Services/>,organization:<OrgPrices items={orgItems}/>,collections:<Promos picks={catPicks}/>,
    categories:<Categories picks={catPicks}/>,packs:<Packs/>,today:<BrandRow brand={brandRow.brand} items={brandRow.items}/>,brands:<Brands/>,seller:<Seller/>
   };
-  return <div style={{ background: "linear-gradient(180deg, #EAF0F7 0%, #F3F5F8 420px)" }}><div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-4 md:px-8 md:py-6" dir="rtl">{order.map(key=><Fragment key={key}>{sections[key]}</Fragment>)}</div></div>;
+  return <div style={{ background: "#F7F7F5" }}><div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-4 md:px-8 md:py-6" dir="rtl">{order.map(key=><Fragment key={key}>{sections[key]}</Fragment>)}</div></div>;
 }

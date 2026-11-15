@@ -44,7 +44,7 @@ export default function ProformaPage({ params }: { params: Promise<{ number: str
         <div className="flex justify-between text-base font-black"><dt>مبلغ قابل پرداخت</dt><dd>{formatPrice(pf.total_minor)}</dd></div>
       </dl>
       <p className="mt-4 text-xs text-neutral-500">اگر هنگام پرداخت مبلغ سبد از این پیش‌فاکتور بیشتر شده باشد، پرداخت انجام نمی‌شود تا بی‌خبر بیشتر نپردازید.</p>
-      {!pf.expired && !pf.used && <Link href={`/checkout?proforma=${encodeURIComponent(pf.number)}`} className="mt-6 inline-block rounded-xl bg-primary-600 px-6 py-3 font-bold text-white print:hidden">پرداخت با همین پیش‌فاکتور</Link>}
+      {!pf.expired && !pf.used && <Link href={`/checkout?proforma=${encodeURIComponent(pf.number)}`} className="mt-6 inline-block rounded-full bg-ink px-6 py-3 font-bold text-white print:hidden">پرداخت با همین پیش‌فاکتور</Link>}
     </main>
   );
 }

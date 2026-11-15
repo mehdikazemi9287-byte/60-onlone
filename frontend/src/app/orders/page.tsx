@@ -79,7 +79,7 @@ function OrdersBody() {
     return (
       <div className="internal-page container-page py-24 text-center">
         <h2 className="text-lg font-bold text-neutral-900 mb-2">برای مشاهده سفارش‌ها وارد شوید</h2>
-        <Link href="/login?next=/orders" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors mt-2">
+        <Link href="/login?next=/orders" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors mt-2">
           ورود به حساب کاربری
         </Link>
       </div>
@@ -114,7 +114,7 @@ function OrdersBody() {
           ) : orders.length === 0 ? (
             <div className="card text-center py-16">
               <p className="text-neutral-500 text-sm mb-4">هنوز سفارشی ثبت نکرده‌اید</p>
-              <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors">
+              <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors">
                 مشاهده محصولات
               </Link>
             </div>
