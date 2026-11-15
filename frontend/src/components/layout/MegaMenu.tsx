@@ -59,7 +59,7 @@ export function MegaMenu() {
                   return <li key={n.slug}>
                     <Link href={`/category/${n.slug}`} onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)}
                       className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition",
-                        i === active ? "bg-white font-bold text-ink shadow-[0_0_0_1px_#ECEDEE]" : "text-ink-soft hover:text-ink")}>
+                        i === active ? "bg-white font-bold text-ink ring-1 ring-line" : "text-ink-soft hover:text-ink")}>
                       <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.6} /><span className="flex-1 truncate">{n.name_fa}</span>
                       <span className="text-[11px] text-ink-faint tabular-nums">{toPersianNum(n.product_count)}</span>
                     </Link></li>;

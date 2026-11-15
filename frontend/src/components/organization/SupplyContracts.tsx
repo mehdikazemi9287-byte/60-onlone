@@ -5,7 +5,8 @@
 //   POST /me/recurring {organization_id}, /me/recurring/{id}/{pause|resume|cancel}, /quote, /runs
 // Lists belong to the member who created them (server rule); this page does not show other members' lists.
 import { useEffect, useState } from "react";
-import { CalendarClock, Download, FileSignature, Repeat } from "lucide-react";
+import { createPortal } from "react-dom";
+import { CalendarClock, Download, FileSignature, FileText, Repeat } from "lucide-react";
 import { jalaliToIso } from "@/lib/jalali";
 import { useAuth } from "@/lib/auth-context";
 import { apiRequest, errText, FREQ_FA, RECUR_FA, type CreditContract, type DraftQuote, type RecurringList } from "@/lib/commerce";
@@ -37,6 +38,22 @@ function Body() {
   const badFrom = !!from.trim() && !fromIso, badTo = !!to.trim() && !toIso;
   const shown = lists?.filter((l) => (!freq || l.frequency === freq) && (!st || l.status === st)
     && (!fromIso || l.next_run_on >= fromIso) && (!toIso || l.next_run_on <= toIso)) ?? null;
+
+  // PDF draft: an A4 print view (Persian text renders correctly via the browser's «Save as PDF»).
+  const [draft, setDraft] = useState<{ list: RecurringList; quote: DraftQuote | null } | null>(null);
+  const printDraft = async (l: RecurringList) => {
+    if (!token) return;
+    let q: DraftQuote | null = null;
+    try { q = (await apiRequest<{ quote: DraftQuote }>(`/me/recurring/${l.id}/quote`, { token })).quote; } catch {}
+    setDraft({ list: l, quote: q });
+  };
+  useEffect(() => {
+    if (!draft) return;
+    const done = () => setDraft(null);
+    window.addEventListener("afterprint", done);
+    const t = setTimeout(() => window.print(), 150);
+    return () => { clearTimeout(t); window.removeEventListener("afterprint", done); };
+  }, [draft]);
 
   const exportCsv = () => {
     if (!shown?.length) return;
@@ -145,6 +162,7 @@ function Body() {
               <ul className="mt-3 flex flex-wrap gap-1.5">{l.items.map((it) => <li key={it.product_id} className="rounded-full bg-canvas px-2.5 py-1 text-[11px] text-ink-soft">{it.title_fa} × {n(it.quantity)}</li>)}</ul>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" className={btnGhost} aria-expanded={quote?.id === l.id} onClick={() => showQuote(l.id)}>پیش‌فاکتور</button>
+                <button type="button" className={`${btnGhost} inline-flex items-center gap-1.5`} onClick={() => printDraft(l)}><FileText className="h-4 w-4" />پیش‌نویس PDF</button>
                 {l.status === "active" && <button type="button" className={btnGhost} disabled={busyId === l.id} onClick={() => act(l, "pause")}>توقف</button>}
                 {l.status === "paused" && <button type="button" className={btnGhost} disabled={busyId === l.id} onClick={() => act(l, "resume")}>ادامه</button>}
                 <button type="button" className={`${btnGhost} text-red-700`} disabled={busyId === l.id} onClick={() => act(l, "cancel")}>لغو</button>
@@ -155,6 +173,37 @@ function Body() {
           </ul>
         </section>
       </>}
+      {draft && createPortal(<ContractDraft orgName={o.org?.display_name ?? ""} contract={contract ?? null} list={draft.list} quote={draft.quote} />, document.body)}
+    </div>
+  );
+}
+
+function ContractDraft({ orgName, contract, list, quote }: { orgName: string; contract: CreditContract | null; list: RecurringList; quote: DraftQuote | null }) {
+  const today = faDate(new Date().toISOString().slice(0, 10));
+  const lineOf = (pid: number) => quote?.lines.find((x) => x.product_id === pid);
+  return (
+    <div className="contract-print" dir="rtl" aria-hidden="true">
+      <header className="cp-head">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/60online-mark.png" alt="" />
+        <div><h1>پیش‌نویس قرارداد تأمین دوره‌ای</h1><p>شصت‌آنلاین · تاریخ تهیه: {today}</p></div>
+      </header>
+      <p className="cp-note">این سند پیش‌نویس است و تا امضای طرفین اعتبار قراردادی ندارد. قیمت‌ها پیش‌برآورد با قیمت روز تهیه هستند و در هر نوبت دوباره محاسبه می‌شوند.</p>
+      <table className="cp-kv"><tbody>
+        <tr><th>سازمان خریدار</th><td>{orgName || "—"}</td><th>عنوان فهرست</th><td>{list.title}</td></tr>
+        <tr><th>دورهٔ تأمین</th><td>{FREQ_FA[list.frequency]}</td><th>نوبت بعدی</th><td>{faDate(list.next_run_on)}</td></tr>
+        <tr><th>وضعیت</th><td>{RECUR_FA[list.status]}</td><th>قرارداد اعتباری</th><td>{contract ? `${contract.contract_number || contract.reference} · مهلت پرداخت ${n(contract.due_days)} روز` : "ثبت نشده"}</td></tr>
+      </tbody></table>
+      <table className="cp-items">
+        <thead><tr><th>ردیف</th><th>کالا</th><th>تعداد در هر نوبت</th><th>مبلغ واحد (پیش‌برآورد)</th><th>مبلغ ردیف</th></tr></thead>
+        <tbody>{list.items.map((it, i) => { const ln = lineOf(it.product_id); return (
+          <tr key={it.product_id}><td>{n(i + 1)}</td><td>{it.title_fa}</td><td>{n(it.quantity)}</td>
+            <td>{ln ? formatPrice(ln.unit_price_minor) : "—"}</td><td>{ln ? formatPrice(ln.line_after_discounts_minor) : "قابل فروش نیست"}</td></tr>); })}</tbody>
+        {quote && <tfoot>
+          {quote.totals.discount_total_minor > 0 && <tr><td colSpan={4}>تخفیف دوره‌ای</td><td>{formatPrice(quote.totals.discount_total_minor)}</td></tr>}
+          <tr><td colSpan={4}>جمع قابل پرداخت هر نوبت (پیش‌برآورد)</td><td>{formatPrice(quote.totals.payable_minor)}</td></tr></tfoot>}
+      </table>
+      <div className="cp-sign"><div><b>نمایندهٔ سازمان خریدار</b><span>نام، سمت، امضا و مهر</span></div><div><b>شصت‌آنلاین</b><span>نام، سمت، امضا و مهر</span></div></div>
     </div>
   );
 }

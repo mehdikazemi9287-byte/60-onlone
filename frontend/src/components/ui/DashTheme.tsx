@@ -49,18 +49,20 @@ export function useDashTheme(): [DashTheme, (origin?: HTMLElement | null) => voi
 }
 
 /** Day/night pill switch: the knob slides and the sun/moon morph (rotate + scale). */
-export function DashThemeToggle({ theme, onToggle, className = "" }: { theme: DashTheme; onToggle: (origin?: HTMLElement | null) => void; className?: string }) {
-  const dark = theme === "dark";
+export function DashThemeToggle({ theme, onToggle, className = "", size = "md" }: { theme: DashTheme; onToggle: (origin?: HTMLElement | null) => void; className?: string; size?: "sm" | "md" }) {
+  const dark = theme === "dark", sm = size === "sm";
   return (
     <button type="button" role="switch" aria-checked={dark} onClick={(e) => onToggle(e.currentTarget)}
       aria-label="حالت تیره" title={dark ? "رفتن به حالت روشن" : "رفتن به حالت تیره"}
-      className={cn("theme-switch relative inline-flex h-8 w-[58px] shrink-0 items-center rounded-full border p-[3px] transition-colors duration-300",
+      className={cn(sm ? "theme-switch relative inline-flex h-7 w-[48px] shrink-0" : "theme-switch relative inline-flex h-8 w-[58px] shrink-0",
+        "items-center rounded-full border p-[3px] transition-colors duration-300",
         dark ? "border-[#2C3E48] bg-[#16252C]" : "border-line-strong bg-canvas-sunken", className)}>
       <span aria-hidden className={cn("absolute inset-y-0 flex w-1/2 items-center justify-center transition-opacity duration-300", dark ? "right-0 opacity-40" : "left-0 opacity-50")}>
         {dark ? <Sun className="h-3.5 w-3.5 text-[#E8EEF1]" /> : <Moon className="h-3.5 w-3.5 text-ink" />}
       </span>
-      <span aria-hidden className={cn("relative z-10 flex h-[24px] w-[24px] items-center justify-center rounded-full shadow-sm transition-all duration-500 [transition-timing-function:cubic-bezier(.5,1.6,.4,1)]",
-        dark ? "-translate-x-[26px] bg-[#E8EEF1] text-[#0B1418]" : "translate-x-0 bg-white text-[#FF6D41]")}>
+      <span aria-hidden className={cn(sm ? "relative z-10 flex h-[20px] w-[20px] items-center" : "relative z-10 flex h-[24px] w-[24px] items-center",
+        " justify-center rounded-full shadow-sm transition-all duration-500 [transition-timing-function:cubic-bezier(.5,1.6,.4,1)]",
+        dark ? (sm ? "-translate-x-[20px]" : "-translate-x-[26px]") + " bg-[#E8EEF1] text-[#0B1418]" : "translate-x-0 bg-white text-[#FF6D41]")}>
         <Sun className={cn("absolute h-3.5 w-3.5 transition-all duration-500", dark ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100")} />
         <Moon className={cn("absolute h-3.5 w-3.5 transition-all duration-500", dark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0")} />
       </span>
