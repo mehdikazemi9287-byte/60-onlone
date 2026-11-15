@@ -49,7 +49,7 @@ export function Footer() {
       <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-4 py-12 sm:grid-cols-2 md:px-8 md:py-16 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <Link href="/" className="inline-flex items-center gap-2">
-            <span className="relative block h-10 w-10 overflow-hidden rounded-xl"><Image src="/brand/60online-logo.jpeg" alt="" fill sizes="48px" className="object-contain mix-blend-multiply" /></span>
+            <Image src="/brand/60online-mark.png" alt="" width={256} height={241} className="h-11 w-auto" />
             <b className="text-xl font-extrabold text-ink">شصت‌آنلاین</b>
           </Link>
           <p className="mt-3 max-w-xs text-sm leading-7 text-ink-muted">مارکت‌پلیس سازمانی و عمده‌فروشی؛ خرید برای سازمان، کارکنان و خانه.</p>

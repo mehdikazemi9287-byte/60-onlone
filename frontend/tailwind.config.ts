@@ -15,6 +15,7 @@ const config: Config = {
         ink: { DEFAULT: "#0A2735", soft: "#33434C", muted: "#6B767D", faint: "#9AA3A8" },
         line: { DEFAULT: "#ECEDEE", strong: "#DCDFE1" },
         canvas: { DEFAULT: "#F7F7F5", raised: "#FFFFFF", sunken: "#F1F1EE" },
+        petrol: "#004E72",
         amber: {
           50: "#fff5f1",
           100: "#ffede6",

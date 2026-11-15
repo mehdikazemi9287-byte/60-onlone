@@ -941,3 +941,57 @@ tbody tr + tr td { border-top: 1px solid var(--mc-line); }
   html, body { overscroll-behavior-y: none; }
   header.sticky { padding-top: env(safe-area-inset-top); }
 }
+
+/* Moadian invoice: print only the open invoice sheet */
+@media print {
+  body:has(.moadian-modal) * { visibility: hidden; }
+  .moadian-modal, .moadian-modal * { visibility: visible; }
+  .moadian-modal { position: absolute; inset: 0; display: block; }
+  .moadian-sheet { max-height: none; border-radius: 0; }
+}
+
+/* ── Dark mode (site-wide; html[data-theme=dark], set before paint in layout.tsx) ── */
+html[data-theme="dark"] {
+  --dash-bg: #0b1418; --dash-surface: #111d23; --dash-sunken: #16252c; --dash-line: #1f2d35; --dash-line-strong: #2c3e48;
+  --dash-ink: #e8eef1; --dash-soft: #c3cfd5; --dash-muted: #8d9ca4;
+  --mc-canvas: #0b1418; --mc-surface: #111d23; --mc-sunken: #16252c; --mc-line: #1f2d35; --mc-line-strong: #2c3e48;
+  --mc-ink: #e8eef1; --mc-ink-soft: #c3cfd5; --mc-muted: #8d9ca4; --mc-faint: #6c7c85;
+  background: var(--dash-bg); color: var(--dash-ink); color-scheme: dark;
+}
+html[data-theme="dark"] *, html[data-theme="dark"] *::before, html[data-theme="dark"] *::after { border-color: var(--dash-line); }
+html[data-theme="dark"] :is(.bg-white, .bg-canvas-raised, .card) { background-color: var(--dash-surface) !important; }
+html[data-theme="dark"] :is(.bg-canvas, .bg-neutral-50, .bg-neutral-0) { background-color: var(--dash-bg) !important; }
+html[data-theme="dark"] :is(.bg-canvas-sunken, .bg-neutral-100, .bg-neutral-150) { background-color: var(--dash-sunken) !important; }
+html[data-theme="dark"] :is(.text-ink, .text-neutral-900, .text-neutral-800, .text-brand-navy, .text-primary-600, .text-primary-700) { color: var(--dash-ink) !important; }
+html[data-theme="dark"] :is(.text-ink-soft, .text-neutral-700, .text-neutral-600) { color: var(--dash-soft) !important; }
+html[data-theme="dark"] :is(.text-ink-muted, .text-neutral-500) { color: var(--dash-muted) !important; }
+html[data-theme="dark"] :is(.text-ink-faint, .text-neutral-400) { color: #6c7c85 !important; }
+html[data-theme="dark"] :is(.border-line, .border-neutral-100, .border-neutral-200) { border-color: var(--dash-line) !important; }
+html[data-theme="dark"] :is(.border-line-strong, .border-neutral-300) { border-color: var(--dash-line-strong) !important; }
+html[data-theme="dark"] :is(.bg-ink, .bg-neutral-900, .bg-primary-600) { background-color: #e8eef1 !important; color: #0b1418 !important; }
+html[data-theme="dark"] .bg-ink * { color: inherit; }
+html[data-theme="dark"] :is(input, select, textarea, .form-input) { background-color: var(--dash-bg) !important; color: var(--dash-ink) !important; border-color: var(--dash-line-strong) !important; }
+html[data-theme="dark"] thead th { background: var(--dash-sunken); color: var(--dash-muted); }
+html[data-theme="dark"] :is(.bg-emerald-50, .bg-red-50, .bg-amber-50, .bg-sky-50) { background-color: rgb(255 255 255 / 0.06) !important; }
+html[data-theme="dark"] .text-emerald-800, html[data-theme="dark"] .text-emerald-700 { color: #6ee7b7 !important; }
+html[data-theme="dark"] :is(.text-red-700, .text-red-600) { color: #fca5a5 !important; }
+html[data-theme="dark"] :is(.text-amber-800, .text-amber-900, .text-amber-700) { color: #fcd34d !important; }
+html[data-theme="dark"] .text-sky-800 { color: #7dd3fc !important; }
+html[data-theme="dark"] .skeleton { background-image: linear-gradient(90deg, #16252c, #1f2d35, #16252c); }
+html[data-theme="dark"] img { opacity: 0.92; }
+
+html[data-theme="dark"] body { background-color: var(--dash-bg); color: var(--dash-ink); }
+html[data-theme="dark"] :is(.bg-white\/90, .bg-white\/95, .bg-\[\#FFFFFF\], .bg-\[\#ffffff\]) { background-color: rgb(17 29 35 / 0.92) !important; }
+html[data-theme="dark"] .mobile-bottom-nav { background: rgb(17 29 35 / 0.92); }
+html[data-theme="dark"] .mobile-bottom-nav a[aria-current="page"] { color: var(--dash-ink); }
+html[data-theme="dark"] .mobile-bottom-nav a[aria-current="page"]::before { background: var(--dash-ink); }
+html[data-theme="dark"] :is(.text-\[\#0A2735\], .text-\[\#0a2735\]) { color: var(--dash-ink) !important; }
+html[data-theme="dark"] .brand-hero { background: #050c0f !important; }
+html[data-theme="dark"] .shadow-soft { box-shadow: 0 16px 40px -20px rgb(0 0 0 / 0.7); }
+html[data-theme="dark"] .bg-ink\/30 { background-color: rgb(0 0 0 / 0.5) !important; }
+
+/* Theme switch: circular reveal from the toggle (View Transitions API) */
+html.theme-vt::view-transition-old(root), html.theme-vt::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+html.theme-vt::view-transition-new(root) { animation: theme-reveal 0.55s cubic-bezier(.4,0,.2,1) both; }
+@keyframes theme-reveal { from { clip-path: circle(0 at var(--vt-x) var(--vt-y)); } to { clip-path: circle(var(--vt-r) at var(--vt-x) var(--vt-y)); } }
+@media (prefers-reduced-motion: reduce) { html.theme-vt::view-transition-new(root) { animation: none; } .theme-switch * { transition: none !important; } }

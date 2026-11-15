@@ -19,7 +19,7 @@ import { formatTomanExact, toPersianNum } from "@/lib/utils";
 import { UI, loadPackDetails, packImages } from "@/components/packs/PackCard";
 
 const ACCENT = "#C4461C"; // used by the protected pack section
-const C = { blue: "#0A2735", navy: "#0A2735", orange: "#FF6D41", orangeL: "#FF6D41", ink: "#0A2735", gray: "#6B767D", line: "#ECEDEE", bg: "#F7F7F5", blueL: "#F1F1EE", orangeT: "#F1F1EE" };
+const C = { blue: "#0A2735", navy: "var(--mc-ink)", orange: "#FF6D41", orangeL: "#FF6D41", ink: "var(--mc-ink)", gray: "var(--mc-muted)", line: "var(--mc-line)", bg: "var(--mc-canvas)", blueL: "var(--mc-sunken)", orangeT: "var(--mc-sunken)" };
 // Framing: the project's Tailwind `white` is #F9F9F9, so cards use true white plus a hairline and soft shadow.
 const FRAME = "border border-line bg-[#FFFFFF]";
 const TILE = "border border-line bg-[#FFFFFF] transition hover:border-line-strong hover:shadow-[0_10px_30px_-22px_rgba(10,39,53,0.35)]";
@@ -96,7 +96,7 @@ const Card = ({ children, className = "", label }: { children: React.ReactNode; 
 function Title({ children, href, more = "مشاهده‌ی همه" }: { children: React.ReactNode; href?: string; more?: string }) {
   return <div className="mb-4 flex items-center justify-between gap-3">
     <h2 className="flex items-center gap-2.5 text-lg font-extrabold md:text-[22px]" style={{ color: C.ink }}>{children}</h2>
-    {href && <Link href={href} className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold" style={{ color: C.blue }}>{more}<ArrowLeft className="h-4 w-4" /></Link>}
+    {href && <Link href={href} className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold" style={{ color: C.ink }}>{more}<ArrowLeft className="h-4 w-4" /></Link>}
   </div>;
 }
 
@@ -105,13 +105,13 @@ const HERO_IMAGES = ["/images/catalog/33c657bae8d646702dc50726178d374197ef7aad21
 function Hero({ content }: { content?: { title?: string; body?: string; link?: string; button_label?: string } }) {
   return (
     <section className={`relative grid overflow-hidden rounded-[24px] p-1.5 md:grid-cols-[1.15fr_1fr] ${FRAME}`} aria-labelledby="home-hero">
-      <div className="relative flex flex-col items-start justify-center gap-4 overflow-hidden rounded-[19px] p-6 md:rounded-l-none md:p-12" style={{ background: C.navy }}>
+      <div className="relative flex flex-col items-start justify-center gap-4 overflow-hidden rounded-[19px] p-6 md:rounded-l-none md:p-12" style={{ background: "#0A2735" }}>
         <span className="relative rounded-full border border-white/20 px-3.5 py-1 text-xs font-semibold text-white/80">هدیه‌ی پایان سال</span>
         <h1 id="home-hero" className="relative whitespace-pre-line text-[26px] font-extrabold leading-[1.5] text-white md:text-[38px]">{content?.title || "هدیه‌ی کارکنان، به تعداد،\nبا بسته‌بندی کادویی"}</h1>
         <p className="relative text-sm leading-7 text-white/70 md:text-[16px]">{content?.body || "جعبه‌های آجیل و خشکبار و پک‌های آماده، برای همه‌ی پرسنل سازمان"}</p>
-        <Link href={content?.link || "/packs/employee-gift"} className="relative mt-2 inline-flex h-12 items-center gap-2 rounded-full bg-[#FFFFFF] px-6 text-sm font-bold" style={{ color: C.blue }}>{content?.button_label || "مشاهده‌ی هدیه‌ها"}<ArrowLeft className="h-5 w-5" /></Link>
+        <Link href={content?.link || "/packs/employee-gift"} className="relative mt-2 inline-flex h-12 items-center gap-2 rounded-full px-6 text-sm font-bold" style={{ color: "#0A2735", background: "#FFFFFF" }}>{content?.button_label || "مشاهده‌ی هدیه‌ها"}<ArrowLeft className="h-5 w-5" /></Link>
       </div>
-      <div className="relative mt-1.5 flex min-h-[220px] items-center justify-center gap-2 overflow-hidden rounded-[19px] p-6 md:mt-0 md:mr-1.5 md:rounded-r-none" style={{ background: "#F1F1EE" }}>
+      <div className="relative mt-1.5 flex min-h-[220px] items-center justify-center gap-2 overflow-hidden rounded-[19px] p-6 md:mt-0 md:mr-1.5 md:rounded-r-none" style={{ background: "var(--mc-sunken)" }}>
         <span className="block aspect-square w-[58%] max-w-[300px]"><Img src={HERO_IMAGES[0]} alt="جعبه‌ی هدیه‌ی آجیل" /></span>
         <span className="block aspect-square w-[36%] max-w-[210px] self-end"><Img src={HERO_IMAGES[1]} alt="جعبه‌ی کادویی آجیل" /></span>
       </div>
@@ -160,7 +160,7 @@ function OrgPrices({ items }: { items: Product[] | null }) {
 }
 
 // ── Category promo tiles (largest real categories with their own photo) ───
-const TILE_BG = ["#F1F1EE", "#F3F1EC", "#EEF1F1", "#F2F0EE"];
+const TILE_BG = ["var(--mc-sunken)", "var(--mc-sunken)", "var(--mc-sunken)", "var(--mc-sunken)"];
 type CatPick = { cat: Category; img?: string };
 function Promos({ picks }: { picks: CatPick[] | null }) {
   if (picks && !picks.length) return null;
@@ -186,8 +186,8 @@ function Categories({ picks }: { picks: CatPick[] | null }) {
       <div className="grid grid-cols-3 gap-x-3 gap-y-5 md:grid-cols-6">
         {(picks ?? Array.from({ length: 6 }, () => null)).slice(0, 6).map((c, i) => (
           <Link key={c?.cat.slug ?? i} href={c ? `/category/${c.cat.slug}` : "#"} className="group flex flex-col items-center gap-1.5 text-center">
-            <span className="mb-1 flex aspect-square w-full max-w-[132px] items-center justify-center overflow-hidden rounded-full p-4 transition group-hover:ring-1 group-hover:ring-ink" style={{ background: "#F1F1EE" }}>
-              {c?.img ? <Img src={c.img} alt="" /> : <LayoutGrid className="h-10 w-10" style={{ color: i % 2 ? C.orange : C.blue }} strokeWidth={1.6} />}</span>
+            <span className="mb-1 flex aspect-square w-full max-w-[132px] items-center justify-center overflow-hidden rounded-full p-4 transition group-hover:ring-1 group-hover:ring-ink" style={{ background: "var(--mc-sunken)" }}>
+              {c?.img ? <Img src={c.img} alt="" /> : <LayoutGrid className="h-10 w-10" style={{ color: i % 2 ? C.orange : C.ink }} strokeWidth={1.6} />}</span>
             <b className="text-sm leading-6 md:text-[15px]" style={{ color: C.ink }}>{c?.cat.name ?? " "}</b>
             <span className="text-xs" style={{ color: C.gray }}>{c ? `${toPersianNum(c.cat.product_count)} کالا` : " "}</span>
           </Link>))}
@@ -228,7 +228,7 @@ function Brands() {
       <div className="grid grid-cols-4 gap-2 md:gap-3 lg:grid-cols-8">
         {(items ?? Array.from({ length: 8 }, () => null)).map((b, i) => b ? (
           <Link key={b.name} href={`/search?brand=${encodeURIComponent(b.name)}`} className={`flex flex-col items-center gap-1.5 rounded-[14px] px-1 py-3 text-center md:px-2 md:py-4 ${TILE}`}>
-            <span className="mb-1 flex h-11 w-11 items-center justify-center rounded-full text-lg font-black md:h-14 md:w-14 md:text-xl" style={{ background: C.blueL, color: C.blue }}>{b.name.slice(0, 1)}</span>
+            <span className="mb-1 flex h-11 w-11 items-center justify-center rounded-full text-lg font-black md:h-14 md:w-14 md:text-xl" style={{ background: C.blueL, color: C.ink }}>{b.name.slice(0, 1)}</span>
             <b className="line-clamp-1 text-sm md:text-base" style={{ color: C.ink }}>{b.name}</b>
             <span className="text-xs" style={{ color: C.gray }}>{toPersianNum(b.product_count)} کالا</span>
           </Link>) : <span key={i} className="h-[132px] animate-pulse rounded-[14px] bg-black/5" />)}
@@ -242,7 +242,7 @@ function Seller() {
   return (
     <section className="relative flex flex-col gap-4 overflow-hidden rounded-[20px] border border-line bg-[#FFFFFF] p-5 md:flex-row md:items-center md:justify-between md:px-8">
       <span className="flex items-center gap-4">
-        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-canvas-sunken" style={{ color: C.blue }}><Store className="h-8 w-8" strokeWidth={1.8} /></span>
+        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-canvas-sunken" style={{ color: C.ink }}><Store className="h-8 w-8" strokeWidth={1.8} /></span>
         <span><b className="block text-xl font-black md:text-[22px]" style={{ color: C.navy }}>در شصت‌آنلاین بفروشید</b>
           <span className="mt-1 block text-sm md:text-[15px]" style={{ color: C.gray }}>غرفه بگیرید و به اعضای سازمان‌های طرف قرارداد بفروشید</span></span>
       </span>
@@ -349,5 +349,5 @@ export default function FigmaHome({previewContent}:{previewContent?:PageContent}
    hero:<Hero content={hero}/>,services:<Services/>,organization:<OrgPrices items={orgItems}/>,collections:<Promos picks={catPicks}/>,
    categories:<Categories picks={catPicks}/>,packs:<Packs/>,today:<BrandRow brand={brandRow.brand} items={brandRow.items}/>,brands:<Brands/>,seller:<Seller/>
   };
-  return <div style={{ background: "#F7F7F5" }}><div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-4 md:px-8 md:py-6" dir="rtl">{order.map(key=><Fragment key={key}>{sections[key]}</Fragment>)}</div></div>;
+  return <div style={{ background: "var(--mc-canvas)" }}><div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-4 py-4 md:px-8 md:py-6" dir="rtl">{order.map(key=><Fragment key={key}>{sections[key]}</Fragment>)}</div></div>;
 }
