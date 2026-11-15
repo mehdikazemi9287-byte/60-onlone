@@ -47,6 +47,7 @@ from app.adapters.payment.base import (
     RedirectPaymentProvider, RefundResult,
 )
 from app.adapters.payment.sepehr import to_rial
+from app.adapters.payment.vandapay_items import build_items, validate_category_map
 
 log = logging.getLogger(__name__)
 
@@ -106,12 +107,19 @@ def key_mode(secret_key: str) -> str:
     raise ValueError("VANDAPAY_SECRET_KEY must start with sk_test_ or sk_live_")
 
 
+def _refund_confirmed(response: dict, amount_rial: int) -> bool:
+    return (response.get("status") == "succeeded" and type(response.get("amount")) is int
+            and response["amount"] == amount_rial and isinstance(response.get("id"), str)
+            and bool(response["id"]))
+
+
 class VandaPayProvider(RedirectPaymentProvider):
     name = NAME
     label = LABEL
 
     def __init__(self, secret_key: str, *, webhook_secret: str, api_base: str = DEFAULT_API_BASE,
-                 currency: str = "IRR", transport: Transport | None = None) -> None:
+                 currency: str = "IRR", transport: Transport | None = None,
+                 category_map: dict[str, str] | None = None, shipping_category: str | None = None) -> None:
         self.mode = key_mode(secret_key or "")
         if not webhook_secret:
             raise ValueError("VANDAPAY_WEBHOOK_SECRET is required")
@@ -122,6 +130,12 @@ class VandaPayProvider(RedirectPaymentProvider):
         self._base = api_base.rstrip("/")
         self.currency = currency
         self._send = transport or _urllib_transport
+        self._category_map = validate_category_map(category_map) if category_map is not None else None
+        if shipping_category is not None and (not isinstance(shipping_category, str)
+                or not shipping_category.strip() or shipping_category != shipping_category.strip()
+                or len(shipping_category) > 100):
+            raise ValueError("VANDAPAY_SHIPPING_CATEGORY must be a category code")
+        self._shipping_category = shipping_category
 
     # ------------------------------------------------------------------ http
     def _request(self, method: str, path: str, body: dict | None = None,
@@ -163,6 +177,8 @@ class VandaPayProvider(RedirectPaymentProvider):
             "return_url": return_url,
             "metadata": {"source": "60online", "invoice_id": str(int(invoice_id))},
         }
+        if self._category_map is not None:
+            body["items"] = build_items(request, self._category_map, self._shipping_category)
         res = self._request("POST", "/payment_intents", body,
                             idempotency_key=self.initiate_key(request.order_reference, invoice_id))
         intent_id, url = res.get("id"), res.get("checkout_url")
@@ -241,7 +257,7 @@ class VandaPayProvider(RedirectPaymentProvider):
                 res = self._request("POST", f"/payment_intents/{urllib.parse.quote(ref, safe='')}/refunds",
                                     {"amount": remaining, "reason": "60online: order could not be created"},
                                     idempotency_key=f"60online-{ref}-reverse-{remaining}")
-                if res.get("status") == "succeeded":
+                if _refund_confirmed(res, remaining):
                     return True
                 log.warning("vandapay reverse refund for %s is %r (not final)", ref, res.get("status"))
                 return False
@@ -252,13 +268,17 @@ class VandaPayProvider(RedirectPaymentProvider):
             return False
 
     def refund(self, provider_ref: str, amount_minor: int, idempotency_key: str) -> RefundResult:
+        if type(amount_minor) is not int or amount_minor <= 0 or not provider_ref or not idempotency_key:
+            raise GatewayError("vandapay refund: positive amount, reference and idempotency key required")
         amount_rial = to_rial(int(amount_minor), self.currency)
         res = self._request("POST", f"/payment_intents/{urllib.parse.quote(provider_ref, safe='')}/refunds",
                             {"amount": amount_rial, "reason": "60online refund"},
                             idempotency_key=f"60online-{provider_ref}-refund-{idempotency_key}")
-        ok = res.get("status") == "succeeded"  # 202 "pending" is not reported as refunded
-        return RefundResult(status=PaymentStatus.REFUNDED if ok else PaymentStatus.FAILED, provider=self.name,
-                            provider_ref=str(res.get("id") or provider_ref), amount_minor=int(amount_minor))
+        if not _refund_confirmed(res, amount_rial):
+            # Pending/unknown is not a confirmed refund. Keep the same key on retry.
+            raise GatewayError("vandapay refund: result not confirmed or amount/reference mismatch")
+        return RefundResult(status=PaymentStatus.REFUNDED, provider=self.name,
+                            provider_ref=res["id"], amount_minor=amount_minor)
 
     # --------------------------------------------------------------- webhook
     def verify_webhook(self, raw_body: bytes, header: str | None, *, now: int | None = None) -> dict:
@@ -354,5 +374,14 @@ def enabled_from_env(environ=os.environ, *, app_env: str | None = None,
     if not base.startswith("https://"):
         log.error("VandaPay disabled: VANDAPAY_API_BASE must be https")
         return None
-    return VandaPayProvider(key, webhook_secret=secret, api_base=base,
-                            currency=environ.get("CURRENCY", "IRR"))
+    try:
+        category_map = (json.loads(environ["VANDAPAY_CATEGORY_MAP"])
+                        if "VANDAPAY_CATEGORY_MAP" in environ else None)
+        if "VANDAPAY_CATEGORY_MAP" in environ:
+            validate_category_map(category_map)  # null/empty/invalid must not silently select legacy mode
+        return VandaPayProvider(key, webhook_secret=secret, api_base=base,
+                               currency=environ.get("CURRENCY", "IRR"), category_map=category_map,
+                               shipping_category=environ.get("VANDAPAY_SHIPPING_CATEGORY"))
+    except (ValueError, TypeError):
+        log.error("VandaPay disabled: invalid item category configuration")
+        return None
