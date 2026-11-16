@@ -40,6 +40,7 @@ export default function ProformaPage({ params }: { params: Promise<{ number: str
 
   return (
     <main className="mx-auto max-w-3xl px-4 pb-24 pt-6 md:py-10">
+      <Link href="/me/proformas" className="mb-3 inline-flex items-center text-xs font-semibold text-ink-muted hover:text-ink">همهٔ پیش‌فاکتورها و دانلود گروهی ←</Link>
       <section className="rounded-3xl border border-line bg-white p-5 md:p-7">
         <div className="flex items-start gap-3">
           <Image src="/brand/60online-mark.png" alt="" width={256} height={241} className="brand-mark h-12 w-auto shrink-0" />

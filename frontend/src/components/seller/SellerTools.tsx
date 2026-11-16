@@ -3,6 +3,7 @@
 // Seller panel (owner view of /sell): brand registration, own-fulfillment shipments, finance exports.
 import { useCallback, useEffect, useState } from "react";
 import { PrintHead, PrintSheet, SignBoxes, Code128 } from "@/components/print/PrintSheet";
+import { DiscrepancySheet, DriverSheet } from "@/components/seller/ShipmentSheets";
 import { apiRequest, downloadAuthed, errText, SHIP_STATUS_FA, type BrandRegistration, type ExportJob, type Shipment } from "@/lib/commerce";
 import { ApiError } from "@/lib/api";
 import { faDate, formatPrice } from "@/lib/utils";
@@ -120,9 +121,9 @@ function ShipmentsCard({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
   const [pickupFor, setPickupFor] = useState<number | null>(null);
-  const [doc, setDoc] = useState<{ kind: "waybill" | "exit"; ship: Shipment; items: FoItem[] } | null>(null);
+  const [doc, setDoc] = useState<{ kind: "waybill" | "exit" | "driver" | "discrepancy"; ship: Shipment; items: FoItem[] } | null>(null);
   const closeDoc = useCallback(() => setDoc(null), []);
-  const printDoc = async (kind: "waybill" | "exit", ship: Shipment) => {
+  const printDoc = async (kind: "waybill" | "exit" | "driver" | "discrepancy", ship: Shipment) => {
     setMsg(null);
     if (kind === "waybill") { setDoc({ kind, ship, items: [] }); return; }
     try {
@@ -166,10 +167,12 @@ function ShipmentsCard({ token }: { token: string }) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="min-w-0"><span dir="ltr" className="font-bold">{s.tracking_number}</span>
                   <span className="block text-xs text-neutral-500">{SHIP_STATUS_FA[s.status] ?? s.status} · {s.provider_code}{s.pickup_requested_at ? " · جمع‌آوری درخواست شد" : ""}</span></span>
-                <span className="flex gap-2">
+                <span className="flex w-full flex-wrap gap-2 sm:w-auto">
                   {labelUrl && <a href={labelUrl} target="_blank" rel="noopener noreferrer" className={btnGhost}>برچسب</a>}
                   <button type="button" className={btnGhost} onClick={() => printDoc("exit", s)}>حوالهٔ خروج انبار</button>
                   <button type="button" className={btnGhost} onClick={() => printDoc("waybill", s)}>بارنامه</button>
+                  <button type="button" className={btnGhost} onClick={() => printDoc("driver", s)}>نسخهٔ راننده</button>
+                  <button type="button" className={btnGhost} onClick={() => printDoc("discrepancy", s)}>ثبت مغایرت</button>
                   {s.status === "created" && !s.pickup_requested_at && (
                     <button type="button" className={btnGhost} aria-expanded={pickupFor === s.id} onClick={() => setPickupFor(pickupFor === s.id ? null : s.id)}>درخواست جمع‌آوری</button>)}
                 </span>
@@ -179,7 +182,9 @@ function ShipmentsCard({ token }: { token: string }) {
           );
         })}
       </ul>
-      {doc && <PrintSheet onDone={closeDoc}>{doc.kind === "waybill" ? <Waybill s={doc.ship} /> : <ExitSlip s={doc.ship} items={doc.items} />}</PrintSheet>}
+      {doc?.kind === "driver" && <DriverSheet s={doc.ship} items={doc.items} onClose={closeDoc} />}
+      {doc?.kind === "discrepancy" && <DiscrepancySheet s={doc.ship} items={doc.items} onClose={closeDoc} />}
+      {doc && (doc.kind === "waybill" || doc.kind === "exit") && <PrintSheet onDone={closeDoc}>{doc.kind === "waybill" ? <Waybill s={doc.ship} /> : <ExitSlip s={doc.ship} items={doc.items} />}</PrintSheet>}
     </Card></div>
   );
 }
