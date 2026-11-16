@@ -4,9 +4,9 @@
 //   GET /me/recurring               (the caller's recurring lists; filtered to this organization)
 //   POST /me/recurring {organization_id}, /me/recurring/{id}/{pause|resume|cancel}, /quote, /runs
 // Lists belong to the member who created them (server rule); this page does not show other members' lists.
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { CalendarClock, Download, FileSignature, FileText, Repeat } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { CalendarClock, Download, FileSignature, FileText, Repeat, Stamp, Trash2 } from "lucide-react";
+import { PrintHead, PrintSheet, SignBoxes } from "@/components/print/PrintSheet";
 import { jalaliToIso } from "@/lib/jalali";
 import { useAuth } from "@/lib/auth-context";
 import { apiRequest, errText, FREQ_FA, RECUR_FA, type CreditContract, type DraftQuote, type RecurringList } from "@/lib/commerce";
@@ -47,13 +47,21 @@ function Body() {
     try { q = (await apiRequest<{ quote: DraftQuote }>(`/me/recurring/${l.id}/quote`, { token })).quote; } catch {}
     setDraft({ list: l, quote: q });
   };
-  useEffect(() => {
-    if (!draft) return;
-    const done = () => setDraft(null);
-    window.addEventListener("afterprint", done);
-    const t = setTimeout(() => window.print(), 150);
-    return () => { clearTimeout(t); window.removeEventListener("afterprint", done); };
-  }, [draft]);
+  const closeDraft = useCallback(() => setDraft(null), []);
+  // Stamp & signature images: kept only in this page's memory as data: URLs (the site CSP allows data:, not blob:);
+  // never uploaded or stored.
+  const [stamp, setStamp] = useState<string | null>(null), [sign, setSign] = useState<string | null>(null);
+  const [imgErr, setImgErr] = useState<string | null>(null);
+  const pickImage = (set: (u: string | null) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; e.target.value = ""; setImgErr(null);
+    if (!f) return;
+    if (!["image/png", "image/jpeg", "image/webp"].includes(f.type)) { setImgErr("فقط تصویر PNG، JPG یا WebP"); return; }
+    if (f.size > 2 * 1024 * 1024) { setImgErr("حجم تصویر باید کمتر از ۲ مگابایت باشد"); return; }
+    const r = new FileReader();
+    r.onload = () => set(typeof r.result === "string" ? r.result : null);
+    r.onerror = () => setImgErr("خواندن تصویر ناموفق بود");
+    r.readAsDataURL(f);
+  };
 
   const exportCsv = () => {
     if (!shown?.length) return;
@@ -132,6 +140,27 @@ function Body() {
           </section>
         </div>
 
+        <section aria-labelledby="st-h" className="rounded-2xl border border-line bg-white p-4 md:p-5">
+          <div className="mb-3 flex items-center gap-2"><Stamp className="h-4 w-4 text-ink" /><h2 id="st-h" className="text-[15px] font-bold text-ink">مهر و امضای سازمان روی پیش‌نویس</h2></div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {([["مهر سازمان", stamp, setStamp], ["امضای نماینده", sign, setSign]] as [string, string | null, (u: string | null) => void][]).map(([label, url, set]) => (
+              <div key={label} className="flex items-center gap-3 rounded-2xl border border-dashed border-line-strong p-3">
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line" style={{ background: "#fff" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {url ? <img src={url} alt={label} className="max-h-full max-w-full object-contain" /> : <Stamp className="h-6 w-6 text-ink-faint" strokeWidth={1.4} />}
+                </span>
+                <div className="flex-1"><p className="text-sm font-bold text-ink">{label}</p>
+                  <div className="mt-1.5 flex flex-wrap gap-2">
+                    <label className={`${btnGhost} cursor-pointer`}>{url ? "تغییر تصویر" : "انتخاب تصویر"}
+                      <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={pickImage(set)} /></label>
+                    {url && <button type="button" className={`${btnGhost} inline-flex items-center gap-1`} onClick={() => set(null)}><Trash2 className="h-3.5 w-3.5" />حذف</button>}
+                  </div></div>
+              </div>))}
+          </div>
+          {imgErr && <p role="alert" className="mt-2 text-xs text-red-700">{imgErr}</p>}
+          <p className="mt-2 text-[11px] text-ink-muted">تصاویر فقط روی همین دستگاه و همین صفحه برای چاپ پیش‌نویس استفاده می‌شوند؛ به سرور ارسال یا ذخیره نمی‌شوند. PNG بدون زمینه بهترین نتیجه را می‌دهد. این امضای تصویری جایگزین امضای الکترونیکی معتبر قانونی نیست.</p>
+        </section>
+
         <NewList token={token} organizationId={orgId} label="تعریف تأمین دوره‌ای جدید" placeholder="مثلاً اقلام ماهانهٔ آبدارخانه"
           onCreated={(l) => { setLists((c) => [l, ...(c ?? [])]); setFlash({ ok: true, text: "فهرست تأمین دوره‌ای سازمان ساخته شد." }); }} />
 
@@ -173,21 +202,16 @@ function Body() {
           </ul>
         </section>
       </>}
-      {draft && createPortal(<ContractDraft orgName={o.org?.display_name ?? ""} contract={contract ?? null} list={draft.list} quote={draft.quote} />, document.body)}
+      {draft && <PrintSheet onDone={closeDraft}><ContractDraft orgName={o.org?.display_name ?? ""} contract={contract ?? null} list={draft.list} quote={draft.quote} stamp={stamp} sign={sign} /></PrintSheet>}
     </div>
   );
 }
 
-function ContractDraft({ orgName, contract, list, quote }: { orgName: string; contract: CreditContract | null; list: RecurringList; quote: DraftQuote | null }) {
-  const today = faDate(new Date().toISOString().slice(0, 10));
+function ContractDraft({ orgName, contract, list, quote, stamp, sign }: { orgName: string; contract: CreditContract | null; list: RecurringList; quote: DraftQuote | null; stamp: string | null; sign: string | null }) {
   const lineOf = (pid: number) => quote?.lines.find((x) => x.product_id === pid);
   return (
-    <div className="contract-print" dir="rtl" aria-hidden="true">
-      <header className="cp-head">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/60online-mark.png" alt="" />
-        <div><h1>پیش‌نویس قرارداد تأمین دوره‌ای</h1><p>شصت‌آنلاین · تاریخ تهیه: {today}</p></div>
-      </header>
+    <>
+      <PrintHead title="پیش‌نویس قرارداد تأمین دوره‌ای" number={`RC-${list.id}`} />
       <p className="cp-note">این سند پیش‌نویس است و تا امضای طرفین اعتبار قراردادی ندارد. قیمت‌ها پیش‌برآورد با قیمت روز تهیه هستند و در هر نوبت دوباره محاسبه می‌شوند.</p>
       <table className="cp-kv"><tbody>
         <tr><th>سازمان خریدار</th><td>{orgName || "—"}</td><th>عنوان فهرست</th><td>{list.title}</td></tr>
@@ -203,7 +227,8 @@ function ContractDraft({ orgName, contract, list, quote }: { orgName: string; co
           {quote.totals.discount_total_minor > 0 && <tr><td colSpan={4}>تخفیف دوره‌ای</td><td>{formatPrice(quote.totals.discount_total_minor)}</td></tr>}
           <tr><td colSpan={4}>جمع قابل پرداخت هر نوبت (پیش‌برآورد)</td><td>{formatPrice(quote.totals.payable_minor)}</td></tr></tfoot>}
       </table>
-      <div className="cp-sign"><div><b>نمایندهٔ سازمان خریدار</b><span>نام، سمت، امضا و مهر</span></div><div><b>شصت‌آنلاین</b><span>نام، سمت، امضا و مهر</span></div></div>
-    </div>
+      {/* eslint-disable @next/next/no-img-element */}
+      <SignBoxes labels={["نمایندهٔ سازمان خریدار", "شصت‌آنلاین"]} images={{ 0: <>{stamp && <img className="cp-stamp" src={stamp} alt="" />}{sign && <img className="cp-signature" src={sign} alt="" />}</> }} />
+    </>
   );
 }

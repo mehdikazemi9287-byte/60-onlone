@@ -996,25 +996,38 @@ html.theme-vt::view-transition-new(root) { animation: theme-reveal 0.55s cubic-b
 @keyframes theme-reveal { from { clip-path: circle(0 at var(--vt-x) var(--vt-y)); } to { clip-path: circle(var(--vt-r) at var(--vt-x) var(--vt-y)); } }
 @media (prefers-reduced-motion: reduce) { html.theme-vt::view-transition-new(root) { animation: none; } .theme-switch * { transition: none !important; } }
 
-/* Supply-contract PDF draft (print view; hidden on screen) */
-.contract-print { display: none; }
+/* Printable A4 documents (contract draft, waybill, warehouse exit slip) — components/print/PrintSheet.tsx */
+.print-doc { display: none; }
 @media print {
   @page { size: A4; margin: 16mm 14mm; }
-  html:has(body > .contract-print), html[data-theme]:has(body > .contract-print), html[data-theme] body:has(> .contract-print) { background: #fff !important; padding: 0 !important; --dash-bg: #fff; --mc-canvas: #fff; color-scheme: light; }
-  body:has(> .contract-print) > *:not(.contract-print) { display: none !important; }
-  .contract-print { display: block; background: #fff; color: #0a2735; font-size: 11pt; line-height: 1.9; }
+  html:has(body > .print-doc), html[data-theme]:has(body > .print-doc), body:has(> .print-doc), html[data-theme] body:has(> .print-doc) { background: #fff !important; padding: 0 !important; --dash-bg: #fff; --mc-canvas: #fff; color-scheme: light !important; }
+  body:has(> .print-doc) > *:not(.print-doc) { display: none !important; }
+  .print-doc { display: block; background: #fff; color: #0a2735; font-size: 11pt; line-height: 1.9; }
   .cp-head { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid #0a2735; padding-bottom: 10px; margin-bottom: 12px; }
   .cp-head img { height: 54px; width: auto; }
   .cp-head h1 { font-size: 17pt; font-weight: 800; margin: 0; }
   .cp-head p { margin: 0; color: #4f5b62; font-size: 9.5pt; }
   .cp-note { border: 1px solid #dcdfe1; border-radius: 8px; padding: 8px 12px; font-size: 9.5pt; color: #33434c; margin-bottom: 12px; }
-  .contract-print table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-  .contract-print th, .contract-print td { border: 1px solid #dcdfe1; padding: 6px 9px; text-align: right; vertical-align: top; background: #fff !important; color: #0a2735 !important; }
+  .print-doc table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+  .print-doc th, .print-doc td { border: 1px solid #dcdfe1; padding: 6px 9px; text-align: right; vertical-align: top; background: #fff !important; color: #0a2735 !important; }
   .cp-kv th { width: 16%; background: #f7f7f5 !important; font-weight: 700; }
   .cp-items thead th { background: #f1f1ee !important; font-weight: 700; }
   .cp-items tfoot td { font-weight: 800; }
   .cp-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 28px; }
   .cp-sign div { border: 1px dashed #9aa3a8; border-radius: 8px; height: 90px; padding: 8px 12px; display: flex; flex-direction: column; }
   .cp-sign span { color: #6b767d; font-size: 9pt; }
+  .cp-sign div { position: relative; height: 110px; }
+  .cp-sign img.cp-stamp { position: absolute; left: 10px; bottom: 6px; height: 80px; width: auto; opacity: 0.9; }
+  .cp-sign img.cp-signature { position: absolute; left: 96px; bottom: 10px; height: 54px; width: auto; }
+  .cp-no { text-align: left; border: 1px solid #dcdfe1; border-radius: 8px; padding: 4px 10px; }
+  .cp-no span { display: block; font-size: 8.5pt; color: #6b767d; }
+  .cp-no b { font-size: 11pt; }
+  .cp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .cp-box { border: 1px solid #dcdfe1; border-radius: 8px; padding: 8px 12px; }
+  .cp-box h2 { font-size: 10pt; font-weight: 800; margin: 0 0 4px; color: #33434c; }
+  .cp-box p { margin: 0; font-size: 10pt; }
+  .cp-barcode { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 4px 0 12px; }
+  .cp-barcode small { font-family: monospace; font-size: 10pt; letter-spacing: 2px; }
 }
 html[data-theme="dark"] .brand-mark { filter: brightness(1.45) saturate(1.1); opacity: 1; }
+html[data-theme="dark"] :is(.divide-line, .divide-neutral-100, .divide-neutral-200) > :not([hidden]) ~ :not([hidden]) { border-color: var(--dash-line) !important; }
