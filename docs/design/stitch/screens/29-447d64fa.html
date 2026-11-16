@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;font-family:'Vazirmatn',system-ui,sans-serif;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'inverse-primary': '#afcadd', 'tertiary-fixed-dim': '#ffb59f', 'on-tertiary-fixed-variant': '#862200', 'surface-container-low': '#f3f3f3', 'on-tertiary-fixed': '#3b0a00', 'error-container': '#ffdad6', 'surface-container-high': '#e8e8e8', 'on-secondary-container': '#1d5d82', 'error': '#ba1a1a', 'on-primary-fixed': '#011e2c', 'secondary-fixed': '#c9e6ff', 'outline': '#73787c', 'on-tertiary-container': '#eb5f34', 'tertiary-container': '#4a0f00', 'tertiary': '#250400', 'primary': '#00111a', 'background': '#f9f9f9', 'on-primary-fixed-variant': '#304a59', 'outline-variant': '#c2c7cc', 'primary-container': '#0a2735', 'secondary': '#266489', 'primary-fixed': '#cbe6f9', 'on-primary': '#ffffff', 'surface-container': '#eeeeee', 'on-tertiary': '#ffffff', 'on-surface-variant': '#42474b', 'tertiary-fixed': '#ffdbd1', 'primary-fixed-dim': '#afcadd', 'surface-container-lowest': '#ffffff', 'on-background': '#1a1c1c', 'on-primary-container': '#758fa0', 'on-secondary': '#ffffff', 'surface-bright': '#f9f9f9', 'surface-container-highest': '#e2e2e2', 'inverse-surface': '#2f3131', 'surface-variant': '#e2e2e2', 'on-secondary-fixed-variant': '#004b6f', 'on-error': '#ffffff', 'inverse-on-surface': '#f1f1f1', 'on-surface': '#1a1c1c', 'surface-dim': '#dadada', 'secondary-fixed-dim': '#95cdf7', 'surface': '#f9f9f9', 'surface-tint': '#486272', 'secondary-container': '#9ed5ff', 'on-error-container': '#93000a', 'on-secondary-fixed': '#001e2f' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'space-xl': '2.5rem', 'space-md': '1rem', 'gutter-lg': '2rem', 'space-xs': '0.25rem', 'space-sm': '0.5rem', 'margin-lg': '4rem', 'space-lg': '1.5rem', 'gutter': '1rem', 'margin': '1rem', 'margin-md': '2rem', 'gutter-md': '1.5rem' }, fontFamily: { 'title-md': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'body-md': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'label-md': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'title-lg': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'body-lg': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-md': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-lg': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'label-sm': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-lg-mobile': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'label-lg': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'body-sm': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-xl': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-xl-mobile': ['"Vazirmatn, Sahel, Shabnam, system-ui"'] }, fontSize: { 'title-md': ['16px', { 'lineHeight': '26px', 'fontWeight': '600' }], 'body-md': ['14px', { 'lineHeight': '24px', 'fontWeight': '400' }], 'label-md': ['12px', { 'lineHeight': '18px', 'fontWeight': '500' }], 'title-lg': ['18px', { 'lineHeight': '28px', 'fontWeight': '600' }], 'body-lg': ['16px', { 'lineHeight': '28px', 'fontWeight': '400' }], 'headline-md': ['20px', { 'lineHeight': '32px', 'fontWeight': '700' }], 'headline-lg': ['28px', { 'lineHeight': '42px', 'fontWeight': '700' }], 'label-sm': ['11px', { 'lineHeight': '16px', 'fontWeight': '500' }], 'headline-lg-mobile': ['22px', { 'lineHeight': '34px', 'fontWeight': '700' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'fontWeight': '600' }], 'body-sm': ['12px', { 'lineHeight': '20px', 'fontWeight': '400' }], 'headline-xl': ['36px', { 'lineHeight': '52px', 'fontWeight': '800' }], 'headline-xl-mobile': ['26px', { 'lineHeight': '38px', 'fontWeight': '800' }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen selection:bg-secondary-fixed selection:text-on-secondary-fixed"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.03)]"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="بازگشت" class="min-w-[44px] min-h-[44px] flex items-center justify-center text-on-surface hover:text-primary transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[24px] rotate-180">arrow_back_ios_new</span></button><img alt="60 Online Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCw7Xi_FVAon6uqiQQsUwlfXGZY0ji_YpNw52v4xE97P0QOwlAr71eKgdf82Z7SZmEMqCgVMGNRciR6-nPlr_7OA4VMXQE_Ei_vXnCABfVZLDmNiwnt50C_D-hzjoiVAdx_pazQH3q7elXi24jQSfxsZN0CFYTacmzlP1omN6S3Rrh5x4GbPdPqA6Of--GrlNwxLPKYFTLCjCOYfHRGLbIvGsu6hFN67LBf9O9xDaI"/><h1 class="font-title-lg text-title-lg text-primary-container truncate mr-space-xs">Checkout Flow</h1></div><div class="flex items-center gap-space-sm"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6Rc-lvnwo2oSkwdZy8PIHsI8dJoT8A-iQfiymHwwOEs-i0BqCqi_U8tr4-6XOwto9ifpLPyZ_qY7swJO_5btet_POfl3ohxPt406j3MgaLxgE5ZOpqtmn30nCtdM34TuNJO1tLaoMNO8cGmGqdVFGtik50wyHgK2Yn3Qd85ln3nnO2eVdUGNO3lYwJ6G-wdZmKGAOVQ5vJXFDQY4-2IoxmO6dZs4RowtMDEHFe00"/></div></div></header><main class="flex flex-col relative w-full pt-16 bg-background min-h-screen pb-safe"><div class="flex flex-col w-full pb-32">
+<!-- Stepper Indicator -->
+<section class="px-gutter pt-space-md pb-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="relative flex items-center justify-between">
+<!-- Connecting Track -->
+<div class="absolute top-1/2 left-6 right-6 -translate-y-1/2 h-0.5 bg-surface-container-high z-0">
+<div class="h-full bg-secondary w-1/2 transition-all duration-300"></div>
+</div>
+<!-- Step 1: Cart (Completed) -->
+<div class="relative z-10 flex flex-col items-center gap-space-xs">
+<div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold">سبد خرید</span>
+</div>
+<!-- Step 2: Delivery & Time (Active) -->
+<div class="relative z-10 flex flex-col items-center gap-space-xs">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-sm ring-4 ring-secondary/20">
+<span class="material-symbols-outlined text-[16px]">local_shipping</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary-container font-bold">نشانی و ارسال</span>
+</div>
+<!-- Step 3: Payment & Invoice (Upcoming) -->
+<div class="relative z-10 flex flex-col items-center gap-space-xs">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-outline flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px]">receipt_long</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">پرداخت و فاکتور</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Flow Notice / Security Pill -->
+<section class="px-gutter pb-space-sm">
+<div class="flex items-center gap-space-sm px-space-md py-space-xs rounded-full bg-secondary-fixed/50 text-on-secondary-fixed-variant">
+<span class="material-symbols-outlined text-[18px] text-secondary">verified_user</span>
+<p class="font-label-sm text-label-sm font-medium">سفارش سازمانی B2B با تضمین سلامت کالا و شناسه رهگیری رسمی</p>
+</div>
+</section>
+<!-- Delivery Address Section -->
+<section class="px-gutter py-space-sm">
+<div class="flex items-center justify-between mb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">pin_drop</span>
+<h2 class="font-title-md text-title-md text-primary-container">نشانی تحویل‌گیرنده</h2>
+</div>
+<button class="text-secondary hover:text-on-secondary-container transition-colors font-label-md text-label-md font-semibold flex items-center gap-1" type="button">
+<span>+ تغییر یا افزودن نشانی</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">دفتر مرکزی</span>
+<span class="font-label-md text-label-md text-on-surface-variant">شرکت نوآوران ارتباطات</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface font-medium leading-relaxed">
+            تهران، میدان ونک، خیابان ملاصدرا، پلاک ۴۲، طبقه ۴، واحد ۸
+          </p>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-space-xs mt-space-sm pt-space-xs text-on-surface-variant font-label-md text-label-md">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">person</span>
+<span>مهندس سارا احتشام</span>
+</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">call</span>
+<span dir="ltr">۰۹۱۲۱۲۳۴۵۶۷</span>
+</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0 text-secondary">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Delivery Slot Selector -->
+<section class="px-gutter py-space-sm">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">calendar_clock</span>
+<h2 class="font-title-md text-title-md text-primary-container">بازه زمانی ارسال سفارش</h2>
+</div>
+<div class="space-y-space-sm" id="slot-options">
+<!-- Option 1: Selected -->
+<label class="block cursor-pointer">
+<input checked="" class="peer sr-only" name="delivery_slot" type="radio" value="wed"/>
+<div class="relative bg-surface-container-lowest rounded-xl p-space-md shadow-sm transition-all peer-checked:bg-secondary-fixed/30 peer-checked:shadow-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center mt-1 shrink-0 peer-checked:text-secondary">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center justify-between gap-space-xs">
+<span class="font-title-md text-title-md text-primary-container">چهارشنبه ۱۶ اسفند (فردا)</span>
+<span class="px-space-xs py-0.5 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm">ارسال اختصاصی</span>
+</div>
+<p class="font-body-md text-body-md text-secondary font-medium mt-space-xs">
+                ساعت ۹ الی ۱۳ — تحویل ویژه سازمانی با ون مجهز و بهینه‌سازی بار
+              </p>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm mt-space-xs">
+<span class="material-symbols-outlined text-[15px] text-secondary">ac_unit</span>
+<span>همراه با بارکد پلمب اختصاصی و تحویل فوری به مسئول انبار</span>
+</div>
+</div>
+</div>
+</div>
+</label>
+<!-- Option 2 -->
+<label class="block cursor-pointer">
+<input class="peer sr-only" name="delivery_slot" type="radio" value="thu"/>
+<div class="relative bg-surface-container-lowest rounded-xl p-space-md shadow-sm transition-all peer-checked:bg-secondary-fixed/30 peer-checked:shadow-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center mt-1 shrink-0">
+<span class="w-2.5 h-2.5 rounded-full bg-transparent"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">پنجشنبه ۱۷ اسفند</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">عصرگاهی</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+                ساعت ۱۴ الی ۱۸ — ناوگان حمل استاندارد تهران
+              </p>
+</div>
+</div>
+</div>
+</label>
+<!-- Option 3 -->
+<label class="block cursor-pointer">
+<input class="peer sr-only" name="delivery_slot" type="radio" value="sat"/>
+<div class="relative bg-surface-container-lowest rounded-xl p-space-md shadow-sm transition-all peer-checked:bg-secondary-fixed/30 peer-checked:shadow-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center mt-1 shrink-0">
+<span class="w-2.5 h-2.5 rounded-full bg-transparent"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">شنبه ۱۹ اسفند</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">نخستین نوبت صبح</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+                ساعت ۹ الی ۱۳ — تحویل هماهنگ با انبار شرکت
+              </p>
+</div>
+</div>
+</div>
+</label>
+</div>
+</section>
+<!-- Corporate Official Invoice Request -->
+<section class="px-gutter py-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">domain_verification</span>
+</div>
+<div>
+<h3 class="font-title-md text-title-md text-primary-container">درخواست صدور فاکتور رسمی سازمانی</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">ثبت در سامانه مودیان مالیاتی کشور با شناسه اقتصادی حقوقی</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer shrink-0">
+<input checked="" class="sr-only peer" id="tax-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface-container-lowest after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface-container-lowest after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<!-- Detail Box -->
+<div class="mt-space-md p-space-md rounded-lg bg-surface-container-low transition-all duration-300" id="invoice-details">
+<div class="flex items-center justify-between pb-space-xs mb-space-xs">
+<span class="font-label-md text-label-md text-on-surface-variant">عنوان رسمی مودی:</span>
+<span class="font-label-lg text-label-lg text-primary-container font-semibold">شرکت فناوران نوآور آینده (سهامی خاص)</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs text-on-surface-variant font-label-md text-label-md">
+<div class="flex items-center gap-1">
+<span class="text-outline">شناسه ملی:</span>
+<span class="font-semibold text-on-surface" dir="ltr">۱۰۱۰۳۴۹۸۲۱</span>
+</div>
+<div class="flex items-center gap-1 justify-end">
+<span class="text-outline">کد اقتصادی:</span>
+<span class="font-semibold text-on-surface" dir="ltr">۴۱۱۴۹</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Payment Method Selector -->
+<section class="px-gutter py-space-sm">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">account_balance_wallet</span>
+<h2 class="font-title-md text-title-md text-primary-container">شیوه پرداخت سفارش</h2>
+</div>
+<div class="space-y-space-sm">
+<!-- Option 1: Credit Balance (Corporate 30-day) - Selected -->
+<label class="block cursor-pointer">
+<input checked="" class="peer sr-only" name="payment_method" type="radio" value="credit30"/>
+<div class="relative bg-surface-container-lowest rounded-xl p-space-md shadow-sm transition-all peer-checked:bg-secondary-fixed/40 peer-checked:shadow-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-5 h-5 rounded-full bg-secondary flex items-center justify-center mt-1 shrink-0">
+<span class="w-2 rounded-full h-2 bg-on-secondary"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs">
+<span class="font-title-md text-title-md text-primary-container font-bold">اعتبار ۳۰ روزه شرکتی</span>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm font-semibold">تأیید شده</span>
+</div>
+<p class="font-body-md text-body-md text-secondary mt-space-xs font-semibold">
+                سقف اعتباری فعال: ۵۰,۰۰۰,۰۰۰ تومان
+              </p>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                سررسید تسویه: ۱۵ فروردین ۱۴۰۳ (بدون کارمزد ویژه مشتریان حقوقی طلایی)
+              </p>
+</div>
+</div>
+</div>
+</label>
+<!-- Option 2: Corporate Wallet -->
+<label class="block cursor-pointer">
+<input class="peer sr-only" name="payment_method" type="radio" value="wallet"/>
+<div class="relative bg-surface-container-lowest rounded-xl p-space-md shadow-sm transition-all peer-checked:bg-secondary-fixed/40 peer-checked:shadow-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center mt-1 shrink-0">
+<span class="w-2 rounded-full h-2 bg-transparent"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">کیف پول سازمانی و اعتباری ۶۰</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">پرداخت ترکیبی</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+                موجودی قابل برداشت: ۱۵,۰۰۰,۰۰۰ تومان
+              </p>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">
+                مابقی مبلغ (۱۱,۱۱۹,۵۰۰ تومان) از طریق درگاه بانکی اخذ خواهد شد.
+              </p>
+</div>
+</div>
+</div>
+</label>
+<!-- Option 3: Online Bank Gateway -->
+<label class="block cursor-pointer">
+<input class="peer sr-only" name="payment_method" type="radio" value="gateway"/>
+<div class="relative bg-surface-container-lowest rounded-xl p-space-md shadow-sm transition-all peer-checked:bg-secondary-fixed/40 peer-checked:shadow-md">
+<div class="flex items-start gap-space-sm">
+<div class="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center mt-1 shrink-0">
+<span class="w-2 rounded-full h-2 bg-transparent"></span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between gap-space-xs">
+<span class="font-title-md text-title-md text-on-surface">درگاه پرداخت اینترنتی شاپرک</span>
+<span class="font-label-sm text-label-sm text-outline">ملت / سامان</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+                پرداخت فوری آنلاین با کلیه کارت‌های عضو شبکه شتاب
+              </p>
+<div class="flex items-center gap-space-xs mt-space-xs text-outline font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[15px]">lock</span>
+<span>انتقال امن با پروتکل SSL و تاییدیه رسمی شاپرک</span>
+</div>
+</div>
+</div>
+</div>
+</label>
+</div>
+</section>
+<!-- Summary Breakdown Preview -->
+<section class="px-gutter py-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-xs font-label-md text-label-md">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>مجموع اقلام سبد (۴ قلم کالا):</span>
+<span class="font-semibold text-on-surface">۲۵,۳۲۰,۰۰۰ تومان</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>هزینه حمل و بیمه ویژه محموله:</span>
+<span class="font-semibold text-secondary">رایگان (سفارش سازمانی)</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span>مالیات بر ارزش افزوده و عوارض (۱۰٪):</span>
+<span class="font-semibold text-on-surface">۷۹۹,۵۰۰ تومان</span>
+</div>
+</div>
+</section>
+<!-- Sticky Bottom CTA Bar -->
+<div class="fixed bottom-0 inset-x-0 bg-surface-container-lowest/95 backdrop-blur-md px-gutter py-space-md pb-safe shadow-[0_-4px_16px_rgba(0,0,0,0.06)] z-40">
+<div class="flex items-center justify-between gap-space-md max-w-md mx-auto">
+<!-- Price Column -->
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">مبلغ نهایی فاکتور:</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md text-primary-container font-bold">۲۶,۱۱۹,۵۰۰</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+<!-- Primary Action Button -->
+<button class="flex-1 h-12 bg-primary-container hover:bg-secondary text-on-primary rounded-xl flex items-center justify-center gap-space-xs font-label-lg text-label-lg transition-all active:scale-[0.98] shadow-sm" id="submit-order-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+<span>تأیید و ثبت سفارش نهایی</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+  // Simple interaction for invoice details toggling
+  const taxToggle = document.getElementById('tax-toggle');
+  const invoiceDetails = document.getElementById('invoice-details');
+
+  if (taxToggle && invoiceDetails) {
+    taxToggle.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        invoiceDetails.style.display = 'block';
+        invoiceDetails.style.opacity = '1';
+      } else {
+        invoiceDetails.style.display = 'none';
+        invoiceDetails.style.opacity = '0';
+      }
+    });
+  }
+
+  // Micro-interaction button feedback
+  const orderBtn = document.getElementById('submit-order-btn');
+  if (orderBtn) {
+    orderBtn.addEventListener('click', () => {
+      orderBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">sync</span><span>در حال پردازش سفارش...</span>';
+      setTimeout(() => {
+        orderBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span><span>سفارش با موفقیت ثبت شد</span>';
+        orderBtn.classList.remove('bg-primary-container');
+        orderBtn.classList.add('bg-secondary');
+      }, 1200);
+    });
+  }
+</script></main></body></html>

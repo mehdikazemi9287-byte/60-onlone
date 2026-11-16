@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="fa"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_standard" name="shell-type"/>
+<title>۶۰ آنلاین | تسویه حساب و ثبت سفارش سازمانی</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Vazirmatn', system-ui, sans-serif;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+    
+    /* Smooth theme transitions */
+    * {
+      transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease;
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container": "#17262e",
+            "surface-tint": "#95cdf7",
+            "on-primary-fixed-variant": "#004b6f",
+            "outline-variant": "#41484e",
+            "on-surface-variant": "#8fa2ad",
+            "secondary-container": "#06429b",
+            "on-secondary": "#002c70",
+            "overlay-scrim": "rgba(11, 20, 24, 0.75)",
+            "primary": "#95cdf7",
+            "on-tertiary": "#5f1500",
+            "text-primary": "#e8eef1",
+            "tertiary-fixed": "#ffdbd1",
+            "primary-fixed": "#c9e6ff",
+            "tertiary": "#ffb59f",
+            "accent-primary": "#004e72",
+            "on-background": "#dae4ea",
+            "outline": "#8b9198",
+            "tertiary-container": "#8a2300",
+            "hairline-border": "#1f2d35",
+            "on-tertiary-container": "#ff9f84",
+            "on-error": "#690005",
+            "on-primary": "#00344e",
+            "inverse-primary": "#266489",
+            "accent-coral": "#ff6d41",
+            "error-container": "#93000a",
+            "secondary": "#b1c6ff",
+            "inverse-surface": "#dae4ea",
+            "text-secondary": "#8fa2ad",
+            "surface-container-low": "#141d21",
+            "surface-container-high": "#222b30",
+            "focus-ring": "rgba(31, 79, 168, 0.35)",
+            "surface-bright": "#313b3f",
+            "surface": "#111d23",
+            "secondary-fixed-dim": "#b1c6ff",
+            "surface-dim": "#0c1519",
+            "on-surface": "#e8eef1",
+            "on-tertiary-fixed-variant": "#862200",
+            "on-primary-fixed": "#001e2f",
+            "inverse-on-surface": "#293236",
+            "surface-container-highest": "#2d363b",
+            "surface-variant": "#2d363b",
+            "primary-fixed-dim": "#95cdf7",
+            "background": "#0b1418",
+            "primary-container": "#004e72",
+            "secondary-fixed": "#d9e2ff",
+            "on-secondary-fixed-variant": "#06429b",
+            "on-tertiary-fixed": "#3b0a00",
+            "on-primary-container": "#87bfe8",
+            "surface-container-lowest": "#070f13",
+            "on-secondary-fixed": "#001946",
+            "tertiary-fixed-dim": "#ffb59f",
+            "on-error-container": "#ffdad6",
+            "accent-electric": "#1f4fa8",
+            "error": "#ffb4ab",
+            "on-secondary-container": "#96b4ff"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "gutter-lg": "2rem",
+            "space-sm": "0.5rem",
+            "gutter-md": "1.5rem",
+            "space-md": "1rem",
+            "space-xs": "0.25rem",
+            "margin-lg": "4rem",
+            "margin-md": "2rem",
+            "margin": "1rem",
+            "space-xl": "2.5rem",
+            "gutter": "1rem",
+            "space-lg": "1.5rem"
+          },
+          fontFamily: {
+            "body-md": ["Vazirmatn", "sans-serif"],
+            "body-lg": ["Vazirmatn", "sans-serif"],
+            "label-md": ["Vazirmatn", "sans-serif"],
+            "headline-lg": ["Vazirmatn", "sans-serif"],
+            "headline-xl-mobile": ["Vazirmatn", "sans-serif"],
+            "headline-lg-mobile": ["Vazirmatn", "sans-serif"],
+            "headline-xl": ["Vazirmatn", "sans-serif"],
+            "label-lg": ["Vazirmatn", "sans-serif"],
+            "title-md": ["Vazirmatn", "sans-serif"],
+            "title-lg": ["Vazirmatn", "sans-serif"],
+            "headline-md": ["Vazirmatn", "sans-serif"],
+            "body-sm": ["Vazirmatn", "sans-serif"],
+            "label-sm": ["Vazirmatn", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-[#0b1418] font-body-md text-[#e8eef1] antialiased min-h-screen selection:bg-accent-primary selection:text-white">
+<!-- Header Navigation -->
+<header class="fixed top-0 inset-x-0 z-50 bg-[#111d23] border-b border-[#1f2d35] shadow-[0_4px_24px_rgba(0,0,0,0.45)]">
+<div class="h-28 max-w-[1440px] mx-auto px-margin-lg flex flex-col justify-between py-space-sm">
+<div class="flex items-center justify-between gap-gutter-lg h-14">
+<!-- Brand Logo & Global Search -->
+<div class="flex items-center gap-space-lg flex-1">
+<a class="flex items-center gap-space-sm select-none" data-path="store-home" href="#">
+<div class="h-10 py-0.5 flex items-center bg-[#0e171c] px-2.5 rounded-xl border border-[#1f2d35]">
+              https://lh3.googleusercontent.com/aida/ALJJyrBsekiWMMJshme7khiQYJ9mOffgSGLdLENryWIuyKl0BCfe7lMhclBOOtySHinlKV46rEP5tZPYlvcYq03fkghXiR5NNcSTI4rPxlrOQ6pItqfLiFsvw82S_7GP3gN-FMsHkagDzy8qulYUYKKDXIh57nF4zzy5ysFrmK3ipuA-25xgDhDnV-uvXw_gJMxK6F7HgwsPpoK7bJc_NFXXRHIidxXjOtKrL-xd97IBBqaY
+            </div>
+</a>
+<div class="relative flex-1 max-w-xl">
+<div class="flex items-center h-11 bg-[#141d21] rounded-xl px-space-md border border-[#1f2d35] focus-within:border-primary transition-all">
+<span class="material-symbols-outlined text-[#8fa2ad] ml-space-sm">search</span>
+<input class="w-full bg-transparent border-0 outline-none font-body-md text-[#e8eef1] placeholder:text-[#8b9198] text-[13.5px]" placeholder="جستجوی کالا، کد رهگیری، شناسه SKU کالا یا دسته‌بندی سازمانی..." type="text"/>
+<span class="material-symbols-outlined text-[#8fa2ad] hover:text-[#e8eef1] cursor-pointer mr-space-sm">barcode_scanner</span>
+</div>
+</div>
+</div>
+<!-- Right Side Utility / Theme Toggle / Profile -->
+<div class="flex items-center gap-space-md">
+<!-- Animated Day/Night Toggle Pill -->
+<button aria-label="تغییر حالت روز و شب" class="group relative flex items-center justify-between w-16 h-8 px-1 rounded-full bg-[#141d21] border border-[#1f2d35] hover:border-primary/50 cursor-pointer shadow-inner transition-colors" id="themeToggleBtn">
+<span class="material-symbols-outlined text-[16px] text-amber-400 z-10 transition-transform duration-300 group-hover:rotate-45">light_mode</span>
+<span class="material-symbols-outlined text-[15px] text-[#95cdf7] z-10 transition-transform duration-300">dark_mode</span>
+<!-- Morphing circular thumb (set to dark active by default) -->
+<span class="absolute left-1 w-6 h-6 rounded-full bg-[#004e72] border border-[#95cdf7]/40 shadow-sm flex items-center justify-center transition-all duration-300 transform translate-x-0" id="themeToggleThumb">
+<span class="w-1.5 h-1.5 rounded-full bg-[#95cdf7]"></span>
+</span>
+</button>
+<!-- B2B Organization Badge -->
+<div class="hidden xl:flex items-center gap-space-xs px-space-md py-1.5 rounded-full bg-[#141d21] border border-[#1f2d35] text-[#e8eef1] font-label-md">
+<span class="material-symbols-outlined text-[#95cdf7] text-[18px]">corporate_fare</span>
+<span class="text-[13px] font-medium">سازمان نوآور ارتباطات</span>
+</div>
+<!-- Cart Icon -->
+<a class="relative flex items-center justify-center w-10 h-10 rounded-xl bg-[#141d21] border border-[#1f2d35] hover:bg-[#17262e] text-[#8fa2ad] hover:text-[#e8eef1] transition-colors" data-path="cart-checkout" href="#">
+<span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#ff6d41] text-white font-label-sm flex items-center justify-center font-bold text-[11px] shadow-sm">۲</span>
+</a>
+<!-- User Profile Pill -->
+<div class="flex items-center gap-space-sm pl-1 pr-space-sm py-1 rounded-full bg-[#141d21] border border-[#1f2d35]">
+<span class="font-label-md text-[#e8eef1] select-none text-[13px]">سارا احتشام</span>
+<div class="w-8 h-8 rounded-full bg-[#004e72] text-[#95cdf7] flex items-center justify-center border border-[#1f4fa8]/40">
+<span class="material-symbols-outlined text-[18px]">person</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Category Nav -->
+<nav class="flex items-center justify-start gap-gutter-md h-10 border-t border-[#1f2d35]/60 overflow-x-auto text-[13px]">
+<a class="font-label-md text-[#8fa2ad] hover:text-[#95cdf7] transition-colors whitespace-nowrap" data-path="product-catalog" href="#">دسته‌بندی کالاها</a>
+<a class="font-label-md text-[#8fa2ad] hover:text-[#95cdf7] transition-colors whitespace-nowrap" data-path="corporate-bundles" href="#">پک‌های رفاهی سازمانی</a>
+<a class="font-label-md text-[#8fa2ad] hover:text-[#95cdf7] transition-colors whitespace-nowrap" data-path="essential-goods" href="#">کالاهای مصرفی و اساسی</a>
+<a class="font-label-md text-[#8fa2ad] hover:text-[#95cdf7] transition-colors whitespace-nowrap" data-path="volume-discounts" href="#">تخفیف‌های ویژه تیراژ</a>
+<a class="font-label-md text-[#8fa2ad] hover:text-[#95cdf7] transition-colors whitespace-nowrap" data-path="partner-specials" href="#">فروش ویژه همکار</a>
+<a class="font-label-md text-[#8fa2ad] hover:text-[#95cdf7] transition-colors whitespace-nowrap" data-path="official-invoice" href="#">درخواست فاکتور رسمی</a>
+<a class="font-label-md text-[#8fa2ad] hover:text-[#95cdf7] transition-colors whitespace-nowrap" data-path="recurring-contracts" href="#">قراردادهای دوره‌ای تامین</a>
+</nav>
+</div>
+</header>
+<!-- Main Content Stage -->
+<main class="w-full pt-28 bg-[#0b1418] min-h-screen">
+<div class="flex flex-col w-full">
+<div class="max-w-[1440px] mx-auto w-full px-margin-lg py-space-xl">
+<!-- Stepper Header -->
+<section class="w-full mb-space-xl">
+<div class="bg-[#111d23] rounded-xl p-space-lg border border-[#1f2d35] shadow-lg flex items-center justify-between relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-l from-primary/5 via-transparent to-transparent pointer-events-none"></div>
+<!-- Step 1: Completed -->
+<div class="flex items-center gap-space-sm z-10">
+<div class="w-10 h-10 rounded-full bg-[#1f4fa8] text-white flex items-center justify-center font-bold shadow-md ring-2 ring-primary/20">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-[#95cdf7] font-semibold text-[12px]">مرحله ۱ (تکمیل شد)</span>
+<span class="font-title-md text-[#e8eef1] font-bold">سبد خرید</span>
+</div>
+</div>
+<div class="flex-1 h-0.5 bg-[#1f4fa8]/40 mx-space-md"></div>
+<!-- Step 2: Active -->
+<div class="flex items-center gap-space-sm z-10">
+<div class="w-10 h-10 rounded-full bg-[#004e72] text-[#95cdf7] flex items-center justify-center font-bold shadow-md ring-4 ring-[#004e72]/50 border border-primary/40">
+<span class="font-headline-md leading-none text-white">۲</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-[#95cdf7] font-bold text-[12px]">مرحله جاری</span>
+<span class="font-title-md text-[#e8eef1] font-bold">نشانی و زمان ارسال</span>
+</div>
+</div>
+<div class="flex-1 h-0.5 bg-[#1f2d35] mx-space-md"></div>
+<!-- Step 3: Upcoming -->
+<div class="flex items-center gap-space-sm z-10 opacity-50">
+<div class="w-10 h-10 rounded-full bg-[#141d21] border border-[#1f2d35] text-[#8fa2ad] flex items-center justify-center font-bold">
+<span class="font-headline-md leading-none">۳</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-[#8fa2ad] text-[12px]">مرحله نهایی</span>
+<span class="font-title-md text-[#8fa2ad]">پرداخت و فاکتور نهایی</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Two-Column Layout -->
+<div class="grid grid-cols-12 gap-gutter-lg items-start">
+<!-- Right Column: Form Steps (8 Cols) -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-space-lg">
+<!-- Card 1: Address -->
+<div class="bg-[#111d23] rounded-xl p-space-lg border border-[#1f2d35] shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[#95cdf7] text-[24px]">location_on</span>
+<h2 class="font-title-lg text-[#e8eef1] font-bold">نشانی تحویل‌گیرنده و انبار سازمانی</h2>
+</div>
+<button class="flex items-center gap-space-xs text-[#95cdf7] hover:text-white font-label-md transition-colors text-[13px]">
+<span class="material-symbols-outlined text-[18px]">add_location_alt</span>
+<span>+ ثبت نشانی انبار جدید</span>
+</button>
+</div>
+<div class="bg-[#0b1418] rounded-xl p-space-md border border-[#1f2d35] relative overflow-hidden transition-all">
+<div class="flex items-start justify-between gap-space-md">
+<div class="flex gap-space-md items-start">
+<div class="w-6 h-6 rounded-full bg-[#004e72] text-[#95cdf7] flex items-center justify-center mt-1 flex-shrink-0 border border-[#95cdf7]/30">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-title-md text-[#e8eef1] font-bold">شرکت نوآوران ارتباطات (دفتر مرکزی)</span>
+<span class="bg-[#004e72]/60 text-[#95cdf7] border border-[#004e72] font-label-sm px-space-sm py-0.5 rounded-full text-[11px] font-semibold">پیش‌فرض سازمان</span>
+</div>
+<p class="font-body-md text-[#8fa2ad] leading-relaxed text-[13.5px]">
+                        تهران، میدان ونک، خیابان ملاصدرا، پلاک ۴۲، طبقه ۴، واحد ۸
+                      </p>
+<div class="flex items-center gap-space-lg mt-space-xs font-label-md text-[#8fa2ad] text-[12.5px] flex-wrap">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#8fa2ad] text-[16px]">person</span>
+<span class="text-[#e8eef1]">مهندس سارا احتشام</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#8fa2ad] text-[16px]">call</span>
+<span class="tracking-wide dir-ltr text-[#e8eef1]">۰۹۱۲۱۲۳۴۵۶۷</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#8fa2ad] text-[16px]">warehouse</span>
+<span class="text-[#e8eef1]">کد انبار: WH-TEH-04</span>
+</div>
+</div>
+</div>
+</div>
+<button class="px-space-md py-space-xs rounded-lg bg-[#141d21] hover:bg-[#17262e] border border-[#1f2d35] text-[#95cdf7] font-label-md transition-colors flex-shrink-0 text-[12.5px]">
+                    تغییر یا ویرایش
+                  </button>
+</div>
+</div>
+</div>
+<!-- Card 2: Schedule & Delivery Method -->
+<div class="bg-[#111d23] rounded-xl p-space-lg border border-[#1f2d35] shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[#95cdf7] text-[24px]">local_shipping</span>
+<h2 class="font-title-lg text-[#e8eef1] font-bold">انتخاب شیوه و زمان‌بندی ارسال</h2>
+</div>
+<span class="font-label-sm bg-[#141d21] border border-[#1f2d35] px-space-sm py-1 rounded-full text-[#8fa2ad] text-[12px]">
+                  ارسال با پروتکل لجستیک ویژه ۶۰
+                </span>
+</div>
+<div class="flex flex-col gap-space-sm" id="shipping-options">
+<!-- Option 1: Selected (Cyan/Petrol Active) -->
+<label class="flex items-start gap-space-md p-space-md rounded-xl bg-[#004e72]/20 border-2 border-[#004e72] cursor-pointer transition-all hover:bg-[#004e72]/30">
+<input checked="" class="mt-1.5 w-5 h-5 accent-[#95cdf7] cursor-pointer" name="shipping_slot" type="radio"/>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="font-title-md text-[#e8eef1] font-bold">چهارشنبه ۱۶ اسفند - ساعت ۹ الی ۱۳</span>
+<span class="bg-[#004e72] text-[#95cdf7] border border-[#95cdf7]/30 font-label-sm px-space-sm py-0.5 rounded-full font-bold text-[11px]">توصیه شده سازمانی</span>
+</div>
+<span class="font-label-md text-[#95cdf7] font-bold">رایگان برای سفارش شرکتی</span>
+</div>
+<p class="font-body-sm text-[#8fa2ad] text-[12.5px] leading-relaxed">
+                      تحویل ویژه سازمانی با ون مجهز، بارکد پلمب، تخلیه در محل بارانداز و انطباق استاندارد بازرسی کالا
+                    </p>
+</div>
+</label>
+<!-- Option 2 -->
+<label class="flex items-start gap-space-md p-space-md rounded-xl bg-[#0b1418] border border-[#1f2d35] cursor-pointer transition-all hover:border-[#41484e]">
+<input class="mt-1.5 w-5 h-5 accent-[#95cdf7] cursor-pointer" name="shipping_slot" type="radio"/>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-[#e8eef1] font-bold">پنج‌شنبه ۱۷ اسفند - ساعت ۱۴ الی ۱۸</span>
+<span class="font-label-md text-[#8fa2ad]">رایگان</span>
+</div>
+<p class="font-body-sm text-[#8fa2ad] text-[12.5px]">
+                      ناوگان حمل استاندارد تهران با ارائه برگه تحویل فیزیکی اقلام
+                    </p>
+</div>
+</label>
+<!-- Option 3 -->
+<label class="flex items-start gap-space-md p-space-md rounded-xl bg-[#0b1418] border border-[#1f2d35] cursor-pointer transition-all hover:border-[#41484e]">
+<input class="mt-1.5 w-5 h-5 accent-[#95cdf7] cursor-pointer" name="shipping_slot" type="radio"/>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-[#e8eef1] font-bold">شنبه ۱۹ اسفند - نوبت صبح</span>
+<span class="font-label-md text-[#8fa2ad]">رایگان</span>
+</div>
+<p class="font-body-sm text-[#8fa2ad] text-[12.5px]">
+                      تحویل هماهنگ با انبار مرکزی شرکت همراه با پالت‌بندی اختصاصی
+                    </p>
+</div>
+</label>
+</div>
+</div>
+<!-- Card 3: Tax & Official Invoice (B2B Moadian) -->
+<div class="bg-[#111d23] rounded-xl p-space-lg border border-[#1f2d35] shadow-sm">
+<div class="flex items-center justify-between mb-space-md flex-wrap gap-2">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[#95cdf7] text-[24px]">receipt_long</span>
+<h2 class="font-title-lg text-[#e8eef1] font-bold">اطلاعات فاکتور رسمی سامانه مودیان (B2B)</h2>
+</div>
+<!-- Toggle Switch for Moadian -->
+<div class="flex items-center gap-space-sm bg-[#141d21] border border-[#1f2d35] px-space-md py-1.5 rounded-full cursor-pointer select-none">
+<span class="font-label-md text-[#e8eef1] font-semibold text-[12.5px]">صدور فاکتور رسمی مالیاتی حقوقی</span>
+<div class="w-10 h-6 bg-[#004e72] rounded-full p-1 flex items-center justify-end">
+<div class="w-4 h-4 rounded-full bg-[#95cdf7] shadow-sm"></div>
+</div>
+</div>
+</div>
+<div class="bg-[#0b1418] rounded-xl p-space-md border border-[#1f2d35]">
+<div class="flex items-center justify-between pb-space-sm mb-space-sm bg-[#141d21] border border-[#1f2d35] px-space-md py-space-xs rounded-lg flex-wrap gap-2">
+<div class="flex items-center gap-space-xs text-[#95cdf7] font-label-md font-bold text-[13px]">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>پروفایل مالیاتی تایید شده سازمان امور مالیاتی کشور</span>
+</div>
+<span class="font-label-sm text-[#8fa2ad] font-mono text-[12px]">شناسه یکتا سامانه مودیان: TX-884920</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter-md pt-2">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-[#8fa2ad] text-[12px]">نام کامل شخصیت حقوقی:</span>
+<span class="font-title-md text-[#e8eef1] font-bold text-[14px]">شرکت فناوران نوآور آینده (سهامی خاص)</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-[#8fa2ad] text-[12px]">شناسه ملی حقوقی:</span>
+<span class="font-title-md text-[#95cdf7] font-bold tracking-wider font-mono text-[14px]">۱۰۱۰۳۴۹۸۲۱</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-[#8fa2ad] text-[12px]">کد اقتصادی:</span>
+<span class="font-title-md text-[#95cdf7] font-bold tracking-wider font-mono text-[14px]">۴۱۱۴۹</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Payment Options -->
+<div class="bg-[#111d23] rounded-xl p-space-lg border border-[#1f2d35] shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[#95cdf7] text-[24px]">account_balance_wallet</span>
+<h2 class="font-title-lg text-[#e8eef1] font-bold">شیوه پرداخت</h2>
+</div>
+<span class="font-label-sm text-[#8fa2ad] flex items-center gap-space-xs text-[12px]">
+<span class="material-symbols-outlined text-[#95cdf7] text-[16px]">lock</span>
+                  تراکنش رمزنگاری‌شده و رسمی
+                </span>
+</div>
+<div class="flex flex-col gap-space-md" id="payment-methods">
+<!-- Option 1: Credit 30 Days (Selected Active) -->
+<label class="flex items-start gap-space-md p-space-md rounded-xl bg-[#004e72]/20 border-2 border-[#004e72] cursor-pointer transition-all hover:bg-[#004e72]/30">
+<input checked="" class="mt-2 w-5 h-5 accent-[#95cdf7] cursor-pointer" name="payment_type" type="radio"/>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center justify-between flex-wrap gap-1">
+<div class="flex items-center gap-space-sm">
+<span class="font-title-md text-[#e8eef1] font-bold">اعتبار ۳۰ روزه شرکتی (تسهیلات اختصاصی ۶۰)</span>
+<span class="bg-[#004e72] text-[#95cdf7] border border-[#95cdf7]/30 font-label-sm px-space-sm py-0.5 rounded-full font-bold text-[11px]">تأیید شده</span>
+</div>
+<span class="font-label-md text-[#95cdf7] font-bold">سقف فعال: ۵۰,۰۰۰,۰۰۰ تومان</span>
+</div>
+<p class="font-body-sm text-[#8fa2ad] text-[12.5px] leading-relaxed">
+                      تسویه اقساطی بدون کارمزد با سررسید رسمی ۱۵ فروردین ۱۴۰۳ - ارسال خودکار به کارپوشه سامانه مودیان
+                    </p>
+</div>
+</label>
+<!-- Option 2: Corporate Wallet -->
+<label class="flex items-start gap-space-md p-space-md rounded-xl bg-[#0b1418] border border-[#1f2d35] cursor-pointer transition-all hover:border-[#41484e]">
+<input class="mt-2 w-5 h-5 accent-[#95cdf7] cursor-pointer" name="payment_type" type="radio"/>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-[#e8eef1] font-bold">کیف پول سازمانی و اعتباری ۶۰</span>
+<span class="font-label-md text-[#8fa2ad]">موجودی: ۱۵,۲۰۰,۰۰۰ تومان</span>
+</div>
+<p class="font-body-sm text-[#8fa2ad] text-[12.5px]">
+                      کسر آنی از شارژ تنخواه شرکتی بدون نیاز به تایید دومرحله‌ای بانکی
+                    </p>
+</div>
+</label>
+<!-- Option 3: Online Gateway -->
+<label class="flex items-start gap-space-md p-space-md rounded-xl bg-[#0b1418] border border-[#1f2d35] cursor-pointer transition-all hover:border-[#41484e]">
+<input class="mt-2 w-5 h-5 accent-[#95cdf7] cursor-pointer" name="payment_type" type="radio"/>
+<div class="flex flex-col gap-space-xs flex-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-[#e8eef1] font-bold">درگاه پرداخت اینترنتی شاپرک</span>
+<span class="font-label-sm text-[#8fa2ad]">بانک ملت / بانک سامان</span>
+</div>
+<p class="font-body-sm text-[#8fa2ad] text-[12.5px]">
+                      پرداخت مستقیم شتابی از کلیه کارت‌های بانکی عضو شبکه شتاب با فیش دیجیتال
+                    </p>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Left Column: Order Summary (4 Cols, Sticky) -->
+<div class="col-span-12 lg:col-span-4 sticky top-32 flex flex-col gap-space-md">
+<div class="bg-[#111d23] rounded-xl p-space-lg border border-[#1f2d35] shadow-lg">
+<div class="flex items-center justify-between mb-space-md pb-space-sm border-b border-[#1f2d35]">
+<h3 class="font-title-lg text-[#e8eef1] font-bold">خلاصه سفارش</h3>
+<span class="font-label-md bg-[#141d21] border border-[#1f2d35] text-[#95cdf7] px-space-sm py-0.5 rounded-full font-bold text-[12px]">
+                  ۳ قلم کالا
+                </span>
+</div>
+<!-- Compact Item Preview (3 Items) -->
+<div class="flex flex-col gap-space-sm mb-space-lg pb-space-md border-b border-[#1f2d35]">
+<!-- Item 1 -->
+<div class="flex items-center gap-space-sm p-1.5 rounded-lg hover:bg-[#141d21]/60 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-[#0b1418] border border-[#1f2d35] overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Corporate welfare package coffee and premium tea assortment set on professional packaging in a bright modern studio setting with warm navy and orange highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCOFL_uO4-cuOoS5NyjtLMbIuQWuGRFG_a7L5LVVcwZdDW4ManhDH1j3LuPkoQrJV4ub-8tVIAHVijv_8pFxa3G5cx5hl53FeVU2GuswyFih5XmwtBwZfycGeclib8ZEv6J8zpNXBGmss9FXSazckekKvx4-NdDqfOj_-TVnZq0kO6hd-6iaqTnbDGaOsPYkHQS2KuKu9U9Bpq2C8gB5ulxkKLx16WDaGVI3ZU5O8"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<span class="font-label-lg text-[#e8eef1] truncate text-[13px]">بسته رفاهی ملزومات مصرفی اداری - پک اعلا</span>
+<span class="font-label-sm text-[#8fa2ad] text-[11px]">تعداد: ۲۰ بسته • تامین‌کننده: بازرگانی پارس</span>
+</div>
+<span class="font-label-md text-[#95cdf7] font-bold flex-shrink-0 text-[13px]">۱۸,۰۰۰,۰۰۰</span>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-space-sm p-1.5 rounded-lg hover:bg-[#141d21]/60 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-[#0b1418] border border-[#1f2d35] overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="High volume natural mineral water and beverage bulk cartons arranged in warehouse pallet distribution packaging with corporate labels" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcrUdFP0hKzAujJ25SmAR5K9LxaMiBaxN6TK5o1tpLxPxPMnOKTjOjW8qxPcef1afrsKjkNQs8a_NXXLcUMyu92oDAAKmsMQJg3sMyL3t5ARTB-3OJGrAnlm2mUJhuWXzU61K6GNBG3edHxfknynvOp-ssZ9JBi_agJX46jCiBJ5zcz5a9MvazGM_xNpWuTbZuw17AAS7fNQ_dwo_uSSM2bIchlAX9GHcRvm_9lBw"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<span class="font-label-lg text-[#e8eef1] truncate text-[13px]">پک آبمیوه طبیعی و نوشیدنی انرژی‌زا سازمانی</span>
+<span class="font-label-sm text-[#8fa2ad] text-[11px]">تعداد: ۱۰ کارتن • تیراژ عمده</span>
+</div>
+<span class="font-label-md text-[#95cdf7] font-bold flex-shrink-0 text-[13px]">۷,۲۵۰,۰۰۰</span>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-space-sm p-1.5 rounded-lg hover:bg-[#141d21]/60 transition-colors">
+<div class="w-12 h-12 rounded-lg bg-[#0b1418] border border-[#1f2d35] overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Eco-friendly office cleaning paper rolls and industrial hygiene supplies packed neatly with barcodes in corporate supply room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy1Lc8CtNHgvyzhojQaqfvLoHfGeeyGPdrkNHCzmRKLkn72oaIZ4seGcZ7fzZaIgLVSSxwt8j-4rw8lI3qsm3IK4xxTJpcxT5jvj4mmYbBHX7bkh7uUAqwFvZ2cQ2ezf9_6kbXg6ms-DDn0eCResbYd20yY15v1BhU8z1Mbz0TR9r0B1ps3VxWhhmD1E8pag4k2m6a4OuBKC1p5yCyz3-Mdo2HgwyRFnXEcy0tvOs"/>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<span class="font-label-lg text-[#e8eef1] truncate text-[13px]">مجموعه ملزومات بهداشتی و نظافتی ارگونومیک</span>
+<span class="font-label-sm text-[#8fa2ad] text-[11px]">تعداد: ۵ سری • انبار مرکزی</span>
+</div>
+<span class="font-label-md text-[#95cdf7] font-bold flex-shrink-0 text-[13px]">۶,۵۰۰,۰۰۰</span>
+</div>
+</div>
+<!-- Price Calculations -->
+<div class="flex flex-col gap-space-sm font-body-md text-[13.5px]">
+<div class="flex items-center justify-between text-[#8fa2ad]">
+<span>مجموع اقلام سبد</span>
+<span class="font-title-md text-[#e8eef1] font-bold">۳۱,۷۵۰,۰۰۰ تومان</span>
+</div>
+<!-- Savings Highlight with Coral Accent #ff6d41 -->
+<div class="flex items-center justify-between text-[#ff6d41]">
+<span class="flex items-center gap-space-xs font-bold">
+<span class="material-symbols-outlined text-[18px]">percent</span>
+                    تخفیف و صرفه‌جویی سازمانی
+                  </span>
+<span class="font-title-md font-bold tracking-tight">- ۵,۶۳۰,۵۰۰ تومان</span>
+</div>
+<div class="flex items-center justify-between text-[#8fa2ad]">
+<span>هزینه بسته‌بندی و ارسال اختصاصی</span>
+<span class="font-label-sm text-[#95cdf7] font-bold bg-[#004e72]/60 border border-[#004e72] px-space-sm py-0.5 rounded-full text-[11px]">رایگان (سفارش سازمانی)</span>
+</div>
+<div class="flex items-center justify-between text-[#8fa2ad]">
+<span>مالیات بر ارزش افزوده (۱۰٪)</span>
+<span class="font-body-md text-[#e8eef1] font-bold">۷۹۹,۵۰۰ تومان</span>
+</div>
+<div class="h-0.5 bg-[#1f2d35] my-space-xs"></div>
+<div class="flex items-center justify-between pt-space-xs">
+<span class="font-title-md text-[#e8eef1] font-bold">مبلغ نهایی قابل پرداخت:</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-lg text-[#95cdf7] font-black text-[24px]">۲۶,۱۱۹,۵۰۰</span>
+<span class="font-label-md text-[#8fa2ad]">تومان</span>
+</div>
+</div>
+</div>
+<!-- Checkout CTA Button -->
+<div class="mt-space-lg">
+<button class="w-full h-12 py-space-md bg-[#004e72] hover:bg-[#1f4fa8] text-white rounded-full font-title-md font-bold transition-all flex items-center justify-center gap-space-sm shadow-lg shadow-cyan-950/40 active:scale-[0.98] border border-[#95cdf7]/30">
+<span>تأیید نهایی و ثبت سفارش اعتباری</span>
+<span class="material-symbols-outlined text-[20px] rotate-180">arrow_back</span>
+</button>
+</div>
+<!-- Trust Badges -->
+<div class="mt-space-lg pt-space-md border-t border-[#1f2d35] flex flex-col gap-space-sm font-label-sm text-[#8fa2ad] text-[12px]">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#95cdf7] text-[18px]">shield</span>
+<span>تضمین رسمی اصالت کالا و انطباق استاندارد بازرسی</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#95cdf7] text-[18px]">security</span>
+<span>انطباق کامل مالیاتی ماده ۱۶۹ مکرر قانون مالیات‌های مستقیم</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[#95cdf7] text-[18px]">published_with_changes</span>
+<span>ضمانت بازگشت و عودت کالا تا ۷۲ ساعت کاری پس از تحویل</span>
+</div>
+</div>
+</div>
+<!-- Help Notice Card -->
+<div class="bg-[#111d23] rounded-xl p-space-md border border-[#1f2d35] flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-[#141d21] border border-[#1f2d35] flex items-center justify-center text-[#95cdf7]">
+<span class="material-symbols-outlined text-[20px]">support_agent</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-[#e8eef1] font-bold text-[13px]">نیاز به هماهنگی پیش‌فاکتور دارید؟</span>
+<span class="font-label-sm text-[#8fa2ad] text-[11.5px]">کارشناس حسابداری سازمان شما آماده پاسخگویی است</span>
+</div>
+</div>
+<button class="font-label-sm text-[#95cdf7] hover:underline font-bold text-[12.5px]">تماس مستقیم</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Dark Footer -->
+<footer class="w-full bg-[#111d23] border-t border-[#1f2d35] py-space-xl">
+<div class="max-w-[1440px] mx-auto px-margin-lg">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter-lg pb-space-xl border-b border-[#1f2d35]">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="h-9 py-0.5 flex items-center bg-[#0e171c] px-2 rounded-lg border border-[#1f2d35]">
+              https://lh3.googleusercontent.com/aida/ALJJyrBsekiWMMJshme7khiQYJ9mOffgSGLdLENryWIuyKl0BCfe7lMhclBOOtySHinlKV46rEP5tZPYlvcYq03fkghXiR5NNcSTI4rPxlrOQ6pItqfLiFsvw82S_7GP3gN-FMsHkagDzy8qulYUYKKDXIh57nF4zzy5ysFrmK3ipuA-25xgDhDnV-uvXw_gJMxK6F7HgwsPpoK7bJc_NFXXRHIidxXjOtKrL-xd97IBBqaY
+            </div>
+</div>
+<p class="font-body-sm text-[#8fa2ad] leading-relaxed text-[12.5px]">
+            پلتفرم تخصصی تامین هوشمند، زنجیره اقلام مصرفی خانوار و تدارکات رسمی بنگاه‌های تجاری و صنعتی کشور با ضمانت رسمی اصالت کالا و انطباق استاندارد مالیاتی.
+          </p>
+</div>
+<div class="flex flex-col gap-space-sm text-[13px]">
+<span class="font-title-md text-[#e8eef1] font-bold mb-1">خدمات شرکتی و سازمانی</span>
+<a class="font-body-sm text-[#8fa2ad] hover:text-[#95cdf7] transition-colors" data-path="corporate-bundles" href="#">صدور پیش‌فاکتور سامانه مودیان</a>
+<a class="font-body-sm text-[#8fa2ad] hover:text-[#95cdf7] transition-colors" data-path="volume-discounts" href="#">تسهیلات خرید اعتباری و تجمیعی</a>
+<a class="font-body-sm text-[#8fa2ad] hover:text-[#95cdf7] transition-colors" data-path="recurring-contracts" href="#">پشتیبانی زنجیره تامین دوره‌ای</a>
+</div>
+<div class="flex flex-col gap-space-sm text-[13px]">
+<span class="font-title-md text-[#e8eef1] font-bold mb-1">راهنما و شفافیت حقوقی</span>
+<a class="font-body-sm text-[#8fa2ad] hover:text-[#95cdf7] transition-colors" data-path="store-home" href="#">شرایط گارانتی و عودت کالا</a>
+<a class="font-body-sm text-[#8fa2ad] hover:text-[#95cdf7] transition-colors" data-path="store-home" href="#">حفظ حریم خصوصی و امنیت داده‌ها</a>
+<a class="font-body-sm text-[#8fa2ad] hover:text-[#95cdf7] transition-colors" data-path="store-home" href="#">پروتکل‌های انبارش و تحویل سریع</a>
+</div>
+<div class="flex flex-col gap-space-md">
+<span class="font-title-md text-[#e8eef1] font-bold">مجوزها و تاییدیه رسمی</span>
+<div class="flex items-center gap-space-md">
+<div class="w-20 h-20 rounded-xl bg-[#0b1418] border border-[#1f2d35] flex items-center justify-center text-center p-space-xs">
+<span class="font-label-sm text-[#8fa2ad] text-[11px]">نماد اعتماد الکترونیکی</span>
+</div>
+<div class="w-20 h-20 rounded-xl bg-[#0b1418] border border-[#1f2d35] flex items-center justify-center text-center p-space-xs">
+<span class="font-label-sm text-[#8fa2ad] text-[11px]">نشان ساماندهی تجارت</span>
+</div>
+<div class="w-20 h-20 rounded-xl bg-[#0b1418] border border-[#1f2d35] flex items-center justify-center text-center p-space-xs">
+<span class="font-label-sm text-[#8fa2ad] text-[11px]">عضو اتحادیه کسب‌وکار</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col md:flex-row items-center justify-between gap-space-md pt-space-lg text-[12px]">
+<span class="font-body-sm text-[#8fa2ad]">کلیه حقوق مادی و معنوی این پلتفرم متعلق به سامانه تجارت دیجیتال «۶۰ آنلاین» می‌باشد.</span>
+<span class="font-label-sm text-[#8fa2ad]/60 font-mono">نسخه سازمانی ۲.۴.۰ | ۱۴۰۳ (Dark Mode)</span>
+</div>
+</div>
+</footer>
+<!-- Interactive Day/Night Circular Reveal & Toggle Script -->
+<script>
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const thumb = document.getElementById('themeToggleThumb');
+    let isDark = true;
+
+    themeBtn.addEventListener('click', (e) => {
+      isDark = !isDark;
+      
+      // Animate Thumb
+      if (isDark) {
+        thumb.style.transform = 'translateX(0px)';
+        thumb.classList.remove('bg-amber-500', 'border-amber-300');
+        thumb.classList.add('bg-[#004e72]', 'border-[#95cdf7]/40');
+        document.documentElement.classList.add('dark');
+      } else {
+        thumb.style.transform = 'translateX(-32px)';
+        thumb.classList.remove('bg-[#004e72]', 'border-[#95cdf7]/40');
+        thumb.classList.add('bg-amber-500', 'border-amber-300');
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Circular ripple / transition effect
+      const circle = document.createElement('div');
+      const rect = themeBtn.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      
+      circle.style.position = 'fixed';
+      circle.style.top = `${y}px`;
+      circle.style.left = `${x}px`;
+      circle.style.width = '10px';
+      circle.style.height = '10px';
+      circle.style.borderRadius = '50%';
+      circle.style.transform = 'translate(-50%, -50%)';
+      circle.style.pointerEvents = 'none';
+      circle.style.zIndex = '9999';
+      circle.style.transition = 'transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s ease';
+      circle.style.backgroundColor = isDark ? '#0b1418' : '#ffffff';
+      circle.style.opacity = '0.35';
+
+      document.body.appendChild(circle);
+
+      requestAnimationFrame(() => {
+        circle.style.transform = 'translate(-50%, -50%) scale(300)';
+        circle.style.opacity = '0';
+      });
+
+      setTimeout(() => {
+        circle.remove();
+      }, 650);
+    });
+  </script>
+</body></html>

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn,+Sahel,+Shabnam,+system-ui:wght@100..900&amp;display=swap" rel="stylesheet"/><style id="dark-theme-override">
+  body {
+    background-color: #0B1418 !important;
+    color: #E8EEF1 !important;
+  }
+  aside {
+    background-color: #0E171C !important;
+    border-color: #1F2D35 !important;
+  }
+  header {
+    background-color: #0E171C !important;
+    border-color: #1F2D35 !important;
+  }
+  main {
+    background-color: #0B1418 !important;
+  }
+  .bg-surface-container-lowest, .bg-surface, .bg-surface-container-low {
+    background-color: #111D23 !important;
+  }
+  .border-surface-container, .border-surface-container-low, .border-t, .border-b, .border-l {
+    border-color: #1F2D35 !important;
+  }
+  .text-primary, .text-on-surface {
+    color: #E8EEF1 !important;
+  }
+  .text-on-surface-variant, .text-outline {
+    color: #8FA2AD !important;
+  }
+  .text-secondary {
+    color: #63B3ED !important;
+  }
+  .bg-primary-container {
+    background-color: #004E72 !important;
+    color: #FFFFFF !important;
+  }
+  .bg-secondary-fixed\/50, .bg-secondary-fixed\/30, .bg-surface-container-high {
+    background-color: #162731 !important;
+  }
+  .bg-surface-container {
+    background-color: #1A2832 !important;
+  }
+  .divide-surface-container > * + * {
+    border-color: #1F2D35 !important;
+  }
+  input {
+    color: #E8EEF1 !important;
+  }
+  input::placeholder {
+    color: #617582 !important;
+  }
+</style><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "tertiary-fixed-dim": "#ffb59f", "on-surface-variant": "#42474b", "tertiary": "#250400", "primary": "#00111a", "tertiary-fixed": "#ffdbd1", "secondary-fixed": "#c9e6ff", "surface-container-low": "#f3f3f3", "tertiary-container": "#4a0f00", "surface-container-lowest": "#ffffff", "on-tertiary": "#ffffff", "on-surface": "#1a1c1c", "surface-variant": "#e2e2e2", "error-container": "#ffdad6", "on-secondary-fixed-variant": "#004b6f", "on-secondary-fixed": "#001e2f", "on-secondary": "#ffffff", "secondary-container": "#9ed5ff", "outline": "#73787c", "on-error": "#ffffff", "on-secondary-container": "#1d5d82", "secondary": "#266489", "on-tertiary-container": "#eb5f34", "primary-container": "#0a2735", "surface-dim": "#dadada", "error": "#ba1a1a", "surface-container": "#eeeeee", "surface": "#f9f9f9", "secondary-fixed-dim": "#95cdf7", "on-primary": "#ffffff", "on-tertiary-fixed-variant": "#862200", "surface-container-highest": "#e2e2e2", "on-primary-fixed-variant": "#304a59", "inverse-on-surface": "#f1f1f1", "surface-bright": "#f9f9f9", "on-error-container": "#93000a", "on-tertiary-fixed": "#3b0a00", "primary-fixed": "#cbe6f9", "surface-container-high": "#e8e8e8", "surface-tint": "#486272", "on-primary-container": "#758fa0", "inverse-primary": "#afcadd", "on-primary-fixed": "#011e2c", "outline-variant": "#c2c7cc", "on-background": "#1a1c1c", "background": "#f9f9f9", "primary-fixed-dim": "#afcadd", "inverse-surface": "#2f3131" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-sm": "0.5rem", "gutter": "1rem", "space-lg": "1.5rem", "space-md": "1rem", "margin": "1rem", "margin-lg": "4rem", "space-xs": "0.25rem", "gutter-md": "1.5rem", "margin-md": "2rem", "space-xl": "2.5rem", "gutter-lg": "2rem" }, "fontFamily": { "label-sm": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-xl": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "label-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "label-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-lg-mobile": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-sm": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-xl-mobile": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "title-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "title-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""] }, "fontSize": { "label-sm": ["11px", {"lineHeight": "16px", "fontWeight": "500"}], "headline-xl": ["36px", {"lineHeight": "52px", "fontWeight": "800"}], "label-md": ["12px", {"lineHeight": "18px", "fontWeight": "500"}], "label-lg": ["14px", {"lineHeight": "20px", "fontWeight": "600"}], "headline-md": ["20px", {"lineHeight": "32px", "fontWeight": "700"}], "headline-lg-mobile": ["22px", {"lineHeight": "34px", "fontWeight": "700"}], "body-lg": ["16px", {"lineHeight": "28px", "fontWeight": "400"}], "body-sm": ["12px", {"lineHeight": "20px", "fontWeight": "400"}], "body-md": ["14px", {"lineHeight": "24px", "fontWeight": "400"}], "headline-xl-mobile": ["26px", {"lineHeight": "38px", "fontWeight": "800"}], "headline-lg": ["28px", {"lineHeight": "42px", "fontWeight": "700"}], "title-md": ["16px", {"lineHeight": "26px", "fontWeight": "600"}], "title-lg": ["18px", {"lineHeight": "28px", "fontWeight": "600"}] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased"><aside class="fixed right-0 top-0 h-full w-64 bg-surface-container-lowest border-l border-surface-container z-50 flex flex-col justify-between py-space-lg px-space-md"><div class="flex flex-col gap-space-lg"><div class="flex items-center gap-space-sm px-space-xs"><div class="w-10 h-10 rounded-xl bg-[#004E72] border border-[#1F4FA8]/50 flex items-center justify-center shadow-md"><span class="text-white font-headline-md leading-none font-black">۶۰</span></div><div class="flex flex-col"><span class="font-title-md text-[#E8EEF1] font-extrabold tracking-tight">پرتال سازمانی ۶۰</span><span class="font-label-sm text-[#8FA2AD]">سامانه مدیریت تدارکات B2B</span></div></div><nav class="flex flex-col gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-bold rounded-xl"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="org-dashboard" href="#"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="font-label-lg">میز کار سازمانی</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm transition-colors bg-primary-container text-on-primary font-bold rounded-xl" data-path="corporate-orders" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span class="font-label-lg">سفارش‌ها و پیش‌فاکتورها</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="procurement-contracts" href="#"><span class="material-symbols-outlined text-[20px]">history_edu</span><span class="font-label-lg">قراردادهای تامین دوره‌ای</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="credit-billing" href="#"><span class="material-symbols-outlined text-[20px]">account_balance_wallet</span><span class="font-label-lg">اعتبار و اسناد مالیاتی</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="organization-settings" href="#"><span class="material-symbols-outlined text-[20px]">tune</span><span class="font-label-lg">تنظیمات و دسترسی‌ها</span></a></nav></div><div class="flex flex-col gap-space-md border-t border-surface-container-low pt-space-md"><div class="p-space-sm bg-[#111D23] border border-[#1F2D35] rounded-xl flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-sm text-[#8FA2AD]">وضعیت حساب حقوقی</span><span class="font-label-sm text-[#FFB59F] font-bold bg-[#4A0F00]/50 px-2 py-0.5 rounded-full border border-[#FF6D41]/30">طلایی</span></div><span class="font-label-md text-[#E8EEF1] font-bold truncate">سازمان نوآور ارتباطات</span></div><div class="flex items-center justify-between px-space-xs"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-[#004E72] flex items-center justify-center text-white"><span class="material-symbols-outlined text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-[#E8EEF1] font-semibold">سارا احتشام</span><span class="font-label-sm text-[#8FA2AD]">مدیر تدارکات</span></div></div><a class="flex items-center justify-center text-[#8FA2AD] hover:text-[#BA1A1A] transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[20px]">logout</span></a></div></div></aside><div class="pr-64"><header class="fixed top-0 right-64 left-0 h-16 bg-surface-container-lowest border-b border-surface-container z-40 flex items-center justify-between px-space-xl shadow-[0_1px_8px_rgba(0,0,0,0.02)]"><div class="flex items-center gap-space-sm text-on-surface-variant font-label-md"><div class="flex items-center gap-space-md"><div class="bg-white/95 rounded-lg px-2.5 py-1 border border-[#1F2D35] flex items-center shadow-sm"><img alt="Official Logo 60Online" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrDU5RaDkM0_qsMLi16tQ0gZuoBYotdKkPTJ2_PK8tO1ouEHOQ6Vks-zuWDUIGm563DwPBO6ZJ_3TucOBx3jmMsa8ymz2HZALqojB4yjauJjnrcmhUrT-NrmF_DW-Y2edUZkPRl_snFO0vwfhEZ37q-l4AynwEubX826TqfYVVywZe1vXMlWBeHDwCdtMaKew3xWAH0GPUR3_q5TCL4ZxONOTMrC3qCBz2GzU4eYiMu7"/></div><div class="h-5 w-[1px] bg-[#1F2D35]"></div><div class="flex items-center gap-space-xs text-[#8FA2AD] font-label-md"><span class="hover:text-[#E8EEF1] transition-colors cursor-pointer">سامانه سازمانی</span><span class="material-symbols-outlined text-[16px] scale-x-[-1]">chevron_left</span><span class="text-[#E8EEF1] font-bold">تدارکات و مدیریت سفارش‌ها</span></div></div></div><div class="flex items-center gap-space-lg"><div class="relative w-80"><div class="flex items-center h-10 bg-[#111D23] rounded-xl px-space-sm border border-[#1F2D35]"><span class="material-symbols-outlined text-[#8FA2AD] ml-space-xs text-[18px]">search</span><input class="w-full bg-transparent border-0 outline-none font-body-sm text-[#E8EEF1] placeholder-[#617582]" placeholder="جستجو در فاکتورها، اقلام یا قراردادها..." type="text"/></div></div><div class="relative"><button class="w-10 h-10 rounded-xl bg-[#111D23] hover:bg-[#1A2832] border border-[#1F2D35] flex items-center justify-center text-[#8FA2AD] hover:text-[#E8EEF1] transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span></button><span class="absolute top-1 left-1 w-2.5 h-2.5 rounded-full bg-[#EB5F34]"></span></div><a class="flex items-center gap-space-xs h-10 px-space-md bg-[#004E72] hover:bg-[#1F4FA8] text-white rounded-xl font-label-md transition-colors border border-[#1F4FA8]/40 shadow-sm" data-path="new-procurement-order" href="#"><span class="material-symbols-outlined text-[18px]">add</span><span>ثبت سفارش سازمانی جدید</span></a></div></header><main class="relative pt-16 bg-background min-h-screen px-space-xl py-space-xl"><div class="flex flex-col w-full">
+<!-- Command Center Header Area -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-lg pb-space-lg border-b border-surface-container">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm text-outline">
+<span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-sm tracking-wide text-secondary font-bold">سامانه پایش بلادرنگ عملیات</span>
+<span class="text-outline-variant font-label-sm">/</span>
+<span class="font-label-sm text-on-surface-variant font-medium">پایانه ادمین ارشد</span>
+</div>
+<h1 class="font-headline-lg text-primary font-black tracking-tight">مرکز فرماندهی و مدیریت سفارش‌های ۶۰ آنلاین</h1>
+<p class="font-body-md text-on-surface-variant max-w-2xl">
+        پایش لحظه‌ای زنجیره تامین سازمانی، تسویه‌های مالیاتی کارپوشه مودیان و تخصیص ناوگان لجستیک متمرکز
+      </p>
+</div>
+<!-- Live Status & Refresh Utility -->
+<div class="flex items-center gap-space-md self-start md:self-auto bg-surface-container-lowest p-space-xs rounded-xl shadow-sm border border-surface-container">
+<div class="flex items-center gap-space-sm px-space-sm py-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-secondary">schedule</span>
+<span class="font-label-md font-bold text-on-surface" id="live-clock">چهارشنبه ۱۶ اسفند - ساعت ۱۰:۴۵:۲۴</span>
+</div>
+<div class="h-5 w-[1px] bg-surface-container"></div>
+<button class="group flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-label-md transition-all active:scale-95" onclick="refreshDashboard(this)">
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-primary transition-transform duration-500 group-hover:rotate-180">refresh</span>
+<span>بروزرسانی داده‌ها</span>
+</button>
+</div>
+</div>
+<!-- Operational Metrics Grid (4 Stat Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-md mt-space-lg">
+<!-- Card 1: GMV -->
+<div class="relative overflow-hidden bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-container flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-md text-on-surface-variant">حجم معاملات امروز (GMV)</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-md font-extrabold text-primary">۳۴۲,۸۰۰,۰۰۰</span>
+<span class="font-label-sm text-outline">تومان</span>
+</div>
+</div>
+<div class="w-11 h-11 rounded-xl bg-secondary-fixed/50 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">payments</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm border-t border-surface-container-low flex items-center justify-between">
+<span class="inline-flex items-center gap-1 font-label-sm text-on-tertiary-container bg-tertiary-fixed/60 px-space-xs py-0.5 rounded-full font-bold">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+۱۸٪ رشد هفتگی</span>
+</span>
+<!-- Sparkline SVG -->
+<svg class="w-20 h-6 text-secondary" fill="none" stroke="currentColor" viewbox="0 0 80 24">
+<path d="M2 18 L16 14 L30 16 L44 8 L58 11 L74 3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"></path>
+</svg>
+</div>
+</div>
+<!-- Card 2: Open Orders -->
+<div class="relative overflow-hidden bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-container flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-md text-on-surface-variant">سفارش‌های سازمانی باز</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-md font-extrabold text-primary">۲۸</span>
+<span class="font-label-sm text-outline">مورد در جریان</span>
+</div>
+</div>
+<div class="w-11 h-11 rounded-xl bg-primary-fixed/40 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[24px]">pending_actions</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm border-t border-surface-container-low flex items-center justify-between">
+<span class="font-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container inline-block"></span>
+<strong class="text-on-surface font-bold">۱۴ مورد</strong> نیازمند حواله انبار
+        </span>
+<span class="font-label-sm text-secondary font-bold hover:underline cursor-pointer">اقدام فوری</span>
+</div>
+</div>
+<!-- Card 3: Active Suppliers -->
+<div class="relative overflow-hidden bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-container flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-md text-on-surface-variant">تأمین‌کنندگان فعال امروز</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-md font-extrabold text-primary">۱۱۴</span>
+<span class="font-label-sm text-outline">مرکز و کارگاه</span>
+</div>
+</div>
+<div class="w-11 h-11 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[24px]">factory</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm border-t border-surface-container-low flex items-center justify-between">
+<span class="font-label-sm text-on-surface-variant">ظرفیت بارگیری فعال:</span>
+<div class="flex items-center gap-space-xs">
+<div class="w-24 bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 82%;"></div>
+</div>
+<span class="font-label-sm text-primary font-bold">۸۲٪</span>
+</div>
+</div>
+</div>
+<!-- Card 4: Settlements -->
+<div class="relative overflow-hidden bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-container flex flex-col justify-between group hover:shadow-md transition-shadow">
+<div class="flex items-start justify-between">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-md text-on-surface-variant">تسویه‌های اعتباری سررسید</span>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-headline-md font-extrabold text-primary">۰</span>
+<span class="font-label-sm text-outline">معوقه وصول‌نشده</span>
+</div>
+</div>
+<div class="w-11 h-11 rounded-xl bg-secondary-fixed/30 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm border-t border-surface-container-low flex items-center justify-between">
+<span class="font-label-sm text-on-surface-variant">نرخ وصول موفق:</span>
+<span class="font-label-sm font-bold text-primary">۹۹.۴٪ (بدون ریسک اعتباری)</span>
+</div>
+</div>
+</div>
+<!-- Operational Queues & Live Action (3 Bespoke Bento Panels) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-space-md mt-space-lg">
+<!-- Queue 1: Tax Invoices Portal (سامانه مودیان) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-container flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-sm border-b border-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<div class="w-2.5 h-2.5 rounded-full bg-on-tertiary-container"></div>
+<h2 class="font-title-md text-primary font-bold">صف فاکتور رسمی سامانه مودیان</h2>
+</div>
+<span class="font-label-sm text-outline">کد مالیاتی ۳۲-A</span>
+</div>
+<p class="font-body-sm text-on-surface-variant mt-space-sm">
+          ۸ صورتحساب الکترونیکی تایید شده آماده تخصیص شناسه منحصر‌به‌فرد مالیاتی و انتقال به کارپوشه سازمان امور مالیاتی کشور.
+        </p>
+<!-- Document Preview Miniature list -->
+<div class="flex flex-col gap-space-xs mt-space-md bg-surface-container-low/50 p-space-sm rounded-lg">
+<div class="flex items-center justify-between font-label-sm py-1 border-b border-surface-container-low">
+<span class="text-on-surface font-semibold">پتروشیمی جم - فاکتور ۹۰۲۱</span>
+<span class="text-outline">۸۴,۲۰۰,۰۰۰ ت</span>
+</div>
+<div class="flex items-center justify-between font-label-sm py-1 border-b border-surface-container-low">
+<span class="text-on-surface font-semibold">بانک سامان - پک بهاره ۸۱۷</span>
+<span class="text-outline">۱۲۶,۰۰۰,۰۰۰ ت</span>
+</div>
+<div class="flex items-center justify-between font-label-sm py-1 text-outline">
+<span>+ ۶ صورتحساب الکترونیک معتبر دیگر...</span>
+<span class="text-secondary font-bold">مشاهده لیست</span>
+</div>
+</div>
+</div>
+<div class="pt-space-md mt-space-sm flex items-center justify-between">
+<span class="font-label-sm text-on-surface-variant font-medium">۸ فاکتور معطل</span>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs bg-primary-container hover:bg-secondary text-on-primary font-label-md rounded-xl transition-colors">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+<span>تأیید و ارسال دسته‌ای</span>
+</button>
+</div>
+</div>
+<!-- Queue 2: Corporate Credit Authorization -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-container flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-sm border-b border-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+<h2 class="font-title-md text-primary font-bold">درخواست‌های اعتبار سازمانی</h2>
+</div>
+<span class="font-label-sm text-secondary font-bold bg-secondary-fixed/50 px-2 py-0.5 rounded-full">۵ پرونده جدید</span>
+</div>
+<p class="font-body-sm text-on-surface-variant mt-space-sm">
+          ارزیابی سنجش ریسک بانکی و اسناد ثبتی حقوقی شرکت‌ها جهت تخصیص خط اعتباری خرید اقساطی ۳۰ و ۶۰ روزه.
+        </p>
+<!-- Company preview items -->
+<div class="mt-space-md flex flex-col gap-space-xs">
+<div class="flex items-center justify-between p-space-xs bg-surface rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[20px]">apartment</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface font-bold">هلدینگ دارویی برکت</span>
+<span class="font-label-sm text-outline">تقاضای اعتبار: ۵۰۰ میلیون</span>
+</div>
+</div>
+<div class="flex items-center gap-1 font-label-sm text-on-tertiary-container font-bold">
+<span>رتبه: A+</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-xs bg-surface rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[20px]">corporate_fare</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface font-bold">فولاد گستر آتیه</span>
+<span class="font-label-sm text-outline">تقاضای اعتبار: ۸۰۰ میلیون</span>
+</div>
+</div>
+<div class="flex items-center gap-1 font-label-sm text-secondary font-bold">
+<span>رتبه: A</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-space-md mt-space-sm flex items-center justify-between">
+<span class="font-label-sm text-outline">استعلام آنلاین از پایگاه ثبت</span>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs border border-primary-container text-primary-container hover:bg-surface-container font-label-md rounded-xl transition-colors">
+<span>میز اعتبارسنجی</span>
+<span class="material-symbols-outlined text-[16px] scale-x-[-1]">arrow_back</span>
+</button>
+</div>
+</div>
+<!-- Queue 3: Logistics & Fleet Monitoring -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-surface-container flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-sm border-b border-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<div class="w-2.5 h-2.5 rounded-full bg-outline"></div>
+<h2 class="font-title-md text-primary font-bold">ناوگان ارسال اختصاصی امروز</h2>
+</div>
+<span class="font-label-sm text-on-surface-variant font-bold">۱۲ خودرو در مسیر</span>
+</div>
+<p class="font-body-sm text-on-surface-variant mt-space-sm">
+          توزیع اقلام سنگین و پک‌های تجاری در سطح استان تهران و البرز با سیستم رهگیری دمایی و مکانی پیوسته.
+        </p>
+<!-- Metric Bars -->
+<div class="mt-space-md flex flex-col gap-space-sm">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-on-surface">
+<span>انطباق برنامه زمانی تحویل (On-Time)</span>
+<span class="font-bold text-secondary">۱۰۰٪ دقیق</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-on-surface">
+<span>تکمیل تحویل بار به کارخانه‌ها</span>
+<span class="font-bold text-primary">۷۸٪ انجام شد</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 78%;"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-space-md mt-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-xs text-outline font-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">local_shipping</span>
+<span>مرکز باربری غرب ۶۰</span>
+</div>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs bg-surface-container hover:bg-surface-variant text-on-surface font-label-md rounded-xl transition-colors">
+<span>مانیتورینگ نقشه</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Corporate Transactions Table Section -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-container mt-space-lg overflow-hidden flex flex-col">
+<!-- Table Header Controls -->
+<div class="p-space-lg flex flex-col lg:flex-row lg:items-center justify-between gap-space-md border-b border-surface-container">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<h2 class="font-title-lg text-primary font-extrabold">فهرست سفارش‌های کلان تجاری و تدارکات سازمانی</h2>
+<span class="font-label-sm bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full font-bold">۲۴ سفارش اخیر</span>
+</div>
+<p class="font-body-sm text-on-surface-variant">بررسی صحت صدور فاکتور رسمی دارایی، تامین به موقع و رصد چرخه انبارداری</p>
+</div>
+<!-- Filters & Actions -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<div class="flex items-center bg-surface rounded-xl px-space-sm py-1.5 border border-surface-container">
+<span class="material-symbols-outlined text-[18px] text-outline ml-1">filter_alt</span>
+<select class="bg-transparent text-on-surface font-label-md outline-none border-none cursor-pointer">
+<option>همه سفارش‌ها</option>
+<option>نیازمند حواله انبار</option>
+<option>در انتظار تایید سامانه مودیان</option>
+<option>تکمیل و تحویل شده</option>
+</select>
+</div>
+<button class="flex items-center gap-space-xs px-space-md py-2 border border-surface-container text-on-surface hover:bg-surface rounded-xl font-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px] text-outline">download</span>
+<span>خروجی اکسل و فاکتورها</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 bg-primary-container text-on-primary hover:bg-secondary rounded-xl font-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>ثبت سفارش سفارشی</span>
+</button>
+</div>
+</div>
+<!-- Responsive Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="bg-surface border-b border-surface-container text-on-surface-variant font-label-md">
+<th class="py-space-md px-space-lg font-bold">کد سفارش</th>
+<th class="py-space-md px-space-md font-bold">سازمان خریدار</th>
+<th class="py-space-md px-space-md font-bold">نوع سبد سفارش</th>
+<th class="py-space-md px-space-md font-bold">مبلغ فاکتور رسمی</th>
+<th class="py-space-md px-space-md font-bold">تأمین‌کننده همکار</th>
+<th class="py-space-md px-space-md font-bold">تاریخ تحویل</th>
+<th class="py-space-md px-space-md font-bold">وضعیت پردازش</th>
+<th class="py-space-md px-space-lg text-left font-bold">عملیات ادمین</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container font-body-sm text-on-surface">
+<!-- Row 1 -->
+<tr class="hover:bg-surface/60 transition-colors">
+<td class="py-space-md px-space-lg font-bold text-primary">ORD-۶۰۹۲</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-bold text-primary">شرکت مخابرات ایران</span>
+<span class="font-label-sm text-outline">شناسه ملی: ۱۰۱۰۲۳۹۹۴</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center px-space-xs py-0.5 rounded-full text-label-sm bg-secondary-fixed/50 text-secondary font-bold">
+                پک رفاهی سازمانی بهاره (۳۲۰ بسته)
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-extrabold text-primary">۱۸۴,۵۰۰,۰۰۰ تومان</span>
+<span class="font-label-sm text-on-surface-variant">با احتساب ۱۰٪ ارزش افزوده</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">مجتمع صنایع غذایی مهیا</td>
+<td class="py-space-md px-space-md font-medium">۱۴۰۲/۱۲/۱۸</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-full text-label-sm bg-tertiary-fixed/70 text-on-tertiary-fixed-variant font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+                نیازمند حواله خروج
+              </span>
+</td>
+<td class="py-space-md px-space-lg text-left">
+<div class="inline-flex items-center gap-space-xs">
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-secondary transition-colors" title="بررسی جزئیات">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-primary transition-colors" title="صدور حواله">
+<span class="material-symbols-outlined text-[18px]">description</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors" title="منوی بیشتر">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface/60 transition-colors">
+<td class="py-space-md px-space-lg font-bold text-primary">ORD-۶۰۹۱</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-bold text-primary">گروه مپنا (بخش نیروگاهی)</span>
+<span class="font-label-sm text-outline">شناسه ملی: ۱۰۱۰۱۳۷۷۶</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center px-space-xs py-0.5 rounded-full text-label-sm bg-surface-container-high text-on-surface-variant font-bold">
+                تدارکات مصرفی و اداری ماهانه
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-extrabold text-primary">۶۲,۴۰۰,۰۰۰ تومان</span>
+<span class="font-label-sm text-on-surface-variant">تسویه ۶۰ روزه اعتباری</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">انبار مرکزی ۶۰ آنلاین</td>
+<td class="py-space-md px-space-md font-medium">۱۴۰۲/۱۲/۱۶ (امروز)</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-full text-label-sm bg-secondary-fixed text-on-secondary-fixed-variant font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                در حال توزیع ناوگان
+              </span>
+</td>
+<td class="py-space-md px-space-lg text-left">
+<div class="inline-flex items-center gap-space-xs">
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-secondary transition-colors" title="بررسی جزئیات">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-primary transition-colors" title="رهگیری راننده">
+<span class="material-symbols-outlined text-[18px]">local_shipping</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors" title="منوی بیشتر">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface/60 transition-colors">
+<td class="py-space-md px-space-lg font-bold text-primary">ORD-۶۰۹۰</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-bold text-primary">پتروشیمی مارون</span>
+<span class="font-label-sm text-outline">شناسه ملی: ۱۰۱۰۱۹۹۲۸</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center px-space-xs py-0.5 rounded-full text-label-sm bg-secondary-fixed/50 text-secondary font-bold">
+                کالای اساسی و برنج درجه یک طارم (۴ تن)
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-extrabold text-primary">۴۸۰,۰۰۰,۰۰۰ تومان</span>
+<span class="font-label-sm text-on-surface-variant">تسویه نقدی - فاکتور نهایی</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">کنسرسیوم شالیکاران مازندران</td>
+<td class="py-space-md px-space-md font-medium">۱۴۰۲/۱۲/۲۰</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-full text-label-sm bg-surface-container text-on-surface-variant font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                منتظر ارسال سامانه مودیان
+              </span>
+</td>
+<td class="py-space-md px-space-lg text-left">
+<div class="inline-flex items-center gap-space-xs">
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-secondary transition-colors" title="بررسی جزئیات">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-primary transition-colors" title="تایید مالیاتی">
+<span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors" title="منوی بیشتر">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface/60 transition-colors">
+<td class="py-space-md px-space-lg font-bold text-primary">ORD-۶۰۸۹</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-bold text-primary">بیمه دانا - مدیریت رفاه</span>
+<span class="font-label-sm text-outline">شناسه ملی: ۱۰۱۰۰۳۷۶۵</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center px-space-xs py-0.5 rounded-full text-label-sm bg-secondary-fixed/50 text-secondary font-bold">
+                کارت هدایا و پک سلامت پرسنلی
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-extrabold text-primary">۹۵,۲۰۰,۰۰۰ تومان</span>
+<span class="font-label-sm text-on-surface-variant">پرداخت علی‌الحساب ۴۰٪</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">فروشگاه زنجیره‌ای همیار</td>
+<td class="py-space-md px-space-md font-medium">۱۴۰۲/۱۲/۱۵</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-full text-label-sm bg-surface-container text-primary font-bold">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span>
+                تحویل و تسویه شد
+              </span>
+</td>
+<td class="py-space-md px-space-lg text-left">
+<div class="inline-flex items-center gap-space-xs">
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-secondary transition-colors" title="بررسی جزئیات">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors" title="بایگانی">
+<span class="material-symbols-outlined text-[18px]">archive</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors" title="منوی بیشتر">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface/60 transition-colors">
+<td class="py-space-md px-space-lg font-bold text-primary">ORD-۶۰۸۸</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-bold text-primary">سرمایه‌گذاری مسکن تهران</span>
+<span class="font-label-sm text-outline">شناسه ملی: ۱۰۱۰۷۳۴۲۱</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center px-space-xs py-0.5 rounded-full text-label-sm bg-surface-container-high text-on-surface-variant font-bold">
+                تجهیزات و پذیرایی سمینار سالانه
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-extrabold text-primary">۴۱,۸۰۰,۰۰۰ تومان</span>
+<span class="font-label-sm text-on-surface-variant">فاکتور قطعی مودیان</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-on-surface-variant">تشریفات فاخر پایتخت</td>
+<td class="py-space-md px-space-md font-medium">۱۴۰۲/۱۲/۱۴</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-1 rounded-full text-label-sm bg-surface-container text-primary font-bold">
+<span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span>
+                تحویل و تسویه شد
+              </span>
+</td>
+<td class="py-space-md px-space-lg text-left">
+<div class="inline-flex items-center gap-space-xs">
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-secondary transition-colors" title="بررسی جزئیات">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors" title="دانلود رسید">
+<span class="material-symbols-outlined text-[18px]">receipt</span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors" title="منوی بیشتر">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Pagination & Counter Bar -->
+<div class="p-space-md bg-surface border-t border-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-md font-label-md text-on-surface-variant">
+<div class="flex items-center gap-space-xs">
+<span>نمایش ۵ از ۲۴ سفارش سازمانی ثبت‌شده در ۲۴ ساعت گذشته</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest border border-surface-container flex items-center justify-center text-outline hover:text-primary transition-colors disabled:opacity-40">
+<span class="material-symbols-outlined text-[18px] scale-x-[-1]">chevron_right</span>
+</button>
+<span class="px-space-sm py-1 rounded-lg bg-primary text-on-primary font-bold text-label-sm">۱</span>
+<button class="px-space-sm py-1 rounded-lg hover:bg-surface-container-lowest text-on-surface font-label-sm transition-colors">۲</button>
+<button class="px-space-sm py-1 rounded-lg hover:bg-surface-container-lowest text-on-surface font-label-sm transition-colors">۳</button>
+<button class="px-space-sm py-1 rounded-lg hover:bg-surface-container-lowest text-on-surface font-label-sm transition-colors">۴</button>
+<button class="w-8 h-8 rounded-lg bg-surface-container-lowest border border-surface-container flex items-center justify-center text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px] scale-x-[-1]">chevron_left</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Admin Quick Insights & Auditing Bar -->
+<div class="mt-space-lg mb-space-sm p-space-md bg-surface-container-low rounded-xl flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[22px]">policy</span>
+<span class="font-body-sm text-on-surface-variant">
+        تمامی رویدادها، تاییدات مالیاتی و دسترسی‌های پرسنل لاگ گردیده و طبق ضوابط افشای الکترونیک مستندسازی می‌شوند.
+      </span>
+</div>
+<div class="flex items-center gap-space-lg text-label-sm text-outline">
+<span>شناسه نشست ادمین: ۶۰-SEC-۹۸۷۲۱</span>
+<span class="hover:text-primary cursor-pointer font-bold text-secondary">دانلود لاگ حسابرسی سامانه</span>
+</div>
+</div>
+</div>
+<script>
+  function refreshDashboard(btn) {
+    const icon = btn.querySelector('.material-symbols-outlined');
+    if (icon) {
+      icon.classList.add('animate-spin');
+      setTimeout(() => {
+        icon.classList.remove('animate-spin');
+      }, 700);
+    }
+  }
+
+  // Update clock every minute
+  setInterval(() => {
+    const clockEl = document.getElementById('live-clock');
+    if (clockEl) {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '۰');
+      const minutes = String(now.getMinutes()).padStart(2, '۰');
+      const seconds = String(now.getSeconds()).padStart(2, '۰');
+      // Minimal simulated update
+      clockEl.innerText = `چهارشنبه ۱۶ اسفند - ساعت ${hours}:${minutes}:${seconds}`;
+    }
+  }, 1000);
+</script></main></div></body></html>

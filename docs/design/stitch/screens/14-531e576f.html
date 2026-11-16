@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;font-family:'Vazirmatn',system-ui,sans-serif;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'inverse-primary': '#afcadd', 'tertiary-fixed-dim': '#ffb59f', 'on-tertiary-fixed-variant': '#862200', 'surface-container-low': '#f3f3f3', 'on-tertiary-fixed': '#3b0a00', 'error-container': '#ffdad6', 'surface-container-high': '#e8e8e8', 'on-secondary-container': '#1d5d82', 'error': '#ba1a1a', 'on-primary-fixed': '#011e2c', 'secondary-fixed': '#c9e6ff', 'outline': '#73787c', 'on-tertiary-container': '#eb5f34', 'tertiary-container': '#4a0f00', 'tertiary': '#250400', 'primary': '#00111a', 'background': '#f9f9f9', 'on-primary-fixed-variant': '#304a59', 'outline-variant': '#c2c7cc', 'primary-container': '#0a2735', 'secondary': '#266489', 'primary-fixed': '#cbe6f9', 'on-primary': '#ffffff', 'surface-container': '#eeeeee', 'on-tertiary': '#ffffff', 'on-surface-variant': '#42474b', 'tertiary-fixed': '#ffdbd1', 'primary-fixed-dim': '#afcadd', 'surface-container-lowest': '#ffffff', 'on-background': '#1a1c1c', 'on-primary-container': '#758fa0', 'on-secondary': '#ffffff', 'surface-bright': '#f9f9f9', 'surface-container-highest': '#e2e2e2', 'inverse-surface': '#2f3131', 'surface-variant': '#e2e2e2', 'on-secondary-fixed-variant': '#004b6f', 'on-error': '#ffffff', 'inverse-on-surface': '#f1f1f1', 'on-surface': '#1a1c1c', 'surface-dim': '#dadada', 'secondary-fixed-dim': '#95cdf7', 'surface': '#f9f9f9', 'surface-tint': '#486272', 'secondary-container': '#9ed5ff', 'on-error-container': '#93000a', 'on-secondary-fixed': '#001e2f' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'space-xl': '2.5rem', 'space-md': '1rem', 'gutter-lg': '2rem', 'space-xs': '0.25rem', 'space-sm': '0.5rem', 'margin-lg': '4rem', 'space-lg': '1.5rem', 'gutter': '1rem', 'margin': '1rem', 'margin-md': '2rem', 'gutter-md': '1.5rem' }, fontFamily: { 'title-md': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'body-md': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'label-md': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'title-lg': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'body-lg': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-md': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-lg': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'label-sm': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-lg-mobile': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'label-lg': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'body-sm': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-xl': ['"Vazirmatn, Sahel, Shabnam, system-ui"'], 'headline-xl-mobile': ['"Vazirmatn, Sahel, Shabnam, system-ui"'] }, fontSize: { 'title-md': ['16px', { 'lineHeight': '26px', 'fontWeight': '600' }], 'body-md': ['14px', { 'lineHeight': '24px', 'fontWeight': '400' }], 'label-md': ['12px', { 'lineHeight': '18px', 'fontWeight': '500' }], 'title-lg': ['18px', { 'lineHeight': '28px', 'fontWeight': '600' }], 'body-lg': ['16px', { 'lineHeight': '28px', 'fontWeight': '400' }], 'headline-md': ['20px', { 'lineHeight': '32px', 'fontWeight': '700' }], 'headline-lg': ['28px', { 'lineHeight': '42px', 'fontWeight': '700' }], 'label-sm': ['11px', { 'lineHeight': '16px', 'fontWeight': '500' }], 'headline-lg-mobile': ['22px', { 'lineHeight': '34px', 'fontWeight': '700' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'fontWeight': '600' }], 'body-sm': ['12px', { 'lineHeight': '20px', 'fontWeight': '400' }], 'headline-xl': ['36px', { 'lineHeight': '52px', 'fontWeight': '800' }], 'headline-xl-mobile': ['26px', { 'lineHeight': '38px', 'fontWeight': '800' }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen selection:bg-secondary-fixed selection:text-on-secondary-fixed"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.03)]"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="60 Online Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCw7Xi_FVAon6uqiQQsUwlfXGZY0ji_YpNw52v4xE97P0QOwlAr71eKgdf82Z7SZmEMqCgVMGNRciR6-nPlr_7OA4VMXQE_Ei_vXnCABfVZLDmNiwnt50C_D-hzjoiVAdx_pazQH3q7elXi24jQSfxsZN0CFYTacmzlP1omN6S3Rrh5x4GbPdPqA6Of--GrlNwxLPKYFTLCjCOYfHRGLbIvGsu6hFN67LBf9O9xDaI"/><div class="flex flex-col"><span class="font-title-md text-title-md text-primary-container leading-tight">۶۰ آنلاین</span><span class="font-label-sm text-label-sm text-on-surface-variant font-normal">Categories</span></div></div><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="min-w-[44px] min-h-[44px] flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span></button><a class="min-w-[44px] min-h-[44px] flex items-center justify-center" data-path="account" href="#"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6Rc-lvnwo2oSkwdZy8PIHsI8dJoT8A-iQfiymHwwOEs-i0BqCqi_U8tr4-6XOwto9ifpLPyZ_qY7swJO_5btet_POfl3ohxPt406j3MgaLxgE5ZOpqtmn30nCtdM34TuNJO1tLaoMNO8cGmGqdVFGtik50wyHgK2Yn3Qd85ln3nnO2eVdUGNO3lYwJ6G-wdZmKGAOVQ5vJXFDQY4-2IoxmO6dZs4RowtMDEHFe00"/></a></div></div></header><main class="flex flex-col relative w-full pt-16 pb-24 bg-background min-h-screen"><div class="flex flex-col w-full px-margin pb-space-lg select-none">
+<!-- Interactive Search Context Header -->
+<div class="flex flex-col gap-space-sm pt-space-xs mb-space-sm">
+<div class="relative flex items-center w-full bg-surface-container-lowest rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.03)] px-space-md py-2.5">
+<span class="material-symbols-outlined text-secondary text-[22px] ml-space-sm">search</span>
+<input class="flex-1 bg-transparent text-primary-container font-title-md text-title-md outline-none placeholder:text-outline" placeholder="جستجوی کالا، برند یا تأمین‌کننده..." type="text" value="پک‌های پذیرایی و کالای اساسی"/>
+<button aria-label="پاک کردن جستجو" class="w-7 h-7 flex items-center justify-center rounded-full bg-surface-container text-on-surface-variant hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+<!-- Filter Quick Chips Carousel -->
+<div class="flex items-center gap-space-xs overflow-x-auto no-scrollbar py-1 -mx-margin px-margin">
+<button class="flex items-center gap-1.5 shrink-0 px-3.5 py-1.5 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-sm active:scale-95 transition-transform" id="openFilterBtn">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>فیلتر و ترتیب</span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed"></span>
+</button>
+<div class="flex items-center gap-1 shrink-0 px-3 py-1.5 rounded-full bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+<span class="text-on-surface-variant">مرتب‌سازی:</span>
+<span class="font-semibold text-secondary">پرفروش‌ترین</span>
+</div>
+<div class="flex items-center gap-1 shrink-0 px-3 py-1.5 rounded-full bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+<span class="text-on-surface-variant">خرید:</span>
+<span class="text-on-surface">سازمانی و تک</span>
+</div>
+<div class="flex items-center gap-1 shrink-0 px-3 py-1.5 rounded-full bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+<span class="material-symbols-outlined text-[15px] text-secondary">bolt</span>
+<span>ارسال سریع</span>
+</div>
+<div class="flex items-center gap-1 shrink-0 px-3 py-1.5 rounded-full bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>آماده تحویل</span>
+</div>
+</div>
+</div>
+<!-- Results Count & Layout Switcher -->
+<div class="flex items-center justify-between py-space-xs mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-md text-headline-md text-primary-container">۴۸</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">کالا در دسترس برای تأمین فوری</span>
+</div>
+<div class="flex items-center bg-surface-container rounded-lg p-0.5">
+<button aria-label="نمایش لیستی" class="p-1 rounded text-primary-container bg-surface-container-lowest shadow-sm" id="viewListBtn">
+<span class="material-symbols-outlined text-[20px]">view_list</span>
+</button>
+<button aria-label="نمایش شبکه‌ای" class="p-1 rounded text-outline hover:text-on-surface transition-colors" id="viewGridBtn">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+</button>
+</div>
+</div>
+<!-- Product Results Feed -->
+<div class="flex flex-col gap-space-sm w-full" id="productFeed">
+<!-- Item 1: VIP Package -->
+<div class="relative flex flex-col bg-surface-container-lowest rounded-xl p-space-md shadow-[0_1px_3px_rgba(0,0,0,0.03)] overflow-hidden">
+<div class="flex gap-space-md">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="A luxurious corporate gift box with premium Iranian dates, saffron, nuts, and ceramic tableware arranged elegantly on warm wooden desk in morning studio light with minimalist navy and coral accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLAUv7a_unFlP2n4DMPtw93ln0A-Qjr2eCCysMCrJ43Dz87lPrHn2XuGSSbLDd92eLT4g2VCDK3RpPOpqLmVbwj69FoMOVPxrYVlfbD3oanHC5_4h4d4GmJhkhcxlHW9Q9kG2GJOdIOIrvE16kahDDhRvmc1-CE12aFTM5K_MSXqH0ywWktP0PCOoIhg3nHU4UKxBUcOw9B0SYL9EZ4X_iFGbcytycRfNHbz0bvCc"/>
+<span class="absolute top-1.5 right-1.5 bg-on-tertiary-container text-on-tertiary font-label-sm text-[10px] font-bold px-1.5 py-0.5 rounded-full">۱۵٪ تخفیف</span>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-medium">تأمین‌کننده: بازرگانی پارس</span>
+<span class="inline-flex items-center gap-0.5 text-on-surface-variant text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">star</span>
+                ۴.۹
+              </span>
+</div>
+<h3 class="font-title-md text-title-md text-primary-container truncate">بسته پذیرایی جلسات مدیران ارشد (VIP)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">شامل دمنوش‌های برگزیده، مغزها و آجیل دستچین درجه یک با بسته‌بندی هاردباکس لوکس</p>
+</div>
+<div class="flex items-end justify-between mt-space-xs">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline line-through">۱,۰۵۰,۰۰۰</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md text-primary-container font-extrabold">۸۹۰,۰۰۰</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+<button class="flex items-center gap-1 bg-primary-container hover:bg-secondary text-on-primary px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+<span>خرید سازمانی</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 2: Piarom Dates -->
+<div class="relative flex flex-col bg-surface-container-lowest rounded-xl p-space-md shadow-[0_1px_3px_rgba(0,0,0,0.03)] overflow-hidden">
+<div class="flex gap-space-md">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="One kilogram of premium glossy dark brown Iranian Piarom dates neatly stacked in natural eco-friendly Kraft packaging on pure white surface with soft studio light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_u94En8eAuMAoImMy6o926cuhnk87J1XRuzzGC5uAsfYhWwppoG8vdWpOyAfZEgSc621w5vlk8Kj5YDY-2odlQI5CyQOezZ4Tn8dyz-mrDSuEUSCaPfE-rY1iPVk6k7VRgVnKlyYBzc-8_VB6NCG192FTDsYUrl3u-lGMfit3Pv80i7hwP0p3w0ina2wMrT-p2Fw5FmXT9KWdyeRX4U3sId2-uMLuqUCu4D7CurE"/>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-medium">نخلستان‌های حاجی‌آباد</span>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                موجودی انبار مرکزی
+              </span>
+</div>
+<h3 class="font-title-md text-title-md text-primary-container truncate">خرما پیارم صادراتی حاجی‌آباد (۱ کیلوگرم)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">دستچین شده با سورتینگ لیزری، مناسب برای مصرف اداری و میان‌وعده سالم پرسنل</p>
+</div>
+<div class="flex items-end justify-between mt-space-xs">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">قیمت هر بسته</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md text-primary-container font-extrabold">۳۲۰,۰۰۰</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+<button class="flex items-center gap-1 bg-surface-container hover:bg-surface-container-high text-primary-container px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>افزودن</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 3: Personal Hygiene Package -->
+<div class="relative flex flex-col bg-surface-container-lowest rounded-xl p-space-md shadow-[0_1px_3px_rgba(0,0,0,0.03)] overflow-hidden">
+<div class="flex gap-space-md">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Corporate employee wellness and personal hygiene kit including antiseptic bottles, organic soap, and microfiber towels in clean modern minimal packaging against soft teal-blue background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-N6Wzaz73To-vYSS_KA9EYTrpaKrXB6IHhUbheRrJEAnGYOSyo_9O_QxLZlXqmgRUNKTCFnVWwTDzylsQ3UECuAw_hbimcg3EOSCKjCNH7iONGFNVnwgkoj8TyycljG2gCajIka7FcIsdJm6mgG0TrhcpUk1y2zevOTydmkAw-EC99_r7vIoHIrUfxVR-Rgtk6PFXUJXX-zwypMRWmQkTArHBWdUSerPeDji5Yzs"/>
+<span class="absolute top-1.5 right-1.5 bg-on-tertiary-container text-on-tertiary font-label-sm text-[10px] font-bold px-1.5 py-0.5 rounded-full">تخفیف تیراژ</span>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-medium">صنایع بهداشتی سپهر</span>
+<span class="font-label-sm text-label-sm text-outline">حداقل سفارش: ۱۰ عدد</span>
+</div>
+<h3 class="font-title-md text-title-md text-primary-container truncate">پک سازمانی بهداشت فردی پرسنل (شامل ۷ قلم)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">حاوی شوینده، ژل ضدعفونی، حوله فشرده نانو و مسواک هتلی با چاپ نشان سفارشی شرکت</p>
+</div>
+<div class="flex items-end justify-between mt-space-xs">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">قیمت واحد تیراژ</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md text-primary-container font-extrabold">۶۵۰,۰۰۰</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+<button class="flex items-center gap-1 bg-primary-container hover:bg-secondary text-on-primary px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]">domain</span>
+<span>استعلام قیمت</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 4: Saffron Gift Pack -->
+<div class="relative flex flex-col bg-surface-container-lowest rounded-xl p-space-md shadow-[0_1px_3px_rgba(0,0,0,0.03)] overflow-hidden">
+<div class="flex gap-space-md">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Traditional velvet gift packaging displaying authentic Persian Super Negin saffron with brass mortar and glass vial on deep dark background with warm directional spotlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAze2imRhzFfw0gLGDvTolubi1lWouReCOEKpplE5B7oEt5AK-7pPDz2UYI81fViRwlwYBsMl1Uzxgwq7Zm-tpmb9VHVbUk5hkKKIoDYPpMA2Lvuh7zzfP0Ir7HtHd80M8U8v7i4R8y5WVooMLT2u4jXycT02_NVnp4IDroQbU-lJ_DP1wnaqI9rxsxMehHDZR-CbnWjuMqJY0Kb0OWuz_ZVfM88pLr8QnFzstXbvk"/>
+<span class="absolute top-1.5 right-1.5 bg-on-tertiary-container text-on-tertiary font-label-sm text-[10px] font-bold px-1.5 py-0.5 rounded-full">۱۰٪</span>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-medium">طلای سرخ قائنات</span>
+<span class="inline-flex items-center gap-0.5 text-on-surface-variant text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">star</span>
+                ۵.۰
+              </span>
+</div>
+<h3 class="font-title-md text-title-md text-primary-container truncate">زعفران سوپر نگین قائنات کادویی (۴.۶ گرم)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">به همراه هاون برنجی مینیاتوری و گواهی اصالت آزمایشگاهی، ایده‌آل هدایای سازمانی</p>
+</div>
+<div class="flex items-end justify-between mt-space-xs">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline line-through">۵۳۰,۰۰۰</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md text-primary-container font-extrabold">۴۸۰,۰۰۰</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+<button class="flex items-center gap-1 bg-surface-container hover:bg-surface-container-high text-primary-container px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>افزودن</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 5: Sabalan Honey -->
+<div class="relative flex flex-col bg-surface-container-lowest rounded-xl p-space-md shadow-[0_1px_3px_rgba(0,0,0,0.03)] overflow-hidden">
+<div class="flex gap-space-md">
+<div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Hexagonal glass jar filled with clear golden wild mountain honey with wooden honeycomb dipper resting beside it in morning natural sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmmJVfPEMt9mMMCo-5RyWw-x_PUsJud_sYmbUmrBMiPhL_oUrhdUUS7rupyYIMncLXZz9QwrgXzWUcWIgl2rb6AnCgnE-ejkSUU9Lut20myfVYuIO8O6B0-w7NSUEBMsuOkvX-OzfHmfsWPsB-BsoOoKe8AdmqcAB6AkPiLmnAae4sRCRi1pt9NCjqVTzag9Yse2eWWyLhi1YEMQl-g1cgyTvSj4yW7f45aJT0P8s"/>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-medium">زنبورداران سبلان</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ساکارز زیر ۲٪</span>
+</div>
+<h3 class="font-title-md text-title-md text-primary-container truncate">عسل طبیعی کوهستان سبلان ۱۰۰۰ گرم</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">خالص و خام، جمع‌آوری شده از مراتع سرسبز اردبیل با برگه آزمایش تایید شده</p>
+</div>
+<div class="flex items-end justify-between mt-space-xs">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">قیمت هر کیلو</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md text-primary-container font-extrabold">۴۱۰,۰۰۰</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+<button class="flex items-center gap-1 bg-surface-container hover:bg-surface-container-high text-primary-container px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>افزودن</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination CTA -->
+<div class="flex flex-col items-center justify-center mt-space-lg gap-space-xs">
+<button class="w-full py-3 px-space-md rounded-xl bg-surface-container-lowest text-primary-container hover:bg-surface-container font-title-md text-title-md shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex items-center justify-center gap-2 active:scale-[0.99] transition-all">
+<span class="material-symbols-outlined text-[20px] text-secondary">expand_more</span>
+<span>نمایش موارد بیشتر (۳۵ کالای دیگر)</span>
+</button>
+<span class="font-label-sm text-label-sm text-outline">نمایش ۵ از ۴۸ کالای واجد شرایط</span>
+</div>
+<!-- Filter & Sort Bottom Sheet Drawer Modal -->
+<div class="fixed inset-0 z-50 bg-primary/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex items-end justify-center" id="filterDrawer">
+<div class="w-full max-w-lg bg-surface-container-lowest rounded-t-2xl shadow-xl flex flex-col max-h-[751px] overflow-hidden translate-y-full transition-transform duration-300" id="filterSheet">
+<!-- Drawer Drag Handle & Title -->
+<div class="flex flex-col items-center pt-3 pb-2 px-space-md shrink-0">
+<div class="w-10 h-1 rounded-full bg-outline-variant mb-3"></div>
+<div class="flex items-center justify-between w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">tune</span>
+<span class="font-headline-md text-headline-md text-primary-container">فیلتر و مرتب‌سازی پیشرفته</span>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container transition-colors" id="closeFilterBtn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+</div>
+<!-- Scrollable Filter Options -->
+<div class="flex flex-col gap-space-lg px-space-md py-space-sm overflow-y-auto">
+<!-- Sort Segmented Options -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-title-md text-title-md text-primary-container">مرتب‌سازی نتایج بر اساس</label>
+<div class="grid grid-cols-2 gap-space-xs mt-1">
+<button class="sort-tab py-2.5 px-3 rounded-xl font-label-md text-label-md transition-all text-center bg-primary-container text-on-primary" type="button">
+              پرفروش‌ترین
+            </button>
+<button class="sort-tab py-2.5 px-3 rounded-xl font-label-md text-label-md transition-all text-center bg-surface-container-low text-on-surface hover:bg-surface-container" type="button">
+              جدیدترین
+            </button>
+<button class="sort-tab py-2.5 px-3 rounded-xl font-label-md text-label-md transition-all text-center bg-surface-container-low text-on-surface hover:bg-surface-container" type="button">
+              ارزان‌ترین
+            </button>
+<button class="sort-tab py-2.5 px-3 rounded-xl font-label-md text-label-md transition-all text-center bg-surface-container-low text-on-surface hover:bg-surface-container" type="button">
+              بیشترین تخفیف
+            </button>
+</div>
+</div>
+<!-- Corporate Official Invoice Switch Toggle -->
+<div class="flex items-center justify-between p-space-md rounded-xl bg-surface-container-low">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary-container">فاکتور رسمی سازمانی</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">فقط کالاهای دارای ارزش افزوده و فاکتور چاپی معتبر</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+<!-- Price Range Slider -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<label class="font-title-md text-title-md text-primary-container">محدوده قیمت (تومان)</label>
+<span class="font-label-md text-label-md text-secondary font-medium">از ۱۰۰,۰۰۰ تا ۵,۰۰۰,۰۰۰ تومان</span>
+</div>
+<div class="relative w-full py-2">
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden relative">
+<div class="absolute right-1/12 left-1/4 h-full bg-secondary rounded-full"></div>
+</div>
+<div class="flex justify-between items-center mt-3 text-on-surface-variant font-label-sm text-label-sm">
+<span>۱۰۰,۰۰۰</span>
+<span>۲,۵۰۰,۰۰۰</span>
+<span>۵,۰۰۰,۰۰۰+</span>
+</div>
+</div>
+</div>
+<!-- Purchase Type -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-title-md text-title-md text-primary-container">نوع تأمین و فاکتور</label>
+<div class="flex items-center gap-space-sm">
+<label class="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-surface-container text-primary-container cursor-pointer">
+<input checked="" class="accent-primary-container" name="proc_type" type="radio"/>
+<span class="font-label-md text-label-md font-medium">تک و خرد</span>
+</label>
+<label class="flex-1 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-surface-container text-primary-container cursor-pointer">
+<input class="accent-primary-container" name="proc_type" type="radio"/>
+<span class="font-label-md text-label-md font-medium">عمده و سازمانی</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Action Footer for Drawer -->
+<div class="p-space-md bg-surface-container-lowest shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] flex items-center gap-space-sm">
+<button class="flex-1 py-3 px-space-md rounded-xl bg-primary-container text-on-primary font-title-md text-title-md shadow-sm active:scale-95 transition-transform text-center" id="applyFiltersBtn">
+          اعمال فیلترها (۴۸ کالا)
+        </button>
+<button class="py-3 px-space-md rounded-xl bg-surface-container-low text-on-surface hover:text-error font-title-md text-title-md transition-colors" id="resetFiltersBtn">
+          حذف همه
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const openBtn = document.getElementById('openFilterBtn');
+    const closeBtn = document.getElementById('closeFilterBtn');
+    const applyBtn = document.getElementById('applyFiltersBtn');
+    const drawer = document.getElementById('filterDrawer');
+    const sheet = document.getElementById('filterSheet');
+    const viewListBtn = document.getElementById('viewListBtn');
+    const viewGridBtn = document.getElementById('viewGridBtn');
+    const feed = document.getElementById('productFeed');
+
+    function toggleDrawer(show) {
+      if (show) {
+        drawer.classList.remove('pointer-events-none', 'opacity-0');
+        drawer.classList.add('opacity-100');
+        sheet.classList.remove('translate-y-full');
+        sheet.classList.add('translate-y-0');
+      } else {
+        drawer.classList.add('opacity-0', 'pointer-events-none');
+        drawer.classList.remove('opacity-100');
+        sheet.classList.add('translate-y-full');
+        sheet.classList.remove('translate-y-0');
+      }
+    }
+
+    if (openBtn) openBtn.addEventListener('click', () => toggleDrawer(true));
+    if (closeBtn) closeBtn.addEventListener('click', () => toggleDrawer(false));
+    if (applyBtn) applyBtn.addEventListener('click', () => toggleDrawer(false));
+
+    if (drawer) {
+      drawer.addEventListener('click', (e) => {
+        if (e.target === drawer) toggleDrawer(false);
+      });
+    }
+
+    // Sort Tabs Interaction
+    const tabs = document.querySelectorAll('.sort-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('bg-primary-container', 'text-on-primary');
+          t.classList.add('bg-surface-container-low', 'text-on-surface');
+        });
+        tab.classList.remove('bg-surface-container-low', 'text-on-surface');
+        tab.classList.add('bg-primary-container', 'text-on-primary');
+      });
+    });
+
+    // View Switcher logic (visual feedback)
+    if (viewGridBtn && viewListBtn && feed) {
+      viewGridBtn.addEventListener('click', () => {
+        viewGridBtn.classList.add('bg-surface-container-lowest', 'text-primary-container', 'shadow-sm');
+        viewGridBtn.classList.remove('text-outline');
+        viewListBtn.classList.remove('bg-surface-container-lowest', 'text-primary-container', 'shadow-sm');
+        viewListBtn.classList.add('text-outline');
+        feed.classList.remove('flex-col');
+        feed.classList.add('grid', 'grid-cols-2');
+      });
+
+      viewListBtn.addEventListener('click', () => {
+        viewListBtn.classList.add('bg-surface-container-lowest', 'text-primary-container', 'shadow-sm');
+        viewListBtn.classList.remove('text-outline');
+        viewGridBtn.classList.remove('bg-surface-container-lowest', 'text-primary-container', 'shadow-sm');
+        viewGridBtn.classList.add('text-outline');
+        feed.classList.add('flex-col');
+        feed.classList.remove('grid', 'grid-cols-2');
+      });
+    }
+  })();
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(10,39,53,0.04)]" data-active-classes="text-primary-container font-semibold"><div class="flex items-stretch justify-around h-16 px-space-xs"><a class="flex-1 flex flex-col items-center justify-center min-w-[44px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-primary transition-colors" data-path="home" href="#"><span class="material-symbols-outlined text-[24px]">home</span><span class="font-label-sm text-label-sm">خانه</span></a><a aria-current="page" class="flex-1 flex flex-col items-center justify-center min-w-[44px] min-h-[44px] gap-0.5 transition-colors text-primary-container font-semibold" data-path="categories" href="#"><span class="material-symbols-outlined text-[24px]">grid_view</span><span class="font-label-sm text-label-sm">دسته‌بندی</span></a><a class="flex-1 flex flex-col items-center justify-center min-w-[44px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-primary transition-colors relative" data-path="cart" href="#"><div class="relative flex items-center justify-center"><span class="material-symbols-outlined text-[24px]">shopping_bag</span><span class="absolute -top-1 -right-2 bg-on-tertiary-container text-on-tertiary font-label-sm text-[10px] w-4 h-4 rounded-full flex items-center justify-center leading-none">۲</span></div><span class="font-label-sm text-label-sm">سبد خرید</span></a><a class="flex-1 flex flex-col items-center justify-center min-w-[44px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-primary transition-colors" data-path="orders" href="#"><span class="material-symbols-outlined text-[24px]">inventory_2</span><span class="font-label-sm text-label-sm">سفارش‌ها</span></a><a class="flex-1 flex flex-col items-center justify-center min-w-[44px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-primary transition-colors" data-path="account" href="#"><span class="material-symbols-outlined text-[24px]">person</span><span class="font-label-sm text-label-sm">حساب کاربری</span></a></div></nav></body></html>
