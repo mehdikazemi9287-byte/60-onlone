@@ -18,3 +18,9 @@
 4. Extract designs ← Current state (~۲۵ ثانیه).
 5. پس از پایان: با use_figma فونت `Material Symbols Outlined` را به `Material Symbols Rounded` تغییر دهید، فریم‌ها را نام‌گذاری و در ردیف y=2000 مرتب کنید.
 6. لوگو (07): SVG را از `screens/07-ae7bc86b.svg` با upload_assets وارد کنید.
+
+## کار بعدی: پک‌ساز (تصمیم کاربر ۲۵ آبان: «منتظر طرح Stitch، بعد پیاده‌سازی»)
+- Stitch در حال طراحی «پک‌ساز هوشمند سازمانی و سفارشی‌سازی سبد محصولات» و صفحه‌ی محصولات است.
+- پس از آماده شدن: صفحه‌های جدید → `screens/` + manifest، فیگما (کد زنده + Extract).
+- پیاده‌سازی روی شاخه‌ی جدا (نه main، بدون دیپلوی): `frontend/src/app/pack-builder/page.tsx` → `PackStudio.tsx` (۹۶ خط)، `BudgetBuilder.tsx`؛ بک‌اند `pack_builder_service.py` (suggest، basket_quote) و `saved_pack_drafts.py`.
+- طبق AGENTS.md پک‌ساز بخش محافظت‌شده است؛ `PackBuilder.tsx`/`PackBuilderInteractive.tsx` صفحه‌ی خانه دست نخورد مگر با دستور صریح.
