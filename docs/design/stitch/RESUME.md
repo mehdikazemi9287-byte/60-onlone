@@ -20,7 +20,7 @@
 6. لوگو (07): SVG را از `screens/07-ae7bc86b.svg` با upload_assets وارد کنید.
 
 ## کار بعدی: پک‌ساز (تصمیم کاربر ۲۵ آبان: «منتظر طرح Stitch، بعد پیاده‌سازی»)
-- ✅ طرح‌های Stitch آماده و منتقل شد (۲۶ آبان): صفحه‌های ۳۹–۴۸ در `screens/` + manifest. ⏳ باقی: `3830f83c` (دسکتاپ با دستیار)، انتقال ۳۴–۴۸ به فیگما.
+- ✅ طرح‌های Stitch آماده و منتقل شد (۲۶ آبان): صفحه‌های ۳۹–۴۸ در `screens/` + manifest. ✅ ۴۹–۵۴ هم منتقل شد. ⏳ باقی: انتقال ۳۴–۵۴ به فیگما.
 - پیاده‌سازی شروع شد روی `feat/pack-builder-stitch-2026-11-17` (مناسبت‌های مذهبی/خیریه/فرهنگی/لوازم‌التحریر + تست). مشخصات: `docs/design/pack-builder-b2b-features.md`.
 - پس از آماده شدن: صفحه‌های جدید → `screens/` + manifest، فیگما (کد زنده + Extract).
 - پیاده‌سازی روی شاخه‌ی جدا (نه main، بدون دیپلوی): `frontend/src/app/pack-builder/page.tsx` → `PackStudio.tsx` (۹۶ خط)، `BudgetBuilder.tsx`؛ بک‌اند `pack_builder_service.py` (suggest، basket_quote) و `saved_pack_drafts.py`.
