@@ -1,0 +1,762 @@
+<!DOCTYPE html><html dir="rtl" lang="fa"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>سامانه هوشمند پک‌ساز سازمانی | شصت‌آنلاین</title>
+<!-- Vazirmatn Font exclusively across entire UI -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Vazirmatn', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              blue: '#034EA2',
+              navy: '#112D46',
+              navyHover: '#0a1c2c',
+              orange: '#FF7A00',
+              mint: '#EDF3EE',
+              bg: '#F9F9F9',
+            }
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background-color: #F9F9F9;
+      color: #111827;
+    }
+  </style>
+</head>
+<body class="bg-[#F9F9F9] text-gray-900 antialiased selection:bg-[#034EA2]/10 selection:text-[#034EA2]">
+<!-- Top Global Header -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+<div class="max-w-[1360px] mx-auto px-6">
+<!-- Upper Main Bar -->
+<div class="h-20 flex items-center justify-between gap-8">
+<!-- Logo & Brand identity -->
+<a class="flex items-center gap-3 shrink-0 focus:outline-none" href="#">
+<img alt="شصت‌آنلاین" class="w-9 h-9 rounded-lg object-contain" src="https://raw.githubusercontent.com/mehdikazemi9287-byte/60-onlone/main/frontend/public/brand/60online-app-icon.png">
+<div class="flex flex-col">
+<span class="text-xl font-black text-[#034EA2] tracking-tight leading-none">شصت‌آنلاین</span>
+<span class="text-[11px] font-semibold text-gray-400 mt-1 tracking-wider uppercase">60online.ir</span>
+</div>
+</a>
+<!-- Rounded Search Bar with soft subtle placeholder -->
+<div class="flex-1 max-w-2xl">
+<div class="relative flex items-center w-full">
+<span class="absolute right-4 text-gray-400 pointer-events-none flex items-center">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<circle cx="11" cy="11" r="8"></circle>
+<line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+</svg>
+</span>
+<input class="w-full h-11 pr-11 pl-4 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-[#034EA2] focus:ring-1 focus:ring-[#034EA2] transition" placeholder="جستجو در میان هزاران کالا، یک سازمانی و اقلام عمده..." type="text">
+</div>
+</div>
+<!-- Corporate Action Buttons -->
+<div class="flex items-center gap-3 shrink-0">
+<button class="h-10 px-4 rounded-xl border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 text-sm font-semibold transition flex items-center gap-2">
+<svg class="w-4 h-4 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>پرتال سازمانی</span>
+</button>
+<button class="h-10 px-5 rounded-xl bg-[#112D46] hover:bg-[#0a1c2c] text-white text-sm font-semibold transition flex items-center gap-2">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>ورود / ثبت‌نام سازمانی</span>
+</button>
+<button class="relative w-10 h-10 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-gray-700 transition" title="سبد پیش‌فاکتور">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#FF7A00] text-white text-[11px] font-bold flex items-center justify-center shadow-sm">
+              ۳
+            </span>
+</button>
+</div>
+</div>
+<!-- Clean Navigation Sub-bar -->
+<nav class="h-12 border-t border-gray-100 flex items-center justify-between text-xs font-semibold">
+<div class="flex items-center gap-7">
+<!-- Categories mega dropdown -->
+<div class="flex items-center gap-2 text-gray-900 cursor-pointer hover:text-[#034EA2] transition py-3">
+<svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<line x1="3" x2="21" y1="12" y2="12"></line>
+<line x1="3" x2="21" y1="6" y2="6"></line>
+<line x1="3" x2="21" y1="18" y2="18"></line>
+</svg>
+<span>دسته‌بندی کالاها</span>
+</div>
+<a class="text-gray-600 hover:text-[#034EA2] transition" href="#">خرید سازمانی</a>
+<!-- Active Pack Builder -->
+<a class="relative text-[#034EA2] font-bold py-3" href="#">
+<span>پک‌ساز</span>
+<span class="absolute bottom-0 left-0 right-0 h-0.5 bg-[#034EA2] rounded-full"></span>
+</a>
+<a class="text-gray-600 hover:text-[#034EA2] transition" href="#">هدیه کارکنان</a>
+<a class="text-gray-600 hover:text-[#034EA2] transition" href="#">غرفه‌ها</a>
+<a class="text-gray-600 hover:text-[#034EA2] transition" href="#">شبکه فروشگاه‌ها</a>
+<a class="text-gray-600 hover:text-[#034EA2] transition" href="#">وامبی</a>
+<a class="text-gray-600 hover:text-[#034EA2] transition" href="#">در شصت‌آنلاین بفروشید</a>
+</div>
+<!-- 60AI Badge -->
+<a class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#034EA2]/10 text-[#034EA2] hover:bg-[#034EA2]/20 font-bold transition" href="#aiSection">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>دستیار هوشمند 60AI</span>
+</a>
+</nav>
+</div>
+</header>
+<!-- Main Container -->
+<main class="max-w-[1360px] mx-auto px-6 py-8 flex flex-col gap-8">
+<!-- 4-Stage Stepper -->
+<div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+<div class="grid grid-cols-4 gap-4 items-center">
+<!-- Step 1: Active -->
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-[#034EA2] text-white flex items-center justify-center font-bold text-sm shrink-0">
+            ۱
+          </div>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-[#034EA2]">انتخاب روش ساخت</span>
+<span class="text-[11px] text-gray-500 mt-0.5">پک آماده، بودجه یا دستی</span>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex items-center gap-3 border-r border-gray-100 pr-4">
+<div class="w-9 h-9 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-sm shrink-0">
+            ۲
+          </div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-gray-700">چیدمان و سفارشی‌سازی</span>
+<span class="text-[11px] text-gray-400 mt-0.5">تغییر اقلام و بسته‌بندی</span>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex items-center gap-3 border-r border-gray-100 pr-4">
+<div class="w-9 h-9 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-sm shrink-0">
+            ۳
+          </div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-gray-700">بازبینی و لجستیک</span>
+<span class="text-[11px] text-gray-400 mt-0.5">ناوگان ارسال و زمان‌بندی</span>
+</div>
+</div>
+<!-- Step 4 -->
+<div class="flex items-center gap-3 border-r border-gray-100 pr-4">
+<div class="w-9 h-9 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold text-sm shrink-0">
+            ۴
+          </div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-gray-700">استعلام و پیش‌فاکتور رسمی</span>
+<span class="text-[11px] text-gray-400 mt-0.5">صدور سیستمی مودیان و ستاد</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Soft Mint Hero (#EDF3EE) -->
+<section class="bg-[#EDF3EE] rounded-xl p-8 lg:p-10 border border-[#E0EBE2] shadow-sm relative overflow-hidden">
+<div class="max-w-3xl flex flex-col gap-4 relative z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 border border-[#D5E4D8] text-xs font-bold text-[#034EA2] w-fit shadow-xs">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>تدارکات سازمانی B2B شصت‌آنلاین با تضمین کیفیت اقلام</span>
+</div>
+<h1 class="text-2xl lg:text-3xl font-extrabold text-[#112D46] leading-snug">
+          از یک ترکیب خوب، یک پک مناسب بسازید
+        </h1>
+<p class="text-sm lg:text-base text-gray-600 leading-relaxed max-w-2xl font-normal">
+          سامانه هوشمند طراحی و بسته‌بندی سفارشی پک‌های سازمانی، معیشتی و مناسبتی با تضمین کیفیت و ارسال سراسری. هماهنگ با الزامات مالیاتی مودیان و سامانه ستاد ایران.
+        </p>
+<!-- Quick AI Assistant Banner Trigger -->
+<div class="mt-3 flex flex-wrap items-center gap-3" id="aiSection">
+<div class="flex-1 min-w-[280px] max-w-md relative flex items-center">
+<span class="absolute right-3.5 text-gray-400">
+<svg class="w-4 h-4 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</span>
+<input class="w-full h-11 pr-10 pl-4 text-xs bg-white border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#034EA2] shadow-xs" placeholder="مثال: پک معیشتی ۵۰۰ نفره تا سقف ۱.۵ میلیون تومان..." type="text">
+</div>
+<button class="h-11 px-5 rounded-xl bg-[#112D46] hover:bg-[#0a1c2c] text-white text-xs font-bold transition flex items-center gap-2 shrink-0">
+<span>پیشنهاد هوشمند 60AI</span>
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+</section>
+<!-- 3 Pack Creation Methods Cards (3-column grid) -->
+<section>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Card 1: Selected / Recommended -->
+<div class="bg-white border-2 border-[#034EA2] rounded-xl p-6 shadow-sm flex flex-col justify-between relative group hover:shadow-md transition">
+<div class="absolute -top-3 right-5 bg-[#034EA2] text-white text-[11px] font-bold px-3 py-0.5 rounded-full">
+            روش پیشنهادی
+          </div>
+<div>
+<div class="w-12 h-12 rounded-xl bg-[#034EA2]/10 text-[#034EA2] flex items-center justify-center mb-4">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h3 class="text-base font-bold text-gray-900 mb-2">پک‌های آماده سازمانی</h3>
+<p class="text-xs text-gray-500 leading-relaxed">
+              مجموعه‌های کارشناسی‌شده برای مناسبت‌ها و تیراژهای گوناگون، تست‌شده بر اساس بالاترین صرفه اقتصادی و استانداردهای زنجیره ارزش.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-[#034EA2]">
+<span>مشاهده و انتخاب پکیج</span>
+<svg class="w-4 h-4 transition transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col justify-between relative group hover:border-gray-300 hover:shadow-md transition">
+<div>
+<div class="w-12 h-12 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center mb-4">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h3 class="text-base font-bold text-gray-900 mb-2">ساخت بر اساس بودجه</h3>
+<p class="text-xs text-gray-500 leading-relaxed">
+              تطبیق سرانه مالی سازمان به ازای هر پرسنل با بهترین سبد کالا و دریافت خودکار ترکیب بهینه اقلام جهت بودجه‌های انقباضی و رفاهی.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-gray-700 group-hover:text-[#034EA2]">
+<span>شروع برآورد بودجه</span>
+<svg class="w-4 h-4 transition transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col justify-between relative group hover:border-gray-300 hover:shadow-md transition">
+<div>
+<div class="w-12 h-12 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center mb-4">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h3 class="text-base font-bold text-gray-900 mb-2">انتخاب دستی اقلام</h3>
+<p class="text-xs text-gray-500 leading-relaxed">
+              چینش آزاد از بین هزاران کالای کاتالوگ با بسته‌بندی دلخواه، الصاق لوگوی سازمانی و انتخاب نوع جعبه هاردباکس یا کارتن لمینتی.
+            </p>
+</div>
+<div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-gray-700 group-hover:text-[#034EA2]">
+<span>ورود به کاتالوگ کالاها</span>
+<svg class="w-4 h-4 transition transform group-hover:-translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+</div>
+</div>
+</section>
+<!-- Workspace: 12-Column Grid (8 Cols Cards + 4 Cols Sticky Summary) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Right Column: Catalog & Tabs (8 Cols) -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Category Filter Tabs (Pill Style) -->
+<div class="bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex items-center gap-2 overflow-x-auto">
+<button class="px-4 py-2 rounded-lg bg-[#034EA2] text-white text-xs font-bold whitespace-nowrap shadow-xs">
+            همه پک‌ها (۲۸)
+          </button>
+<button class="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 text-xs font-medium whitespace-nowrap transition">
+            معیشتی و ارزاق
+          </button>
+<button class="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 text-xs font-medium whitespace-nowrap transition">
+            مناسبت‌ها و نذورات
+          </button>
+<button class="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 text-xs font-medium whitespace-nowrap transition">
+            فرهنگی و مدارس
+          </button>
+<button class="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 text-xs font-medium whitespace-nowrap transition">
+            هدایای فاخر و صنایع‌دستی
+          </button>
+<button class="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 text-xs font-medium whitespace-nowrap transition">
+            تجهیز هتل و مراکز
+          </button>
+</div>
+<!-- Section Intro & Sorting -->
+<div class="flex items-center justify-between text-xs text-gray-500 px-1">
+<span class="font-medium text-gray-700">نمایش ۳ بسته منتخب آماده صدور فوری پیش‌فاکتور:</span>
+<div class="flex items-center gap-2">
+<span>مرتب‌سازی:</span>
+<select class="bg-white border border-gray-200 rounded-lg px-2.5 py-1 text-xs text-gray-800 focus:outline-none focus:border-[#034EA2]">
+<option>پرمخاطب‌ترین سازمان‌ها</option>
+<option>آماده ارسال فوری</option>
+<option>بیشترین اقلام کالایی</option>
+</select>
+</div>
+</div>
+<!-- 3 Pack Cards Grid (3 in a Row Grid, Identical Pristine Proportions) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<!-- Card 1: بسته معیشتی و ارزاق سازمانی -->
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between group">
+<div>
+<!-- Photography -->
+<div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+<img alt="بسته معیشتی و ارزاق سازمانی" class="w-full h-full object-cover group-hover:scale-102 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB74-zH7YXCML_HX3VAHPTBOSxBgQ-ksp6Ur7rxYt3wdgi6w2RhjR1O71aTt3mrxGZjqRajHENZHlUZ76MGo7lQ3uglPYDriwf-MupNYpAoxqlOVOlL2Dh75JvOE42Gw0GQ5YRxrennCL_9HxEYBM-2ul2d91tsNRQlvNK50r5TyrW7zRYvLg7f2Q58AqU51rNhhS-VE0e4NjpwFJG8dKHa1aRoIb8b4jwPXWj47vw">
+<!-- Warm orange badge on top corner -->
+<span class="absolute top-3 right-3 bg-[#FF7A00] text-white text-[11px] font-bold px-2.5 py-0.5 rounded shadow-xs">
+                  تخفیف تیراژ سازمانی
+                </span>
+</div>
+<!-- Content details -->
+<div class="p-4 flex flex-col gap-2">
+<h2 class="text-sm font-bold text-gray-900 group-hover:text-[#034EA2] transition line-clamp-1">
+                  بسته معیشتی و ارزاق سازمانی
+                </h2>
+<!-- Meta tags -->
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<span class="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                    شامل ۶ قلم کالا
+                  </span>
+<span class="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                    حداقل تیراژ: ۲۰ بسته
+                  </span>
+</div>
+<p class="text-[11px] text-gray-500 leading-normal line-clamp-2 mt-1">
+                  برنج طارم هاشمی، روغن زیتون فرابکر، زعفران سرگل قائنات، چای اصیل کلکته و جعبه لوکس کادویی.
+                </p>
+</div>
+</div>
+<!-- Price & Dual Buttons -->
+<div class="p-4 pt-0 flex flex-col gap-3">
+<div class="pt-3 border-t border-gray-100 flex items-center justify-between">
+<span class="text-[11px] text-gray-400">ارزش محاسباتی:</span>
+<span class="text-xs font-bold text-[#034EA2]">پس از استعلام</span>
+</div>
+<div class="flex flex-col gap-2">
+<button class="w-full h-9 rounded-lg bg-[#112D46] hover:bg-[#0a1c2c] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>استعلام قیمت و پیش‌فاکتور</span>
+</button>
+<button class="w-full h-8 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-[11px] font-semibold transition">
+                  مشاهده و شخصی‌سازی
+                </button>
+</div>
+</div>
+</div>
+<!-- Card 2: بسته حمایتی تحصیلی و مدارس -->
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between group">
+<div>
+<!-- Photography -->
+<div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+<img alt="بسته حمایتی تحصیلی و مدارس" class="w-full h-full object-cover group-hover:scale-102 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeEEQq8G3biJxk58rfgvbk_P-n-WpyMZVR6PdSDD_gLNks9p-GMo8eybpUHDcoET1eBcU5VjSXi_jFWfR7bNXvlqS7vK_neD9phlmYyChCzQ3ecWRpJFa3fPxyCHepMu1u-stBmP8UUiWtxG2ztibT6kBPcZ1_p0uFWFON-e5OsMs2SjGN7AXDeJaop-OrmWP05dy9RDLpGL2XOKI7kdr8qpI3GijVYhtOdWjZ9vE">
+<!-- Warm orange badge on top corner -->
+<span class="absolute top-3 right-3 bg-[#FF7A00] text-white text-[11px] font-bold px-2.5 py-0.5 rounded shadow-xs">
+                  تخفیف تیراژ سازمانی
+                </span>
+</div>
+<!-- Content details -->
+<div class="p-4 flex flex-col gap-2">
+<h2 class="text-sm font-bold text-gray-900 group-hover:text-[#034EA2] transition line-clamp-1">
+                  بسته حمایتی تحصیلی و مدارس
+                </h2>
+<!-- Meta tags -->
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<span class="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                    شامل ۸ قلم کالا
+                  </span>
+<span class="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                    حداقل تیراژ: ۲۵ بسته
+                  </span>
+</div>
+<p class="text-[11px] text-gray-500 leading-normal line-clamp-2 mt-1">
+                  کوله‌پشتی ارگونومیک، دفاتر تحصیلی سیمی، ست مدادرنگی ۲۴ رنگ، بسته مهندسی و لوازم نقاشی کامل.
+                </p>
+</div>
+</div>
+<!-- Price & Dual Buttons -->
+<div class="p-4 pt-0 flex flex-col gap-3">
+<div class="pt-3 border-t border-gray-100 flex items-center justify-between">
+<span class="text-[11px] text-gray-400">ارزش محاسباتی:</span>
+<span class="text-xs font-bold text-[#034EA2]">پس از استعلام</span>
+</div>
+<div class="flex flex-col gap-2">
+<button class="w-full h-9 rounded-lg bg-[#112D46] hover:bg-[#0a1c2c] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>استعلام قیمت و پیش‌فاکتور</span>
+</button>
+<button class="w-full h-8 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-[11px] font-semibold transition">
+                  مشاهده و شخصی‌سازی
+                </button>
+</div>
+</div>
+</div>
+<!-- Card 3: بسته هدایای فاخر مدیریتی و یلدا -->
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between group">
+<div>
+<!-- Photography -->
+<div class="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+<img alt="بسته هدایای فاخر مدیریتی و یلدا" class="w-full h-full object-cover group-hover:scale-102 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5WhR153fOZpQnzOfkshKrWsyiAb-88L6xnaIF_AzLmIKlHqQ6F70XaVvTyisAgsWctDDPWUSYD1rUZv9Oim8qWdsChwGENB7xD6ba7PY92cwQAPDbb0UzprK6uMviDBT1Tn6tzLUOKCr7QDmdBPhacZ1QwDuJvNZFRynrEBXmhi9SYMlDLDTOgzYs9FooXAC3r_q5syD01_ijmd9qr2naKBhYKKcbE9LuLMW-Rc4">
+<!-- Warm orange badge on top corner -->
+<span class="absolute top-3 right-3 bg-[#FF7A00] text-white text-[11px] font-bold px-2.5 py-0.5 rounded shadow-xs">
+                  تخفیف تیراژ سازمانی
+                </span>
+</div>
+<!-- Content details -->
+<div class="p-4 flex flex-col gap-2">
+<h2 class="text-sm font-bold text-gray-900 group-hover:text-[#034EA2] transition line-clamp-1">
+                  بسته هدایای فاخر مدیریتی و یلدا
+                </h2>
+<!-- Meta tags -->
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<span class="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                    شامل ۴ قلم کالا
+                  </span>
+<span class="text-[11px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                    حداقل تیراژ: ۱۰ بسته
+                  </span>
+</div>
+<p class="text-[11px] text-gray-500 leading-normal line-clamp-2 mt-1">
+                  سررسید چرم نفیس مدیریتی، روان‌نویس فلزی، فلاسک دیجیتال هوشمند و نشانگر طلاکوب در جعبه کادویی.
+                </p>
+</div>
+</div>
+<!-- Price & Dual Buttons -->
+<div class="p-4 pt-0 flex flex-col gap-3">
+<div class="pt-3 border-t border-gray-100 flex items-center justify-between">
+<span class="text-[11px] text-gray-400">ارزش محاسباتی:</span>
+<span class="text-xs font-bold text-[#034EA2]">پس از استعلام</span>
+</div>
+<div class="flex flex-col gap-2">
+<button class="w-full h-9 rounded-lg bg-[#112D46] hover:bg-[#0a1c2c] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
+<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>استعلام قیمت و پیش‌فاکتور</span>
+</button>
+<button class="w-full h-8 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-700 text-[11px] font-semibold transition">
+                  مشاهده و شخصی‌سازی
+                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Clean Accordion / Secondary Modules (Tabbed non-cluttered section) -->
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col gap-6 mt-4">
+<div class="flex items-center justify-between border-b border-gray-100 pb-4">
+<div>
+<h3 class="text-sm font-bold text-gray-900">سرویس‌های تخصصی تدارکات و لجستیک</h3>
+<p class="text-xs text-gray-500 mt-1">امکانات ویژه جهت تدارکات دولتی، پایش بار و پروژه‌های مسئولیت اجتماعی</p>
+</div>
+<!-- Navigation Tabs for secondary modules -->
+<div class="flex items-center gap-1 bg-gray-50 p-1 rounded-lg border border-gray-200" id="secondaryTabNav">
+<button class="tab-btn px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#034EA2] transition" id="btn-satad" onclick="switchTab('satad')">
+                سامانه ستاد ایران
+              </button>
+<button class="tab-btn px-3 py-1.5 rounded-md text-xs font-semibold text-gray-600 hover:text-gray-900 transition" id="btn-logistics" onclick="switchTab('logistics')">
+                تخمین لجستیک
+              </button>
+<button class="tab-btn px-3 py-1.5 rounded-md text-xs font-semibold text-gray-600 hover:text-gray-900 transition" id="btn-csr" onclick="switchTab('csr')">
+                مسئولیت اجتماعی (CSR)
+              </button>
+</div>
+</div>
+<!-- Tab Content 1: سامانه ستاد ایران -->
+<div class="tab-content flex flex-col gap-4" id="tab-satad">
+<div class="flex items-center gap-3 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-200">
+<svg class="w-5 h-5 text-[#034EA2] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>اتصال مستقیم به سامانه تدارکات الکترونیکی دولت (ستاد ایران) با کد ایران‌کد و شناسه اختصاصی دستگاه</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-medium text-gray-700">شماره نیاز در سامانه ستاد:</label>
+<input class="h-10 px-3 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-[#034EA2]" placeholder="کد ۱۹ رقمی استعلام" type="text">
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-medium text-gray-700">شناسه ملی دستگاه اجرایی:</label>
+<input class="h-10 px-3 text-xs border border-gray-200 rounded-lg focus:outline-none focus:border-[#034EA2]" placeholder="شناسه ۱۱ رقمی ارگان" type="text">
+</div>
+<div class="flex flex-col justify-end">
+<button class="h-10 px-4 bg-[#034EA2] hover:bg-[#023b7b] text-white text-xs font-bold rounded-lg transition flex items-center justify-center gap-2">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>ثبت و تطبیق پیشنهاد قیمت در ستاد</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Tab Content 2: محاسبه‌گر لجستیک -->
+<div class="tab-content hidden flex-col gap-4" id="tab-logistics">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="p-3 bg-gray-50 border border-gray-200 rounded-lg flex flex-col">
+<span class="text-[11px] text-gray-500">حجم تخمینی کل (CBM):</span>
+<span class="text-base font-bold text-gray-900 mt-1">۱۲.۴ متر مکعب</span>
+</div>
+<div class="p-3 bg-gray-50 border border-gray-200 rounded-lg flex flex-col">
+<span class="text-[11px] text-gray-500">وزن ناخالص مرسوله:</span>
+<span class="text-base font-bold text-gray-900 mt-1">۵,۷۵۰ کیلوگرم</span>
+</div>
+<div class="p-3 bg-gray-50 border border-gray-200 rounded-lg flex flex-col">
+<span class="text-[11px] text-gray-500">ناوگان حمل پیشنهادی:</span>
+<span class="text-base font-bold text-gray-900 mt-1">کامیونت خاور مسقف</span>
+</div>
+<div class="p-3 bg-gray-50 border border-gray-200 rounded-lg flex flex-col">
+<span class="text-[11px] text-gray-500">وضعیت بسته‌بندی:</span>
+<span class="text-base font-bold text-[#034EA2] mt-1">شیرینک + پالت چوبی</span>
+</div>
+</div>
+</div>
+<!-- Tab Content 3: مسئولیت اجتماعی CSR -->
+<div class="tab-content hidden flex-col gap-4" id="tab-csr">
+<div class="p-4 bg-gray-50 border border-gray-200 rounded-lg flex flex-col gap-2">
+<h4 class="text-xs font-bold text-gray-900">طرح نیکوکاری و مسئولیت اجتماعی شرکتی (CSR)</h4>
+<p class="text-xs text-gray-600 leading-relaxed">
+                امکان توزیع مستقیم بسته‌های معیشتی و تحصیلی میان خانوارهای نیازمند در ۳۱ استان کشور به نیابت از سازمان شما، همراه با ارائه گزارش تصویری ممهور و رسید معافیت مالیاتی ماده ۱۳۹ قانون مالیات‌های مستقیم.
+              </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Left Column: Sticky Sidebar (خلاصه پک سازمانی - 4 Cols) -->
+<div class="lg:col-span-4 sticky top-28 flex flex-col gap-5">
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col gap-5">
+<!-- Sidebar Header -->
+<div class="flex items-center justify-between border-b border-gray-100 pb-3">
+<div class="flex items-center gap-2">
+<svg class="w-5 h-5 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<h3 class="text-sm font-bold text-gray-900">پیش‌نمایش سبد پک سازمانی</h3>
+</div>
+<span class="text-[11px] font-bold text-[#034EA2] bg-[#034EA2]/10 px-2 py-0.5 rounded">
+              پیش‌فاکتور رسمی
+            </span>
+</div>
+<!-- Quantity Stepper (Default 500) -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-gray-700">تیراژ سفارش (تعداد پک):</span>
+<span class="text-[11px] text-gray-400">حداقل تیراژ: ۲۰ بسته</span>
+</div>
+<div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl p-1.5">
+<button class="w-9 h-9 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-100 flex items-center justify-center font-bold transition" onclick="changeQty(50)">
+                +
+              </button>
+<div class="flex items-center gap-1.5">
+<input class="w-20 text-center bg-transparent text-base font-extrabold text-gray-900 focus:outline-none" id="qtyInput" type="text" value="۵۰۰">
+<span class="text-xs text-gray-500 font-medium">بسته</span>
+</div>
+<button class="w-9 h-9 bg-white border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-100 flex items-center justify-center font-bold transition" onclick="changeQty(-50)">
+                -
+              </button>
+</div>
+</div>
+<!-- Tiered Volume Discount Indicator (پله تخفیف سازمانی) -->
+<div class="bg-[#EDF3EE] border border-[#D5E4D8] rounded-xl p-3 flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-xs font-bold text-[#112D46]">
+<span>پله تخفیف سازمانی فعال:</span>
+<span class="text-[#FF7A00]">سفارش‌های بالای ۲۰۰ عدد</span>
+</div>
+<p class="text-[11px] text-gray-600 leading-normal">
+              تخفیف تیراژ صنعتی و بسته‌بندی رایگان روی کل استعلام اعمال شده است.
+            </p>
+</div>
+<!-- Selected Pack Preview Snapshot -->
+<div class="flex flex-col gap-2">
+<span class="text-xs font-semibold text-gray-700">اقلام انتخاب‌شده:</span>
+<div class="flex flex-col gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs">
+<div class="flex items-center justify-between text-gray-800 font-medium">
+<span>بسته معیشتی و ارزاق سازمانی</span>
+<span class="font-bold text-[#034EA2]">۵۰۰ بسته</span>
+</div>
+<div class="border-t border-gray-200 pt-2 flex flex-col gap-1.5 text-[11px] text-gray-500">
+<div class="flex items-center gap-1.5 text-gray-700">
+<svg class="w-3.5 h-3.5 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+<span>چاپ لوگوی اختصاصی سازمان (رایگان)</span>
+</div>
+<div class="flex items-center gap-1.5 text-gray-700">
+<svg class="w-3.5 h-3.5 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+<span>شیرینک حرارتی و بارنامه دولتی (رایگان)</span>
+</div>
+<div class="flex items-center gap-1.5 text-gray-700">
+<svg class="w-3.5 h-3.5 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<polyline points="20 6 9 17 4 12"></polyline>
+</svg>
+<span>ثبت در کارتابل سامانه مودیان</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Pricing Status (No fake numeric price) -->
+<div class="border-t border-gray-100 pt-4 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-xs text-gray-500">مبلغ کل نهایی:</span>
+<span class="text-sm font-bold text-[#034EA2]">پس از استعلام قیمت</span>
+</div>
+<p class="text-[11px] text-gray-400 leading-normal">
+              با توجه به تیراژ سفارش و تخفیف‌های ویژه ارگانی، پیش‌فاکتور رسمی با شناسه کالا و خدمات صادر می‌گردد.
+            </p>
+</div>
+<!-- Primary & Secondary CTA Buttons -->
+<div class="flex flex-col gap-2.5">
+<button class="w-full h-11 bg-[#112D46] hover:bg-[#0a1c2c] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>ثبت استعلام و دریافت پیش‌فاکتور</span>
+</button>
+<button class="w-full h-10 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2">
+<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span>چاپ پیش‌نویس (PDF)</span>
+</button>
+</div>
+<!-- Hotline Callout -->
+<div class="border-t border-gray-100 pt-3 flex items-center justify-between text-xs text-gray-500">
+<span>مشاوره تخصصی تدارکات:</span>
+<span class="font-bold text-gray-800 dir-ltr tracking-wider">۰۲۱-۶۰۶۰۶۰۶۰</span>
+</div>
+</div>
+<!-- Corporate Trust Note -->
+<div class="bg-white border border-gray-200 rounded-xl p-4 text-xs text-gray-600 flex items-center gap-3">
+<svg class="w-5 h-5 text-[#034EA2] shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[11px] leading-relaxed">تضمین اصالت کالاها و مطابقت دقیق اقلام فیزیکی با آنالیز آزمایشگاهی ارائه‌شده.</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Clean 4-Column Footer Matching 60online.ir -->
+<footer class="bg-white border-t border-gray-200 mt-16 pt-12 pb-8">
+<div class="max-w-[1360px] mx-auto px-6 flex flex-col gap-10">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+<!-- Col 1: About & Support -->
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-2"><img alt="شصت‌آنلاین" class="w-8 h-8 rounded-lg object-contain" src="https://raw.githubusercontent.com/mehdikazemi9287-byte/60-onlone/main/frontend/public/brand/60online-app-icon.png"><span class="text-base font-extrabold text-[#034EA2]">شصت‌آنلاین</span><span class="text-xs text-gray-400">سامانه جامع تدارکات B2B</span></div>
+<p class="text-xs text-gray-500 leading-relaxed">
+            زیرساخت رسمی سفارش‌سازی و تأمین پک‌های سازمانی، هدایای شرکتی و اقلام معیشتی با پوشش لجستیکی سراسر ایران.
+          </p>
+<div class="flex flex-col gap-1 text-xs text-gray-600 mt-2 font-medium">
+<span>مرکز تماس مشتریان: ۰۲۱-۶۰۶۰۶۰۶۰</span>
+<span>پشتیبانی کارتابل ستاد: ۰۲۱-۸۸۸۸۶۰۶۰</span>
+</div>
+</div>
+<!-- Col 2: Corporate Services -->
+<div class="flex flex-col gap-2.5">
+<h4 class="text-xs font-bold text-gray-900 mb-1">خدمات سازمانی</h4>
+<a class="text-xs text-gray-500 hover:text-[#034EA2] transition" href="#">سامانه پک‌ساز هوشمند</a>
+<a class="text-xs text-gray-500 hover:text-[#034EA2] transition" href="#">پیش‌فاکتور رسمی مودیان</a>
+<a class="text-xs text-gray-500 hover:text-[#034EA2] transition" href="#">تأمین اقلام سامانه ستاد ایران</a>
+<a class="text-xs text-gray-500 hover:text-[#034EA2] transition" href="#">بن‌کارت رفاهی و اعتبار وامبی</a>
+</div>
+<!-- Col 3: Customer Guide -->
+<div class="flex flex-col gap-2.5">
+<h4 class="text-xs font-bold text-gray-900 mb-1">راهنمای خریداران حقوقی</h4>
+<a class="text-xs text-gray-500 hover:text-[#034EA2] transition" href="#">قوانین و ضوابط مناقصات</a>
+<a class="text-xs text-gray-500 hover:text-[#034EA2] transition" href="#">شیوه‌های بارنامه و ترابری بار</a>
+<a class="text-xs text-gray-500 hover:text-[#034EA2] transition" href="#">ضمانت تطابق نمونه آزمایشگاهی</a>
+<a class="text-xs text-gray-500 hover:text-[#034EA2] transition" href="#">پرسش‌های پرتکرار سازمانی</a>
+</div>
+<!-- Col 4: Trust Symbols -->
+<div class="flex flex-col gap-3">
+<h4 class="text-xs font-bold text-gray-900 mb-1">مجوزها و نمادهای اعتماد</h4>
+<div class="grid grid-cols-3 gap-2">
+<div class="h-20 border border-gray-200 rounded-xl bg-gray-50 flex flex-col items-center justify-center p-2 text-center text-gray-500 hover:bg-white transition shadow-2xs">
+<svg class="w-6 h-6 text-[#034EA2] mb-1" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-bold">اینماد ۵ ستاره</span>
+</div>
+<div class="h-20 border border-gray-200 rounded-xl bg-gray-50 flex flex-col items-center justify-center p-2 text-center text-gray-500 hover:bg-white transition shadow-2xs">
+<svg class="w-6 h-6 text-[#034EA2] mb-1" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-bold">ستاد ایران</span>
+</div>
+<div class="h-20 border border-gray-200 rounded-xl bg-gray-50 flex flex-col items-center justify-center p-2 text-center text-gray-500 hover:bg-white transition shadow-2xs">
+<svg class="w-6 h-6 text-[#034EA2] mb-1" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+<path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+<span class="text-[10px] font-bold">نشان ملی ثبت</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Copyright Bar -->
+<div class="border-t border-gray-100 pt-6 flex flex-col md:flex-row items-center justify-between text-xs text-gray-400">
+<p>© کلیه حقوق مادی و معنوی این پلتفرم متعلق به شرکت شصت‌آنلاین (60online.ir) می‌باشد.</p>
+<span class="mt-2 md:mt-0 font-medium">نسخه سامانه: 4.8.2-سازمانی</span>
+</div>
+</div>
+</footer>
+<!-- Light Javascript for Tabs & Quantity interactions -->
+<script>
+    function switchTab(tabKey) {
+      // Hide all contents
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      // Remove active classes
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-[#034EA2]', 'text-white', 'font-bold');
+        btn.classList.add('text-gray-600', 'font-semibold');
+      });
+
+      // Show selected content
+      const activeContent = document.getElementById('tab-' + tabKey);
+      if (activeContent) activeContent.classList.remove('hidden');
+
+      // Highlight button
+      const activeBtn = document.getElementById('btn-' + tabKey);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-[#034EA2]', 'text-white', 'font-bold');
+        activeBtn.classList.remove('text-gray-600', 'font-semibold');
+      }
+    }
+
+    function toPersianDigits(num) {
+      const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+      return num.toString().replace(/[0-9]/g, function (w) {
+        return persianNumbers[+w];
+      });
+    }
+
+    function fromPersianDigits(str) {
+      return str.replace(/[۰-۹]/g, function (w) {
+        return '۰۱۲۳۴۵۶۷۸۹'.indexOf(w);
+      });
+    }
+
+    function changeQty(delta) {
+      const input = document.getElementById('qtyInput');
+      if (!input) return;
+      let currentVal = parseInt(fromPersianDigits(input.value)) || 500;
+      currentVal = Math.max(20, currentVal + delta);
+      input.value = toPersianDigits(currentVal);
+    }
+  </script>
+<div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" dir="rtl" id="customization-modal"><div class="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden my-auto flex flex-col max-h-[92vh]"><div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white sticky top-0 z-20"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-[#034EA2]/10 text-[#034EA2] flex items-center justify-center shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round"></path></svg></div><div class="flex flex-col"><div class="flex items-center gap-2.5"><h2 class="text-base sm:text-lg font-extrabold text-[#112D46]">سفارشی‌سازی اقلام پک معیشتی و ارزاق</h2><span class="text-[11px] font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded dir-ltr tracking-wider">PK-882</span><span class="hidden sm:inline-flex bg-[#FF7A00] text-white text-[10px] font-bold px-2 py-0.5 rounded">تخفیف تیراژ سازمانی فعال</span></div><p class="text-xs text-gray-500 mt-0.5">حذف، تغییر وزن یا جایگزینی برند کالاهای اساسی متناسب با بودجه و نیاز رفاهی سازمان</p></div></div><button class="w-9 h-9 rounded-xl border border-gray-200 text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition" onclick="document.getElementById('customization-modal').remove()"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path></svg></button></div><div class="grid grid-cols-1 lg:grid-cols-12 overflow-y-auto divide-y lg:divide-y-0 lg:divide-x lg:divide-x-reverse divide-gray-200"><div class="lg:col-span-8 p-5 sm:p-6 flex flex-col gap-4"><div class="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-xl p-3 text-xs text-[#034EA2]"><div class="flex items-center gap-2 font-medium"><svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="16" y2="12"></line><line x1="12" x2="12.01" y1="8" y2="8"></line></svg><span>اقلام پایه این پک توسط کارشناسان رفاهی پیشنهاد شده است. شما می‌توانید برندها، اوزان یا محتوا را شخصی‌سازی کنید.</span></div><span class="font-bold whitespace-nowrap">۶ قلم موجود</span></div><div class="flex flex-col gap-3"><div class="border border-gray-200 rounded-xl p-3.5 hover:border-gray-300 transition bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><div class="flex items-center gap-3"><input checked="" class="w-4 h-4 rounded text-[#034EA2] focus:ring-[#034EA2] border-gray-300" type="checkbox"><div class="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0"><svg class="w-6 h-6 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></div><div class="flex flex-col"><span class="text-xs sm:text-sm font-bold text-gray-900">برنج درجه یک هاشمی گیلان</span><span class="text-[11px] text-gray-500">کیسه متقال ضد رطوبت با تضمین پخت و عطر</span></div></div><div class="flex items-center gap-2 self-end sm:self-center"><select class="h-8 text-xs border border-gray-200 rounded-lg px-2 bg-gray-50 text-gray-700 focus:outline-none focus:border-[#034EA2]"><option selected="">وزن: ۵ کیلوگرم</option><option>وزن: ۱۰ کیلوگرم</option><option>وزن: ۲.۵ کیلوگرم</option></select><select class="h-8 text-xs border border-gray-200 rounded-lg px-2 bg-gray-50 text-gray-700 focus:outline-none focus:border-[#034EA2]"><option selected="">هاشمی معطر</option><option>طارم محلی فریدونکنار</option><option>دودی سنتی</option></select></div></div><div class="border border-gray-200 rounded-xl p-3.5 hover:border-gray-300 transition bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><div class="flex items-center gap-3"><input checked="" class="w-4 h-4 rounded text-[#034EA2] focus:ring-[#034EA2] border-gray-300" type="checkbox"><div class="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0"><svg class="w-6 h-6 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg></div><div class="flex flex-col"><span class="text-xs sm:text-sm font-bold text-gray-900">روغن زیتون فرابکر رودبار (تصفیه طبیعی)</span><span class="text-[11px] text-gray-500">اسیدیته زیر ۰.۵ درصد، بطری شیشه‌ای تیره</span></div></div><div class="flex items-center gap-2 self-end sm:self-center"><select class="h-8 text-xs border border-gray-200 rounded-lg px-2 bg-gray-50 text-gray-700 focus:outline-none focus:border-[#034EA2]"><option selected="">حجم: ۵۰۰ میلی‌لیتر</option><option>حجم: ۱۰۰۰ میلی‌لیتر</option></select><select class="h-8 text-xs border border-gray-200 rounded-lg px-2 bg-gray-50 text-gray-700 focus:outline-none focus:border-[#034EA2]"><option selected="">روغن زیتون فرابکر</option><option>روغن مایع آفتابگردان ۱.۵ لیتری</option><option>روغن کنجد فرابکر</option></select></div></div><div class="border border-gray-200 rounded-xl p-3.5 hover:border-gray-300 transition bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><div class="flex items-center gap-3"><input checked="" class="w-4 h-4 rounded text-[#034EA2] focus:ring-[#034EA2] border-gray-300" type="checkbox"><div class="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0"><svg class="w-6 h-6 text-[#FF7A00]" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path></svg></div><div class="flex flex-col"><span class="text-xs sm:text-sm font-bold text-gray-900">زعفران کادویی سرگل قائنات</span><span class="text-[11px] text-gray-500">قوطی خاتم سنتی لوکس با پلمپ آزمایشگاهی</span></div></div><div class="flex items-center gap-2 self-end sm:self-center"><select class="h-8 text-xs border border-gray-200 rounded-lg px-2 bg-gray-50 text-gray-700 focus:outline-none focus:border-[#034EA2]"><option selected="">وزن: ۵ گرم (یک مثقال)</option><option>وزن: ۲ گرم</option><option>وزن: ۱۰ گرم (دو مثقال)</option></select><button class="h-8 px-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition font-medium">حذف قلم</button></div></div><div class="border border-gray-200 rounded-xl p-3.5 hover:border-gray-300 transition bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><div class="flex items-center gap-3"><input checked="" class="w-4 h-4 rounded text-[#034EA2] focus:ring-[#034EA2] border-gray-300" type="checkbox"><div class="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0"><svg class="w-6 h-6 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824-2.12a5 5 0 00-2.83 1.414m5.658-1.414a9 9 0 00-9.238-2.167"></path></svg></div><div class="flex flex-col"><span class="text-xs sm:text-sm font-bold text-gray-900">چای دستچین ممتاز لاهیجان</span><span class="text-[11px] text-gray-500">قوطی فلزی طرح دار، طعم گس و رنگ کامپکت</span></div></div><div class="flex items-center gap-2 self-end sm:self-center"><select class="h-8 text-xs border border-gray-200 rounded-lg px-2 bg-gray-50 text-gray-700 focus:outline-none focus:border-[#034EA2]"><option selected="">وزن: ۴۰۰ گرم</option><option>وزن: ۵۰۰ گرم</option></select><select class="h-8 text-xs border border-gray-200 rounded-lg px-2 bg-gray-50 text-gray-700 focus:outline-none focus:border-[#034EA2]"><option selected="">چای بهاره لاهیجان</option><option>چای سیلان CTC هندوستان</option><option>چای ارل گری با برگ طبیعی</option></select></div></div><div class="border border-gray-200 rounded-xl p-3.5 hover:border-gray-300 transition bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><div class="flex items-center gap-3"><input checked="" class="w-4 h-4 rounded text-[#034EA2] focus:ring-[#034EA2] border-gray-300" type="checkbox"><div class="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0"><svg class="w-6 h-6 text-[#034EA2]" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg></div><div class="flex flex-col"><span class="text-xs sm:text-sm font-bold text-gray-900">حبوبات پاک‌شده و دستچین (۲ بسته ۹۰۰ گرمی)</span><span class="text-[11px] text-gray-500">عدس ریز ساسانی + لوبیا چیتی خمین با رطوبت استاندارد</span></div></div><div class="flex items-center gap-2 self-end sm:self-center"><select class="h-8 text-xs border border-gray-200 rounded-lg px-2 bg-gray-50 text-gray-700 focus:outline-none focus:border-[#034EA2]"><option selected="">عدس + لوبیا چیتی (۱.۸ کیلو)</option><option>نخود کرمانشاه + عدس (۱.۸ کیلو)</option><option>لوبیا قرمز + لپه آذرشهر</option></select></div></div><div class="border border-dashed border-gray-300 rounded-xl p-3.5 bg-gray-50/70 hover:bg-white hover:border-[#034EA2] transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"><div class="flex items-center gap-3"><input class="w-4 h-4 rounded text-[#034EA2] focus:ring-[#034EA2] border-gray-300" type="checkbox"><div class="w-12 h-12 rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0 text-gray-400"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><div class="flex flex-col"><span class="text-xs sm:text-sm font-bold text-gray-700">رب گوجه‌فرنگی ارگانیک شیشه‌ای (بریکس ۲۷)</span><span class="text-[11px] text-gray-400">شیشه ۸۰۰ گرمی بدون مواد نگهدارنده - افزودن به ترکیب</span></div></div><div class="flex items-center gap-2 self-end sm:self-center"><button class="h-8 px-3 rounded-lg border border-[#034EA2] text-[#034EA2] hover:bg-[#034EA2]/10 text-xs font-bold transition flex items-center gap-1.5"><span>+ افزودن به پک</span></button></div></div></div><button class="mt-2 w-full py-2.5 rounded-xl border border-dashed border-[#034EA2] text-[#034EA2] hover:bg-[#034EA2]/5 text-xs font-bold transition flex items-center justify-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"></path></svg><span>افزودن کالای دلخواه دیگر از انبار شصت‌آنلاین (تن ماهی، عسل سبلان، خرما پیارم، ماکارونی...)</span></button></div><div class="lg:col-span-4 p-5 sm:p-6 bg-gray-50 flex flex-col gap-5"><div class="flex flex-col gap-1.5 border-b border-gray-200 pb-3"><h3 class="text-sm font-bold text-[#112D46]">پیکربندی بسته‌بندی و تحویل</h3><span class="text-[11px] text-gray-500">تنظیمات بسته، هاردباکس و هویت بصری سازمان</span></div><div class="flex flex-col gap-2"><label class="text-xs font-semibold text-gray-700">نوع جعبه و بسته‌بندی پک:</label><div class="flex flex-col gap-2"><label class="flex items-center justify-between p-2.5 bg-white border border-[#034EA2] rounded-xl cursor-pointer shadow-xs"><div class="flex items-center gap-2"><input checked="" class="text-[#034EA2] focus:ring-[#034EA2]" name="packaging" type="radio"><span class="text-xs font-bold text-gray-800">هاردباکس کرافت روبان‌دار لوکس</span></div><span class="text-[10px] font-bold text-[#034EA2] bg-blue-50 px-2 py-0.5 rounded">پیشنهادی</span></label><label class="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-gray-300"><div class="flex items-center gap-2"><input class="text-[#034EA2] focus:ring-[#034EA2]" name="packaging" type="radio"><span class="text-xs font-semibold text-gray-700">کارتن لمینتی ۵ لایه ضدضربه</span></div><span class="text-[10px] text-gray-500">صرفه اقتصادی</span></label><label class="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-gray-300"><div class="flex items-center gap-2"><input class="text-[#034EA2] focus:ring-[#034EA2]" name="packaging" type="radio"><span class="text-xs font-semibold text-gray-700">شیرینگ حرارتی بدون جعبه</span></div><span class="text-[10px] text-gray-500">کمترین بها</span></label></div></div><div class="bg-white border border-gray-200 rounded-xl p-3 flex flex-col gap-2"><label class="flex items-start gap-2.5 cursor-pointer"><input checked="" class="w-4 h-4 rounded text-[#034EA2] focus:ring-[#034EA2] mt-0.5" type="checkbox"><div class="flex flex-col"><span class="text-xs font-bold text-gray-800">چاپ رایگان لوگو و پلاک یادبود سازمانی</span><span class="text-[10px] text-gray-500 leading-normal">درج نشان ارگان روی کارتن، روبان اختصاصی و کارت تبریک داخل بسته بدون هزینه</span></div></label></div><div class="flex flex-col gap-2"><div class="flex items-center justify-between text-xs"><span class="font-semibold text-gray-700">تیراژ سفارش (تعداد کل پک‌ها):</span><span class="text-gray-400 font-medium text-[11px]">حداقل: ۲۰ عدد</span></div><div class="flex items-center gap-1.5"><button class="flex-1 py-1.5 rounded-lg border border-[#034EA2] bg-white text-[#034EA2] font-bold text-xs hover:bg-blue-50">۵۰</button><button class="flex-1 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold text-xs hover:bg-gray-100">۱۰۰</button><button class="flex-1 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold text-xs hover:bg-gray-100">۵۰۰</button><button class="flex-1 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold text-xs hover:bg-gray-100">۱۰۰۰</button></div></div><div class="bg-[#EDF3EE] border border-[#D5E4D8] rounded-xl p-3 flex flex-col gap-1.5 text-xs"><div class="flex items-center justify-between text-gray-700"><span class="text-[11px]">وزن تقریبی هر پک کامل:</span><span class="font-bold text-[#112D46] dir-ltr">~ ۷.۴ Kg</span></div><div class="flex items-center justify-between text-gray-700"><span class="text-[11px]">مبنای قیمت‌گذاری اقلام:</span><span class="font-bold text-gray-900">نرخ مصوب پخش و ستاد</span></div><div class="border-t border-[#D5E4D8] pt-2 flex items-center justify-between font-bold text-[#034EA2]"><span>مبلغ کل برآورد:</span><span class="text-xs">پس از استعلام رسمی</span></div></div><div class="flex flex-col gap-2 pt-1"><button class="w-full h-11 bg-[#112D46] hover:bg-[#0a1c2c] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm" onclick="document.getElementById('customization-modal').remove()"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg><span>اعمال تغییرات و به‌روزرسانی پیش‌فاکتور</span></button><button class="w-full h-9 border border-gray-300 hover:bg-white text-gray-700 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2"><svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><span>دانلود فایل مشخصات فنی اقلام (PDF)</span></button><button class="text-center text-[11px] text-gray-500 hover:text-[#034EA2] underline py-1 transition" onclick="document.getElementById('customization-modal').remove()">بازگشت به ترکیب استاندارد کارشناسی</button></div></div></div></div></div>
+
+</body></html>
