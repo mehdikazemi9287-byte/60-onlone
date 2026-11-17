@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><title>Waybill Discrepancy Detail</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;font-family:'Vazirmatn',sans-serif;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-tint": "#486272", "secondary-fixed-dim": "#95cdf7", "surface-container-low": "#f3f3f3", "on-error-container": "#93000a", "inverse-on-surface": "#f1f1f1", "tertiary-container": "#4a0f00", "on-primary-fixed-variant": "#304a59", "background": "#f9f9f9", "surface": "#f9f9f9", "tertiary-fixed-dim": "#ffb59f", "surface-container-high": "#e8e8e8", "primary": "#00111a", "inverse-surface": "#2f3131", "primary-fixed": "#cbe6f9", "tertiary-fixed": "#ffdbd1", "secondary": "#266489", "error-container": "#ffdad6", "on-tertiary-container": "#eb5f34", "surface-bright": "#f9f9f9", "on-secondary-fixed": "#001e2f", "on-tertiary-fixed": "#3b0a00", "surface-container": "#eeeeee", "surface-variant": "#e2e2e2", "on-tertiary-fixed-variant": "#862200", "on-primary": "#ffffff", "outline-variant": "#c2c7cc", "on-primary-fixed": "#011e2c", "on-primary-container": "#758fa0", "surface-dim": "#dadada", "on-error": "#ffffff", "on-secondary": "#ffffff", "surface-container-lowest": "#ffffff", "primary-fixed-dim": "#afcadd", "on-tertiary": "#ffffff", "tertiary": "#250400", "secondary-fixed": "#c9e6ff", "primary-container": "#0a2735", "on-secondary-fixed-variant": "#004b6f", "on-surface": "#1a1c1c", "inverse-primary": "#afcadd", "on-surface-variant": "#42474b", "surface-container-highest": "#e2e2e2", "on-background": "#1a1c1c", "outline": "#73787c", "error": "#ba1a1a", "secondary-container": "#9ed5ff", "on-secondary-container": "#1d5d82" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter-md": "1.5rem", "gutter-lg": "2rem", "margin-lg": "4rem", "gutter": "1rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "space-md": "1rem", "margin-md": "2rem", "space-lg": "1.5rem", "margin": "1rem", "space-xl": "2.5rem" }, "fontFamily": { "headline-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "label-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-xl": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-lg-mobile": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "label-sm": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-sm": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "label-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-xl-mobile": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "title-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "title-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\"" ] }, "fontSize": { "headline-lg": ["28px", { "lineHeight": "42px", "fontWeight": "700" }], "body-md": ["14px", { "lineHeight": "24px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }], "headline-xl": ["36px", { "lineHeight": "52px", "fontWeight": "800" }], "headline-lg-mobile": ["22px", { "lineHeight": "34px", "fontWeight": "700" }], "label-sm": ["11px", { "lineHeight": "16px", "fontWeight": "500" }], "body-lg": ["16px", { "lineHeight": "28px", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "20px", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "18px", "fontWeight": "500" }], "headline-md": ["20px", { "lineHeight": "32px", "fontWeight": "700" }], "headline-xl-mobile": ["26px", { "lineHeight": "38px", "fontWeight": "800" }], "title-md": ["16px", { "lineHeight": "26px", "fontWeight": "600" }], "title-lg": ["18px", { "lineHeight": "28px", "fontWeight": "600" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="بازگشت یا بستن" class="w-11 h-11 flex items-center justify-center rounded-xl bg-surface-container-high/60 text-on-surface hover:bg-surface-container-highest transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[20px] scale-x-[-1]">arrow_back</span></button><div class="flex flex-col"><div class="flex items-center gap-space-xs"><h1 class="font-title-md text-title-md text-primary truncate max-w-[170px]">Waybill Discrepancy Detail</h1><span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm whitespace-nowrap">نیازمند بررسی</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">بارنامه: ۵۸۰۴-ب‌ت</span></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="font-label-sm text-label-sm text-on-surface-variant">انبار مکانیزه ۲</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/ALJJyrAAioAxkbhOlVRTti0xHLDZ-5kstiLTZnJAAp3fXbTBkOHXraRiAcI9p2s4MD54I-xe08_NZdLYG8Z5pr_ZZJ0jIZSPAxB7F4yeIKM6TYCcCNcW6SIp1yXVeZxvf7ql-SHD9lM7ao0rvdXtzW4UWUElSFKqNjzKVTijg5sfliERT-urxTywxI-PXQuIV687uAT2PMhGi2i4RpoWsIZV756nQehMe0YhQ_i4qK3T2FEd"/></div></div></header><main class="flex flex-col relative w-full pt-16 pb-safe bg-surface min-h-screen"><div class="flex flex-col w-full px-margin pb-24 gap-space-md">
+<!-- Case Quick Info & Status Notification -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm mt-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-on-tertiary-container animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">شماره پرونده نظارتی</span>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold tracking-tight">DIS-۱۴۰۳/۸۹۲-۰۴</span>
+</div>
+<div class="flex items-baseline justify-between pt-1">
+<span class="font-title-md text-title-md text-primary">حواله خروج: WH-OUT-۹۹۱۲۰</span>
+<span class="px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+        اقدام فوری سرپرست
+      </span>
+</div>
+<div class="flex items-center gap-2 pt-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-surface-tint">schedule</span>
+<span>ثبت: ۲۸ آبان ۱۴۰۳ — ساعت ۱۰:۳۰</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-secondary font-medium">ایستگاه کنترل کیفی ۴</span>
+</div>
+</div>
+<!-- Driver & Fleet Profile Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="Close-up portrait of a professional Iranian warehouse delivery truck driver wearing a modern navy uniform and identification lanyard inside a logistics depot terminal, daylight, photorealistic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3V9uivBLPGNh3ts3wCTur7jjWBO1Ev2rchkN9VggWXecM8zrT7lFu3MphveisjxjXMjzvpDGJSx0nY8jTeLVpHhPoeVAb_iJOmZb46PjLMC7vEyD_LvLGNyiYI7WAHGuO7_cr4_x8M1Pvlqub6mKZNrN-5jRt7EWVKyqw-YBFOuSVcUzjUBElAvzC9ZUEjhqCUvV5sJ0rIE2eZ27XsU1kWqCmOV4BSAYRJofNEMw"/>
+<span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full ring-2 ring-surface-container-lowest"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-title-md text-title-md text-primary truncate">رضا بهرامی</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">کد: DRV-۸۸۲۰</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">وانت نیسان ۱۲ ب ۵۶۴ (مسقف چادری)</span>
+</div>
+</div>
+<!-- Quick Contact Actions -->
+<div class="flex items-center gap-1.5">
+<button aria-label="تماس صوتی با راننده" class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-secondary hover:bg-secondary-container transition-colors active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">phone</span>
+</button>
+<button aria-label="ارسال پیامک سیستمی" class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-secondary hover:bg-secondary-container transition-colors active:scale-95" type="button">
+<span class="material-symbols-outlined text-[20px]">sms</span>
+</button>
+</div>
+</div>
+<!-- Route Path Pill -->
+<div class="bg-surface-container-low rounded-lg p-2.5 flex items-center justify-between font-body-sm text-body-sm text-on-surface">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-secondary text-[18px]">local_shipping</span>
+<span class="truncate">انبار شورآباد</span>
+<span class="material-symbols-outlined text-[14px] text-outline scale-x-[-1]">arrow_forward</span>
+<span class="truncate font-medium text-primary">هاب توزیع میرداماد - ونک</span>
+</div>
+<span class="font-label-sm text-label-sm text-surface-tint whitespace-nowrap mr-2">مسیر ۳۲ کیلومتر</span>
+</div>
+<!-- KPI Metrics Matrix -->
+<div class="grid grid-cols-3 gap-2 pt-1">
+<div class="bg-error-container/40 rounded-lg p-2 flex flex-col items-center justify-center text-center">
+<span class="font-label-sm text-label-sm text-on-error-container">نرخ مغایرت</span>
+<span class="font-title-md text-title-md font-bold text-on-error-container mt-0.5">۲.۱٪</span>
+<span class="font-label-sm text-label-sm text-on-error-container/80 text-[10px] leading-tight">۰.۱٪ بیش از سقف</span>
+</div>
+<div class="bg-surface-container rounded-lg p-2 flex flex-col items-center justify-center text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">مدت تأخیر</span>
+<span class="font-title-md text-title-md font-bold text-primary mt-0.5">۱۸ دقیقه</span>
+<span class="font-label-sm text-label-sm text-surface-tint text-[10px] leading-tight">معطلی ترافیک</span>
+</div>
+<div class="bg-surface-container rounded-lg p-2 flex flex-col items-center justify-center text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">رضایت تحویل</span>
+<span class="font-title-md text-title-md font-bold text-secondary mt-0.5">۹۱.۲٪</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-[10px] leading-tight">نیازمند ارتقا</span>
+</div>
+</div>
+</div>
+<!-- Discrepancy Items Checklist Section -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-on-tertiary-container text-[20px]">inventory_2</span>
+<h2 class="font-title-md text-title-md text-primary">اقلام مغایر ثبت‌شده</h2>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-bold">۲ قلم کالا</span>
+</div>
+<!-- Discrepancy Item 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex gap-space-sm">
+<img class="w-16 h-16 rounded-lg object-cover bg-surface-container flex-shrink-0" data-alt="Packaged commercial crystal white refined sugar bags stacked on wooden delivery crate pallet inside modern warehouse, clean lighting, sharp product shot" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGYrPNzuzQg-avKm4vC_1O8l4YofFn0BNARehbVGOK1HF2G2mw3A8KFFa7UQe84hvMLiNG1LTyuSg32fkzkhqpfZR5NfyYjf6ggBuZQOXUW9yorBpp0_Wq0UDCGxHfpz-iFNyV7G-iYPiEYE9V3pfCIVqHv2TY5YcF1bxynQ2IkO2RFRd8rQixcbLIvnJ0GsH3o2WYmPNm5OBhWUoNNi29cVrT6TSNKChG2z6lqXU"/>
+<div class="flex flex-col min-w-0 flex-1 justify-between">
+<div class="flex items-start justify-between gap-1">
+<h3 class="font-title-md text-title-md text-primary leading-tight">قند کله خردشده ۵ کیلویی</h3>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-error-container text-on-error-container whitespace-nowrap font-medium">
+              آسیب باربری
+            </span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-mono">SKU-SUG-KHD-5KG</span>
+</div>
+</div>
+<!-- Comparison Counters -->
+<div class="grid grid-cols-3 gap-2 bg-surface-container-low p-2 rounded-lg text-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">سفارش ارسالی</span>
+<span class="font-label-lg text-label-lg font-bold text-primary">۴ کارتن</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">تحویل سالم</span>
+<span class="font-label-lg text-label-lg font-bold text-secondary">۳ کارتن</span>
+</div>
+<div class="flex flex-col bg-error-container/60 rounded py-0.5">
+<span class="font-label-sm text-label-sm text-on-error-container">تعداد آسیب‌دیده</span>
+<span class="font-label-lg text-label-lg font-bold text-error">۱ کارتن</span>
+</div>
+</div>
+<!-- Discrepancy Note -->
+<div class="flex items-start gap-2 bg-surface-container p-2.5 rounded-lg text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-on-tertiary-container text-[18px] flex-shrink-0 mt-0.5">warning</span>
+<span>شرح مغایرت: لهیدگی و پارگی سلفون بر اثر چیدمان غیراستاندارد در کف خودرو، نیازمند صورت‌جلسه کسر سهم پیمانکار.</span>
+</div>
+</div>
+<!-- Discrepancy Item 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex gap-space-sm">
+<img class="w-16 h-16 rounded-lg object-cover bg-surface-container flex-shrink-0" data-alt="Traditional premium Persian black tea luxury branded cardboard carton boxes on display shelf with golden accents in ambient logistics hub light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA25vM06EOJuOVH8wbwnrnKNbckVCmFcUGNV83P0tnBtrvHkYxynO2TgwLHf6NJJ8Xp5FweyA5HiAqn_DK7lsHHUMrbaJcYoSY_Wkip4a70ohHV1wBRp-2fzKg0qIZzDcot7ZUsiDfjP7YQzThLmUKG17MMSeklqe-hgOcF832Hu3meDzexJNBCp0BSpXhUbiIGPqiZtfBMLDPJbtSJWKk-jDD0LEi9IQ1TlkSxtw"/>
+<div class="flex flex-col min-w-0 flex-1 justify-between">
+<div class="flex items-start justify-between gap-1">
+<h3 class="font-title-md text-title-md text-primary leading-tight">چای سیاه سرگل ممتاز ۴۵۰ گرم</h3>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed whitespace-nowrap font-medium">
+              کسری بار اولیه
+            </span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-mono">SKU-TEA-LAH-450G</span>
+</div>
+</div>
+<!-- Comparison Counters -->
+<div class="grid grid-cols-3 gap-2 bg-surface-container-low p-2 rounded-lg text-center">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">سفارش ارسالی</span>
+<span class="font-label-lg text-label-lg font-bold text-primary">۱۰ کارتن</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">تحویل سالم</span>
+<span class="font-label-lg text-label-lg font-bold text-secondary">۹ کارتن</span>
+</div>
+<div class="flex flex-col bg-tertiary-fixed/60 rounded py-0.5">
+<span class="font-label-sm text-label-sm text-on-tertiary-fixed">کسری در مقصد</span>
+<span class="font-label-lg text-label-lg font-bold text-tertiary-container">۱ کارتن</span>
+</div>
+</div>
+<!-- Discrepancy Note -->
+<div class="flex items-start gap-2 bg-surface-container p-2.5 rounded-lg text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] flex-shrink-0 mt-0.5">info</span>
+<span>شرح مغایرت: عدم تطابق با پکینگ‌لیست خروج گیت شورآباد؛ دوربین پالت‌بندی مجدداً بازبینی شد و کسری از مبدأ محرز است.</span>
+</div>
+</div>
+</div>
+<!-- Physical Waybill Scan & Fingerprint Evidence -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[20px]">document_scanner</span>
+<h2 class="font-title-md text-title-md text-primary">مستند فیزیکی و تأییدیه راننده</h2>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-medium">تصویر کیفیت بالا</span>
+</div>
+<!-- Waybill Document Thumbnail with Metadata -->
+<div class="relative bg-surface-container-high rounded-lg overflow-hidden h-36 flex items-center justify-center">
+<img class="w-full h-full object-cover opacity-85" data-alt="Official scanned Persian logistics freight delivery waybill manifest document with red correction stamps, handwritten Iranian signatures, blue courier seals and driver fingerprint on textured cream paper" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHBcJhUvExljXNHGD3tIQe3AvLzBT-4oZ2ZJpV_lf0YejjRSjcKZ7SdxXUYNOcKTCyHF12lhXcWzwMZhixB5QM9KpjoidLsSlQM_8xrUci0yNssnhmiGkDZb22REhJv5K-S8nOuEBWuRZfA7vCVlzhBnzJ5Q1TcB2u-Afo98ePVBhT3uJgY9E7eKwlbHMw7mOu6isa0erPlyZD6hUroor4aVH2Vojq_80dPYRGXn0"/>
+<div class="absolute inset-0 bg-primary/30 flex items-center justify-center backdrop-blur-[1px]">
+<button class="px-3.5 py-2 rounded-lg bg-surface-container-lowest/95 text-primary font-label-md text-label-md font-semibold shadow-md flex items-center gap-1.5 hover:bg-surface-container-lowest transition-all active:scale-95" type="button">
+<span class="material-symbols-outlined text-[18px]">zoom_in</span>
+<span>مشاهده و بزرگ‌نمایی تصویر بارنامه</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-2 bg-secondary-fixed/30 text-on-secondary-fixed p-2.5 rounded-lg font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary text-[20px] flex-shrink-0" style="font-variation-settings: 'FILL' 1;">fingerprint</span>
+<span>بارنامه فیزیکی ممهور به امضای راننده و اثر انگشت رسمی سرپرست بارانداز مقصد ضمیمه سامانه گردید.</span>
+</div>
+</div>
+<!-- QC Supervisor Actions & Protocol (Checklist) -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[20px]">task_alt</span>
+<h2 class="font-title-md text-title-md text-primary">اقدامات تأییدشده کنترل کیفیت (QC)</h2>
+</div>
+<div class="flex flex-col gap-2 pt-1">
+<label class="flex items-start gap-2.5 p-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input checked="" class="mt-1 w-4 h-4 accent-primary rounded cursor-pointer" type="checkbox"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-semibold text-primary">الزام بازرسی شیوه چیدمان باربند</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">دستور بازبینی فنی مهاربندها و پالت‌چینی به سرشیفت خروجی شورآباد ابلاغ شد.</span>
+</div>
+</label>
+<label class="flex items-start gap-2.5 p-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input checked="" class="mt-1 w-4 h-4 accent-primary rounded cursor-pointer" type="checkbox"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-semibold text-primary">جبران خسارت ۱ کارتن قند از بیمه باربری</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">کسر اتوماتیک سهم تقصیر از صورت‌حساب مالی پایان ماه پیمانکار حمل‌ونقل.</span>
+</div>
+</label>
+<label class="flex items-start gap-2.5 p-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors">
+<input checked="" class="mt-1 w-4 h-4 accent-primary rounded cursor-pointer" type="checkbox"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-semibold text-primary">ارسال اکسپرس کسری ۱ کارتن چای</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">حواله مکمل با ناوگان سریع هاب میرداماد جهت تحویل بدون جریمه صادر گردید.</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Sticky Bottom Actions Container -->
+<div class="fixed bottom-0 left-0 right-0 p-space-md bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-4px_16px_rgba(10,39,53,0.08)] z-40 flex flex-col gap-2 max-w-md mx-auto">
+<button class="w-full h-12 bg-primary-container text-on-primary rounded-xl font-label-lg text-label-lg font-semibold flex items-center justify-center gap-2 hover:bg-primary transition-all active:scale-[0.99] shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]">print</span>
+<span>مشاهده صورت‌جلسه رسمی و چاپ A4</span>
+</button>
+<div class="flex items-center gap-2">
+<button class="flex-1 h-10 bg-transparent text-on-tertiary-container rounded-xl font-label-md text-label-md font-semibold flex items-center justify-center gap-1.5 hover:bg-error-container/20 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">gavel</span>
+<span>ارجاع به کمیته انضباطی ناوگان</span>
+</button>
+<button class="px-4 h-10 bg-surface-container text-on-surface-variant rounded-xl font-label-md text-label-md font-medium hover:bg-surface-container-high transition-colors" type="button">
+        بستن
+      </button>
+</div>
+</div>
+</div></main></body></html>
