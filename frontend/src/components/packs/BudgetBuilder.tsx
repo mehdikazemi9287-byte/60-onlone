@@ -15,10 +15,10 @@ type Option = { key: string; label_fa: string; items: Line[]; item_count: number
   total_minor: number | null; within_budget: boolean | null; trimmed_for_budget: string[]; customizable: boolean; note: string | null };
 // Primary bulk occasions shown as quick chips (Stitch design 2026-11-17, screen 35). These are livelihood /
 // occasion packs ordered in bulk by organizations — not gift boxes.
-const PRIMARY_OCCASIONS = ["livelihood", "ramadan", "nowruz", "yalda", "welfare"];
+const PRIMARY_OCCASIONS = ["livelihood", "ramadan", "nowruz", "yalda", "religious", "charity", "cultural", "stationery"];
 const COUNT_PRESETS = [50, 100, 250, 500, 1000];
 const BUDGET_PRESETS_TOMAN = [1000000, 2000000, 3000000, 5000000];
-const OCCASIONS: [string, string][] = [["livelihood", "معیشتی"], ["ramadan", "رمضان"], ["nowruz", "نوروز"], ["yalda", "یلدا"], ["hospitality", "پذیرایی سازمانی"], ["office", "تجهیزات اداری"], ["women_day", "روز زن"], ["men_day", "روز مرد"], ["management_gift", "هدایای مدیریتی"], ["employee_gift", "هدایای کارکنان"], ["welfare", "پک رفاهی"]];
+const OCCASIONS: [string, string][] = [["livelihood", "معیشتی"], ["ramadan", "رمضان"], ["nowruz", "نوروز"], ["yalda", "یلدا"], ["religious", "مذهبی و نذری"], ["charity", "خیریه"], ["cultural", "فرهنگی (کتاب)"], ["stationery", "لوازم‌التحریر"], ["hospitality", "پذیرایی سازمانی"], ["office", "تجهیزات اداری"], ["women_day", "روز زن"], ["men_day", "روز مرد"], ["management_gift", "هدایای مدیریتی"], ["employee_gift", "هدایای کارکنان"], ["welfare", "پک رفاهی"]];
 
 export function BudgetBuilder({ onOpen }: { onOpen: (items: { slug: string; title: string; quantity: number; imageUrl: string | null; priceMinor: number | null }[], count: number) => void }) {
   const [people, setPeople] = useState("10"), [budget, setBudget] = useState(""), [occasion, setOccasion] = useState("livelihood");

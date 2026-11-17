@@ -18,3 +18,9 @@
 ## باقی‌مانده
 - occasion «فرهنگی» در بک‌اند (`OCCASION_CATEGORIES`) وجود ندارد؛ دسته‌های کالایی آن باید توسط کاربر مشخص شود.
 - گام‌های بعدی طرح: نوار خلاصه‌ی چسبان (sticky) قیمت کل، بسته‌بندی با لوگوی سازمان و پیش‌فاکتور رسمی.
+
+## گام ۲ (۱۴۰۵/۰۸/۲۶) — مناسبت‌های عمده جدید
+- بک‌اند `pack_builder_service.OCCASION_CATEGORIES`: `religious`/`charity` → `supermarket` (اقلام ماندگار)، `cultural`/`stationery` → `books-stationery`. اقلام فقط از کاتالوگ واقعی با پیشنهاد تأییدشده؛ بدون قیمت ساختگی.
+- فرانت `BudgetBuilder.tsx`: برچسب‌های «مذهبی و نذری»، «خیریه»، «فرهنگی (کتاب)»، «لوازم‌التحریر» + اضافه به چیپ‌های اصلی.
+- QA: `pytest tests/test_pack_builder_occasions.py` → 2 passed؛ `tsc --noEmit` → OK.
+- باقی‌مانده: صفحه دستیار، استعلام تخفیف/ارسال/بیمه، پرداخت مرحله‌ای و ستاد (طبق `pack-builder-b2b-features.md`) پس از رسیدن طرح Stitch.

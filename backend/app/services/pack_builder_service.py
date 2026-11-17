@@ -22,6 +22,10 @@ OCCASION_CATEGORIES = {"nowruz": ("nuts-local", "gift-seasonal"), "yalda": ("nut
                        "office": ("digital--laptop", "digital--monitor", "digital--headphone"), "hospitality": ("nuts-local", "gift-seasonal")}
 OCCASION_CATEGORIES.update({key:("gift-seasonal", "nuts-local") for key in ("women_day","men_day","management_gift","employee_gift")})
 OCCASION_CATEGORIES["welfare"]=DEFAULT_CATEGORIES
+# Bulk occasion packs (2026-11-17): non-perishable staples for religious/charity orders; books & stationery
+# for cultural and back-to-school packs. Items still come only from the real catalog with verified offers.
+OCCASION_CATEGORIES.update({"religious": ("supermarket",), "charity": ("supermarket",),
+                            "cultural": ("books-stationery",), "stationery": ("books-stationery",)})
 LABELS = {"A": "ضروری و اقتصادی", "B": "ترکیب متعادل", "C": "برندهای ترجیحی و اندازه بزرگ‌تر", "D": "قابل شخصی‌سازی"}
 
 
