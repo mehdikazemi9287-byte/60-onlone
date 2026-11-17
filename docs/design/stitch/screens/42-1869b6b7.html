@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn,+Sahel,+Shabnam,+system-ui:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary-container": "#eb5f34", "inverse-on-surface": "#f1f1f1", "error": "#ba1a1a", "surface-container": "#eeeeee", "on-secondary-fixed-variant": "#004b6f", "surface-bright": "#f9f9f9", "on-secondary-container": "#1d5d82", "on-primary-container": "#758fa0", "surface-container-lowest": "#ffffff", "on-primary-fixed": "#011e2c", "secondary-fixed-dim": "#95cdf7", "on-secondary": "#ffffff", "on-error-container": "#93000a", "surface-tint": "#486272", "secondary-container": "#9ed5ff", "inverse-surface": "#2f3131", "on-surface": "#1a1c1c", "inverse-primary": "#afcadd", "surface-container-low": "#f3f3f3", "tertiary": "#250400", "outline-variant": "#c2c7cc", "outline": "#73787c", "surface-dim": "#dadada", "on-surface-variant": "#42474b", "secondary-fixed": "#c9e6ff", "tertiary-container": "#4a0f00", "on-error": "#ffffff", "on-primary-fixed-variant": "#304a59", "on-primary": "#ffffff", "primary-fixed-dim": "#afcadd", "surface-container-high": "#e8e8e8", "background": "#f9f9f9", "surface-container-highest": "#e2e2e2", "on-tertiary-fixed-variant": "#862200", "on-tertiary-fixed": "#3b0a00", "primary": "#00111a", "on-tertiary": "#ffffff", "primary-container": "#0a2735", "tertiary-fixed": "#ffdbd1", "error-container": "#ffdad6", "tertiary-fixed-dim": "#ffb59f", "secondary": "#266489", "on-secondary-fixed": "#001e2f", "on-background": "#1a1c1c", "primary-fixed": "#cbe6f9", "surface": "#f9f9f9", "surface-variant": "#e2e2e2" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1rem", "space-sm": "0.5rem", "margin": "1rem", "space-md": "1rem", "margin-lg": "4rem", "gutter-md": "1.5rem", "margin-md": "2rem", "space-xs": "0.25rem", "space-xl": "2.5rem", "gutter-lg": "2rem", "space-lg": "1.5rem" }, "fontFamily": { "headline-lg-mobile": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-sm": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "title-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-xl": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "label-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "title-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "body-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "label-sm": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-xl-mobile": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "label-md": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""], "headline-lg": ["\"Vazirmatn, Sahel, Shabnam, system-ui\""] }, "fontSize": { "headline-lg-mobile": ["22px", { "lineHeight": "34px", "fontWeight": "700" }], "body-sm": ["12px", { "lineHeight": "20px", "fontWeight": "400" }], "title-lg": ["18px", { "lineHeight": "28px", "fontWeight": "600" }], "headline-xl": ["36px", { "lineHeight": "52px", "fontWeight": "800" }], "body-md": ["14px", { "lineHeight": "24px", "fontWeight": "400" }], "label-lg": ["14px", { "lineHeight": "20px", "fontWeight": "600" }], "title-md": ["16px", { "lineHeight": "26px", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "28px", "fontWeight": "400" }], "label-sm": ["11px", { "lineHeight": "16px", "fontWeight": "500" }], "headline-md": ["20px", { "lineHeight": "32px", "fontWeight": "700" }], "headline-xl-mobile": ["26px", { "lineHeight": "38px", "fontWeight": "800" }], "label-md": ["12px", { "lineHeight": "18px", "fontWeight": "500" }], "headline-lg": ["28px", { "lineHeight": "42px", "fontWeight": "700" }] } } } }</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen selection:bg-secondary-fixed selection:text-on-secondary-fixed"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe"><div class="h-16 px-gutter flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-[0_1px_3px_rgba(0,0,0,0.08)]" src="https://lh3.googleusercontent.com/aida/ALJJyrAAioAxkbhOlVRTti0xHLDZ-5kstiLTZnJAAp3fXbTBkOHXraRiAcI9p2s4MD54I-xe08_NZdLYG8Z5pr_ZZJ0jIZSPAxB7F4yeIKM6TYCcCNcW6SIp1yXVeZxvf7ql-SHD9lM7ao0rvdXtzW4UWUElSFKqNjzKVTijg5sfliERT-urxTywxI-PXQuIV687uAT2PMhGi2i4RpoWsIZV756nQehMe0YhQ_i4qK3T2FEd"/><span class="font-title-md text-title-md text-on-surface truncate">Corporate Order</span></div><div class="flex items-center gap-space-xs"><button aria-label="استعلام و سبد" class="w-11 h-11 flex items-center justify-center rounded-xl text-on-surface-variant hover:text-primary transition-colors" type="button"><span class="material-symbols-outlined text-[24px]">shopping_bag</span></button></div></div></header><main class="flex flex-col relative w-full pt-16 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full pb-32">
+<!-- Hero / Introduction Section -->
+<section class="px-gutter pt-space-md pb-space-lg flex flex-col gap-space-sm bg-surface">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">corporate_fare</span>
+          سامانه اختصاصی B2B
+        </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+          تأمین مستقیم ناشر و کارخانه
+        </span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-on-tertiary-container">verified</span>
+        ضمانت اصالت و اصناف
+      </span>
+</div>
+<div class="mt-space-xs flex flex-col gap-1.5">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">
+        تأمین عمده و سازمانی شصت آنلاین
+      </h1>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+        زیرساخت متمرکز تدارکات اقلام فرهنگی، پک‌های بازگشایی مدارس و بسته‌های رفاهی پرسنلی ویژه سازمان‌ها، نهادهای دولتی و مجتمع‌های آموزشی با استعلام مستقیم قیمت.
+      </p>
+</div>
+<!-- Quick Stat Ribbon -->
+<div class="grid grid-cols-3 gap-2 mt-space-xs">
+<div class="bg-surface-container-lowest p-3 rounded-xl flex flex-col items-center justify-center text-center shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+<span class="material-symbols-outlined text-secondary text-[22px] mb-1">verified_user</span>
+<span class="font-label-sm text-label-sm text-on-surface">فاکتور رسمی و معتبر</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">مشمول نظام مالیاتی</span>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-xl flex flex-col items-center justify-center text-center shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+<span class="material-symbols-outlined text-secondary text-[22px] mb-1">hub</span>
+<span class="font-label-sm text-label-sm text-on-surface">توزیع چندمقصدی</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">پارت‌بندی و بارنامه دیجیتال</span>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-xl flex flex-col items-center justify-center text-center shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+<span class="material-symbols-outlined text-secondary text-[22px] mb-1">account_balance</span>
+<span class="font-label-sm text-label-sm text-on-surface">سامانه ستاد دولت</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">تسویه اعتباری و دولتی</span>
+</div>
+</div>
+</section>
+<!-- Curated B2B Packages Section -->
+<section class="px-gutter py-space-md flex flex-col gap-space-md bg-surface-container-low">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-on-tertiary-container text-[22px]">inventory_2</span>
+          پک‌های پیشنهادی و سفارش‌محور
+        </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          قابلیت سفارشی‌سازی کامل اقلام و الصاق نشان اختصاصی سازمان
+        </p>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
+        ۳ بسته تخصصی
+      </span>
+</div>
+<!-- Package 1: Educational & School Opening -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col">
+<div class="relative w-full h-44 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Editorial catalog photograph of a premium corporate school kit, including custom branded notebooks with navy blue gold foil stamping, metallic gel pens, wooden colored pencils set, structured dark blue canvas pencil case, arranged neatly on a crisp neutral background with soft Scandinavian studio lighting, luxury corporate gift packaging." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDEZ1yFLEFqd32As03wocCkSk9OfSha2SGh78kg6Zo4L11BMikPPBdw9mKg3lIN_vxWwf0s99zjDxHjBtq4J0wfPuah29sAAUJLi0pb-s2KEZKuVu-rFkBmPK79jVIGNRNcCG0-ULKsdrnxxIO7B3rxqUCFZsCmQpZaUWZ-_L9UyO13Eu7v-SkFEUQOvlB5GarRFQzLT1f4yYkaiHzVE6oghh9GjMhsFAOA-dkXeE"/>
+<div class="absolute top-3 right-3 bg-primary/85 backdrop-blur-md text-on-primary px-3 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">school</span>
+          پک جامع بازگشایی مدارس (مهرماه)
+        </div>
+<div class="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-md text-on-surface px-2.5 py-0.5 rounded-lg font-label-sm text-label-sm">
+          حداقل تیراژ: ۵۰ بسته
+        </div>
+</div>
+<div class="p-space-md flex flex-col gap-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-md text-title-md text-primary">بسته حمایتی تحصیلی و رفاهی پرسنل</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">مناسب مدارس، مجتمع‌های آموزشی و بسته‌های انگیزشی فرزندان همکاران</p>
+</div>
+<span class="shrink-0 px-2 py-1 rounded-lg bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+            بسته‌بندی اختصاصی
+          </span>
+</div>
+<ul class="flex flex-col gap-1.5 py-1 text-on-surface-variant font-body-sm text-body-sm">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>۴ جلد دفتر سیمی ۱۰۰ و ۶۰ برگ با چاپ لوگو و طرح سازمانی</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>ست روان‌نویس ارگونومیک، مدادرنگی ۱۲ رنگ باکیفیت و ملزومات کامل</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>جامدادی برزنتی مقاوم + کارتن ۵ لایه ضخیم چاپی یا ساک اسپان‌باند</span>
+</li>
+</ul>
+<div class="pt-2 flex items-center justify-between border-t border-surface-container">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">وضعیت قیمت واحد:</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">پس از استعلام</span>
+</div>
+<button class="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md flex items-center gap-1.5 hover:bg-on-secondary-fixed-variant transition-colors" onclick="togglePackageSelection(this, 'پک بازگشایی مدارس')" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>افزودن به فرم استعلام</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Package 2: Cultural & Book Gift -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col">
+<div class="relative w-full h-44 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Flat lay photograph of corporate cultural gift set, featuring contemporary curated books with minimalist typographic Persian covers, an elegant brushed brass metal bookmark, an embossed bespoke leather-finish notebook with corporate emblem, and a sleek modern gift card, shot from high angle on an off-white stone textured surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC71sgfOaruslumBuUrp2Ui3xJuZrwvFEZ0zSNYlZJSEHhGmTkOapToL2Kpu-jkwrQbuyVWfIWcCs30S6uoUd_2T8xRCmlE0JpOI9Sd4QGlLh3wAWwBiGvvSbgxRkfomx54chZq99XYGsdJiA4nBlO7nEhwE4ig5VdQ3B4zVSRwicpnwhTnDy2jMkSjhcvQ53Dsiah7gBHfDnLYe98r31Ib1bzATO6tDySs0CqAoZk"/>
+<div class="absolute top-3 right-3 bg-primary/85 backdrop-blur-md text-on-primary px-3 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">auto_stories</span>
+          پک فرهنگی، کتاب و تفکر سازمانی
+        </div>
+<div class="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-md text-on-surface px-2.5 py-0.5 rounded-lg font-label-sm text-label-sm">
+          حداقل تیراژ: ۳۰ بسته
+        </div>
+</div>
+<div class="p-space-md flex flex-col gap-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-md text-title-md text-primary">بسته هدایای کتاب و بن‌کارت فرهنگی</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">ویژه مناسبت‌ها، روز کارمند، هدایای مدیریتی و ترویج مطالعه</p>
+</div>
+<span class="shrink-0 px-2 py-1 rounded-lg bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+            لوکس و ماندگار
+          </span>
+</div>
+<ul class="flex flex-col gap-1.5 py-1 text-on-surface-variant font-body-sm text-body-sm">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>بسته ۲ تا ۳ جلد کتاب نفیس مدیریت، توسعه فردی یا رمان برگزیده</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>کارت اعتباری هدیه هوشمند شصت آنلاین (بن‌کتاب سازمانی)</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>نشانگر کتاب فلزی لوکس + دفترچه یادداشت سخن ممهور به هویت برند</span>
+</li>
+</ul>
+<div class="pt-2 flex items-center justify-between border-t border-surface-container">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">وضعیت قیمت واحد:</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">پس از استعلام</span>
+</div>
+<button class="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md flex items-center gap-1.5 hover:bg-on-secondary-fixed-variant transition-colors" onclick="togglePackageSelection(this, 'پک فرهنگی و کتاب')" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>افزودن به فرم استعلام</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Package 3: Creative & Mind Games -->
+<div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col">
+<div class="relative w-full h-44 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Overhead warm ambient photo of a curated cognitive board game and STEM educational pack for children, high quality natural wooden puzzles, creative problem-solving kits, and colorful mindful developmental toys grouped neatly inside a minimalist rigid craft box with petrol-blue geometric sleeves." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZDwYP1i9piUVq0XrgvQxh-SMXrL4jMunOHHki5-TtKMZkrMf9DFZQ96zj1wjoWdbHDkKOGKUAqYCOu_NmpCcc5bWNSWjCfHb9bjJLq5dAyRzPza9ZZwJUHmak_thSZJ6VCx4tIpJ0_ucmdDiJV3l2XJzH3cIJSYGBzbr3O8w5zVtK6CDU_iRMzXhIXIF4FY_ME-TK48H-Ss4j4YVb_SZT_r7U0BMYHMUfwr2eYqA"/>
+<div class="absolute top-3 right-3 bg-primary/85 backdrop-blur-md text-on-primary px-3 py-1 rounded-full font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[15px]">extension</span>
+          پک هوش، خلاقیت و مهارت‌افزایی
+        </div>
+<div class="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-md text-on-surface px-2.5 py-0.5 rounded-lg font-label-sm text-label-sm">
+          حداقل تیراژ: ۴۰ بسته
+        </div>
+</div>
+<div class="p-space-md flex flex-col gap-3">
+<div class="flex items-start justify-between gap-2">
+<div>
+<h3 class="font-title-md text-title-md text-primary">بسته هوش پرورشی فرزندان کارکنان</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">تفکیک‌شده بر اساس رده‌های سنی خردسال، کودک و نوجوان</p>
+</div>
+<span class="shrink-0 px-2 py-1 rounded-lg bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+            رده‌های ۳ تا ۱۵ سال
+          </span>
+</div>
+<ul class="flex flex-col gap-1.5 py-1 text-on-surface-variant font-body-sm text-body-sm">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>بردگیم‌های فکری تحلیلی معتبر با تأییدیه شورای نظارت بر اسباب‌بازی</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>بسته آزمایشی و خلاقیت ساخت سازه‌های چوبی و مکانیکی سبک</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+<span>کارت پیام اختصاصی تبریک سازمان به خانواده کارکنان</span>
+</li>
+</ul>
+<div class="pt-2 flex items-center justify-between border-t border-surface-container">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">وضعیت قیمت واحد:</span>
+<span class="font-label-lg text-label-lg text-primary font-bold">پس از استعلام</span>
+</div>
+<button class="px-4 py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md flex items-center gap-1.5 hover:bg-on-secondary-fixed-variant transition-colors" onclick="togglePackageSelection(this, 'پک هوش و خلاقیت')" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>افزودن به فرم استعلام</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Volume Tiers Section -->
+<section class="px-gutter py-space-lg flex flex-col gap-space-md bg-surface">
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[24px]">stairs</span>
+          پله‌های تخفیف بر مبنای تیراژ و حجم
+        </h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        با افزایش تیراژ سفارش، تخفیف نهایی از حاشیه سود کارخانه و ناشر کسر و اعمال می‌شود.
+      </p>
+</div>
+<!-- Tier Cards Grid -->
+<div class="flex flex-col gap-3">
+<!-- Tier 1 -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl flex items-center justify-between shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+<div class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-xl bg-surface-container flex items-center justify-center text-primary font-headline-md text-headline-md">
+            ۱
+          </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary">۱۰۰ تا ۴۹۹ بسته</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تخفیف همکار و مدارس مستقل</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm">
+            پس از استعلام
+          </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">تخفیف پله اول</span>
+</div>
+</div>
+<!-- Tier 2 (Highlighted) -->
+<div class="relative bg-surface-container-lowest p-space-md rounded-2xl flex items-center justify-between shadow-[0_4px_16px_rgba(10,39,53,0.06)] bg-gradient-to-l from-surface-container-lowest via-secondary-fixed/20 to-surface-container-lowest">
+<div class="absolute -top-2.5 left-4 bg-on-tertiary-container text-on-tertiary px-2.5 py-0.5 rounded-full font-label-sm text-label-sm shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">star</span>
+          محبوب‌ترین تیراژ سازمانی
+        </div>
+<div class="flex items-center gap-3 mt-1">
+<div class="w-11 h-11 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center font-headline-md text-headline-md">
+            ۲
+          </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary">۵۰۰ تا ۹۹۹ بسته</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تخفیف حجمی هلدینگ‌ها و ارگان‌ها</span>
+</div>
+</div>
+<div class="flex flex-col items-end mt-1">
+<span class="px-2.5 py-1 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm">
+            پس از استعلام
+          </span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold mt-1">تخفیف ویژه تیراژ</span>
+</div>
+</div>
+<!-- Tier 3 -->
+<div class="bg-surface-container-lowest p-space-md rounded-2xl flex flex-col gap-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-11 h-11 rounded-xl bg-primary-container text-on-primary flex items-center justify-center font-headline-md text-headline-md">
+              ۳
+            </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary">۱۰۰۰+ بسته و سفارشات کلان</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تأمین مستقیم خط تولید و چاپخانه</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="px-2.5 py-1 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm">
+              پس از استعلام
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">تخفیف نهایی خط تولید</span>
+</div>
+</div>
+<div class="pt-2 border-t border-surface-container flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-on-tertiary-container">local_shipping</span>
+<span>شامل امتیاز بسته‌بندی کارتن مادر اختصاصی و ارسال کاملاً رایگان به انبار مرکزی</span>
+</div>
+</div>
+</div>
+<!-- Volume Inquiry Prompt Accordion -->
+<div class="bg-surface-container-low rounded-2xl p-space-md flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">calculate</span>
+<span class="font-title-md text-title-md text-primary">درخواست محاسبه فوری تخفیف تیراژ</span>
+</div>
+<button class="font-label-md text-label-md text-secondary hover:underline flex items-center gap-1" onclick="document.getElementById('volume-calc-box').classList.toggle('hidden')" type="button">
+<span>تکمیل مقادیر</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+<div class="flex flex-col gap-3 pt-2" id="volume-calc-box">
+<div class="grid grid-cols-2 gap-2">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">تیراژ تقریبی مدنظر (بسته)</label>
+<input class="h-11 px-3 bg-surface-container-lowest rounded-xl font-body-md text-body-md text-on-surface outline-none focus:ring-1 focus:ring-secondary placeholder:text-on-surface-variant/60" placeholder="مثال: ۷۵۰" type="number"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">بازه زمانی تحویل</label>
+<select class="h-11 px-3 bg-surface-container-lowest rounded-xl font-body-md text-body-md text-on-surface outline-none focus:ring-1 focus:ring-secondary">
+<option>فوری (کمتر از ۷ روز)</option>
+<option selected="">عادی (۱۰ تا ۲۰ روز)</option>
+<option>برنامه‌ریزی مهرماه (شهریور)</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">توضیحات تکمیلی یا اقلام مازاد درخواستی</label>
+<textarea class="p-3 bg-surface-container-lowest rounded-xl font-body-md text-body-md text-on-surface outline-none focus:ring-1 focus:ring-secondary placeholder:text-on-surface-variant/60 resize-none" placeholder="هرگونه نیازمندی از جمله چاپ نشان سازمان روی جلد، چاپ کارت تبریک و..." rows="2"></textarea>
+</div>
+</div>
+</div>
+</section>
+<!-- Payment Methods & Government Procurement (Setad) Section -->
+<section class="px-gutter py-space-md flex flex-col gap-space-md bg-surface-container-low">
+<div class="flex flex-col gap-1">
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[24px]">payments</span>
+        روش‌های پرداخت و تسهیلات تجاری
+      </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        انعطاف در تسویه متناسب با ساختار مالی شرکت‌ها و قوانین مالیاتی کشور
+      </p>
+</div>
+<!-- Radio Options Container -->
+<div class="flex flex-col gap-2.5">
+<!-- Option 1: Cash on Invoice -->
+<label class="bg-surface-container-lowest p-space-md rounded-2xl flex items-start gap-3 cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:bg-surface-bright transition-colors">
+<input checked="" class="mt-1 w-5 h-5 text-primary accent-primary" name="payment_mode" onchange="toggleSetadFields(false)" type="radio"/>
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-primary">تسویه نقدی تجاری</span>
+<span class="px-2 py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">
+              حداکثر تخفیف نقدی
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            واریز پس از تأیید پیش‌فاکتور رسمی؛ شامل بالاترین درصد تخفیف نقدی در صورتحساب نهایی.
+          </p>
+</div>
+</label>
+<!-- Option 2: Phased Payment -->
+<label class="bg-surface-container-lowest p-space-md rounded-2xl flex items-start gap-3 cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:bg-surface-bright transition-colors">
+<input class="mt-1 w-5 h-5 text-primary accent-primary" name="payment_mode" onchange="toggleSetadFields(false)" type="radio"/>
+<div class="flex flex-col gap-1 flex-1">
+<span class="font-title-md text-title-md text-primary">پرداخت چندمرحله‌ای (پارت‌به‌پارت)</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            پرداخت پیش‌پرداخت اولیه (۳۰٪ تا ۴۰٪) و تسویه مانده به تناسب تحویل هر پارت در محل انبار خریدار.
+          </p>
+</div>
+</label>
+<!-- Option 3: Corporate Credit & LC -->
+<label class="bg-surface-container-lowest p-space-md rounded-2xl flex items-start gap-3 cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:bg-surface-bright transition-colors">
+<input class="mt-1 w-5 h-5 text-primary accent-primary" name="payment_mode" onchange="toggleSetadFields(false)" type="radio"/>
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-primary">اعتبار سازمانی و کارگزاری</span>
+<span class="px-2 py-0.5 rounded-md bg-surface-container-high text-on-surface font-label-sm text-label-sm">
+              ۳۰ الی ۶۰ روزه
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            تسویه مدت‌دار از طریق چک صیادی بنفش شرکتی، اعتبار اسنادی داخلی (LC) یا ضمانت‌نامه بانکی حسن انجام تعهدات.
+          </p>
+</div>
+</label>
+<!-- Option 4: SETAD Iran (Government Procurement System) -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-[0_4px_16px_rgba(10,39,53,0.06)] flex flex-col gap-3">
+<label class="flex items-start gap-3 cursor-pointer">
+<input class="mt-1 w-5 h-5 text-primary accent-primary" id="radio-setad" name="payment_mode" onchange="toggleSetadFields(true)" type="radio"/>
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-primary flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[20px]">account_balance</span>
+                تسویه در سامانه تدارکات دولت (ستاد ایران)
+              </span>
+<span class="px-2 py-0.5 rounded-md bg-primary-container text-on-primary font-label-sm text-label-sm">
+                ویژه نهادهای دولتی
+              </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              انطباق کامل با قانون برگزاری مناقصات دولتی، استعلام الکترونیکی، خرید کوچک و متوسط در سامانه ستاد ایران.
+            </p>
+</div>
+</label>
+<!-- Government Specific Input Fields (Conditionally Active / Clear UX) -->
+<div class="pt-3 border-t border-surface-container flex flex-col gap-3" id="setad-details-box">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface flex items-center justify-between">
+<span>شماره نیاز سامانه ستاد (کد ۱۹ رقمی استعلام)</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">اختیاری یا حین ثبت</span>
+</label>
+<div class="relative">
+<input class="w-full h-11 px-3 bg-surface-container rounded-xl font-body-md text-body-md text-on-surface text-left outline-none focus:ring-1 focus:ring-secondary tracking-widest placeholder:text-on-surface-variant/40" dir="ltr" maxlength="19" placeholder="110300XXXXXXXXXXXX" type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant text-[20px]">tag</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">بارگذاری تصویر برگه استعلام یا پیش‌نویس خرید ستاد</label>
+<div class="w-full border-2 border-dashed border-outline-variant rounded-xl p-4 flex flex-col items-center justify-center gap-1 text-center bg-surface cursor-pointer hover:bg-surface-bright transition-colors">
+<span class="material-symbols-outlined text-[28px] text-secondary">cloud_upload</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">انتخاب فایل PDF یا تصویر برگ خرید</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">حداکثر حجم مجاز: ۵ مگابایت</span>
+</div>
+</div>
+<div class="p-2.5 rounded-xl bg-surface-container flex items-start gap-2">
+<span class="material-symbols-outlined text-[18px] text-secondary shrink-0 mt-0.5">info</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              تأمین‌کننده «شصت آنلاین» دارای نماد الکترونیکی و گواهی احراز صلاحیت در سامانه تدارکات الکترونیکی دولت (ستاد) بوده و فرآیند صدور صورتحساب از طریق کارتابل ستاد پیگیری می‌گردد.
+            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Multi-location Delivery & Milestone Scheduling Section -->
+<section class="px-gutter py-space-lg flex flex-col gap-space-md bg-surface">
+<div class="flex flex-col gap-1">
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[24px]">local_shipping</span>
+        زمان‌بندی، پارت‌بندی و توزیع چندمقصدی
+      </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        ارسال در چند مرحله و تحویل مستقیم به انبارهای مرکزی یا شعب تابعه سراسر کشور همراه با صورت‌جلسه رسمی
+      </p>
+</div>
+<!-- Phased Delivery Planner Card -->
+<div class="bg-surface-container-lowest rounded-2xl p-space-md shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-4">
+<div class="flex items-center justify-between pb-2 border-b border-surface-container">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="font-title-md text-title-md text-primary">برنامه تحویل پارت‌های سفارش</span>
+</div>
+<button class="font-label-sm text-label-sm text-secondary hover:text-primary flex items-center gap-1 font-semibold" onclick="addNewPartRow()" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+          افزودن پارت جدید
+        </button>
+</div>
+<div class="flex flex-col gap-3" id="delivery-parts-list">
+<!-- Part 1 item -->
+<div class="p-3 bg-surface-container-low rounded-xl flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary font-bold">پارت ۱ (مرحله نخست تحویل)</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm">
+              ۵۰۰ بسته
+            </span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-on-surface font-body-sm text-body-sm">
+<div class="flex flex-col gap-0.5">
+<span class="text-on-surface-variant font-label-sm text-label-sm">تاریخ تحویل:</span>
+<span class="font-medium">۲۵ شهریور ۱۴۰۴</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<span class="text-on-surface-variant font-label-sm text-label-sm">مقصد تخلیه:</span>
+<span class="font-medium truncate">انبار مرکزی تهران (شورآباد)</span>
+</div>
+</div>
+</div>
+<!-- Part 2 item -->
+<div class="p-3 bg-surface-container-low rounded-xl flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary font-bold">پارت ۲ (مرحله دوم تحویل)</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm">
+              ۵۰۰ بسته
+            </span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-on-surface font-body-sm text-body-sm">
+<div class="flex flex-col gap-0.5">
+<span class="text-on-surface-variant font-label-sm text-label-sm">تاریخ تحویل:</span>
+<span class="font-medium">۰۵ مهر ۱۴۰۴</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<span class="text-on-surface-variant font-label-sm text-label-sm">مقصد تخلیه:</span>
+<span class="font-medium truncate">مجتمع آموزشی یا شعب شهرستان</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Multiple Address Excel Upload Box -->
+<div class="pt-2 flex flex-col gap-2">
+<label class="font-label-sm text-label-sm text-on-surface flex items-center justify-between">
+<span class="font-semibold text-primary">تخصیص چندین آدرس و شعب (بارگذاری اکسل)</span>
+<a class="text-secondary hover:underline font-label-sm text-label-sm flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[14px]">download</span>
+            دانلود قالب اکسل
+          </a>
+</label>
+<div class="p-3 rounded-xl bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-secondary text-[24px]">description</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-primary">فهرست نشانی مدارس یا شعب تابعه</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">فایل اکسل با ستون‌های نام تحویل‌گیرنده و شماره تماس</span>
+</div>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-lowest text-primary font-label-sm text-label-sm shadow-sm hover:bg-surface-bright" type="button">
+            انتخاب فایل
+          </button>
+</div>
+</div>
+<!-- Official Delivery & Handover Guarantee Notice -->
+<div class="p-3 rounded-xl bg-surface-container-low flex items-start gap-2.5">
+<span class="material-symbols-outlined text-secondary text-[20px] shrink-0 mt-0.5">assignment_turned_in</span>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md text-primary font-bold">الزام صدور گزارش و صورت‌جلسه رسمی تحویل</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            کلیه محموله‌ها همراه با بارنامه دیجیتال معتبر، صورت‌جلسه فیزیکی شمارش اقلام، تأییدیه پلمپ بسته‌ها و امضای رسمی انباردار تحویل داده می‌شوند.
+          </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Interactive Organization Details Form Section -->
+<section class="px-gutter py-space-md flex flex-col gap-space-md bg-surface-container-low">
+<div class="flex flex-col gap-1">
+<h2 class="font-title-lg text-title-lg text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[22px]">contact_page</span>
+        اطلاعات نهاد و رابط سازمانی
+      </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        مشخصات جهت صدور پیش‌فاکتور رسمی با شناسه ملی و کد اقتصادی
+      </p>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex flex-col gap-3">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">نام سازمان، مدرسه یا شرکت خریدار *</label>
+<input class="h-11 px-3 bg-surface-container-low rounded-xl font-body-md text-body-md text-on-surface outline-none focus:ring-1 focus:ring-secondary placeholder:text-on-surface-variant/50" placeholder="مثال: مجتمع آموزشی احسان / شرکت داده‌پردازی..." type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-2">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">شناسه ملی / کد ثبتی</label>
+<input class="h-11 px-3 bg-surface-container-low rounded-xl font-body-md text-body-md text-on-surface text-left outline-none focus:ring-1 focus:ring-secondary placeholder:text-on-surface-variant/50" dir="ltr" placeholder="۱۰ یا ۱۱ رقمی" type="text"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">شماره تماس رابط خرید *</label>
+<input class="h-11 px-3 bg-surface-container-low rounded-xl font-body-md text-body-md text-on-surface text-left outline-none focus:ring-1 focus:ring-secondary placeholder:text-on-surface-variant/50" dir="ltr" placeholder="۰۹۱۲XXXXXXX" type="tel"/>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">نام و سمت نماینده پیگیری</label>
+<input class="h-11 px-3 bg-surface-container-low rounded-xl font-body-md text-body-md text-on-surface outline-none focus:ring-1 focus:ring-secondary placeholder:text-on-surface-variant/50" placeholder="مثال: علیرضا رضایی - مسئول تدارکات و رفاهی" type="text"/>
+</div>
+</div>
+</section>
+<!-- Sticky Operational Bottom Action Bar -->
+<div class="fixed bottom-16 inset-x-0 z-40 bg-surface-container-lowest/95 backdrop-blur-xl shadow-[0_-4px_16px_rgba(0,0,0,0.06)] px-gutter py-3">
+<div class="max-w-md mx-auto flex flex-col gap-2">
+<!-- Status Notice -->
+<div class="flex items-center justify-between text-on-surface font-label-sm text-label-sm">
+<span class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+          وضعیت استعلام هزینه:
+        </span>
+<span class="font-bold text-primary">پس از ثبت استعلام و صدور پیش‌فاکتور</span>
+</div>
+<!-- Action Button -->
+<button class="w-full h-12 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-[0_2px_8px_rgba(0,17,26,0.2)] hover:bg-on-secondary-fixed-variant active:scale-[0.99] transition-all" onclick="submitInquiry()" type="button">
+<span class="material-symbols-outlined text-[20px]">assignment_turned_in</span>
+<span>ارسال درخواست استعلام و صدور پیش‌فاکتور رسمی</span>
+</button>
+</div>
+</div>
+<!-- Notification Toast Container -->
+<div class="fixed top-20 inset-x-4 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-300 flex justify-center" id="toast-msg">
+<div class="bg-primary text-on-primary px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 max-w-sm">
+<span class="material-symbols-outlined text-[20px] text-secondary-fixed">check_circle</span>
+<span class="font-body-sm text-body-sm font-medium" id="toast-text">پک با موفقیت به فرم استعلام افزوده شد.</span>
+</div>
+</div>
+</div>
+<script>
+  // Simple micro-interactions for luxury commercial feeling
+  function togglePackageSelection(buttonEl, packageName) {
+    const isAdded = buttonEl.getAttribute('data-added') === 'true';
+    const toast = document.getElementById('toast-msg');
+    const toastText = document.getElementById('toast-text');
+
+    if (!isAdded) {
+      buttonEl.setAttribute('data-added', 'true');
+      buttonEl.classList.remove('bg-primary', 'text-on-primary');
+      buttonEl.classList.add('bg-secondary-container', 'text-on-secondary-container');
+      buttonEl.innerHTML = '<span class="material-symbols-outlined text-[18px]">done</span><span>در استعلام شما</span>';
+      toastText.innerText = packageName + ' به درخواست استعلام سازمانی افزوده شد.';
+    } else {
+      buttonEl.setAttribute('data-added', 'false');
+      buttonEl.classList.add('bg-primary', 'text-on-primary');
+      buttonEl.classList.remove('bg-secondary-container', 'text-on-secondary-container');
+      buttonEl.innerHTML = '<span class="material-symbols-outlined text-[18px]">add_circle</span><span>افزودن به فرم استعلام</span>';
+      toastText.innerText = packageName + ' از پیش‌فاکتور حذف شد.';
+    }
+
+    // Trigger Toast
+    toast.classList.remove('opacity-0', 'translate-y-2');
+    toast.classList.add('opacity-100', 'translate-y-0');
+    setTimeout(() => {
+      toast.classList.remove('opacity-100', 'translate-y-0');
+      toast.classList.add('opacity-0', 'translate-y-2');
+    }, 2800);
+  }
+
+  function toggleSetadFields(show) {
+    const box = document.getElementById('setad-details-box');
+    if (box) {
+      if (show) {
+        box.classList.remove('opacity-50');
+      } else {
+        box.classList.add('opacity-50');
+      }
+    }
+  }
+
+  function addNewPartRow() {
+    const list = document.getElementById('delivery-parts-list');
+    const currentCount = list.children.length + 1;
+    const newDiv = document.createElement('div');
+    newDiv.className = 'p-3 bg-surface-container-low rounded-xl flex flex-col gap-2.5 animate-fadeIn';
+    newDiv.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="font-label-md text-label-md text-primary font-bold">پارت ${currentCount} (تحویل الحاقی)</span>
+        <span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm">
+          تعیین حین تماس
+        </span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-on-surface font-body-sm text-body-sm">
+        <div class="flex flex-col gap-0.5">
+          <span class="text-on-surface-variant font-label-sm text-label-sm">تاریخ تحویل:</span>
+          <span class="font-medium text-secondary">قابل هماهنگی</span>
+        </div>
+        <div class="flex flex-col gap-0.5">
+          <span class="text-on-surface-variant font-label-sm text-label-sm">مقصد تخلیه:</span>
+          <span class="font-medium truncate">ثبت بر اساس فایل اکسل</span>
+        </div>
+      </div>
+    `;
+    list.appendChild(newDiv);
+  }
+
+  function submitInquiry() {
+    const toast = document.getElementById('toast-msg');
+    const toastText = document.getElementById('toast-text');
+    toastText.innerText = 'درخواست استعلام رسمی ثبت شد؛ کارشناس B2B شصت آنلاین ظرف حداکثر ۲ ساعت تماس خواهد گرفت.';
+    toast.classList.remove('opacity-0', 'translate-y-2');
+    toast.classList.add('opacity-100', 'translate-y-0');
+    setTimeout(() => {
+      toast.classList.remove('opacity-100', 'translate-y-0');
+      toast.classList.add('opacity-0', 'translate-y-2');
+    }, 4500);
+  }
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.05)]" data-active-classes="text-primary font-bold"><div class="flex justify-around items-center h-16 px-space-xs"><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface transition-all gap-0.5" data-path="home" href="#"><span class="material-symbols-outlined text-[22px]">storefront</span><span class="font-label-sm text-label-sm">خانه</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface transition-all gap-0.5" data-path="catalog" href="#"><span class="material-symbols-outlined text-[22px]">category</span><span class="font-label-sm text-label-sm">کاتالوگ</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface transition-all gap-0.5" data-path="inquiries" href="#"><span class="material-symbols-outlined text-[22px]">request_quote</span><span class="font-label-sm text-label-sm">استعلام‌ها</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] h-12 transition-all gap-0.5 text-primary font-bold" data-path="corporate-order" href="#"><span class="material-symbols-outlined text-[22px]">domain_add</span><span class="font-label-sm text-label-sm">سفارش عمده</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface transition-all gap-0.5" data-path="account" href="#"><span class="material-symbols-outlined text-[22px]">person</span><span class="font-label-sm text-label-sm">حساب</span></a></div></nav></body></html>
