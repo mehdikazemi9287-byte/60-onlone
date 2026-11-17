@@ -1,0 +1,555 @@
+<!DOCTYPE html><html dir="rtl" lang="fa"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<meta content="mobile_tab" name="shell-type">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@500;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "page-bg": "#F9F9F9",
+            "brand-blue": "#034EA2",
+            "action-navy": "#112D46",
+            "accent-orange": "#FF7A00",
+            "mint-banner": "#EDF3EE",
+            "primary": "#034EA2",
+            "on-primary": "#ffffff"
+          },
+          borderRadius: {
+            "xl": "12px",
+            "2xl": "16px"
+          },
+          fontFamily: {
+            sans: ["Vazirmatn", "Plus Jakarta Sans", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #F9F9F9;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        overscroll-behavior-y: none;
+      }
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+      }
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-[#F9F9F9] text-[#1e293b] antialiased min-h-screen flex flex-col font-sans select-none">
+<!-- Mobile Header -->
+<header class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/80 pt-safe">
+<div class="h-14 px-4 flex items-center justify-between max-w-[430px] mx-auto">
+<div class="flex items-center gap-2.5">
+<img alt="شصت‌آنلاین" class="w-8 h-8 rounded-lg object-contain bg-gray-50 border border-gray-100" src="https://lh3.googleusercontent.com/aida/ALJJyrAAioAxkbhOlVRTti0xHLDZ-5kstiLTZnJAAp3fXbTBkOHXraRiAcI9p2s4MD54I-xe08_NZdLYG8Z5pr_ZZJ0jIZSPAxB7F4yeIKM6TYCcCNcW6SIp1yXVeZxvf7ql-SHD9lM7ao0rvdXtzW4UWUElSFKqNjzKVTijg5sfliERT-urxTywxI-PXQuIV687uAT2PMhGi2i4RpoWsIZV756nQehMe0YhQ_i4qK3T2FEd">
+<div class="flex flex-col">
+<span class="text-[16px] font-extrabold text-[#034EA2] tracking-tight leading-tight">شصت‌آنلاین</span>
+<span class="text-[10px] text-gray-500 font-medium leading-none">تأمین و بسته‌بندی سازمانی</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5">
+<button aria-label="جستجو" class="w-9 h-9 rounded-full flex items-center justify-center text-gray-600 hover:text-[#034EA2] hover:bg-gray-100 transition-colors" type="button">
+<span class="material-symbols-outlined text-[22px]">search</span>
+</button>
+<button aria-label="سبد استعلام" class="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-700 hover:text-[#034EA2] hover:bg-gray-100 transition-colors" type="button">
+<span class="material-symbols-outlined text-[22px]">shopping_bag</span>
+<span class="absolute top-1 left-1 min-w-[17px] h-[17px] px-1 bg-[#FF7A00] text-white rounded-full text-[10px] flex items-center justify-center font-bold shadow-xs">۳</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Scrollable Content -->
+<main class="flex-1 w-full max-w-[430px] mx-auto pt-16 pb-36 px-4 flex flex-col gap-4">
+<!-- Hero Section (Soft Mint #EDF3EE) -->
+<section class="mt-2 bg-[#EDF3EE] rounded-xl p-4 border border-[#d6e5d8] shadow-sm flex flex-col gap-3">
+<div class="flex items-center gap-1.5 self-start bg-white/90 px-2.5 py-1 rounded-full border border-[#c4dcce] shadow-2xs">
+<span class="material-symbols-outlined text-[15px] text-[#034EA2]" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="text-[11px] font-bold text-[#034EA2]">تأمین مستقیم و عمده کالا</span>
+</div>
+<div>
+<h1 class="text-[19px] font-extrabold text-[#112D46] leading-snug">
+          از یک ترکیب خوب، یک پک مناسب بسازید
+        </h1>
+<p class="text-[12px] text-gray-600 mt-1 leading-relaxed">
+          تأمین مستقیم و عمده کالاهای سازمانی با تضمین تیراژ
+        </p>
+</div>
+<!-- Collapsible AI Assistant -->
+<div class="pt-1">
+<button class="w-full bg-white hover:bg-gray-50 transition-colors rounded-xl p-3 flex items-center justify-between border border-gray-200/90 shadow-xs" id="toggle-ai-btn" type="button">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-[#034EA2] text-white flex items-center justify-center shadow-xs">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+</div>
+<div class="text-right">
+<div class="text-[13px] font-bold text-[#112D46]">دستیار هوشمند 60AI</div>
+<div class="text-[11px] text-gray-500 font-medium">پیشنهاد سریع ترکیب اقلام بر اساس بودجه</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[20px] text-gray-400 transition-transform duration-200" id="ai-arrow-icon">expand_more</span>
+</button>
+<!-- Compact AI Form Drawer -->
+<div class="hidden mt-2 bg-white rounded-xl p-3 border border-gray-200 shadow-xs flex flex-col gap-2.5" id="ai-drawer">
+<div class="grid grid-cols-2 gap-2">
+<div>
+<label class="text-[10px] text-gray-500 font-bold block mb-1">نوع مناسبت</label>
+<div class="bg-[#F9F9F9] border border-gray-200 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] text-[#112D46]">
+<span class="truncate">معیشتی و ارزاق</span>
+<span class="material-symbols-outlined text-[16px] text-gray-400">arrow_drop_down</span>
+</div>
+</div>
+<div>
+<label class="text-[10px] text-gray-500 font-bold block mb-1">تعداد پرسنل (تیراژ)</label>
+<div class="bg-[#F9F9F9] border border-gray-200 rounded-lg px-2.5 py-1.5 flex items-center justify-between text-[11px] text-[#112D46]">
+<span>۵۰ تا ۲۰۰ بسته</span>
+<span class="material-symbols-outlined text-[16px] text-gray-400">group</span>
+</div>
+</div>
+</div>
+<button class="w-full bg-[#112D46] active:bg-[#034EA2] text-white py-2 px-3 rounded-lg text-[12px] font-bold flex items-center justify-center gap-1.5 transition-colors shadow-xs" type="button">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+<span>تولید چیدمان هوشمند پک</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 4-Step Horizontal Compact Stepper -->
+<section class="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
+<div class="relative flex items-center justify-between px-2">
+<div class="absolute top-1/2 left-6 right-6 -translate-y-1/2 h-[2px] bg-gray-200 -z-0"></div>
+<!-- Step 1: Active -->
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="w-6 h-6 rounded-full bg-[#034EA2] text-white flex items-center justify-center text-[11px] font-bold ring-4 ring-white shadow-2xs">
+            ۱
+          </div>
+<span class="text-[11px] font-bold text-[#034EA2]">روش ساخت</span>
+</div>
+<!-- Step 2 -->
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="w-6 h-6 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[11px] font-semibold ring-4 ring-white">
+            ۲
+          </div>
+<span class="text-[11px] font-medium text-gray-500">چیدمان</span>
+</div>
+<!-- Step 3 -->
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="w-6 h-6 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[11px] font-semibold ring-4 ring-white">
+            ۳
+          </div>
+<span class="text-[11px] font-medium text-gray-500">بررسی</span>
+</div>
+<!-- Step 4 -->
+<div class="relative z-10 flex flex-col items-center gap-1">
+<div class="w-6 h-6 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center text-[11px] font-semibold ring-4 ring-white">
+            ۴
+          </div>
+<span class="text-[11px] font-medium text-gray-500">استعلام</span>
+</div>
+</div>
+</section>
+<!-- Pack Creation Methods (3 Compact Cards) -->
+<section class="flex flex-col gap-2">
+<div class="flex items-center justify-between px-1">
+<h2 class="text-[14px] font-bold text-[#112D46]">مسیر طراحی و انتخاب</h2>
+<span class="text-[11px] font-medium text-[#034EA2]">۳ حالت دسترسی</span>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<!-- Method 1: Active -->
+<button class="bg-white rounded-xl p-2.5 border-2 border-[#034EA2] shadow-xs text-right flex flex-col justify-between h-[96px] relative overflow-hidden" type="button">
+<div class="w-7 h-7 rounded-lg bg-[#034EA2]/10 text-[#034EA2] flex items-center justify-center">
+<span class="material-symbols-outlined text-[17px]">inventory_2</span>
+</div>
+<div>
+<span class="block text-[12px] font-extrabold text-[#034EA2] leading-tight">پک‌های آماده</span>
+<span class="block text-[10px] text-gray-500 font-normal mt-0.5">استاندارد شرکتی</span>
+</div>
+<div class="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full bg-[#034EA2]"></div>
+</button>
+<!-- Method 2: Budget -->
+<button class="bg-white rounded-xl p-2.5 border border-gray-200 hover:border-gray-300 shadow-xs text-right flex flex-col justify-between h-[96px] transition-all" type="button">
+<div class="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-[17px]">payments</span>
+</div>
+<div>
+<span class="block text-[12px] font-bold text-[#112D46] leading-tight">بر اساس بودجه</span>
+<span class="block text-[10px] text-gray-500 font-normal mt-0.5">تطبیق سرانه مالی</span>
+</div>
+</button>
+<!-- Method 3: Manual Custom -->
+<button class="bg-white rounded-xl p-2.5 border border-gray-200 hover:border-gray-300 shadow-xs text-right flex flex-col justify-between h-[96px] transition-all" type="button">
+<div class="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-[17px]">tune</span>
+</div>
+<div>
+<span class="block text-[12px] font-bold text-[#112D46] leading-tight">چیدمان دستی</span>
+<span class="block text-[10px] text-gray-500 font-normal mt-0.5">انتخاب جزءبه‌جزء</span>
+</div>
+</button>
+</div>
+</section>
+<!-- Horizontal Category Filter Pills -->
+<div class="bg-white rounded-xl p-3 border border-gray-200/90 shadow-xs flex items-center justify-between hover:border-[#034EA2]/40 transition-colors"><div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-lg bg-orange-50 text-[#FF7A00] flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[20px]">picture_as_pdf</span></div><div class="flex flex-col"><div class="flex items-center gap-1.5"><span class="text-[12px] font-bold text-[#112D46]">دانلود کاتالوگ جامع پک‌های فصلی</span><span class="text-[9px] bg-orange-50 text-[#FF7A00] font-bold px-1.5 py-0.5 rounded">PDF</span></div><span class="text-[10px] text-gray-500 font-medium">نسخه جدید بهار و رمضان ۱۴۰۳ • حجم: ۸.۴ مگابایت</span></div></div><a href="#" download="" class="bg-gray-100 hover:bg-[#034EA2] hover:text-white text-[#112D46] px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors shrink-0"><span class="material-symbols-outlined text-[16px]">download</span><span>دانلود</span></a></div><section class="flex flex-col gap-2">
+<div class="flex items-center justify-between px-1">
+<h2 class="text-[14px] font-bold text-[#112D46]">دسته‌بندی پک‌ها</h2>
+<span class="text-[11px] text-gray-500">انتخاب موضوعی</span>
+</div>
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 py-0.5">
+<button class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-[#112D46] text-white text-[12px] font-bold shadow-xs shrink-0" type="button">
+          همه موارد
+        </button>
+<button class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white hover:bg-gray-50 text-gray-700 text-[12px] font-medium border border-gray-200 shadow-xs shrink-0" type="button">
+          معیشتی و ارزاق
+        </button>
+<button class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white hover:bg-gray-50 text-gray-700 text-[12px] font-medium border border-gray-200 shadow-xs shrink-0" type="button">
+          فرهنگی و مدارس
+        </button>
+<button class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white hover:bg-gray-50 text-gray-700 text-[12px] font-medium border border-gray-200 shadow-xs shrink-0" type="button">
+          هدایای فاخر
+        </button>
+<button class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white hover:bg-gray-50 text-gray-700 text-[12px] font-medium border border-gray-200 shadow-xs shrink-0" type="button">
+          خیریه و نذورات
+        </button>
+</div>
+</section>
+<!-- Pack Cards Section -->
+<section class="flex flex-col gap-3.5">
+<!-- Card 1: معیشتی و ارزاق (IMAGE_119) -->
+<article class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+<div class="relative w-full aspect-[16/10] bg-gray-100 overflow-hidden">
+<img alt="پک معیشتی کرامت سازمانی" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB74-zH7YXCML_HX3VAHPTBOSxBgQ-ksp6Ur7rxYt3wdgi6w2RhjR1O71aTt3mrxGZjqRajHENZHlUZ76MGo7lQ3uglPYDriwf-MupNYpAoxqlOVOlL2Dh75JvOE42Gw0GQ5YRxrennCL_9HxEYBM-2ul2d91tsNRQlvNK50r5TyrW7zRYvLg7f2Q58AqU51rNhhS-VE0e4NjpwFJG8dKHa1aRoIb8b4jwPXWj47vw">
+<div class="absolute top-2.5 right-2.5 bg-[#FF7A00] text-white px-2.5 py-0.5 rounded-md text-[11px] font-bold shadow-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">discount</span>
+<span>تخفیف تیراژ سازمانی</span>
+</div>
+<div class="absolute bottom-2 left-2 bg-[#112D46]/85 backdrop-blur-xs text-white px-2 py-0.5 rounded text-[10px] font-medium">
+            کد: PK-882
+          </div>
+</div>
+<div class="p-3.5 flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<h3 class="text-[15px] font-extrabold text-[#112D46]">پک معیشتی و ارزاق «کرامت»</h3>
+<span class="text-[11px] font-bold text-[#034EA2] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">حداقل تیراژ: ۲۰ عدد</span>
+</div>
+<p class="text-[12px] text-gray-600 leading-relaxed">
+            ترکیب استاندارد اقلام ضروری خوراکی ویژه عیدانه، پاداش‌های فصلی و توزیع سبد رفاهی کارکنان.
+          </p>
+<!-- Selected Items Tags -->
+<div class="flex flex-wrap gap-1.5 py-0.5">
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">برنج طارم ۵ کیلو</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">روغن زیتون فرابکر</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">زعفران کادویی فلزی</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">چای دستچین آسام</span>
+</div>
+<!-- Price & Spec Line -->
+<div class="flex items-center justify-between bg-[#F9F9F9] p-2.5 rounded-lg border border-gray-200/80">
+<div>
+<span class="text-[10px] text-gray-500 block leading-tight">ارزش محاسباتی واحد:</span>
+<span class="text-[13px] font-extrabold text-[#034EA2]">پس از استعلام</span>
+</div>
+<div class="flex items-center gap-1 text-[11px] text-gray-600 font-medium">
+<span class="material-symbols-outlined text-[16px] text-gray-500">inventory</span>
+<span>بسته‌بندی هاردباکس کرافت</span>
+</div>
+</div>
+<!-- CTAs -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<button class="bg-white hover:bg-gray-50 text-[#112D46] border border-gray-300 rounded-lg py-2 text-[12px] font-bold flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[17px]">tune</span>
+<span>شخصی‌سازی</span>
+</button>
+<button class="bg-[#112D46] active:bg-[#034EA2] text-white rounded-lg py-2 text-[12px] font-bold flex items-center justify-center gap-1 shadow-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[17px]">request_quote</span>
+<span>استعلام قیمت</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 2: هدایای فاخر اداری (IMAGE_121) -->
+<article class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+<div class="relative w-full aspect-[16/10] bg-gray-100 overflow-hidden">
+<img alt="پک هدایای فاخر اداری الوند" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5WhR153fOZpQnzOfkshKrWsyiAb-88L6xnaIF_AzLmIKlHqQ6F70XaVvTyisAgsWctDDPWUSYD1rUZv9Oim8qWdsChwGENB7xD6ba7PY92cwQAPDbb0UzprK6uMviDBT1Tn6tzLUOKCr7QDmdBPhacZ1QwDuJvNZFRynrEBXmhi9SYMlDLDTOgzYs9FooXAC3r_q5syD01_ijmd9qr2naKBhYKKcbE9LuLMW-Rc4">
+<div class="absolute top-2.5 right-2.5 bg-[#FF7A00] text-white px-2.5 py-0.5 rounded-md text-[11px] font-bold shadow-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">discount</span>
+<span>تخفیف تیراژ سازمانی</span>
+</div>
+<div class="absolute bottom-2 left-2 bg-[#112D46]/85 backdrop-blur-xs text-white px-2 py-0.5 rounded text-[10px] font-medium">
+            کد: PK-914
+          </div>
+</div>
+<div class="p-3.5 flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<h3 class="text-[15px] font-extrabold text-[#112D46]">پک هدایای فاخر اداری «الوند»</h3>
+<span class="text-[11px] font-bold text-[#034EA2] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">حداقل تیراژ: ۱۵ عدد</span>
+</div>
+<p class="text-[12px] text-gray-600 leading-relaxed">
+            مجموعه اداری تشریفاتی مناسب میهمانان ویژه، مدیران و همایش‌ها با امکان درج پلاک و حک آرم سازمانی.
+          </p>
+<!-- Selected Items Tags -->
+<div class="flex flex-wrap gap-1.5 py-0.5">
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">فلاسک حرارتی دیجیتال</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">سررسید چرم سرمه‌ای</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">روان‌نویس رولربال فلزی</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">نشانگر فلزی برنجی</span>
+</div>
+<!-- Price & Spec Line -->
+<div class="flex items-center justify-between bg-[#F9F9F9] p-2.5 rounded-lg border border-gray-200/80">
+<div>
+<span class="text-[10px] text-gray-500 block leading-tight">ارزش محاسباتی واحد:</span>
+<span class="text-[13px] font-extrabold text-[#034EA2]">پس از استعلام</span>
+</div>
+<div class="flex items-center gap-1 text-[11px] text-gray-600 font-medium">
+<span class="material-symbols-outlined text-[16px] text-[#034EA2]">verified</span>
+<span>حک رایگان آرم سازمانی</span>
+</div>
+</div>
+<!-- CTAs -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<button class="bg-white hover:bg-gray-50 text-[#112D46] border border-gray-300 rounded-lg py-2 text-[12px] font-bold flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[17px]">tune</span>
+<span>شخصی‌سازی</span>
+</button>
+<button class="bg-[#112D46] active:bg-[#034EA2] text-white rounded-lg py-2 text-[12px] font-bold flex items-center justify-center gap-1 shadow-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[17px]">request_quote</span>
+<span>استعلام قیمت</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 3: حمایتی مدارس و CSR (IMAGE_120) -->
+<article class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+<div class="relative w-full aspect-[16/10] bg-gray-100 overflow-hidden">
+<img alt="پک حمایتی مدارس امید دانش" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeEEQq8G3biJxk58rfgvbk_P-n-WpyMZVR6PdSDD_gLNks9p-GMo8eybpUHDcoET1eBcU5VjSXi_jFWfR7bNXvlqS7vK_neD9phlmYyChCzQ3ecWRpJFa3fPxyCHepMu1u-stBmP8UUiWtxG2ztibT6kBPcZ1_p0uFWFON-e5OsMs2SjGN7AXDeJaop-OrmWP05dy9RDLpGL2XOKI7kdr8qpI3GijVYhtOdWjZ9vE">
+<div class="absolute top-2.5 right-2.5 bg-[#FF7A00] text-white px-2.5 py-0.5 rounded-md text-[11px] font-bold shadow-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">discount</span>
+<span>تخفیف تیراژ سازمانی</span>
+</div>
+<div class="absolute bottom-2 left-2 bg-[#112D46]/85 backdrop-blur-xs text-white px-2 py-0.5 rounded text-[10px] font-medium">
+            کد: PK-405
+          </div>
+</div>
+<div class="p-3.5 flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<h3 class="text-[15px] font-extrabold text-[#112D46]">پک تحصیلی و حمایتی «امید دانش»</h3>
+<span class="text-[11px] font-bold text-[#034EA2] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">حداقل تیراژ: ۵۰ عدد</span>
+</div>
+<p class="text-[12px] text-gray-600 leading-relaxed">
+            ویژه مسئولیت اجتماعی شرکت‌ها (CSR)، بازگشایی مدارس و حمایت‌های تحصیلی موسسات خیریه با بسته‌بندی کارتن مادر.
+          </p>
+<!-- Selected Items Tags -->
+<div class="flex flex-wrap gap-1.5 py-0.5">
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">کوله پشتی ارگونومیک</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">ست کامل دفاتر تحصیلی</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">جعبه مدادرنگی ۲۴ تایی</span>
+<span class="bg-[#F9F9F9] text-gray-700 text-[11px] px-2 py-1 rounded-md border border-gray-200">ست خط‌کش و نوشت‌افزار</span>
+</div>
+<!-- Price & Spec Line -->
+<div class="flex items-center justify-between bg-[#F9F9F9] p-2.5 rounded-lg border border-gray-200/80">
+<div>
+<span class="text-[10px] text-gray-500 block leading-tight">ارزش محاسباتی واحد:</span>
+<span class="text-[13px] font-extrabold text-[#034EA2]">پس از استعلام</span>
+</div>
+<div class="flex items-center gap-1 text-[11px] text-gray-600 font-medium">
+<span class="material-symbols-outlined text-[16px] text-gray-500">local_shipping</span>
+<span>شیرینگ کارتن محافظ</span>
+</div>
+</div>
+<!-- CTAs -->
+<div class="grid grid-cols-2 gap-2 pt-1">
+<button class="bg-white hover:bg-gray-50 text-[#112D46] border border-gray-300 rounded-lg py-2 text-[12px] font-bold flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[17px]">tune</span>
+<span>شخصی‌سازی</span>
+</button>
+<button class="bg-[#112D46] active:bg-[#034EA2] text-white rounded-lg py-2 text-[12px] font-bold flex items-center justify-center gap-1 shadow-xs transition-colors" type="button">
+<span class="material-symbols-outlined text-[17px]">request_quote</span>
+<span>استعلام قیمت</span>
+</button>
+</div>
+</div>
+</article>
+</section>
+<!-- Secondary Modules Accordions -->
+<section class="flex flex-col gap-2 pt-1">
+<h2 class="text-[13px] font-bold text-[#112D46] px-1">فرآیندهای حقوقی و زنجیره تأمین</h2>
+<!-- Accordion 1: سامانه ستاد ایران -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+<button class="w-full p-3.5 flex items-center justify-between text-right accordion-trigger" data-target="acc-setad" type="button">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-lg bg-blue-50 text-[#034EA2] flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">account_balance</span>
+</div>
+<div>
+<span class="text-[13px] font-bold text-[#112D46] block">خرید دولتی و سامانه ستاد ایران</span>
+<span class="text-[10px] text-gray-500 block">فاکتور رسمی الکترونیک، شناسه ملی و ضمانت‌نامه</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[20px] text-gray-400 transition-transform duration-200">expand_more</span>
+</button>
+<div class="hidden px-3.5 pb-3.5 pt-1 text-[12px] text-gray-600 border-t border-gray-100 flex flex-col gap-2" id="acc-setad">
+<p class="leading-relaxed">
+            امکان ثبت در سامانه تدارکات الکترونیکی دولت (ستاد ایران) با ثبت کد نیاز، تطبیق با پیش‌فاکتور رسمی و صدور صورت‌حساب مورد تأیید امور مالیاتی با محاسبه قانونی ارزش افزوده.
+          </p>
+<div class="grid grid-cols-2 gap-2 pt-1 text-[11px]">
+<div class="bg-[#F9F9F9] p-2 rounded-lg border border-gray-200 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#034EA2] text-[16px]">receipt_long</span>
+<span>شناسه اقتصادی معتبر</span>
+</div>
+<div class="bg-[#F9F9F9] p-2 rounded-lg border border-gray-200 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#034EA2] text-[16px]">gavel</span>
+<span>عقد قرارداد رسمی حقوقی</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Accordion 2: ناوگان و لجستیک -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+<button class="w-full p-3.5 flex items-center justify-between text-right accordion-trigger" data-target="acc-logistics" type="button">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-lg bg-blue-50 text-[#034EA2] flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">local_shipping</span>
+</div>
+<div>
+<span class="text-[13px] font-bold text-[#112D46] block">برآورد ناوگان و لجستیک</span>
+<span class="text-[10px] text-gray-500 block">تخمین وزن بار، زمان تخلیه و پالت‌بندی</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[20px] text-gray-400 transition-transform duration-200">expand_more</span>
+</button>
+<div class="hidden px-3.5 pb-3.5 pt-1 text-[12px] text-gray-600 border-t border-gray-100 flex flex-col gap-2" id="acc-logistics">
+<p class="leading-relaxed">
+            ارسال با خاور مسقف و تریلی‌های مجهز به بارگیر صنعتی مستقیماً از انبار مرکزی به تمامی استان‌ها. بارها کاملاً پالت‌پلاست‌شده و دارای بیمه‌نامه رسمی باربری هستند.
+          </p>
+<div class="flex items-center justify-between bg-[#F9F9F9] p-2 rounded-lg border border-gray-200 text-[11px] text-[#112D46]">
+<span>زمان تحویل تهران: ۲۴ الی ۴۸ ساعت</span>
+<span>شهرستان‌ها: ۷۲ ساعت کاری</span>
+</div>
+</div>
+</div>
+<!-- Accordion 3: پویش مسئولیت اجتماعی و خیریه -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+<button class="w-full p-3.5 flex items-center justify-between text-right accordion-trigger" data-target="acc-csr" type="button">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-lg bg-orange-50 text-[#FF7A00] flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">volunteer_activism</span>
+</div>
+<div>
+<span class="text-[13px] font-bold text-[#112D46] block">پویش مسئولیت اجتماعی و خیریه</span>
+<span class="text-[10px] text-gray-500 block">طرح‌های نیکوکاری، نذورات فصلی و مناطق کم‌برخوردار</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[20px] text-gray-400 transition-transform duration-200">expand_more</span>
+</button>
+<div class="hidden px-3.5 pb-3.5 pt-1 text-[12px] text-gray-600 border-t border-gray-100 flex flex-col gap-2" id="acc-csr">
+<p class="leading-relaxed">
+            امکان تحویل متمرکز به مؤسسات خیریه همکار، بسته‌بندی ویژه حفظ کرامت بدون نام برند تجاری، و تأمین مستقیم با نازل‌ترین حاشیه سود به منظور افزایش توان خرید نیکوکاران.
+          </p>
+</div>
+</div>
+</section>
+</main>
+<!-- Sticky Bottom Inquire Action Bar (Above Tab Bar) -->
+<aside class="fixed bottom-16 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-200/90 py-2.5 px-4 shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
+<div class="max-w-[430px] mx-auto flex items-center justify-between gap-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-[#034EA2] animate-pulse"></span>
+<span class="text-[13px] font-bold text-[#112D46]">سبد استعلام: ۳ پک</span>
+</div>
+<span class="text-[11px] font-bold text-[#034EA2]">برآورد: پس از استعلام</span>
+</div>
+<a href="#" download="" class="bg-gray-100 hover:bg-gray-200 active:scale-[0.98] text-gray-700 px-2.5 py-2.5 rounded-xl text-[11px] font-bold flex items-center gap-1 transition-all border border-gray-200" title="دانلود کاتالوگ PDF"><span class="material-symbols-outlined text-[18px] text-[#FF7A00]">picture_as_pdf</span><span class="hidden sm:inline text-xs">کاتالوگ</span></a><button class="bg-[#112D46] hover:bg-[#034EA2] active:scale-[0.98] text-white px-4 py-2.5 rounded-xl text-[12px] font-bold flex items-center gap-1.5 shadow-sm transition-all" type="button">
+<span class="material-symbols-outlined text-[17px]">description</span>
+<span>دریافت پیش‌فاکتور</span>
+</button>
+</div>
+</aside>
+<!-- 5-Tab Bottom Navigation Bar -->
+<nav class="fixed bottom-0 inset-x-0 z-50 bg-white border-t border-gray-200 pb-safe shadow-lg">
+<div class="h-16 max-w-[430px] mx-auto flex items-center justify-around px-2">
+<!-- Tab 1: خانه -->
+<a class="flex flex-col items-center justify-center gap-0.5 text-gray-500 hover:text-[#034EA2] transition-colors py-1 flex-1" href="#">
+<span class="material-symbols-outlined text-[22px]">home</span>
+<span class="text-[11px] font-medium">خانه</span>
+</a>
+<!-- Tab 2: دسته‌بندی -->
+<a class="flex flex-col items-center justify-center gap-0.5 text-gray-500 hover:text-[#034EA2] transition-colors py-1 flex-1" href="#">
+<span class="material-symbols-outlined text-[22px]">grid_view</span>
+<span class="text-[11px] font-medium">دسته‌بندی</span>
+</a>
+<!-- Tab 3: پک‌ساز (Active) -->
+<a class="flex flex-col items-center justify-center gap-0.5 text-[#034EA2] font-bold py-1 flex-1" href="#">
+<div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-[#034EA2]">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+</div>
+<span class="text-[11px] font-extrabold text-[#034EA2]">پک‌ساز</span>
+</a>
+<!-- Tab 4: استعلام‌ها -->
+<a class="flex flex-col items-center justify-center gap-0.5 text-gray-500 hover:text-[#034EA2] transition-colors py-1 flex-1" href="#">
+<span class="material-symbols-outlined text-[22px]">request_quote</span>
+<span class="text-[11px] font-medium">استعلام‌ها</span>
+</a>
+<!-- Tab 5: حساب -->
+<a class="flex flex-col items-center justify-center gap-0.5 text-gray-500 hover:text-[#034EA2] transition-colors py-1 flex-1" href="#">
+<span class="material-symbols-outlined text-[22px]">person</span>
+<span class="text-[11px] font-medium">حساب</span>
+</a>
+</div>
+</nav>
+<script>
+    // AI collapsible drawer toggle
+    const toggleAiBtn = document.getElementById('toggle-ai-btn');
+    const aiDrawer = document.getElementById('ai-drawer');
+    const aiArrowIcon = document.getElementById('ai-arrow-icon');
+
+    if (toggleAiBtn && aiDrawer && aiArrowIcon) {
+      toggleAiBtn.addEventListener('click', function () {
+        const isHidden = aiDrawer.classList.contains('hidden');
+        aiDrawer.classList.toggle('hidden');
+        aiArrowIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
+    }
+
+    // Secondary module accordion toggles
+    document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+      trigger.addEventListener('click', function () {
+        const targetId = this.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+        const icon = this.querySelector('.material-symbols-outlined:last-child');
+        
+        if (content) {
+          const isHidden = content.classList.contains('hidden');
+          content.classList.toggle('hidden');
+          if (icon) {
+            icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+          }
+        }
+      });
+    });
+  </script>
+
+
+</body></html>
