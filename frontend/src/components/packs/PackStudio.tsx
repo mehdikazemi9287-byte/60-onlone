@@ -18,10 +18,10 @@ type Method = "template" | "budget" | "scratch";
 const STEPS = ["انتخاب روش", "ساخت پک", "بررسی", "خرید / استعلام"];
 const GROUPS: [string, string, (p: PackDetail) => boolean][] = [
   ["", "همه پک‌ها", () => true],
-  ["home", "خانه و خانواده", (p) => p.audience === "household" && p.kind !== "occasion"],
-  ["gift", "هدیه", (p) => p.audience === "employee_gift"],
-  ["occasion", "مناسبت", (p) => p.kind === "occasion" || !!p.occasion],
+  ["home", "معیشتی", (p) => p.audience === "household" && p.kind !== "occasion"],
+  ["occasion", "مناسبتی (یلدا، نوروز، رمضان…)", (p) => p.kind === "occasion" || !!p.occasion],
   ["work", "سازمانی و کارکنان", (p) => ["organization","office","employee_gift"].includes(p.audience)],
+  ["gift", "هدیه", (p) => p.audience === "employee_gift"],
 ];
 const TITLES: Record<Method, [string, string]> = {
   template: ["پک‌های پیشنهادی 60Online", "از یک پک آماده شروع کنید یا انتخاب خودتان را بسازید."],
@@ -72,7 +72,7 @@ function PackStudioBody() {
   const [title, sub] = draft ? (step >= 2 ? ["بررسی نهایی پک", "اقلام، تعداد و مبلغ را بررسی کنید؛ برای اقلام فاقد قیمت درخواست استعلام ثبت می‌شود."] : TITLES.scratch) : TITLES[method];
   return <div className="space-y-5" dir="rtl">
     <header className="flex flex-col gap-4 rounded-[24px] border p-5 md:flex-row md:items-center md:justify-between md:p-7" style={{background:UI.mint,borderColor:UI.line}}>
-      <div><p className="mb-2 flex items-center gap-2 text-xs font-bold" style={{color:UI.muted}}><Building2 size={15}/> پک‌ساز 60Online · برای کارکنان، شعبه‌ها و خانواده</p><h1 id="pack-studio-title" tabIndex={-1} className="text-[26px] font-black leading-[1.65] outline-none md:text-[34px]" style={{color:UI.ink}}>{draft?title:"از یک ترکیب خوب، یک پک مناسب بسازید"}</h1><p className="mt-2 max-w-2xl text-sm leading-7" style={{color:UI.muted}}>{draft?sub:"از پک آماده شروع کنید، سقف بودجه را مشخص کنید یا اقلام را خودتان بچینید. تعداد هر قلم و تعداد پک‌ها جداست؛ قیمت نهایی و امکان ارسال با استعلام تأیید می‌شود."}</p></div>
+      <div><p className="mb-2 flex items-center gap-2 text-xs font-bold" style={{color:UI.muted}}><Building2 size={15}/> پک‌ساز 60Online · پک‌های معیشتی و مناسبتی (یلدا، نوروز، رمضان) · سفارش عمده سازمان‌ها</p><h1 id="pack-studio-title" tabIndex={-1} className="text-[26px] font-black leading-[1.65] outline-none md:text-[34px]" style={{color:UI.ink}}>{draft?title:"از یک ترکیب خوب، یک پک مناسب بسازید"}</h1><p className="mt-2 max-w-2xl text-sm leading-7" style={{color:UI.muted}}>{draft?sub:"از پک آماده شروع کنید، سقف بودجه را مشخص کنید یا اقلام را خودتان بچینید. تعداد هر قلم و تعداد پک‌ها جداست؛ قیمت نهایی و امکان ارسال با استعلام تأیید می‌شود."}</p></div>
       <Link href="/business/catalog" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl border bg-white px-4 text-xs font-bold" style={{color:UI.ink,borderColor:UI.line}}><Package size={16}/> انتخاب مستقیم از کاتالوگ</Link>
     </header>
     <Link href="/account/packs" className="inline-flex min-h-11 items-center text-sm font-bold text-brand-blue">پک‌های ذخیره‌شده در حساب</Link>

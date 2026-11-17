@@ -13,6 +13,11 @@ import { UI } from "./PackCard";
 type Line = { slug: string; title_fa: string; brand_fa: string; variant_label: string | null; image_url: string | null; quantity: number; unit_price_minor: number | null; required: boolean };
 type Option = { key: string; label_fa: string; items: Line[]; item_count: number; food_weight_g: number | null; priced: boolean; price_per_person_minor: number | null;
   total_minor: number | null; within_budget: boolean | null; trimmed_for_budget: string[]; customizable: boolean; note: string | null };
+// Primary bulk occasions shown as quick chips (Stitch design 2026-11-17, screen 35). These are livelihood /
+// occasion packs ordered in bulk by organizations — not gift boxes.
+const PRIMARY_OCCASIONS = ["livelihood", "ramadan", "nowruz", "yalda", "welfare"];
+const COUNT_PRESETS = [50, 100, 250, 500, 1000];
+const BUDGET_PRESETS_TOMAN = [1000000, 2000000, 3000000, 5000000];
 const OCCASIONS: [string, string][] = [["livelihood", "معیشتی"], ["ramadan", "رمضان"], ["nowruz", "نوروز"], ["yalda", "یلدا"], ["hospitality", "پذیرایی سازمانی"], ["office", "تجهیزات اداری"], ["women_day", "روز زن"], ["men_day", "روز مرد"], ["management_gift", "هدایای مدیریتی"], ["employee_gift", "هدایای کارکنان"], ["welfare", "پک رفاهی"]];
 
 export function BudgetBuilder({ onOpen }: { onOpen: (items: { slug: string; title: string; quantity: number; imageUrl: string | null; priceMinor: number | null }[], count: number) => void }) {
@@ -43,6 +48,11 @@ export function BudgetBuilder({ onOpen }: { onOpen: (items: { slug: string; titl
   return (
     <section className="space-y-5" dir="rtl" aria-label="پیشنهاد پک بر اساس بودجه">
       <div className="rounded-2xl p-4 md:p-6" style={{ background: UI.warm }}>
+      <div className="mb-4 space-y-3">
+        <div role="group" aria-label="نوع پک" className="flex flex-wrap gap-2">{OCCASIONS.filter(([k]) => PRIMARY_OCCASIONS.includes(k)).map(([k, v]) => <button key={k} type="button" aria-pressed={occasion === k} onClick={() => setOccasion(k)} className="min-h-11 rounded-full border px-4 text-sm font-bold" style={occasion === k ? { background: UI.ink, color: "#fff", borderColor: UI.ink } : { background: "#fff", color: UI.ink, borderColor: UI.line }}>{v}</button>)}</div>
+        <div className="flex flex-wrap items-center gap-2 text-xs"><span className="font-bold" style={{ color: UI.muted }}>تعداد پک:</span>{COUNT_PRESETS.map(n => <button key={n} type="button" aria-pressed={peopleCount === n} onClick={() => setPeople(String(n))} className="min-h-9 rounded-full border bg-white px-3 font-bold" style={{ borderColor: peopleCount === n ? UI.ink : UI.line, color: UI.ink }}>{toPersianNum(n)}</button>)}</div>
+        <div className="flex flex-wrap items-center gap-2 text-xs"><span className="font-bold" style={{ color: UI.muted }}>بودجه هر پک:</span>{BUDGET_PRESETS_TOMAN.map(t => <button key={t} type="button" aria-pressed={budgetMinor === t * 10} onClick={() => setBudget(String(t))} className="min-h-9 rounded-full border bg-white px-3 font-bold" style={{ borderColor: budgetMinor === t * 10 ? UI.ink : UI.line, color: UI.ink }}>{formatPrice(t * 10)}</button>)}</div>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <label className="grid gap-1 text-xs font-bold">بودجه هر پک (تومان)<input className={inp} inputMode="numeric" value={budget} onChange={(e) => setBudget(e.target.value)} /></label>
         <label className="grid gap-1 text-xs font-bold">تعداد پک<input className={inp} type="text" inputMode="numeric" role="spinbutton" aria-valuemin={1} aria-valuemax={100000} aria-valuenow={peopleCount??undefined} value={people} onChange={(e) => setPeople(e.target.value)} /></label>
