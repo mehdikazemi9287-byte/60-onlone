@@ -31,7 +31,7 @@ export default function AffiliatePage() {
       <div className="internal-page container-page py-16 text-center">
         <h1 className="mb-3 text-xl font-black">همکاری در فروش</h1>
         <p className="mb-6 text-neutral-600">کالاهای شصت‌آنلاین را معرفی کن و از هر خرید موفق کمیسیون بگیر.</p>
-        <Link href="/login?next=/me/affiliate" className="rounded-xl bg-neutral-900 px-5 py-2 font-bold text-white">ورود</Link>
+        <Link href="/login?next=/me/affiliate" className="rounded-full bg-ink px-5 py-2 font-bold text-white">ورود</Link>
       </div>
     );
   }
@@ -128,7 +128,7 @@ function PayoutCard({ token }: { token: string }) {
         <label className="text-sm sm:col-span-2">شمارهٔ شبا<input className="mt-1 w-full rounded-lg border px-3 py-2" dir="ltr" placeholder="IR000000000000000000000000" required value={sheba} onChange={(e) => setSheba(e.target.value)} /></label>
         <label className="text-sm">نام صاحب حساب<input className="mt-1 w-full rounded-lg border px-3 py-2" required minLength={2} maxLength={120} value={holder} onChange={(e) => setHolder(e.target.value)} /></label>
         <label className="text-sm">کد ملی صاحب حساب<input className="mt-1 w-full rounded-lg border px-3 py-2" dir="ltr" inputMode="numeric" required maxLength={10} value={nid} onChange={(e) => setNid(e.target.value)} /></label>
-        <div className="sm:col-span-3"><button disabled={busy} className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{p.sheba ? "تغییر شبا" : "ثبت شبا"}</button></div>
+        <div className="sm:col-span-3"><button disabled={busy} className="rounded-full bg-ink px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{p.sheba ? "تغییر شبا" : "ثبت شبا"}</button></div>
       </form>
       {p.payouts.length > 0 && (
         <ul className="space-y-1 text-sm">

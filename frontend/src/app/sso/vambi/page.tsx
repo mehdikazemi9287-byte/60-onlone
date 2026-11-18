@@ -74,7 +74,7 @@ function SsoVambi() {
               می‌خوای با همین حساب وارد وامبی (<span dir="ltr">{host}</span>) بشی؟
             </p>
             <button type="button" onClick={go} disabled={busy}
-              className="mt-5 w-full rounded-xl bg-primary-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
+              className="mt-5 w-full rounded-full bg-ink px-4 py-3 text-sm font-bold text-white disabled:opacity-60">
               {busy ? "در حال انتقال…" : `ادامه در وامبی با حساب ${who(user)}`}
             </button>
           </>

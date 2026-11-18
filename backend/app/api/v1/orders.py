@@ -83,6 +83,23 @@ def create_proforma():
         return jsonify(proforma_service.create(conn, user_id=current_user()["id"])), 201
 
 
+@bp.get("/me/proformas")
+@require_auth()
+def list_proformas():
+    """Owner-scoped list for the proforma history / batch export. ?from=&to= are YYYY-MM-DD (inclusive)."""
+    import re
+    from app.services import proforma_service
+    args = {}
+    for key, name in (("from", "date_from"), ("to", "date_to")):
+        v = (request.args.get(key) or "").strip()
+        if v:
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", v):
+                raise ValidationError("تاریخ باید به شکل YYYY-MM-DD باشد", code="invalid_date")
+            args[name] = v
+    with get_db().read_transaction() as conn:
+        return jsonify({"items": proforma_service.list_for_user(conn, user_id=current_user()["id"], **args)})
+
+
 @bp.get("/me/proformas/<number>")
 @require_auth()
 def get_proforma(number: str):

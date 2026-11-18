@@ -327,7 +327,7 @@ function ConfirmStep({
         <div className="flex justify-center gap-3 pt-2">
           <button
             onClick={() => router.push(`/orders/${placedOrderNumber}`)}
-            className="px-5 py-2.5 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors"
+            className="px-5 py-2.5 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors"
           >
             مشاهده سفارش
           </button>
@@ -517,7 +517,7 @@ export default function CheckoutPage() {
     return (
       <div className="internal-page container-page py-24 text-center">
         <h2 className="text-lg font-bold text-neutral-900 mb-2">برای تسویه‌حساب وارد شوید</h2>
-        <Link href="/login?next=/checkout" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors mt-2">
+        <Link href="/login?next=/checkout" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors mt-2">
           ورود به حساب کاربری
         </Link>
       </div>
@@ -540,7 +540,7 @@ export default function CheckoutPage() {
     return (
       <div className="internal-page container-page py-24 text-center">
         <h2 className="text-lg font-bold text-neutral-900 mb-2">سبد خرید شما خالی است</h2>
-        <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors mt-2">
+        <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors mt-2">
           مشاهده محصولات
         </Link>
       </div>

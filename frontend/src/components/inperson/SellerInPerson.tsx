@@ -41,7 +41,7 @@ export function SellerInPerson({ token }: { token: string }) {
           <input inputMode="numeric" dir="ltr" required maxLength={6} className="mt-1 block w-28 rounded-xl border p-2 tracking-widest" value={code}
             onChange={(e) => setCode(latinDigits(e.target.value).replace(/\D/g, ""))} />
         </label>
-        <button type="submit" disabled={!fo || code.length !== 6} className="rounded-xl bg-neutral-900 px-4 py-2 font-bold text-white disabled:opacity-50">ثبت تحویل</button>
+        <button type="submit" disabled={!fo || code.length !== 6} className="rounded-full bg-ink px-4 py-2 font-bold text-white disabled:opacity-50">ثبت تحویل</button>
         {msg && <p role="status" className={`w-full ${msg.ok ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>}
       </form>
       <div>
@@ -117,7 +117,7 @@ function LocationSettings({ token }: { token: string }) {
             </div>
           </fieldset>
           <div className="flex items-center gap-3">
-            <button className="rounded-xl bg-primary-600 px-4 py-2 font-bold text-white">ذخیره</button>
+            <button className="rounded-full bg-ink px-4 py-2 font-bold text-white">ذخیره</button>
             {msg?.id === l.id && <span role={msg.ok ? "status" : "alert"} className={msg.ok ? "text-green-700" : "text-red-700"}>{msg.text}</span>}
           </div>
         </form>

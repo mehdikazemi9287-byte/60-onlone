@@ -85,7 +85,7 @@ export function AdminSettlements() {
                 <td className="p-2">{new Date(p.created_at).toLocaleDateString("fa-IR")}</td></tr>)}</tbody></table></div>
             <div className="flex flex-wrap items-end gap-3">
               <label className="grid gap-1 text-xs font-bold">کارمزد (درصد)<input inputMode="decimal" value={commission} onChange={(e) => setCommission(e.target.value)} className="h-10 w-24 rounded-xl border px-3" /></label>
-              <button type="button" disabled={busy || !picked.length} onClick={create} className="h-10 rounded-xl bg-brand-navy px-4 text-sm font-bold text-white disabled:opacity-50">ساخت دسته تسویه ({toPersianNum(picked.length)} قلم)</button>
+              <button type="button" disabled={busy || !picked.length} onClick={create} className="h-10 rounded-full bg-ink px-4 text-sm font-bold text-white disabled:opacity-50">ساخت دسته تسویه ({toPersianNum(picked.length)} قلم)</button>
             </div></>}
         </section>
         <section className="card space-y-3 p-4" aria-label="دسته‌های تسویه">

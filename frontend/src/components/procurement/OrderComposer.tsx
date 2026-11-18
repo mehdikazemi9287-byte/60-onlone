@@ -172,7 +172,7 @@ function OrderComposerBody() {
 
   return (
     <div className={s.root}>
-      {pendingDraft&&<div role="alert" className="m-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm"><p>یک پیش‌نویس پیش از ورود و یک پیش‌نویس متعلق به این حساب دارید. پیش‌نویس قبلی حفظ شده است.</p><div className="mt-3 flex flex-wrap gap-3"><button type="button" className="min-h-11 rounded-lg bg-brand-navy px-4 text-white" onClick={()=>{setHist(h=>({draft:pendingDraft,past:[...h.past,h.draft]}));clearPendingDraft();setPendingDraft(null);}}>ادامه پیش‌نویس جدید</button><button type="button" className="min-h-11 rounded-lg border px-4" onClick={()=>{clearPendingDraft();setPendingDraft(null);}}>حفظ پیش‌نویس این حساب</button></div></div>}
+      {pendingDraft&&<div role="alert" className="m-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm"><p>یک پیش‌نویس پیش از ورود و یک پیش‌نویس متعلق به این حساب دارید. پیش‌نویس قبلی حفظ شده است.</p><div className="mt-3 flex flex-wrap gap-3"><button type="button" className="min-h-11 rounded-full bg-ink px-4 text-white" onClick={()=>{setHist(h=>({draft:pendingDraft,past:[...h.past,h.draft]}));clearPendingDraft();setPendingDraft(null);}}>ادامه پیش‌نویس جدید</button><button type="button" className="min-h-11 rounded-lg border px-4" onClick={()=>{clearPendingDraft();setPendingDraft(null);}}>حفظ پیش‌نویس این حساب</button></div></div>}
       {title}
       <div className={s.mTabs} role="tablist">
         <button type="button" role="tab" aria-selected={mobileTab === "assistant"} className={cx(mobileTab === "assistant" && s.segOn)} onClick={() => setMobileTab("assistant")}><Bot size={16} /> دستیار 60AI</button>

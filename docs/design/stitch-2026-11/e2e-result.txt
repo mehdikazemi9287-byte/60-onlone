@@ -1,0 +1,7 @@
+== A: 20/20 passed
+FAIL | OTP login available in dev | OTP tab is disabled ('به‌زودی'); no backend OTP route -> using email/password
+== B: 12/13 passed
+== C: 29/29 passed
+== D: 43/43 passed
+== E: 11/11 passed
+== F: 6/6 passed

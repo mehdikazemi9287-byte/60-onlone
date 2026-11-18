@@ -31,7 +31,7 @@ function OrgRequestBox({ product }: { product: { name: string; master_product_id
       </label>
       {lines == null ? (
         <button type="button" onClick={() => setLines(addProductToOrgDraft(product, qty))}
-          className="h-11 self-end rounded-xl bg-brand-navy px-4 text-sm font-bold text-white hover:bg-brand-navyLight">افزودن به درخواست سازمانی</button>
+          className="h-11 self-end rounded-full bg-ink px-4 text-sm font-bold text-white hover:bg-primary-700">افزودن به درخواست سازمانی</button>
       ) : (
         <Link href="/organization/compose" className="flex h-11 items-center justify-center self-end rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white">
           افزوده شد · ادامه در میز سفارش ({toPersianNum(lines)} قلم)
@@ -192,7 +192,7 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
                       onChange={(e) => setQty(Math.max(moq, Math.floor(Number(e.target.value)) || moq))}
                       className="h-11 w-24 rounded-xl border border-neutral-200 px-3 text-center font-bold tabular-nums" />
                   </label>
-                  <button type="button" onClick={add} disabled={busy} className="h-11 flex-1 rounded-xl bg-brand-coral px-5 text-sm font-bold text-white disabled:opacity-60">
+                  <button type="button" onClick={add} disabled={busy} className="h-11 flex-1 rounded-full bg-ink px-5 text-sm font-bold text-white disabled:opacity-60">
                     {busy ? "در حال افزودن…" : "افزودن به سبد خرید"}</button>
                 </div>
               ) : !personalAllowed ? null : (
@@ -200,7 +200,7 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
                   <label className="grid gap-1 text-xs font-bold text-neutral-700">تعداد
                     <input type="number" min="1" max="100000" value={qty} aria-label="تعداد" onChange={e => setQty(Math.min(100000, Math.max(1, Math.floor(Number(e.target.value)) || 1)))} className="h-11 w-24 rounded-xl border border-neutral-200 px-3 text-center font-bold" />
                   </label>
-                  <Link href={`/requests/new?slug=${encodeURIComponent(p.slug)}&quantity=${qty}`} className="flex min-h-11 flex-1 items-center justify-center rounded-xl bg-brand-coral px-3 py-3 text-center text-sm font-bold text-white">استعلام قیمت / درخواست خرید</Link>
+                  <Link href={`/requests/new?slug=${encodeURIComponent(p.slug)}&quantity=${qty}`} className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-ink px-3 py-3 text-center text-sm font-bold text-white">استعلام قیمت / درخواست خرید</Link>
                 </div>
               )}
               {d.cta !== "add_to_cart" && personalAllowed && (

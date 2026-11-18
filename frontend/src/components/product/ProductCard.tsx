@@ -69,12 +69,12 @@ function AddToCartButton({ productId, onAdd }: { productId: number; onAdd?: (id:
         onClick={handle}
         disabled={loading}
         className={cn(
-          "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200",
+          "flex min-h-9 items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200",
           error
             ? "bg-danger-100 text-danger-700"
             : added
             ? "bg-success-100 text-success-700"
-            : "bg-amber-400 text-brand-navy hover:bg-amber-300 active:scale-95",
+            : "border border-line-strong bg-white text-ink hover:border-ink hover:bg-ink hover:text-white active:scale-95",
           loading && "opacity-60 cursor-wait"
         )}
       >
@@ -127,10 +127,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group card card-hover overflow-hidden flex flex-col h-full block border-neutral-200/70"
+      className="group card card-hover overflow-hidden flex flex-col h-full block"
     >
       {/* Image — fixed-height, Fit/Contain so every card reads at a consistent scale */}
-      <div className={`relative overflow-hidden bg-neutral-50 flex-shrink-0 border-b border-neutral-100 ${hasRealImage ? "aspect-square" : "aspect-[5/2]"}`}>
+      <div className={`relative m-2 mb-0 overflow-hidden rounded-xl bg-canvas flex-shrink-0 ${hasRealImage ? "aspect-square" : "aspect-[5/2]"}`}>
         {hasRealImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -141,10 +141,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             className="w-full h-full object-contain p-6 md:p-7 group-hover:scale-[1.03] transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#fff7e6,#eef3f7_70%)]" aria-hidden>
+          <div className="w-full h-full flex items-center justify-center bg-canvas" aria-hidden>
             {/* No verified photo: a compact brand/category band instead of a large empty box. */}
             <span className="flex items-center gap-2 px-3 text-right">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-base font-black text-brand-navy shadow-sm ring-1 ring-neutral-200/70">{(product.brand || product.name).slice(0, 1)}</span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-base font-black text-ink ring-1 ring-line">{(product.brand || product.name).slice(0, 1)}</span>
               <span className="min-w-0"><span className="block truncate text-xs font-black text-brand-navy">{product.brand || ""}</span><span className="block truncate text-[11px] text-neutral-500">{product.category?.name ?? ""}</span></span>
             </span>
           </div>
@@ -152,7 +152,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
         {/* Discount badge */}
         {discountPct > 0 && (
-          <span className="absolute top-2 right-2 bg-brand-coral text-white text-2xs font-bold px-1.5 py-0.5 rounded-md">
+          <span className="absolute top-2 right-2 bg-brand-coral text-white text-2xs font-bold px-2 py-0.5 rounded-full">
             ٪{toPersianNum(discountPct)} تخفیف
           </span>
         )}
@@ -184,12 +184,12 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           </span>
         )}
 
-        <h3 className="text-sm font-semibold text-neutral-900 leading-snug line-clamp-2 h-10 group-hover:text-brand-blue transition-colors">
+        <h3 className="text-sm font-medium text-ink leading-6 line-clamp-2 h-12">
           {product.name}
         </h3>
 
         {(product.variant_count ?? 0) > 1 && (
-          <span className="w-fit rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-bold text-sky-800 ring-1 ring-sky-100">
+          <span className="w-fit rounded-full bg-canvas-sunken px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
             {toPersianNum(product.variant_count!)} مدل/اندازه{product.variant_labels?.length ? `: ${product.variant_labels[0]} تا ${product.variant_labels[product.variant_labels.length - 1]}` : ""}
           </span>
         )}
@@ -219,16 +219,16 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from || (product.variant_count ?? 1) > 1 ? "از " : ""}{formatPrice(product.list_price_minor)}</span>
               </>
             ) : product.price_minor == null ? (
-              <span className="inline-flex w-fit items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 ring-1 ring-amber-200">قیمت با استعلام</span>
+              <span className="inline-flex w-fit items-center rounded-full bg-canvas-sunken px-2 py-0.5 text-[11px] font-bold text-ink-soft">قیمت با استعلام</span>
             ) : (
               <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from ? "از " : ""}{formatPrice(product.price_minor)}</span>
             )}
           </div>
           {product.purchasable && product.stock !== 0 && (product.variant_count ?? 1) <= 1 && <AddToCartButton productId={product.id} onAdd={onAddToCart} />}
-          {product.purchasable && (product.variant_count ?? 1) > 1 && <span className="rounded-lg bg-brand-navy px-2.5 py-1.5 text-xs font-bold text-white">انتخاب اندازه</span>}
+          {product.purchasable && (product.variant_count ?? 1) > 1 && <span className="rounded-full bg-ink px-3 py-1.5 text-xs font-bold text-white">انتخاب اندازه</span>}
         </div>
         {product.price_minor == null && (
-          <span className="flex min-h-10 items-center justify-center rounded-lg bg-[#C4461C] px-2 text-center text-xs font-bold text-white">{product.org_only ? "ویژه خرید سازمانی" : product.list_price_minor ? "انتخاب و استعلام" : "درخواست قیمت روز"}</span>
+          <span className="flex min-h-10 items-center justify-center rounded-full border border-ink px-3 text-center text-xs font-bold text-ink hover:bg-ink hover:text-white">{product.org_only ? "ویژه خرید سازمانی" : product.list_price_minor ? "انتخاب و استعلام" : "درخواست قیمت روز"}</span>
         )}
 
         {product.stock != null && product.stock < 10 && product.stock > 0 && (
@@ -269,7 +269,7 @@ export function CategoryCard({ name, href, count, icon, color = "bg-brand-blueLi
         )}
       </div>
       <div>
-        <p className="text-sm font-semibold text-neutral-900 group-hover:text-brand-blue transition-colors">{name}</p>
+        <p className="text-sm font-semibold text-ink">{name}</p>
         {count != null && <p className={cn("text-2xs mt-0.5", count > 0 ? "text-neutral-400" : "text-amber-600")}>{count > 0 ? `${count} محصول` : "در حال تکمیل محصولات"}</p>}
       </div>
     </Link>

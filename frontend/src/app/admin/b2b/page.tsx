@@ -18,7 +18,7 @@ const KIND_FA = { organization: "سازمان", retailer: "فروشگاه" } as 
 const ROLE_FA: Record<string, string> = { organization_admin: "مدیر حساب", procurement_agent: "کارشناس خرید",
   organization_finance: "مالی", employee: "کارمند" };
 const field = "mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm";
-const btn = "rounded-lg bg-[#102B7A] px-4 py-2 text-sm font-bold text-white disabled:opacity-50";
+const btn = "rounded-lg bg-[#0A2735] px-4 py-2 text-sm font-bold text-white disabled:opacity-50";
 
 export default function B2BAdmin() {
   const { token } = useAuth();
@@ -88,7 +88,7 @@ export default function B2BAdmin() {
         <div className="flex gap-2" role="tablist">
           {([["accounts", "حساب‌ها"], ["new", "باز کردن حساب"], ["apps", `درخواست‌ها${apps?.length ? ` (${toPersianNum(apps.length)})` : ""}`]] as const).map(([k, l]) => (
             <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-              className={`rounded-full px-4 py-1.5 text-sm font-bold ${tab === k ? "bg-[#102B7A] text-white" : "bg-white ring-1 ring-neutral-300"}`}>{l}</button>
+              className={`rounded-full px-4 py-1.5 text-sm font-bold ${tab === k ? "bg-[#0A2735] text-white" : "bg-white ring-1 ring-neutral-300"}`}>{l}</button>
           ))}
         </div>
       </header>
@@ -141,7 +141,7 @@ export default function B2BAdmin() {
                 </select>
               </div>
             ))}
-            <button type="button" className="mt-2 text-sm font-bold text-[#1748C9]" onClick={() => setInvites([...invites, { phone: "", role: "procurement_agent" }])}>+ نفر دیگر</button>
+            <button type="button" className="mt-2 text-sm font-bold text-[#0A2735]" onClick={() => setInvites([...invites, { phone: "", role: "procurement_agent" }])}>+ نفر دیگر</button>
           </fieldset>
           <div className="md:col-span-2"><button className={btn} disabled={busy}>{busy ? "در حال ثبت…" : "باز کردن حساب"}</button></div>
         </form>

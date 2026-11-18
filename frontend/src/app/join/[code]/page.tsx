@@ -31,8 +31,8 @@ export default function JoinSellerPage({ params }: { params: Promise<{ code: str
           <h1 className="text-xl font-black">{seller} شما را به خرید آنلاین دعوت کرده است</h1>
           <p className="mt-3 text-sm leading-7 text-neutral-600">با پذیرش، می‌توانید سفارش‌هایتان از این فروشنده را آنلاین ثبت کنید.</p>
           {token
-            ? <button className="mt-6 rounded-xl bg-primary-600 px-6 py-3 font-bold text-white" onClick={claim}>می‌پذیرم</button>
-            : <Link className="mt-6 inline-block rounded-xl bg-primary-600 px-6 py-3 font-bold text-white" href="/login">ورود و پذیرش دعوت</Link>}
+            ? <button className="mt-6 rounded-full bg-ink px-6 py-3 font-bold text-white" onClick={claim}>می‌پذیرم</button>
+            : <Link className="mt-6 inline-block rounded-full bg-ink px-6 py-3 font-bold text-white" href="/login">ورود و پذیرش دعوت</Link>}
           {state === "error" && <p role="alert" className="mt-4 text-sm text-red-700">{msg}</p>}
         </>
       )}
