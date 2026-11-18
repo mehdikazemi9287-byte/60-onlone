@@ -1,13 +1,15 @@
 "use client";
 
+// Category mega menu — Google Stitch screen 15 (light) / 22 (dark; same st- tokens switch with the theme).
+// Right column: real top-level taxonomy nodes; left: the active node's sub-categories, each as a group with
+// its own children and real product counts. No sample groups or counts from Stitch are shown.
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, ChevronDown, LayoutGrid } from "lucide-react";
 import { categories } from "@/lib/api";
 import type { TaxNode } from "@/lib/storefront";
 import { cn, toPersianNum } from "@/lib/utils";
-import { categoryIcon } from "./categoryIcon";
+import { categorySymbol } from "./categoryIcon";
 
 let treeRequest: Promise<TaxNode[]> | null = null;
 export function useTaxonomy() {
@@ -21,7 +23,18 @@ export function useTaxonomy() {
   return tree;
 }
 
-/** Desktop mega-menu: main categories on the right, the hovered one's children in columns. Real taxonomy only. */
+const Icon = ({ name, className = "" }: { name: string; className?: string }) => <span aria-hidden className={cn("material-symbols-outlined", className)}>{name}</span>;
+const count = (n: number) => `${toPersianNum(n)} کالا`;
+
+function ItemRow({ n }: { n: TaxNode }) {
+  return (
+    <Link href={`/category/${n.slug}`} className="flex items-center justify-between gap-st-space-sm py-1 text-st-on-surface-variant transition-colors hover:text-st-secondary">
+      <span className="truncate">{n.name_fa}</span>
+      <span className="shrink-0 rounded-full bg-st-surface-container-low px-2 py-0.5 text-st-outline">{count(n.product_count)}</span>
+    </Link>
+  );
+}
+
 export function MegaMenu() {
   const tree = useTaxonomy();
   const [open, setOpen] = useState(false);
@@ -39,48 +52,56 @@ export function MegaMenu() {
   }, [open]);
   const hover = (v: boolean) => { if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => setOpen(v), v ? 120 : 180); };
   const current = tree?.[active];
+  // Groups: sub-categories that have their own children; leaf sub-categories are gathered in one group.
+  const groups = current ? current.children.filter((c) => c.product_count > 0 && c.children.some((g) => g.product_count > 0)) : [];
+  const leaves = current ? current.children.filter((c) => c.product_count > 0 && !c.children.some((g) => g.product_count > 0)) : [];
 
   return (
-    <div ref={root} className="relative" onMouseEnter={() => hover(true)} onMouseLeave={() => hover(false)}>
+    <div ref={root} className="relative flex h-full items-center" onMouseEnter={() => hover(true)} onMouseLeave={() => hover(false)}>
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="mega-menu"
-        className={cn("flex h-8 flex-shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] font-bold text-ink transition",
-          open ? "bg-ink text-white" : "bg-canvas-sunken hover:bg-line")}>
-        <LayoutGrid className="h-4 w-4" strokeWidth={1.75} />دسته‌بندی کالاها<ChevronDown className={cn("h-3.5 w-3.5 transition", open && "rotate-180")} />
+        className="flex cursor-pointer items-center gap-1 whitespace-nowrap py-2 font-bold text-st-secondary transition-colors hover:text-st-primary">
+        <Icon name="menu" className="text-[18px]" /><span>دسته‌بندی کالاها</span>
+        <Icon name="expand_more" className={cn("text-[16px] transition-transform", open && "rotate-180")} />
       </button>
       {open && (
         <div id="mega-menu" role="region" aria-label="دسته‌بندی کالاها"
-          className="absolute right-0 top-[calc(100%+10px)] z-[70] flex w-[min(92vw,960px)] overflow-hidden rounded-2xl border border-line bg-white shadow-soft">
-          {tree === null ? <p role="status" className="p-8 text-sm text-ink-muted">در حال بارگذاری دسته‌ها…</p>
-            : !tree.length ? <p className="p-8 text-sm text-ink-muted">هنوز دسته‌ای با کالای واقعی ثبت نشده است.</p>
+          className="absolute right-0 top-full z-50 mt-1 grid w-[820px] max-w-[calc(100vw-4rem)] grid-cols-12 gap-st-gutter rounded-2xl border border-st-surface-container bg-st-surface-container-lowest p-st-space-md text-st-on-surface shadow-xl">
+          {tree === null ? <p role="status" className="col-span-12 p-st-space-lg text-st-on-surface-variant">در حال بارگذاری دسته‌ها…</p>
+            : !tree.length ? <p className="col-span-12 p-st-space-lg text-st-on-surface-variant">هنوز دسته‌ای با کالای واقعی ثبت نشده است.</p>
             : <>
-              <ul className="w-64 shrink-0 border-l border-line bg-canvas p-2">
-                {tree.map((n, i) => {
-                  const Icon = categoryIcon(n.slug, n.name_fa);
-                  return <li key={n.slug}>
-                    <Link href={`/category/${n.slug}`} onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)}
-                      className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition",
-                        i === active ? "bg-white font-bold text-ink ring-1 ring-line" : "text-ink-soft hover:text-ink")}>
-                      <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.6} /><span className="flex-1 truncate">{n.name_fa}</span>
-                      <span className="text-[11px] text-ink-faint tabular-nums">{toPersianNum(n.product_count)}</span>
-                    </Link></li>;
-                })}
-              </ul>
-              {current && <div className="min-h-[300px] flex-1 p-6">
-                <div className="mb-5 flex items-center justify-between">
-                  <Link href={`/category/${current.slug}`} className="flex items-center gap-1.5 text-sm font-bold text-ink hover:text-petrol">
-                    همهٔ کالاهای {current.name_fa}<ArrowLeft className="h-4 w-4" /></Link>
-                  <span className="text-xs text-ink-faint">{toPersianNum(current.product_count)} کالا</span>
-                </div>
-                {current.children.length ? (
-                  <div className="columns-3 gap-8">
-                    {current.children.map((c) => <div key={c.slug} className="mb-6 break-inside-avoid">
-                      <Link href={`/category/${c.slug}`} className="mb-2 flex items-center gap-2 border-r-2 border-ink pr-2 text-[13px] font-bold text-ink hover:text-petrol">
-                        {c.name_fa}<span className="text-[11px] font-normal text-ink-faint">{toPersianNum(c.product_count)}</span></Link>
-                      <ul className="space-y-1.5 pr-2.5">{c.children.map((s) => <li key={s.slug}>
-                        <Link href={`/category/${s.slug}`} className="text-[13px] text-ink-muted hover:text-ink">{s.name_fa}</Link></li>)}</ul>
-                    </div>)}
+              <div className="col-span-4 flex max-h-[420px] flex-col gap-1 overflow-y-auto border-l border-st-surface-container-low pl-st-space-md">
+                {tree.map((n, i) => (
+                  <Link key={n.slug} href={`/category/${n.slug}`} onMouseEnter={() => setActive(i)} onFocus={() => setActive(i)}
+                    className={cn("flex items-center justify-between rounded-xl p-st-space-sm transition-colors",
+                      i === active ? "bg-st-surface-container-low font-bold text-st-secondary" : "text-st-on-surface-variant hover:bg-st-surface-container-low hover:text-st-on-surface")}>
+                    <span className="flex min-w-0 items-center gap-st-space-xs"><Icon name={categorySymbol(n.slug, n.name_fa)} className="text-[20px]" /><span className="truncate">{n.name_fa}</span></span>
+                    <Icon name="chevron_left" className={cn("text-[16px] -scale-x-100", i !== active && "opacity-40")} />
+                  </Link>
+                ))}
+              </div>
+              {current && <div className="col-span-8 grid grid-cols-2 content-start gap-st-gutter pr-st-space-xs">
+                {[...groups.slice(0, 3).map((g) => ({ head: g, items: g.children.filter((x) => x.product_count > 0).slice(0, 5) })),
+                  ...(leaves.length || !groups.length ? [{ head: null as TaxNode | null, items: (leaves.length ? leaves : []).slice(0, 6) }] : [])]
+                  .slice(0, 4).map((col, i) => (
+                  <div key={col.head?.slug ?? `leaf-${i}`} className="flex flex-col gap-st-space-sm">
+                    <Link href={`/category/${(col.head ?? current).slug}`} className="border-b border-st-surface-container-low pb-st-space-xs font-bold text-st-primary hover:text-st-secondary">
+                      {col.head ? col.head.name_fa : `زیردسته‌های ${current.name_fa}`}</Link>
+                    <div className="flex flex-col gap-2">
+                      {col.items.length ? col.items.map((s) => <ItemRow key={s.slug} n={s} />)
+                        : <p className="py-1 text-st-on-surface-variant">این دسته زیرشاخه ندارد.</p>}
+                    </div>
                   </div>
-                ) : <p className="text-sm text-ink-muted">این دسته زیرشاخه ندارد؛ همهٔ کالاهای آن را از پیوند بالا ببینید.</p>}
+                ))}
+                <div className="col-span-2 flex flex-wrap items-center gap-st-gutter">
+                  <Link href={`/category/${current.slug}`} className="flex flex-1 items-center justify-between rounded-xl bg-st-surface-container-low p-st-space-sm transition-colors hover:bg-st-surface-container">
+                    <span className="font-bold text-st-on-surface">همهٔ کالاهای {current.name_fa}<span className="mr-st-space-xs font-normal text-st-outline">({count(current.product_count)})</span></span>
+                    <Icon name="arrow_forward" className="text-[16px] -scale-x-100 text-st-secondary" />
+                  </Link>
+                  <Link href="/pack-builder" className="flex flex-1 items-center justify-between rounded-xl bg-st-secondary-fixed/25 p-st-space-sm transition-colors hover:bg-st-secondary-fixed/40">
+                    <span className="font-bold text-st-on-secondary-container">طراحی پک اختصاصی با پک‌ساز</span>
+                    <Icon name="arrow_forward" className="text-[16px] -scale-x-100 text-st-secondary" />
+                  </Link>
+                </div>
               </div>}
             </>}
         </div>

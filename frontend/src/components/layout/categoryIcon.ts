@@ -25,3 +25,23 @@ export function categoryIcon(slug: string, name = ""): LucideIcon {
   for (const [re, icon] of RULES) if (re.test(key)) return icon;
   return LayoutGrid;
 }
+
+// Material Symbols name for the same node (Stitch icon set; only names in the self-hosted subset —
+// tools/stitch/icons-included.txt). Missing from the subset (requested in the A handoff): computer,
+// smartphone, router, kitchen, checkroom, child_care, chair, construction, fitness_center, pets, diamond.
+const SYMBOLS: [RegExp, string][] = [
+  [/mobile|tablet|موبایل|تبلت|گوشی/i, "phone"], [/network|router|شبکه|مودم/i, "hub"],
+  [/appliance|برقی|خانگی|kitchen|آشپزخانه/i, "coffee_maker"], [/office|اداری|stationery|تحریر/i, "print"],
+  [/book|کتاب/i, "menu_book"], [/business|سازمان/i, "business_center"], [/nut|آجیل|خشکبار/i, "nutrition"],
+  [/grain|rice|غلات|برنج|حبوبات/i, "rice_bowl"], [/tea|coffee|چای|قهوه|نوشیدنی/i, "coffee"],
+  [/protein|meat|گوشت|پروتئین/i, "restaurant"], [/fruit|میوه|سبزی/i, "eco"],
+  [/supermarket|grocery|food|سوپرمارکت|خوراکی|مواد غذایی|dairy|لبنی/i, "shopping_basket"],
+  [/clean|detergent|شوینده|بهداشتی/i, "sanitizer"], [/beauty|cosmetic|آرایشی|زیبایی/i, "spa"],
+  [/health|medical|سلامت|پزشکی/i, "health_and_safety"], [/home|خانه|furniture|مبلمان|دکور/i, "cottage"],
+  [/car|auto|خودرو/i, "directions_car"], [/gift|هدیه|کادو|pack|پک/i, "card_giftcard"], [/school|education|آموزش/i, "school"],
+];
+export function categorySymbol(slug: string, name = ""): string {
+  const key = `${slug} ${name}`;
+  for (const [re, icon] of SYMBOLS) if (re.test(key)) return icon;
+  return "category";
+}

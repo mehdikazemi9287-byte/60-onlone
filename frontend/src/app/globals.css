@@ -31,6 +31,119 @@
 }
 .material-symbols-outlined.icon-fill { font-variation-settings: "FILL" 1; }
 
+/* ── Stitch colour tokens (st-*) as CSS variables: light = screen 30, dark = screens 22/33 (Stitch dark palette).
+   tailwind.config.ts maps every st- colour to rgb(var(--st-…) / <alpha>), so one class works in both themes. */
+:root {
+  --st-accent-coral: 255 109 65;
+  --st-accent-electric: 31 79 168;
+  --st-accent-primary: 0 78 114;
+  --st-background: 249 249 249;
+  --st-error: 186 26 26;
+  --st-error-container: 255 218 214;
+  --st-hairline-border: 236 236 236;
+  --st-inverse-on-surface: 241 241 241;
+  --st-inverse-primary: 175 202 221;
+  --st-inverse-surface: 47 49 49;
+  --st-on-background: 26 28 28;
+  --st-on-error: 255 255 255;
+  --st-on-error-container: 147 0 10;
+  --st-on-primary: 255 255 255;
+  --st-on-primary-container: 117 143 160;
+  --st-on-primary-fixed: 1 30 44;
+  --st-on-primary-fixed-variant: 48 74 89;
+  --st-on-secondary: 255 255 255;
+  --st-on-secondary-container: 29 93 130;
+  --st-on-secondary-fixed: 0 30 47;
+  --st-on-secondary-fixed-variant: 0 75 111;
+  --st-on-surface: 26 28 28;
+  --st-on-surface-variant: 66 71 75;
+  --st-on-tertiary: 255 255 255;
+  --st-on-tertiary-container: 235 95 52;
+  --st-on-tertiary-fixed: 59 10 0;
+  --st-on-tertiary-fixed-variant: 134 34 0;
+  --st-outline: 115 120 124;
+  --st-outline-variant: 194 199 204;
+  --st-primary: 0 17 26;
+  --st-primary-container: 10 39 53;
+  --st-primary-fixed: 203 230 249;
+  --st-primary-fixed-dim: 175 202 221;
+  --st-secondary: 38 100 137;
+  --st-secondary-container: 158 213 255;
+  --st-secondary-fixed: 201 230 255;
+  --st-secondary-fixed-dim: 149 205 247;
+  --st-surface: 249 249 249;
+  --st-surface-bright: 249 249 249;
+  --st-surface-container: 238 238 238;
+  --st-surface-container-high: 232 232 232;
+  --st-surface-container-highest: 226 226 226;
+  --st-surface-container-low: 243 243 243;
+  --st-surface-container-lowest: 255 255 255;
+  --st-surface-dim: 218 218 218;
+  --st-surface-tint: 72 98 114;
+  --st-surface-variant: 226 226 226;
+  --st-tertiary: 37 4 0;
+  --st-tertiary-container: 74 15 0;
+  --st-tertiary-fixed: 255 219 209;
+  --st-tertiary-fixed-dim: 255 181 159;
+  --st-text-primary: 10 39 53;
+  --st-text-secondary: 107 118 125;
+}
+html[data-theme="dark"] {
+  --st-accent-coral: 255 109 65;
+  --st-accent-electric: 31 79 168;
+  --st-accent-primary: 0 78 114;
+  --st-background: 11 20 24;
+  --st-error: 255 180 171;
+  --st-error-container: 147 0 10;
+  --st-hairline-border: 31 45 53;
+  --st-inverse-on-surface: 41 50 54;
+  --st-inverse-primary: 38 100 137;
+  --st-inverse-surface: 218 228 234;
+  --st-on-background: 218 228 234;
+  --st-on-error: 105 0 5;
+  --st-on-error-container: 255 218 214;
+  --st-on-primary: 0 52 78;
+  --st-on-primary-container: 135 191 232;
+  --st-on-primary-fixed: 0 30 47;
+  --st-on-primary-fixed-variant: 0 75 111;
+  --st-on-secondary: 0 44 112;
+  --st-on-secondary-container: 150 180 255;
+  --st-on-secondary-fixed: 0 25 70;
+  --st-on-secondary-fixed-variant: 6 66 155;
+  --st-on-surface: 218 228 234;
+  --st-on-surface-variant: 193 199 207;
+  --st-on-tertiary: 95 21 0;
+  --st-on-tertiary-container: 255 159 132;
+  --st-on-tertiary-fixed: 59 10 0;
+  --st-on-tertiary-fixed-variant: 134 34 0;
+  --st-outline: 139 145 152;
+  --st-outline-variant: 65 72 78;
+  --st-primary: 149 205 247;
+  --st-primary-container: 0 78 114;
+  --st-primary-fixed: 201 230 255;
+  --st-primary-fixed-dim: 149 205 247;
+  --st-secondary: 177 198 255;
+  --st-secondary-container: 6 66 155;
+  --st-secondary-fixed: 217 226 255;
+  --st-secondary-fixed-dim: 177 198 255;
+  --st-surface: 17 29 35;
+  --st-surface-bright: 49 59 63;
+  --st-surface-container: 24 33 37;
+  --st-surface-container-high: 34 43 48;
+  --st-surface-container-highest: 45 54 59;
+  --st-surface-container-low: 20 29 33;
+  --st-surface-container-lowest: 7 15 19;
+  --st-surface-dim: 12 21 25;
+  --st-surface-tint: 149 205 247;
+  --st-surface-variant: 45 54 59;
+  --st-tertiary: 255 181 159;
+  --st-tertiary-container: 138 35 0;
+  --st-tertiary-fixed: 255 219 209;
+  --st-tertiary-fixed-dim: 255 181 159;
+  --st-text-primary: 232 238 241;
+  --st-text-secondary: 143 162 173;
+}
+
 /* ── CSS custom properties (design tokens) ────────────────────────────────── */
 :root {
   --color-primary: #004e72;
@@ -1021,7 +1134,7 @@ html[data-theme="dark"] .bg-ink\/30 { background-color: rgb(0 0 0 / 0.5) !import
 
 /* Theme switch: circular reveal from the toggle (View Transitions API) */
 html.theme-vt::view-transition-old(root), html.theme-vt::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-html.theme-vt::view-transition-new(root) { animation: theme-reveal 0.55s cubic-bezier(.4,0,.2,1) both; }
+html.theme-vt::view-transition-new(root) { animation: theme-reveal 0.45s cubic-bezier(.4,0,.2,1) both; }
 @keyframes theme-reveal { from { clip-path: circle(0 at var(--vt-x) var(--vt-y)); } to { clip-path: circle(var(--vt-r) at var(--vt-x) var(--vt-y)); } }
 @media (prefers-reduced-motion: reduce) { html.theme-vt::view-transition-new(root) { animation: none; } .theme-switch * { transition: none !important; } }
 
@@ -1060,3 +1173,29 @@ html.theme-vt::view-transition-new(root) { animation: theme-reveal 0.55s cubic-b
 }
 html[data-theme="dark"] .brand-mark { filter: brightness(1.45) saturate(1.1); opacity: 1; }
 html[data-theme="dark"] :is(.divide-line, .divide-neutral-100, .divide-neutral-200) > :not([hidden]) ~ :not([hidden]) { border-color: var(--dash-line) !important; }
+
+/* ── Stitch bottom navigation (screen 16): h-16, Material Symbols 24px, label-sm; active = primary-container ── */
+@media (max-width: 767px) {
+  .mobile-bottom-nav.st-bottom-nav {
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding: 0 0.25rem env(safe-area-inset-bottom);
+    border-top: 0;
+    background: rgb(var(--st-surface-container-lowest) / 0.9);
+    box-shadow: 0 -2px 12px rgba(10, 39, 53, 0.04);
+    backdrop-filter: blur(24px);
+  }
+  .mobile-bottom-nav.st-bottom-nav a { gap: 0.125rem; min-height: 44px; color: rgb(var(--st-on-surface-variant)); font-weight: 500; font-size: 11px; }
+  .mobile-bottom-nav.st-bottom-nav a[aria-current="page"] { color: rgb(var(--st-primary-container)); font-weight: 600; }
+  html[data-theme="dark"] .mobile-bottom-nav.st-bottom-nav a[aria-current="page"] { color: rgb(var(--st-primary)); }
+  .mobile-bottom-nav.st-bottom-nav a[aria-current="page"]::before { content: none; }
+  .mobile-bottom-nav.st-bottom-nav b {
+    top: -4px; right: -8px; left: auto; min-width: 16px; height: 16px; padding: 0 3px;
+    background: rgb(var(--st-on-tertiary-container)); color: #fff; font-size: 10px; font-weight: 500; line-height: 1;
+  }
+}
+html[data-theme="dark"] .mobile-bottom-nav.st-bottom-nav { background: rgb(var(--st-surface-container-lowest) / 0.9); }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+/* Dark: Stitch's light screens use primary-container (#0a2735) as a TEXT colour; its dark value is a fill colour
+   (#004e72) that is unreadable as text, so text uses the dark palette's text-primary instead (as screens 22/33 do). */
+html[data-theme="dark"] .text-st-primary-container { color: rgb(var(--st-text-primary)); }

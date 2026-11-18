@@ -4,7 +4,6 @@
 // app/layout.tsx applies it before first paint, so there is no flash. Switching uses the View Transitions API
 // for a circular reveal from the toggle; reduced-motion users (or browsers without it) get an instant switch.
 import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const THEME_KEY = "60online_theme";
@@ -48,23 +47,20 @@ export function useDashTheme(): [DashTheme, (origin?: HTMLElement | null) => voi
   return [theme, toggle];
 }
 
-/** Day/night pill switch: the knob slides and the sun/moon morph (rotate + scale). */
+/** Day/night pill switch — Google Stitch screen 33: light = white pill with a golden sun knob (end side),
+ *  dark = petrol pill with a night knob (start side). The knob slides and rotates (350ms); the page switch
+ *  itself is the circular reveal from the toggle (useDashTheme). */
 export function DashThemeToggle({ theme, onToggle, className = "", size = "md" }: { theme: DashTheme; onToggle: (origin?: HTMLElement | null) => void; className?: string; size?: "sm" | "md" }) {
   const dark = theme === "dark", sm = size === "sm";
   return (
     <button type="button" role="switch" aria-checked={dark} onClick={(e) => onToggle(e.currentTarget)}
       aria-label="حالت تیره" title={dark ? "رفتن به حالت روشن" : "رفتن به حالت تیره"}
-      className={cn(sm ? "theme-switch relative inline-flex h-7 w-[48px] shrink-0" : "theme-switch relative inline-flex h-8 w-[58px] shrink-0",
-        "items-center rounded-full border p-[3px] transition-colors duration-300",
-        dark ? "border-[#2C3E48] bg-[#16252C]" : "border-line-strong bg-canvas-sunken", className)}>
-      <span aria-hidden className={cn("absolute inset-y-0 flex w-1/2 items-center justify-center transition-opacity duration-300", dark ? "right-0 opacity-40" : "left-0 opacity-50")}>
-        {dark ? <Sun className="h-3.5 w-3.5 text-[#E8EEF1]" /> : <Moon className="h-3.5 w-3.5 text-ink" />}
-      </span>
-      <span aria-hidden className={cn(sm ? "relative z-10 flex h-[20px] w-[20px] items-center" : "relative z-10 flex h-[24px] w-[24px] items-center",
-        " justify-center rounded-full shadow-sm transition-all duration-500 [transition-timing-function:cubic-bezier(.5,1.6,.4,1)]",
-        dark ? (sm ? "-translate-x-[20px]" : "-translate-x-[26px]") + " bg-[#E8EEF1] text-[#0B1418]" : "translate-x-0 bg-white text-[#FF6D41]")}>
-        <Sun className={cn("absolute h-3.5 w-3.5 transition-all duration-500", dark ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100")} />
-        <Moon className={cn("absolute h-3.5 w-3.5 transition-all duration-500", dark ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0")} />
+      className={cn("theme-switch relative inline-flex shrink-0 items-center rounded-full transition-colors duration-300",
+        sm ? "h-6 w-11 p-0.5" : "h-7 w-14 p-1",
+        dark ? "bg-[#004E72] shadow-inner" : "bg-[#fffffe] shadow-md ring-1 ring-black/5", className)}>
+      <span aria-hidden className={cn("flex h-5 w-5 items-center justify-center rounded-full shadow-sm transition-all duration-[350ms] [transition-timing-function:cubic-bezier(.5,1.4,.4,1)]",
+        dark ? "translate-x-0 rotate-0 bg-[#0C1519] text-[#C9E6FF]" : (sm ? "-translate-x-5" : "-translate-x-7") + " rotate-[360deg] bg-[#FFA000] text-[#fffffe]")}>
+        <span className="material-symbols-outlined icon-fill" style={{ fontSize: sm ? 13 : 14 }}>{dark ? "dark_mode" : "light_mode"}</span>
       </span>
     </button>
   );
