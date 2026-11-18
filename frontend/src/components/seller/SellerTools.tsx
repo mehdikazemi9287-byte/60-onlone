@@ -2,11 +2,10 @@
 
 // Seller panel (owner view of /sell): brand registration, own-fulfillment shipments, finance exports.
 import { useCallback, useEffect, useState } from "react";
-import { PrintHead, PrintSheet, SignBoxes, Code128 } from "@/components/print/PrintSheet";
-import { DiscrepancySheet, DriverSheet } from "@/components/seller/ShipmentSheets";
+import { DiscrepancySheet, DriverSheet, WaybillDoc, type FoItem } from "@/components/seller/ShipmentSheets";
 import { apiRequest, downloadAuthed, errText, SHIP_STATUS_FA, type BrandRegistration, type ExportJob, type Shipment } from "@/lib/commerce";
 import { ApiError } from "@/lib/api";
-import { faDate, formatPrice } from "@/lib/utils";
+import { faDate } from "@/lib/utils";
 import { Card, Flash, ListState, btnCls, btnGhost, inputCls, n } from "@/components/commerce/ui";
 import { SellerInPerson } from "@/components/inperson/SellerInPerson";
 import { SellerDirect } from "./SellerDirect";
@@ -121,11 +120,10 @@ function ShipmentsCard({ token }: { token: string }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
   const [pickupFor, setPickupFor] = useState<number | null>(null);
-  const [doc, setDoc] = useState<{ kind: "waybill" | "exit" | "driver" | "discrepancy"; ship: Shipment; items: FoItem[] } | null>(null);
+  const [doc, setDoc] = useState<{ kind: "waybill" | "driver" | "discrepancy"; ship: Shipment; items: FoItem[] } | null>(null);
   const closeDoc = useCallback(() => setDoc(null), []);
-  const printDoc = async (kind: "waybill" | "exit" | "driver" | "discrepancy", ship: Shipment) => {
+  const printDoc = async (kind: "waybill" | "driver" | "discrepancy", ship: Shipment) => {
     setMsg(null);
-    if (kind === "waybill") { setDoc({ kind, ship, items: [] }); return; }
     try {
       const r = await apiRequest<{ fulfillment_order: { items: FoItem[] } }>(`/supplier/orders/${ship.fulfillment_order_id}`, { token });
       setDoc({ kind, ship, items: r.fulfillment_order.items });
@@ -169,8 +167,7 @@ function ShipmentsCard({ token }: { token: string }) {
                   <span className="block text-xs text-neutral-500">{SHIP_STATUS_FA[s.status] ?? s.status} · {s.provider_code}{s.pickup_requested_at ? " · جمع‌آوری درخواست شد" : ""}</span></span>
                 <span className="flex w-full flex-wrap gap-2 sm:w-auto">
                   {labelUrl && <a href={labelUrl} target="_blank" rel="noopener noreferrer" className={btnGhost}>برچسب</a>}
-                  <button type="button" className={btnGhost} onClick={() => printDoc("exit", s)}>حوالهٔ خروج انبار</button>
-                  <button type="button" className={btnGhost} onClick={() => printDoc("waybill", s)}>بارنامه</button>
+                  <button type="button" className={btnGhost} onClick={() => printDoc("waybill", s)}>حوالهٔ خروج و بارنامه</button>
                   <button type="button" className={btnGhost} onClick={() => printDoc("driver", s)}>نسخهٔ راننده</button>
                   <button type="button" className={btnGhost} onClick={() => printDoc("discrepancy", s)}>ثبت مغایرت</button>
                   {s.status === "created" && !s.pickup_requested_at && (
@@ -182,61 +179,11 @@ function ShipmentsCard({ token }: { token: string }) {
           );
         })}
       </ul>
-      {doc?.kind === "driver" && <DriverSheet s={doc.ship} items={doc.items} onClose={closeDoc} />}
+      {doc?.kind === "driver" && <DriverSheet s={doc.ship} items={doc.items} onClose={closeDoc} onDiscrepancy={() => setDoc({ ...doc, kind: "discrepancy" })} />}
       {doc?.kind === "discrepancy" && <DiscrepancySheet s={doc.ship} items={doc.items} onClose={closeDoc} />}
-      {doc && (doc.kind === "waybill" || doc.kind === "exit") && <PrintSheet onDone={closeDoc}>{doc.kind === "waybill" ? <Waybill s={doc.ship} /> : <ExitSlip s={doc.ship} items={doc.items} />}</PrintSheet>}
+      {doc?.kind === "waybill" && <WaybillDoc s={doc.ship} items={doc.items} onClose={closeDoc} />}
     </Card></div>
   );
-}
-
-type FoItem = { product_id: number; title_fa: string; quantity: number };
-type Party = { name?: string; phone?: string; province?: string; city?: string; address?: string; postal_code?: string };
-type Label = { carrier?: { name_fa?: string; service_level?: string }; sender?: Party; receiver?: Party;
-  reference?: { order_number?: string; fulfillment_order_id?: number }; parcel_count?: number; billable_weight_g?: number;
-  cod_amount_minor?: number; tracking_number?: string };
-const place = (p?: Party) => [p?.province, p?.city, p?.address].filter(Boolean).join("، ") || "—";
-
-// بارنامه — every field comes from the shipment label the backend stored when the label was issued.
-function Waybill({ s }: { s: Shipment }) {
-  const l = s.label as Label;
-  return (<>
-    <PrintHead title="بارنامهٔ مرسوله" number={s.tracking_number} />
-    <div className="cp-barcode"><Code128 data={s.tracking_number} /><small>{s.tracking_number}</small></div>
-    <div className="cp-grid">
-      <div className="cp-box"><h2>فرستنده</h2><p>{l.sender?.name || "—"}</p><p>{place(l.sender)}</p></div>
-      <div className="cp-box"><h2>گیرنده</h2><p>{l.receiver?.name || "—"} · <span dir="ltr">{l.receiver?.phone || ""}</span></p><p>{place(l.receiver)}</p>{l.receiver?.postal_code && <p>کد پستی: <span dir="ltr">{l.receiver.postal_code}</span></p>}</div>
-    </div>
-    <table className="cp-kv"><tbody>
-      <tr><th>شرکت حمل</th><td>{l.carrier?.name_fa || s.provider_code}</td><th>سطح سرویس</th><td>{l.carrier?.service_level || s.service_level}</td></tr>
-      <tr><th>شمارهٔ سفارش</th><td dir="ltr" style={{ textAlign: "right" }}>{l.reference?.order_number || "—"}</td><th>سفارش تأمین</th><td>{n(l.reference?.fulfillment_order_id ?? s.fulfillment_order_id)}</td></tr>
-      <tr><th>تعداد بسته</th><td>{l.parcel_count != null ? n(l.parcel_count) : "—"}</td><th>وزن قابل‌محاسبه</th><td>{l.billable_weight_g != null ? `${n(Math.round(l.billable_weight_g))} گرم` : "—"}</td></tr>
-      <tr><th>پرداخت در محل</th><td>{l.cod_amount_minor ? formatPrice(l.cod_amount_minor) : "ندارد"}</td><th>مهلت تحویل</th><td>{s.deliver_by_at ? faDate(s.deliver_by_at.slice(0, 10)) : "—"}</td></tr>
-    </tbody></table>
-    <SignBoxes labels={["تحویل‌دهنده (فرستنده)", "راننده / مأمور حمل", "تحویل‌گیرنده"]} />
-  </>);
-}
-
-// حوالهٔ خروج انبار — items from GET /supplier/orders/{id}; addresses from the shipment label.
-function ExitSlip({ s, items }: { s: Shipment; items: FoItem[] }) {
-  const l = s.label as Label;
-  const total = items.reduce((t, i) => t + i.quantity, 0);
-  return (<>
-    <PrintHead title="حوالهٔ خروج کالا از انبار" number={`EX-${s.fulfillment_order_id}`} />
-    <div className="cp-grid">
-      <div className="cp-box"><h2>انبار مبدأ</h2><p>{l.sender?.name || "—"}</p><p>{place(l.sender)}</p></div>
-      <div className="cp-box"><h2>مقصد</h2><p>{l.receiver?.name || "—"}</p><p>{place(l.receiver)}</p></div>
-    </div>
-    <table className="cp-kv"><tbody>
-      <tr><th>شمارهٔ سفارش</th><td dir="ltr" style={{ textAlign: "right" }}>{l.reference?.order_number || "—"}</td><th>سفارش تأمین</th><td>{n(s.fulfillment_order_id)}</td></tr>
-      <tr><th>حامل</th><td>{l.carrier?.name_fa || s.provider_code}</td><th>کد رهگیری</th><td dir="ltr" style={{ textAlign: "right" }}>{s.tracking_number}</td></tr>
-    </tbody></table>
-    <table className="cp-items">
-      <thead><tr><th>ردیف</th><th>کالا</th><th>کد کالا</th><th>تعداد</th><th>واحد</th></tr></thead>
-      <tbody>{items.map((it, i) => <tr key={`${it.product_id}-${i}`}><td>{n(i + 1)}</td><td>{it.title_fa}</td><td dir="ltr" style={{ textAlign: "right" }}>{it.product_id}</td><td>{n(it.quantity)}</td><td>عدد</td></tr>)}</tbody>
-      <tfoot><tr><td colSpan={3}>جمع اقلام</td><td>{n(total)}</td><td>{l.parcel_count != null ? `${n(l.parcel_count)} بسته` : ""}</td></tr></tfoot>
-    </table>
-    <SignBoxes labels={["انباردار", "تحویل‌گیرندهٔ حمل", "کنترل خروج"]} />
-  </>);
 }
 
 function PickupForm({ token, id, onDone }: { token: string; id: number; onDone: (m: { ok: boolean; text: string }) => void }) {
