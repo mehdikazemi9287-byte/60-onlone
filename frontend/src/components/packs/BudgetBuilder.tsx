@@ -19,7 +19,7 @@ type Option = { key: string; label_fa: string; items: Line[]; item_count: number
 const PRIMARY_OCCASIONS = ["livelihood", "ramadan", "nowruz", "yalda", "religious", "charity", "cultural", "stationery"];
 const COUNT_PRESETS = [50, 100, 250, 500, 1000];
 const BUDGET_PRESETS_TOMAN = [1000000, 2000000, 3000000, 5000000];
-const OCCASIONS: [string, string][] = [["livelihood", "معیشتی"], ["ramadan", "رمضان"], ["nowruz", "نوروز"], ["yalda", "یلدا"], ["religious", "مذهبی و نذری"], ["charity", "خیریه"], ["cultural", "فرهنگی (کتاب)"], ["stationery", "لوازم‌التحریر"], ["hospitality", "پذیرایی سازمانی"], ["office", "تجهیزات اداری"], ["women_day", "روز زن"], ["men_day", "روز مرد"], ["management_gift", "هدایای مدیریتی"], ["employee_gift", "هدایای کارکنان"], ["welfare", "پک رفاهی"]];
+export const OCCASIONS: [string, string][] = [["livelihood", "معیشتی"], ["ramadan", "رمضان"], ["nowruz", "نوروز"], ["yalda", "یلدا"], ["religious", "مذهبی و نذری"], ["charity", "خیریه"], ["cultural", "فرهنگی (کتاب)"], ["stationery", "لوازم‌التحریر"], ["hospitality", "پذیرایی سازمانی"], ["office", "تجهیزات اداری"], ["women_day", "روز زن"], ["men_day", "روز مرد"], ["management_gift", "هدایای مدیریتی"], ["employee_gift", "هدایای کارکنان"], ["welfare", "پک رفاهی"]];
 const OCCASION_KEYS = new Set(OCCASIONS.map(([k]) => k));
 
 /** Prefill from the hero 60AI input; `nonce` changes on every submit so the same text can be re-run. */

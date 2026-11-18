@@ -1,84 +1,140 @@
 "use client";
-// Pack summary: sticky sidebar on desktop, sticky bottom bar on mobile (Stitch 62/63).
-// Shows only real data of the selected published pack; totals only when the backend returned a real price.
+// Sticky summary — Stitch 62 sidebar «پیش‌نمایش سبد پک سازمانی» (desktop) and Stitch 63 sticky bottom
+// inquiry bar (mobile). Real data only: the selected published pack, its real items, real min order,
+// and a total only when the backend priced every required item. No invented discounts or perks.
 import Link from "next/link";
-import { ClipboardList, Minus, Plus, X, FolderOpen, ArrowLeft } from "lucide-react";
 import type { PackDetail } from "@/lib/storefront";
 import { positiveInteger } from "@/lib/pack-input";
 import { formatPrice, toPersianNum } from "@/lib/utils";
-import { btnPrimary, btnSecondary, card } from "./studio-ui";
+import { Icon, Soon } from "./studio-ui";
 
 type Props = {
   pack: PackDetail | null; count: string; setCount: (v: string) => void; onContinue: () => void; onClear: () => void;
-  savedItems: number | null; onResumeSaved: () => void;
+  savedItems: number | null; onResumeSaved: () => void; onCatalog: () => void;
 };
 
 export function useSummaryTotals(pack: PackDetail | null, count: string) {
   const n = positiveInteger(count);
   const min = pack ? Math.max(1, pack.min_order_qty) : 1;
-  const valid = !!pack && !!n && n >= min;
+  const valid = !!pack && !!n && n >= min && n <= 100000;
   const total = valid && pack!.price_minor != null && Number.isSafeInteger(pack!.price_minor * n!) ? pack!.price_minor * n! : null;
   return { n, min, valid, total };
 }
 
 export function PackSummaryPanel({ pack, count, setCount, onContinue, onClear, savedItems, onResumeSaved }: Props) {
   const { n, min, valid, total } = useSummaryTotals(pack, count);
-  const step = (d: number) => setCount(String(Math.min(100000, Math.max(min, (n ?? min) + d))));
+  const stepBy = pack && min >= 50 ? 50 : 10;
+  const step = (d: number) => setCount(toPersianNum(Math.min(100000, Math.max(min, (n ?? min) + d))));
   return (
-    <aside aria-label="خلاصه پک شما" className={`${card} hidden p-5 lg:sticky lg:top-40 lg:block`}>
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-sm font-extrabold text-[#112D46]"><ClipboardList className="h-4 w-4 text-[#034EA2]" strokeWidth={1.75} aria-hidden /> خلاصه پک شما</h2>
-        {pack && <button type="button" onClick={onClear} aria-label="حذف انتخاب" className="flex h-8 w-8 items-center justify-center rounded-lg text-[#9CA3AF] hover:bg-[#F3F4F6] hover:text-[#111827]"><X className="h-4 w-4" /></button>}
-      </div>
-      {!pack ? (
-        <div className="mt-4 rounded-xl border border-dashed border-[#E5E7EB] p-4 text-center">
-          <p className="text-xs leading-6 text-[#6B7280]">یک پک آماده را «انتخاب برای استعلام» کنید یا با بودجه و انتخاب دستی پک بسازید.</p>
-        </div>
-      ) : (
-        <div className="mt-4 space-y-4">
-          <div>
-            <p className="text-[11px] text-[#6B7280]">{pack.kind_fa}{pack.tier_fa ? ` · ${pack.tier_fa}` : ""}</p>
-            <p className="mt-0.5 line-clamp-2 text-sm font-bold text-[#111827]">{pack.title_fa}</p>
-            <p className="mt-1 text-[11px] text-[#6B7280]">{toPersianNum(pack.item_count)} قلم کالا · {toPersianNum(pack.unit_count)} واحد در هر پک</p>
+    <div className="hidden flex-col gap-5 lg:sticky lg:top-28 lg:flex">
+      <aside aria-label="پیش‌نمایش سبد پک سازمانی" className="flex flex-col gap-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <div className="flex items-center gap-2">
+            <Icon name="receipt_long" className="!text-[20px] text-[#034EA2]" />
+            <h3 className="text-sm font-bold text-gray-900">پیش‌نمایش سبد پک سازمانی</h3>
           </div>
-          <div>
-            <label htmlFor="summary-count" className="text-xs font-bold text-[#112D46]">تعداد پک</label>
-            <div className="mt-1 flex items-center gap-2">
-              <button type="button" aria-label="کاهش" onClick={() => step(-10)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white"><Minus className="h-4 w-4" /></button>
-              <input id="summary-count" inputMode="numeric" value={count} onChange={(e) => setCount(e.target.value)} className="h-10 min-w-0 flex-1 rounded-lg border border-[#E5E7EB] bg-white text-center text-sm font-bold" />
-              <button type="button" aria-label="افزایش" onClick={() => step(10)} className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#E5E7EB] bg-white"><Plus className="h-4 w-4" /></button>
+          {pack ? <button type="button" onClick={onClear} aria-label="حذف انتخاب" className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700"><Icon name="close" className="!text-[18px]" /></button>
+            : <span className="rounded bg-[#034EA2]/10 px-2 py-0.5 text-[11px] font-bold text-[#034EA2]">پیش‌فاکتور رسمی</span>}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="summary-count" className="text-xs font-semibold text-gray-700">تیراژ سفارش (تعداد پک):</label>
+            <span className="text-[11px] text-gray-400">حداقل تیراژ: {toPersianNum(min)} بسته</span>
+          </div>
+          <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 p-1.5">
+            <button type="button" aria-label="افزایش تیراژ" disabled={!pack} onClick={() => step(stepBy)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white font-bold text-gray-700 transition hover:bg-gray-100 disabled:opacity-40">+</button>
+            <div className="flex items-center gap-1.5">
+              <input id="summary-count" inputMode="numeric" disabled={!pack} value={pack ? count : ""} placeholder="—" onChange={(e) => setCount(e.target.value)} className="w-20 bg-transparent text-center text-base font-extrabold text-gray-900 focus:outline-none" />
+              <span className="text-xs font-medium text-gray-500">بسته</span>
             </div>
-            <p className={`mt-1 text-[11px] ${n && n < min ? "text-[#B45309]" : "text-[#6B7280]"}`}>حداقل سفارش: {toPersianNum(min)} پک</p>
+            <button type="button" aria-label="کاهش تیراژ" disabled={!pack} onClick={() => step(-stepBy)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white font-bold text-gray-700 transition hover:bg-gray-100 disabled:opacity-40">-</button>
           </div>
-          <dl className="space-y-2 border-t border-[#F3F4F6] pt-3 text-xs">
-            <div className="flex justify-between"><dt className="text-[#6B7280]">قیمت هر پک</dt><dd className="font-bold text-[#112D46]">{pack.price_minor != null ? formatPrice(pack.price_minor) : "پس از استعلام"}</dd></div>
-            <div className="flex justify-between"><dt className="text-[#6B7280]">مبلغ کل</dt><dd className="text-sm font-extrabold text-[#112D46]">{total != null ? formatPrice(total) : "پس از استعلام"}</dd></div>
-          </dl>
-          <p className="text-[11px] leading-5 text-[#6B7280]">قیمت، موجودی و شرایط ارسال در مرحله بررسی دوباره از سامانه گرفته می‌شود.</p>
-          <button type="button" disabled={!valid} onClick={onContinue} className={`${btnPrimary} w-full`}>ادامه به بررسی و استعلام <ArrowLeft className="h-4 w-4" aria-hidden /></button>
-          <Link href={`/packs/${pack.slug}`} className={`${btnSecondary} w-full`}>جزئیات کامل پک</Link>
+          {pack && n != null && n < min && <p role="alert" className="text-[11px] text-[#B45309]">تیراژ کمتر از حداقل سفارش این پک است.</p>}
         </div>
-      )}
-      <div className="mt-4 space-y-1 border-t border-[#F3F4F6] pt-3">
-        {savedItems ? <button type="button" onClick={onResumeSaved} className="flex min-h-9 items-center gap-1.5 text-xs font-bold text-[#034EA2] hover:underline">ادامه پک ذخیره‌شده ({toPersianNum(savedItems)} نوع کالا)</button> : null}
-        <Link href="/account/packs" className="flex min-h-9 items-center gap-1.5 text-xs font-bold text-[#034EA2] hover:underline"><FolderOpen className="h-4 w-4" strokeWidth={1.75} aria-hidden /> پک‌های ذخیره‌شده در حساب</Link>
+
+        <div className="flex flex-col gap-1.5 rounded-xl border border-[#D5E4D8] bg-[#EDF3EE] p-3">
+          <div className="flex items-center justify-between text-xs font-bold text-[#112D46]">
+            <span>تخفیف پلکانی سازمانی:</span>
+            <span className="text-[#FF7A00]">بر اساس تیراژ در پاسخ استعلام</span>
+          </div>
+          <p className="text-[11px] leading-normal text-gray-600">قیمت پلکانی و شرایط ارسال پس از ثبت استعلام از فروشندگان تأییدشده اعلام می‌شود؛ تخفیفی از پیش اعمال نشده است.</p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-semibold text-gray-700">اقلام انتخاب‌شده:</span>
+          {!pack ? (
+            <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 text-center text-[11px] leading-6 text-gray-500">
+              روی «استعلام قیمت و پیش‌فاکتور» یکی از پک‌ها بزنید یا با بودجه و انتخاب دستی پک بسازید.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs">
+              <div className="flex items-center justify-between gap-2 font-medium text-gray-800">
+                <span className="line-clamp-1">{pack.title_fa}</span>
+                <span className="shrink-0 font-bold text-[#034EA2]">{n ? `${toPersianNum(n)} بسته` : "—"}</span>
+              </div>
+              <ul className="flex flex-col gap-1.5 border-t border-gray-200 pt-2 text-[11px] text-gray-700">
+                {pack.items.slice(0, 4).map((i) => (
+                  <li key={i.master_product_id} className="flex items-center gap-1.5"><Icon name="check" className="!text-[14px] text-[#034EA2]" /><span className="line-clamp-1">{i.title_fa}</span><span className="mr-auto shrink-0 text-gray-400">×{toPersianNum(i.quantity)}</span></li>
+                ))}
+                {pack.items.length > 4 && <li className="text-gray-400">و {toPersianNum(pack.items.length - 4)} قلم دیگر</li>}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2 border-t border-gray-100 pt-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500">مبلغ کل نهایی:</span>
+            <span className="text-sm font-bold text-[#034EA2]">{total != null ? formatPrice(total) : "پس از استعلام قیمت"}</span>
+          </div>
+          <p className="text-[11px] leading-normal text-gray-400">قیمت، موجودی و تعداد در مرحله بررسی دوباره از سامانه دریافت و سپس استعلام یا پیش‌فاکتور ثبت می‌شود.</p>
+        </div>
+
+        <div className="flex flex-col gap-2.5">
+          <button type="button" disabled={!valid} onClick={onContinue} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#112D46] text-xs font-bold text-white shadow-sm transition hover:bg-[#0A1C2C] disabled:cursor-not-allowed disabled:opacity-50">
+            <Icon name="description" className="!text-[16px]" /><span>ثبت استعلام و دریافت پیش‌فاکتور</span>
+          </button>
+          <button type="button" disabled title="چاپ پیش‌نویس هنوز فعال نشده است" className="flex h-10 w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-400">
+            <Icon name="print" className="!text-[16px]" /><span>چاپ پیش‌نویس (PDF)</span><Soon />
+          </button>
+        </div>
+
+        {savedItems ? <button type="button" onClick={onResumeSaved} className="flex min-h-9 items-center gap-1.5 text-xs font-bold text-[#034EA2] hover:underline"><Icon name="history" className="!text-[16px]" /> ادامه پک ذخیره‌شده ({toPersianNum(savedItems)} نوع کالا)</button> : null}
+
+        <div className="flex items-center justify-between border-t border-gray-100 pt-3 text-xs text-gray-500">
+          <span>مشاوره تخصصی تدارکات:</span>
+          <Link href="/contact" className="font-bold text-gray-800 hover:text-[#034EA2]">تماس با ما</Link>
+        </div>
+      </aside>
+
+      <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-xs text-gray-600">
+        <Icon name="verified_user" className="!text-[20px] text-[#034EA2]" />
+        <span className="text-[11px] leading-relaxed">همه اقلام پک‌ها کالاهای واقعی کاتالوگ شصت‌آنلاین‌اند؛ <Link href="/account/packs" className="font-bold text-[#034EA2] hover:underline">پک‌های ذخیره‌شده در حساب</Link></span>
       </div>
-    </aside>
+    </div>
   );
 }
 
-// Sits above the site's mobile bottom nav (globals.css .mobile-bottom-nav: 68px, <768px); bottom of viewport on tablets.
-export function PackSummaryBar({ pack, count, onContinue }: Pick<Props, "pack" | "count" | "onContinue">) {
+// Stitch 63 sticky inquiry bar. Sits above the site's mobile bottom nav (globals.css .mobile-bottom-nav: 68px).
+export function PackSummaryBar({ pack, count, onContinue, onCatalog }: Pick<Props, "pack" | "count" | "onContinue" | "onCatalog">) {
   const { n, valid, total } = useSummaryTotals(pack, count);
-  if (!pack) return null;
   return (
-    <div className="fixed inset-x-0 bottom-[68px] z-40 border-t border-[#E5E7EB] bg-white/95 px-4 pb-3 pt-3 md:bottom-0 md:pb-[calc(env(safe-area-inset-bottom)+12px)] shadow-[0_-4px_16px_rgba(17,24,39,0.06)] backdrop-blur-md lg:hidden" dir="rtl">
-      <div className="mx-auto flex max-w-xl items-center gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="line-clamp-1 text-xs font-bold text-[#111827]">{pack.title_fa}{n ? ` · ${toPersianNum(n)} پک` : ""}</p>
-          <p className="text-[11px] text-[#6B7280]">مبلغ کل: {total != null ? formatPrice(total) : "پس از استعلام"}</p>
+    <div className="fixed inset-x-0 bottom-[68px] z-40 border-t border-gray-200/90 bg-white/95 px-4 py-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] backdrop-blur-md md:bottom-0 md:pb-[calc(env(safe-area-inset-bottom)+10px)] lg:hidden" dir="rtl">
+      <div className="mx-auto flex max-w-[430px] items-center justify-between gap-3 md:max-w-xl">
+        <div className="flex min-w-0 flex-col">
+          <div className="flex items-center gap-1.5">
+            <span className={`h-2 w-2 shrink-0 rounded-full ${pack ? "animate-pulse bg-[#034EA2]" : "bg-gray-300"}`} />
+            <span className="line-clamp-1 text-[13px] font-bold text-[#112D46]">{pack ? `سبد استعلام: ${n ? toPersianNum(n) : "—"} پک` : "سبد استعلام خالی است"}</span>
+          </div>
+          <span className="line-clamp-1 text-[11px] font-bold text-[#034EA2]">{pack ? `برآورد: ${total != null ? formatPrice(total) : "پس از استعلام"}` : "یک پک را برای استعلام انتخاب کنید"}</span>
         </div>
-        <button type="button" disabled={!valid} onClick={onContinue} className={`${btnPrimary} shrink-0 text-xs`}>ادامه و استعلام</button>
+        <button type="button" onClick={onCatalog} title="کاتالوگ ورق‌زدنی پک‌ها" className="flex shrink-0 items-center gap-1 rounded-xl border border-gray-200 bg-gray-100 px-2.5 py-2.5 text-[11px] font-bold text-gray-700 transition-all hover:bg-gray-200">
+          <Icon name="menu_book" className="!text-[18px] text-[#FF7A00]" /><span className="hidden text-xs sm:inline">کاتالوگ</span>
+        </button>
+        <button type="button" disabled={!valid} onClick={onContinue} className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#112D46] px-4 py-2.5 text-[12px] font-bold text-white shadow-sm transition-all hover:bg-[#034EA2] disabled:opacity-50">
+          <Icon name="description" className="!text-[17px]" /><span>دریافت پیش‌فاکتور</span>
+        </button>
       </div>
     </div>
   );
