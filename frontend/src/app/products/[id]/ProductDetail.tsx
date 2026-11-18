@@ -17,12 +17,13 @@ import { PRICING_MODE_FA, SALE_BLOCKER_FA, storefront, type Card, type Offer, ty
 import { cn, faDate, toPersianNum } from "@/lib/utils";
 import { isTinyImage, toman } from "@/components/product/ProductCard";
 import { BuyBoxOffers } from "@/components/product/BuyBoxOffers";
+import { IconTile } from "@/components/ui/st";
 import dark from "@/components/catalog/stitchDark.module.css";
 
 const STOCK_FA: Record<Offer["stock_state"], string> = { in_stock: "موجود", out_of_stock: "ناموجود", unknown: "موجودی تأییدنشده" };
 const Icon = ({ name, className, fill }: { name: string; className?: string; fill?: boolean }) =>
   <span aria-hidden className={cn("material-symbols-outlined", fill && "icon-fill", className)}>{name}</span>;
-const card = "flex flex-col rounded-xl bg-st-surface-container-lowest shadow-sm";
+const card = "flex flex-col rounded-xl bg-st-surface-container-lowest shadow-st-card";
 
 function StockAlert({ slug }: { slug: string }) {
   const { token } = useAuth();
@@ -149,9 +150,9 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
 
   return (
     <div className={cn(dark.root, "min-h-screen w-full bg-st-background pb-36 text-st-on-surface lg:pb-0")} dir="rtl">
-      <div className="mx-auto w-full max-w-[1440px] lg:px-st-margin-md lg:py-st-space-lg xl:px-st-margin-lg">
-        <nav aria-label="مسیر راهنما" className="mb-st-space-lg hidden flex-wrap items-center gap-st-space-xs text-st-on-surface-variant lg:flex">
-          <Link href="/" className="transition-colors hover:text-st-primary">خانه</Link>
+      <div className="hidden w-full border-b border-st-hairline-border bg-st-sand lg:block">
+        <nav aria-label="مسیر راهنما" className="mx-auto hidden w-full max-w-[1280px] flex-wrap items-center gap-1 px-8 py-3 text-st-label-md text-st-on-surface-variant lg:flex">
+          <Link href="/" className="flex items-center gap-1 transition-colors hover:text-st-secondary"><Icon name="home" className="text-[16px]" />خانه</Link>
           {d.breadcrumbs.map((b) => <span key={b.slug} className="flex items-center gap-st-space-xs">
             <Icon name="chevron_left" className="text-[16px] text-st-outline" />
             <Link href={`/category/${b.slug}`} className="transition-colors hover:text-st-primary">{b.name_fa}</Link></span>)}
@@ -159,13 +160,15 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
           <span aria-current="page" className="max-w-[24rem] truncate text-st-on-surface">{p.title_fa}</span>
         </nav>
 
-        <div className="flex flex-col gap-st-space-md lg:grid lg:grid-cols-12 lg:items-start lg:gap-st-gutter-lg">
+      </div>
+      <div className="mx-auto w-full max-w-[1280px] lg:px-8 lg:py-5">
+        <div className="flex flex-col gap-st-space-md lg:grid lg:grid-cols-12 lg:items-start lg:gap-6">
           {/* RIGHT COLUMN — gallery, specs, description, sellers */}
-          <div className="contents lg:col-span-7 lg:flex lg:flex-col lg:gap-st-space-xl">
+          <div className="contents lg:col-span-7 lg:flex lg:flex-col lg:gap-5">
             <div className="hidden lg:block">{titleBlock}</div>
 
             <div ref={gallery} className="order-1 flex flex-col gap-st-space-sm lg:gap-st-space-md" aria-label="تصاویر کالا">
-              <div className="group relative flex h-[300px] w-full items-center justify-center overflow-hidden bg-st-surface-container-lowest shadow-sm lg:h-[520px] lg:rounded-xl">
+              <div className="group relative flex h-[300px] w-full items-center justify-center overflow-hidden bg-st-surface-container-lowest shadow-sm lg:h-[440px] lg:rounded-xl">
                 {images[img] ? <img src={images[img]} alt={p.title_fa} className="h-full w-full object-contain p-6 transition-transform duration-700 ease-out group-hover:scale-105"
                     onError={(e) => dropImage(e.currentTarget.src)} onLoad={(e) => { if (isTinyImage(e.currentTarget)) dropImage(e.currentTarget.src); }} />
                   : <span className="flex flex-col items-center gap-2 text-st-outline"><Icon name="image" className="text-[48px]" />تصویر معتبر ثبت نشده است</span>}
@@ -249,12 +252,17 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
           </div>
 
           {/* LEFT COLUMN — sticky buy box (Stitch 08 / 12) */}
-          <div className="order-3 flex flex-col gap-st-space-md px-st-margin lg:sticky lg:top-32 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:px-0">
-            <div className={cn(card, "gap-st-space-lg p-st-space-md lg:p-st-space-lg")}>
+          <div className="order-3 flex flex-col gap-3 px-st-margin lg:sticky lg:top-[124px] lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:px-0">
+            <div className={cn(card, "gap-4 overflow-hidden p-st-space-md lg:p-5")}>
+              {lineUnit != null && <div className="relative -mx-st-space-md -mt-st-space-md flex items-center justify-between gap-3 overflow-hidden bg-st-navy px-4 py-3 text-white lg:-mx-5 lg:-mt-5 lg:px-5">
+                <span aria-hidden className="pointer-events-none absolute -left-8 -top-10 h-28 w-28 rounded-full bg-st-accent/25 blur-2xl" />
+                <span className="relative flex flex-col leading-tight"><span className="text-st-label-md text-st-on-navy-muted">قیمت هر عدد</span><span className="text-st-label-sm text-st-on-navy-muted">با احتساب مالیات بر ارزش افزوده</span></span>
+                <span className="relative flex items-baseline gap-1"><span className="text-[24px] font-black leading-none text-white">{toman(lineUnit)}</span><span className="text-st-label-md text-st-on-navy-muted">تومان</span></span>
+              </div>}
               {eligible && <>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-st-space-sm">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-st-surface-container-low text-st-primary-container"><Icon name="storefront" className="text-[28px]" /></div>
+                    <IconTile icon="storefront" tone="brand" />
                     <div className="flex flex-col">
                       <span className="font-bold text-st-primary">{eligible.seller}</span>
                       <span className="text-st-on-surface-variant">فروشندهٔ منتخب{eligible.seller_city ? ` · ${eligible.seller_city}` : ""}</span>
@@ -319,7 +327,7 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
               <div className="flex flex-col gap-st-space-sm">
                 {(mode === "org" ? orgAllowed : personalAllowed) && (orgLines == null || mode !== "org" ? (
                   <button type="button" onClick={primary} disabled={busy}
-                    className="hidden lg:flex w-full items-center justify-center gap-st-space-sm rounded-xl bg-st-primary-container px-st-space-lg py-3.5 font-bold text-st-on-primary shadow-sm transition-all hover:bg-st-secondary active:scale-[0.99] disabled:opacity-60">
+                    className="hidden lg:flex w-full items-center justify-center gap-st-space-sm rounded-xl bg-st-secondary px-st-space-lg py-3 font-bold text-white shadow-[0_10px_24px_-12px_rgb(3_78_162/0.8)] transition-all hover:bg-st-navy active:scale-[0.99] disabled:opacity-60">
                     <Icon name={mode === "org" ? "domain" : canBuy ? "add_shopping_cart" : "request_quote"} className="text-[22px]" /><span>{primaryLabel}</span>
                   </button>
                 ) : (
@@ -368,7 +376,7 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
               <Link href="/organization/compose" className="flex h-12 flex-1 items-center justify-center gap-1 rounded-xl bg-st-secondary px-3 text-st-label-lg text-st-on-secondary">ادامه در میز سفارش ({toPersianNum(orgLines)})</Link>
             ) : (
               <button type="button" onClick={primary} disabled={busy}
-                className="flex h-12 flex-1 items-center justify-between gap-2 rounded-xl bg-st-primary-container px-st-space-md text-st-on-primary disabled:opacity-60">
+                className="flex h-12 flex-1 items-center justify-between gap-2 rounded-xl bg-st-secondary px-st-space-md text-white disabled:opacity-60">
                 <span className="flex items-center gap-1 text-st-label-lg"><Icon name={mode === "org" ? "domain" : canBuy ? "add_shopping_cart" : "request_quote"} className="text-[20px]" />{canBuy ? (busy ? "…" : "افزودن به سبد") : mode === "org" ? "خرید سازمانی" : "استعلام قیمت"}</span>
                 {lineUnit != null && <span className="text-st-label-md"><b className="text-st-title-md">{toman(lineUnit * qty)}</b> تومان</span>}
               </button>

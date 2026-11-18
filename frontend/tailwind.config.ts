@@ -64,11 +64,25 @@ const config: Config = {
         "st-hairline-border": "rgb(var(--st-hairline-border) / <alpha-value>)",
         "st-text-primary": "rgb(var(--st-text-primary) / <alpha-value>)",
         "st-text-secondary": "rgb(var(--st-text-secondary) / <alpha-value>)",
+        // «ویترین سازمانی گرم» concept tokens (globals.css, light + navy dark)
+        "st-navy": "rgb(var(--st-navy) / <alpha-value>)",
+        "st-navy-deep": "rgb(var(--st-navy-deep) / <alpha-value>)",
+        "st-brand": "rgb(var(--st-brand) / <alpha-value>)",
+        "st-accent": "rgb(var(--st-accent) / <alpha-value>)",
+        "st-canvas": "rgb(var(--st-canvas) / <alpha-value>)",
+        "st-card": "rgb(var(--st-card) / <alpha-value>)",
+        "st-mint": "rgb(var(--st-mint) / <alpha-value>)",
+        "st-sand": "rgb(var(--st-sand) / <alpha-value>)",
+        "st-info": "rgb(var(--st-info) / <alpha-value>)",
+        "st-on-navy": "rgb(var(--st-on-navy) / <alpha-value>)",
+        "st-on-navy-muted": "rgb(var(--st-on-navy-muted) / <alpha-value>)",
+        "st-mint-ink": "rgb(var(--st-mint-ink) / <alpha-value>)",
+        "st-sand-ink": "rgb(var(--st-sand-ink) / <alpha-value>)",
         white: "#FFFFFF",
         // ── Minimal Chic (Stitch 2026-11) ink/line/canvas tokens
         ink: { DEFAULT: "#0A2735", soft: "#33434C", muted: "#6B767D", faint: "#9AA3A8" },
-        line: { DEFAULT: "#ECEDEE", strong: "#DCDFE1" },
-        canvas: { DEFAULT: "#F7F7F5", raised: "#FFFFFF", sunken: "#F1F1EE" },
+        line: { DEFAULT: "#E8E4DB", strong: "#D6D2C8" },
+        canvas: { DEFAULT: "#F6F5F1", raised: "#FFFFFF", sunken: "#F1EFE9" },
         petrol: "#004E72",
         amber: {
           50: "#fff5f1",
@@ -217,8 +231,8 @@ const config: Config = {
         md: "10px",
         lg: "12px",
         xl: "16px",
-        "2xl": "20px",
-        "3xl": "24px",
+        "2xl": "16px",
+        "3xl": "20px",
         full: "9999px",
       },
 
@@ -234,6 +248,8 @@ const config: Config = {
         "primary-glow": "0 0 0 3px rgb(10 39 53 / 0.10)",
         "brand-card": "0 1px 0 0 rgb(10 39 53 / 0.03)",
         soft: "0 12px 32px -20px rgb(10 39 53 / 0.25)",
+        "st-card": "var(--st-shadow-card)",
+        "st-raise": "var(--st-shadow-raise)",
       },
 
       // ── Animation ──────────────────────────────────────────────────────────

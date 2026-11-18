@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { catalog, categories } from "@/lib/api";
 import { ProductGrid } from "@/components/product/ProductCard";
+import { IconTile } from "@/components/ui/st";
+import { categorySymbol } from "@/components/layout/categoryIcon";
 import type { Product } from "@/lib/types";
 import type { AttributeFacet, Facets, PackSummary, TaxNode } from "@/lib/storefront";
 import { cn, toPersianNum } from "@/lib/utils";
@@ -105,36 +107,36 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
   const sortLabel = SORTS.find((s) => s.value === sort)?.label ?? "پیشنهادی";
   const title = name || (q ? `نتایج «${q}»` : "همهٔ کالاها");
   const empty = (
-    <div className="rounded-xl bg-st-surface-container-lowest p-st-space-xl text-center text-st-on-surface-variant shadow-sm">
-      <Icon name="search" className="mb-2 text-[40px] text-st-outline" />
+    <div className="flex flex-col items-center rounded-xl bg-st-surface-container-lowest p-8 text-center text-st-on-surface-variant shadow-st-card">
+      <span className="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-st-info text-st-secondary"><Icon name="search_off" className="text-[32px]" /></span>
       <p>{avail ? "در حال حاضر کالای قابل خرید آنلاین در این بخش نیست؛ فیلتر را بردارید تا کالاهای قابل استعلام را ببینید." : "کالایی برای این جستجو یافت نشد. املای دیگری را امتحان کنید یا درخواست تأمین ثبت کنید."}</p>
-      <Link href={`/requests/new${q ? `?q=${encodeURIComponent(q)}` : ""}`} className="mt-3 inline-flex font-bold text-st-secondary hover:underline">ثبت درخواست تأمین کالا</Link>
+      <Link href={`/requests/new${q ? `?q=${encodeURIComponent(q)}` : ""}`} className="mt-4 inline-flex h-10 items-center gap-1.5 rounded-full bg-st-secondary px-5 text-st-label-lg font-bold text-white hover:bg-st-navy"><Icon name="request_quote" className="text-[18px]" />ثبت درخواست تأمین کالا</Link>
     </div>
   );
 
   return (
     <div className={cn(dark.root, "w-full bg-st-background text-st-on-surface")} dir="rtl">
-      {/* ── Breadcrumb + meta bar (Stitch 23) ─────────────────────────── */}
-      <section className="hidden w-full bg-st-surface-container-lowest shadow-sm md:block">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-st-space-md px-st-margin-md py-st-space-md xl:px-st-margin-lg">
-          <nav aria-label="مسیر راهنما" className="flex flex-wrap items-center gap-st-space-xs text-st-on-surface-variant">
-            <Link className="flex items-center gap-1 transition-colors hover:text-st-primary" href="/"><Icon name="home" className="text-[18px]" /><span>خانه</span></Link>
+      {/* ── Page header: breadcrumb + title + meta (Stitch 23), on the shared sand band ── */}
+      <section className="hidden w-full border-b border-st-hairline-border bg-st-sand md:block">
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-2 px-6 py-4 xl:px-8">
+          <nav aria-label="مسیر راهنما" className="flex flex-wrap items-center gap-1 text-st-label-md text-st-on-surface-variant">
+            <Link className="flex items-center gap-1 transition-colors hover:text-st-secondary" href="/"><Icon name="home" className="text-[16px]" /><span>خانه</span></Link>
             <Icon name="chevron_left" className="text-[16px] text-st-outline" />
-            <Link className="transition-colors hover:text-st-primary" href="/category">دسته‌بندی‌ها</Link>
-            {trail.slice(0, -1).map((n) => <span key={n.slug} className="flex items-center gap-st-space-xs">
+            <Link className="transition-colors hover:text-st-secondary" href="/category">دسته‌بندی‌ها</Link>
+            {trail.slice(0, -1).map((n) => <span key={n.slug} className="flex items-center gap-1">
               <Icon name="chevron_left" className="text-[16px] text-st-outline" />
-              <Link className="transition-colors hover:text-st-primary" href={`/category/${n.slug}`}>{n.name_fa}</Link></span>)}
-            <Icon name="chevron_left" className="text-[16px] text-st-outline" />
-            <h1 className="font-bold text-st-primary">{title}</h1>
-            {!loading && <>
-              <span className="mx-st-space-xs text-st-outline">/</span>
-              <span className="rounded-full bg-st-surface-container px-st-space-sm py-0.5 font-bold text-st-secondary">{toPersianNum(total)} قلم کالا فعال</span>
-            </>}
+              <Link className="transition-colors hover:text-st-secondary" href={`/category/${n.slug}`}>{n.name_fa}</Link></span>)}
           </nav>
-          <div className="hidden items-center gap-st-space-lg text-st-on-surface-variant lg:flex">
-            <div className="flex items-center gap-1.5"><Icon name="verified" fill className="text-[16px] text-st-secondary" /><span>فقط قیمت‌های تأییدشدهٔ فروشنده</span></div>
-            <div className="h-1 w-1 rounded-full bg-st-outline-variant" />
-            <div className="flex items-center gap-1.5"><Icon name="domain" className="text-[16px] text-st-secondary" /><span>خرید سازمانی و استعلام تیراژ</span></div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <IconTile icon={cat ? categorySymbol(cat, name ?? "") : q ? "search" : "apps"} tone="navy" />
+              <h1 className="text-st-headline-md font-extrabold text-st-primary">{title}</h1>
+              {!loading && <span className="rounded-full bg-st-accent px-2.5 py-0.5 text-st-label-md font-bold text-white">{toPersianNum(total)} قلم کالا فعال</span>}
+            </div>
+            <div className="hidden items-center gap-2 text-st-label-md text-st-on-surface-variant lg:flex">
+              <span className="flex items-center gap-1.5 rounded-full bg-st-surface-container-lowest px-3 py-1.5 shadow-st-card"><Icon name="verified" fill className="text-[16px] text-st-secondary" />فقط قیمت‌های تأییدشدهٔ فروشنده</span>
+              <span className="flex items-center gap-1.5 rounded-full bg-st-surface-container-lowest px-3 py-1.5 shadow-st-card"><Icon name="domain" className="text-[16px] text-st-secondary" />خرید سازمانی و استعلام تیراژ</span>
+            </div>
           </div>
         </div>
       </section>
@@ -153,7 +155,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
           </form>
           <div className="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-st-margin flex items-center gap-st-space-xs overflow-x-auto px-st-margin py-1">
             <button type="button" onClick={() => setSheet(true)} aria-haspopup="dialog" aria-expanded={sheet}
-              className="flex shrink-0 items-center gap-1.5 rounded-full bg-st-primary-container px-3.5 py-1.5 text-st-label-md text-st-on-primary shadow-sm transition-transform active:scale-95">
+              className="flex shrink-0 items-center gap-1.5 rounded-full bg-st-navy px-3.5 py-1.5 text-st-label-md text-white shadow-st-card transition-transform active:scale-95">
               <Icon name="tune" className="text-[16px]" /><span>فیلتر و ترتیب</span>
               {activeCount(filterState) > 0 && <span className="h-1.5 w-1.5 rounded-full bg-st-tertiary-fixed" aria-label={`${toPersianNum(activeCount(filterState))} فیلتر فعال`} />}
             </button>
@@ -203,27 +205,28 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
         loading={loading} total={total} sort={sort} onSort={(v) => change({ sort: v, page: "1" })} categories={catLinks} />
 
       {/* ── Desktop body: sidebar + catalog (Stitch 23) ───────────────── */}
-      <section className="mx-auto hidden w-full max-w-[1440px] px-st-margin-md py-st-space-xl md:block xl:px-st-margin-lg">
-        <div className="flex items-start gap-st-gutter-lg">
-          <aside className="sticky top-32 z-10 flex w-72 shrink-0 flex-col gap-st-space-md lg:w-80" aria-label="فیلترها">
+      <section className="mx-auto hidden w-full max-w-[1280px] px-6 py-5 md:block xl:px-8">
+        <div className="flex items-start gap-5">
+          <aside className="sticky top-[124px] z-10 flex w-64 shrink-0 flex-col gap-3 text-[14px] lg:w-72" aria-label="فیلترها">
             <FilterSidebar facets={facets} attrFacets={attrFacets} state={filterState} change={change} loading={loading} total={total} categories={catLinks} />
-            <div className="relative overflow-hidden rounded-xl bg-st-primary-container p-st-space-md text-st-on-primary shadow-sm">
+            <div className="relative overflow-hidden rounded-xl bg-st-navy p-4 text-white shadow-st-raise">
+              <span aria-hidden className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-st-accent/25 blur-2xl" />
               <div className="relative z-10 flex flex-col gap-st-space-xs">
-                <div className="flex items-center gap-2 text-st-on-tertiary-container"><Icon name="support_agent" className="text-[20px]" /><span className="font-bold">خرید عمده و سازمانی</span></div>
-                <p className="text-st-outline-variant">برای تأمین در تیراژ بالا یا کالایی که در فهرست نیست، درخواست استعلام ثبت کنید تا قیمت و زمان تحویل از تأمین‌کنندگان دریافت شود.</p>
-                <Link className="mt-st-space-xs inline-flex items-center gap-1 text-st-secondary-fixed hover:underline" href="/requests/new">
+                <div className="flex items-center gap-2 text-st-accent"><Icon name="support_agent" className="text-[20px]" /><span className="font-bold">خرید عمده و سازمانی</span></div>
+                <p className="text-st-body-sm text-st-on-navy-muted">برای تأمین در تیراژ بالا یا کالایی که در فهرست نیست، درخواست استعلام ثبت کنید تا قیمت و زمان تحویل از تأمین‌کنندگان دریافت شود.</p>
+                <Link className="mt-2 inline-flex h-9 w-fit items-center gap-1 rounded-full bg-st-accent px-3.5 text-st-label-md font-bold text-white hover:opacity-90" href="/requests/new">
                   <span>ثبت درخواست استعلام سازمانی</span><Icon name="arrow_back" className="text-[14px]" /></Link>
               </div>
             </div>
           </aside>
 
-          <main className="flex min-w-0 flex-1 flex-col gap-st-space-lg">
-            <div className="flex flex-col gap-st-space-md rounded-xl bg-st-surface-container-lowest p-st-space-md shadow-sm">
+          <main className="flex min-w-0 flex-1 flex-col gap-3">
+            <div className="sticky top-[116px] z-20 flex flex-col gap-2 rounded-xl bg-st-surface-container-lowest px-3 py-2 text-st-label-lg shadow-st-card">
               <div className="flex flex-wrap items-center justify-between gap-st-space-md">
                 <div className="flex flex-wrap items-center gap-st-space-xs" role="group" aria-label="مرتب‌سازی">
                   <span className="ml-st-space-xs flex items-center gap-1 text-st-outline"><Icon name="sort" className="text-[18px]" /><span>مرتب‌سازی:</span></span>
                   {SORTS.map((s) => <button key={s.value} type="button" aria-pressed={sort === s.value} onClick={() => change({ sort: s.value, page: "1" })}
-                    className={cn("rounded-full px-st-space-md py-1.5 transition-colors", sort === s.value ? "bg-st-primary-container font-bold text-st-on-primary shadow-sm" : "bg-st-surface-container-low text-st-on-surface-variant hover:text-st-primary")}>
+                    className={cn("rounded-full px-3 py-1 transition-colors", sort === s.value ? "bg-st-navy font-bold text-white" : "bg-st-surface-container-low text-st-on-surface-variant hover:text-st-primary")}>
                     {s.value === "relevance" && q ? "مرتبط‌ترین" : s.label}</button>)}
                 </div>
                 <div className="flex items-center gap-st-space-md">
@@ -240,11 +243,11 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
             </div>
 
             {error ? <p role="alert" className="rounded-xl bg-st-error-container p-st-space-md text-st-on-error-container">{error}</p>
-              : loading ? <div className="grid gap-st-gutter-md md:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-[30rem] animate-pulse rounded-xl bg-st-surface-container" />)}</div>
-              : items.length ? <ProductGrid products={items} cols={3} view={view} /> : empty}
+              : loading ? <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-4">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-[22rem] animate-pulse rounded-xl bg-st-surface-container" />)}</div>
+              : items.length ? <ProductGrid products={items} cols={4} view={view} /> : empty}
 
             {!loading && !error && pages > 1 && (
-              <nav aria-label="صفحه‌بندی نتایج" className="mt-st-space-md flex w-full flex-col items-center justify-between gap-st-space-md rounded-xl bg-st-surface-container-lowest p-st-space-md shadow-sm lg:flex-row">
+              <nav aria-label="صفحه‌بندی نتایج" className="mt-2 flex w-full flex-col items-center justify-between gap-3 rounded-xl bg-st-surface-container-lowest p-3 text-st-label-lg shadow-st-card lg:flex-row">
                 <div className="flex items-center gap-st-space-xs text-st-on-surface-variant">
                   <span>صفحه</span><span className="font-bold text-st-primary">{toPersianNum(page)}</span><span>از</span><span className="font-bold text-st-primary">{toPersianNum(pages)}</span>
                   <span className="mx-2 text-st-outline">|</span><span>نمایش {toPersianNum(from)} تا {toPersianNum(to)} از {toPersianNum(total)} قلم کالا</span>
@@ -255,7 +258,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
                     <Icon name="arrow_forward" className="text-[18px]" /><span>صفحه قبل</span></button>
                   {pageList(page, pages).map((n, i) => n === "…" ? <span key={"g" + i} className="px-1 text-st-outline">…</span>
                     : <button key={n} type="button" aria-current={n === page ? "page" : undefined} onClick={() => change({ page: String(n) })}
-                        className={cn("h-10 w-10 rounded-xl transition-colors", n === page ? "bg-st-primary font-bold text-st-on-primary shadow-sm" : "bg-st-surface-container-low text-st-on-surface hover:bg-st-surface-container")}>{toPersianNum(n)}</button>)}
+                        className={cn("h-10 w-10 rounded-xl transition-colors", n === page ? "bg-st-navy font-bold text-white" : "bg-st-surface-container-low text-st-on-surface hover:bg-st-surface-container")}>{toPersianNum(n)}</button>)}
                   <button type="button" disabled={page >= pages} onClick={() => change({ page: String(page + 1) })}
                     className="flex h-10 items-center gap-1 rounded-xl bg-st-surface-container-low px-st-space-md text-st-primary transition-colors hover:bg-st-surface-container disabled:cursor-not-allowed disabled:bg-st-surface-container disabled:text-st-outline">
                     <span>صفحه بعد</span><Icon name="arrow_back" className="text-[18px]" /></button>
@@ -263,15 +266,15 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
               </nav>
             )}
 
-            <div className="flex flex-col items-center justify-between gap-st-space-md rounded-xl bg-st-surface-container-low p-st-space-lg lg:flex-row">
+            <div className="flex flex-col items-center justify-between gap-3 rounded-xl bg-st-info p-4 lg:flex-row">
               <div className="flex items-start gap-st-space-md">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-st-secondary-fixed text-st-on-secondary-fixed"><Icon name="receipt_long" className="text-[24px]" /></div>
+                <IconTile icon="receipt_long" tone="navy" />
                 <div className="flex flex-col gap-1">
                   <h2 className="font-bold text-st-primary">خرید سازمانی با پیش‌فاکتور</h2>
-                  <p className="max-w-2xl leading-relaxed text-st-on-surface-variant">برای خرید سازمانی، کالاها را به میز سفارش سازمان اضافه کنید یا درخواست استعلام ثبت کنید؛ پیش‌فاکتورهای صادرشده در پنل شما قابل مشاهده و پیگیری است.</p>
+                  <p className="max-w-2xl text-st-body-sm text-st-on-surface-variant">برای خرید سازمانی، کالاها را به میز سفارش سازمان اضافه کنید یا درخواست استعلام ثبت کنید؛ پیش‌فاکتورهای صادرشده در پنل شما قابل مشاهده و پیگیری است.</p>
                 </div>
               </div>
-              <Link href="/org" className="flex h-11 items-center gap-2 whitespace-nowrap rounded-xl bg-st-surface-container-lowest px-st-space-lg font-bold text-st-primary shadow-sm transition-all hover:bg-st-primary hover:text-st-on-primary">
+              <Link href="/org" className="flex h-10 items-center gap-2 whitespace-nowrap rounded-full bg-st-secondary px-5 text-st-label-lg font-bold text-white transition-all hover:bg-st-navy">
                 <span>آشنایی با خرید سازمانی</span><Icon name="arrow_back" className="text-[16px]" /></Link>
             </div>
           </main>
@@ -279,7 +282,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
       </section>
 
       {!loading && packs.length > 0 && (
-        <section className="mx-auto w-full max-w-[1440px] px-st-margin pb-st-space-xl md:px-st-margin-md xl:px-st-margin-lg" aria-label="پک‌های مرتبط">
+        <section className="mx-auto w-full max-w-[1280px] px-st-margin pb-st-space-xl md:px-st-margin-md xl:px-8" aria-label="پک‌های مرتبط">
           <h2 className="mb-st-space-sm text-st-title-lg text-st-primary-container">پک‌هایی که این کالا را دارند</h2>
           <div className="grid gap-st-space-sm sm:grid-cols-2 lg:grid-cols-4">{packs.map((p) => (
             <Link key={p.slug} href={`/packs/${p.slug}`} className="flex flex-col gap-1 rounded-xl bg-st-surface-container-lowest p-st-space-md shadow-sm transition-shadow hover:shadow-md">

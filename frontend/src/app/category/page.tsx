@@ -52,9 +52,9 @@ export default function CategoryIndexPage() {
   return (
     <div className={cn(dark.root, "flex min-h-[calc(100vh-4rem)] w-full flex-col bg-st-background text-st-body-md text-st-on-surface")} dir="rtl">
       <h1 className="sr-only">دسته‌بندی کالاها</h1>
-      <div className="shrink-0 border-b border-st-surface-container-high bg-st-surface/85 px-st-margin pb-2 pt-3 backdrop-blur-xl md:px-st-margin-md xl:px-st-margin-lg">
+      <div className="shrink-0 border-b border-st-surface-container-high bg-st-surface/85 px-st-margin pb-2 pt-3 backdrop-blur-xl md:px-st-margin-md xl:px-8">
         <form role="search" onSubmit={(e) => { e.preventDefault(); router.push(`/search${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ""}`); }}
-          className="relative mx-auto flex w-full max-w-[1440px] items-center rounded-xl bg-st-surface-container-lowest px-st-space-md py-2 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+          className="relative mx-auto flex w-full max-w-[1280px] items-center rounded-xl bg-st-surface-container-lowest px-st-space-md py-2 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
           <button type="submit" aria-label="جستجو" className="ml-st-space-sm flex"><Icon name="search" className="text-[20px] text-st-secondary" /></button>
           <input value={q} onChange={(e) => setQ(e.target.value)} aria-label="جستجو در دسته‌بندی‌ها و کالاها" placeholder="جستجو در دسته‌بندی‌ها و کالاها..."
             className="min-w-0 flex-1 border-0 bg-transparent p-0 text-st-body-md text-st-primary-container outline-none placeholder:text-st-outline" />
@@ -69,7 +69,7 @@ export default function CategoryIndexPage() {
       ) : !tree.length ? (
         <p className="m-st-space-md rounded-xl bg-st-surface-container-lowest p-st-space-lg text-center text-st-on-surface-variant">هنوز دسته‌ای با کالای واقعی ثبت نشده است.</p>
       ) : (
-        <div className="mx-auto flex w-full max-w-[1440px] flex-1 md:px-st-margin-md md:py-st-space-lg xl:px-st-margin-lg">
+        <div className="mx-auto flex w-full max-w-[1280px] flex-1 md:px-st-margin-md md:py-st-space-lg xl:px-8">
           <aside aria-label="دسته‌های اصلی"
             className="sticky top-16 flex h-[calc(100vh-8rem)] w-24 shrink-0 flex-col overflow-y-auto border-l border-st-surface-container-high bg-st-surface-container-low py-1 [scrollbar-width:none] md:top-28 md:h-auto md:max-h-[calc(100vh-9rem)] md:w-60 md:self-start md:rounded-xl md:border-l-0">
             {tree.map((n, i) => {

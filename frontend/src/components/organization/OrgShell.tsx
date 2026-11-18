@@ -57,8 +57,8 @@ function NavLink({ item, active, small }: { item: Item; active: boolean; small?:
     <Link href={item.href} aria-current={active ? "page" : undefined}
       className={cn("flex items-center gap-st-space-sm rounded-xl px-st-space-md transition-colors",
         small ? "py-1.5 text-[14px]" : "whitespace-nowrap py-st-space-sm text-[15px]",
-        active ? "bg-st-primary-container font-bold text-st-on-primary"
-          : "text-st-on-surface-variant hover:bg-st-surface-container hover:text-st-on-surface")}>
+        active ? "bg-white font-bold text-[#112D46] shadow-st-card"
+          : "text-st-on-navy-muted hover:bg-white/10 hover:text-white")}>
       <span aria-hidden className={cn("material-symbols-outlined", small ? "text-[18px]" : "text-[20px]")}>{item.icon}</span>
       <span>{item.title}</span>
     </Link>
@@ -77,40 +77,40 @@ export default function OrgShell({ children }: { children: React.ReactNode }) {
   const role = org.org ? ROLE_FA[org.org.membership.role] ?? org.org.membership.role : null;
 
   return (
-    <div dir="rtl" className={cn(st.shell, "mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1440px] bg-st-background text-st-on-surface")}>
+    <div dir="rtl" className={cn(st.shell, "mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1280px] bg-st-background text-st-on-surface")}>
       {/* Sidebar (right, RTL) */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between overflow-y-auto border-l border-st-surface-container bg-st-surface-container-lowest px-st-space-md py-st-space-lg lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col justify-between overflow-y-auto bg-st-navy px-3 py-5 text-white lg:flex">
         <div className="flex flex-col gap-st-space-lg">
           <div className="flex items-center gap-st-space-sm px-st-space-xs">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-st-primary-container"><span className="font-bold leading-none text-st-on-primary">۶۰</span></div>
-            <div className="flex flex-col"><span className="font-bold text-st-primary">پرتال سازمانی ۶۰</span>
-              <span className="text-st-on-surface-variant">سامانه مدیریت تدارکات B2B</span></div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-st-accent"><span className="font-bold leading-none text-white">۶۰</span></div>
+            <div className="flex flex-col leading-tight"><span className="font-bold text-white">پرتال سازمانی ۶۰</span>
+              <span className="text-[13px] text-st-on-navy-muted">سامانه مدیریت تدارکات B2B</span></div>
           </div>
           <nav aria-label="ناوبری پنل سازمانی" className="flex flex-col gap-st-space-xs">
             {PRIMARY.map((n) => <NavLink key={n.href} item={n} active={current === n} />)}
             <button type="button" onClick={() => setMore((v) => !v)} aria-expanded={more}
-              className="mt-st-space-xs flex items-center justify-between rounded-xl px-st-space-md py-st-space-xs text-[13px] text-st-outline hover:text-st-on-surface">
+              className="mt-st-space-xs flex items-center justify-between rounded-xl px-st-space-md py-st-space-xs text-[13px] text-st-on-navy-muted hover:text-white">
               <span>بخش‌های بیشتر</span>
               <span aria-hidden className="material-symbols-outlined text-[18px]">{more ? "expand_less" : "expand_more"}</span>
             </button>
             {more && MORE.map((n) => <NavLink key={n.href} item={n} active={current === n} small />)}
           </nav>
         </div>
-        <div className="mt-st-space-lg flex flex-col gap-st-space-md border-t border-st-surface-container-low pt-st-space-md">
+        <div className="mt-st-space-lg flex flex-col gap-st-space-md border-t border-white/10 pt-st-space-md text-[14px]">
           {org.org && (
-            <div className="flex flex-col gap-st-space-xs rounded-xl bg-st-surface p-st-space-sm">
-              <div className="flex items-center justify-between"><span className="text-st-on-surface-variant">نقش شما در سازمان</span>
-                <span className="font-bold text-st-secondary">{role}</span></div>
-              <span className="truncate font-bold text-st-on-surface">{org.org.display_name}</span>
+            <div className="flex flex-col gap-st-space-xs rounded-xl bg-white/[0.06] p-st-space-sm ring-1 ring-white/10">
+              <div className="flex items-center justify-between"><span className="text-st-on-navy-muted">نقش شما در سازمان</span>
+                <span className="font-bold text-st-accent">{role}</span></div>
+              <span className="truncate font-bold text-white">{org.org.display_name}</span>
             </div>)}
           {user && (
             <div className="flex items-center justify-between px-st-space-xs">
               <div className="flex min-w-0 items-center gap-st-space-sm">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-st-primary"><span aria-hidden className="material-symbols-outlined text-[18px] text-st-on-primary">person</span></div>
-                <div className="flex min-w-0 flex-col"><span className="truncate font-semibold text-st-on-surface">{user.full_name || user.email}</span>
-                  <span className="text-st-outline">{role ?? "حساب کاربری"}</span></div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15"><span aria-hidden className="material-symbols-outlined text-[18px] text-white">person</span></div>
+                <div className="flex min-w-0 flex-col"><span className="truncate font-semibold text-white">{user.full_name || user.email}</span>
+                  <span className="text-st-on-navy-muted">{role ?? "حساب کاربری"}</span></div>
               </div>
-              <button type="button" onClick={logout} title="خروج" aria-label="خروج از حساب" className="flex items-center justify-center text-st-outline transition-colors hover:text-st-error">
+              <button type="button" onClick={logout} title="خروج" aria-label="خروج از حساب" className="flex items-center justify-center text-st-on-navy-muted transition-colors hover:text-st-accent">
                 <span aria-hidden className="material-symbols-outlined text-[20px]">logout</span></button>
             </div>)}
         </div>
@@ -118,7 +118,7 @@ export default function OrgShell({ children }: { children: React.ReactNode }) {
 
       <div className="min-w-0 flex-1">
         {/* Top bar */}
-        <header className="flex h-16 items-center justify-between gap-st-space-md border-b border-st-surface-container bg-st-surface-container-lowest px-st-space-md shadow-[0_1px_8px_rgba(0,0,0,0.02)] lg:px-st-space-xl">
+        <header className="flex h-14 items-center justify-between gap-st-space-md border-b border-st-hairline-border bg-st-surface-container-lowest px-st-space-md lg:px-6">
           <nav aria-label="مسیر" className="flex min-w-0 items-center gap-st-space-sm text-st-on-surface-variant">
             <Link href="/org" className="hidden text-st-outline sm:inline">سامانه سازمانی</Link>
             <span aria-hidden className="material-symbols-outlined hidden text-[16px] text-st-outline sm:inline">chevron_left</span>
@@ -127,7 +127,7 @@ export default function OrgShell({ children }: { children: React.ReactNode }) {
           <div className="flex shrink-0 items-center gap-st-space-sm lg:gap-st-space-lg">
             {user && <Link href="/notifications" aria-label="اعلان‌ها" className="flex h-10 w-10 items-center justify-center rounded-xl bg-st-surface text-st-on-surface-variant transition-colors hover:bg-st-surface-container">
               <span aria-hidden className="material-symbols-outlined text-[20px]">notifications</span></Link>}
-            {user ? <Link href="/organization/compose" className="flex h-10 items-center gap-st-space-xs rounded-xl bg-st-primary-container px-st-space-md text-st-on-primary transition-colors hover:bg-st-secondary">
+            {user ? <Link href="/organization/compose" className="flex h-10 items-center gap-st-space-xs rounded-full bg-st-secondary px-st-space-md text-[14px] font-bold text-white transition-colors hover:bg-st-navy">
               <span aria-hidden className="material-symbols-outlined text-[18px]">add</span><span className="hidden sm:inline">ثبت سفارش سازمانی جدید</span></Link>
               : <Link href={loginHref(path)} onClick={hardLogin} className="flex h-10 items-center gap-st-space-xs rounded-xl bg-st-primary-container px-st-space-md text-st-on-primary">
                 <span aria-hidden className="material-symbols-outlined text-[18px]">person</span>ورود به حساب سازمانی</Link>}
@@ -136,10 +136,10 @@ export default function OrgShell({ children }: { children: React.ReactNode }) {
         {/* Mobile nav (sidebar is lg+) */}
         <nav aria-label="بخش‌های پنل" className="flex gap-st-space-xs overflow-x-auto border-b border-st-surface-container bg-st-surface-container-lowest px-st-space-md py-st-space-xs lg:hidden">
           {ALL.map((n) => <Link key={n.href} href={n.href} aria-current={current === n ? "page" : undefined}
-            className={cn("shrink-0 rounded-full px-st-space-md py-1.5 text-[13px]", current === n ? "bg-st-primary-container font-bold text-st-on-primary" : "bg-st-surface text-st-on-surface-variant")}>{n.title}</Link>)}
+            className={cn("shrink-0 rounded-full px-st-space-md py-1.5 text-[13px]", current === n ? "bg-st-navy font-bold text-white" : "bg-st-surface-container-low text-st-on-surface-variant")}>{n.title}</Link>)}
         </nav>
 
-        <main className="px-st-space-md py-st-space-lg lg:p-st-space-xl">
+        <main className="px-st-space-md py-4 lg:p-6">
           {loading ? <div role="status" className="rounded-xl bg-st-surface-container-lowest p-st-space-lg shadow-sm">در حال بررسی حساب و دسترسی‌ها…</div>
             : guest ? <GuestGate title={title} path={path} />
             : <div key={user?.id ?? "guest"}>{children}</div>}

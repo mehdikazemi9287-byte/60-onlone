@@ -13,6 +13,7 @@ import { cart as cartApi, ApiError, apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Cart, CartItem } from "@/lib/types";
 import { Icon, stRoot, toman } from "@/components/checkout/st";
+import { EmptyState, StepBar } from "@/components/ui/st";
 
 // ── Cart item card (screen 11) ───────────────────────────────────────────────
 
@@ -204,14 +205,14 @@ export default function CartPage() {
 
   return (
     <div className={cn(stRoot, "min-h-[60vh] pb-48 lg:pb-st-space-xl")}>
-      <div className="max-w-[1440px] mx-auto w-full lg:px-st-margin-lg lg:py-st-space-xl">
+      <div className="max-w-[1280px] mx-auto w-full lg:px-8 lg:py-st-space-xl">
         {/* Free-shipping banner — only when the server's cart says shipping is free. */}
         {cart && items.length > 0 && freeShipping && (
           <div className="px-st-gutter lg:px-0 pt-st-space-sm pb-st-space-xs lg:pb-st-space-md">
-            <div className="bg-[#EBF4F8] text-st-on-secondary-container rounded-xl p-st-space-md shadow-sm flex items-start gap-st-space-sm">
-              <Icon name="local_shipping" fill className="text-[22px] text-st-secondary shrink-0 mt-0.5" />
+            <div className="bg-st-mint text-st-on-secondary-container rounded-xl p-3 flex items-start gap-st-space-sm ring-1 ring-st-hairline-border">
+              <Icon name="local_shipping" fill className="text-[22px] text-st-mint-ink shrink-0 mt-0.5" />
               <div className="flex flex-col">
-                <span className="text-st-label-lg text-st-secondary leading-snug">ارسال رایگان فعال شد ✓</span>
+                <span className="text-st-label-lg text-st-mint-ink leading-snug">ارسال رایگان فعال شد ✓</span>
                 <span className="text-st-body-sm text-st-on-surface-variant mt-0.5">
                   هزینه ارسال این سبد طبق محاسبه سرور صفر است.
                 </span>
@@ -220,12 +221,17 @@ export default function CartPage() {
           </div>
         )}
 
+        {cart && items.length > 0 && <div className="px-st-gutter lg:px-0 pt-st-space-sm">
+          <StepBar className="rounded-xl bg-st-surface-container-lowest px-3 py-2.5 shadow-st-card" current={0}
+            steps={[{ label: "سبد خرید", icon: "shopping_bag" }, { label: "نشانی و ارسال", icon: "local_shipping" }, { label: "پرداخت", icon: "payments" }]} />
+        </div>}
         {/* Cart header meta */}
         <div className="px-st-gutter lg:px-0 py-st-space-sm flex items-center justify-between">
           <div className="flex items-center gap-st-space-xs">
-            <h1 className="text-st-headline-lg-mobile lg:text-st-headline-lg text-st-primary-container">سبد خرید شما</h1>
+            <span aria-hidden className="h-7 w-1.5 rounded-full bg-st-accent" />
+            <h1 className="text-st-title-lg font-extrabold lg:text-st-headline-md text-st-primary-container">سبد خرید شما</h1>
             {cart && items.length > 0 && (
-              <span className="text-st-label-sm px-2 py-0.5 rounded-full bg-st-surface-container-high text-st-on-surface-variant font-medium">
+              <span className="text-st-label-sm px-2 py-0.5 rounded-full bg-st-accent text-white font-bold">
                 ({toPersianNum(cart.item_count)} کالا)
               </span>
             )}
@@ -255,20 +261,10 @@ export default function CartPage() {
             <div className="lg:col-span-4 h-48 rounded-2xl bg-st-surface-container animate-pulse" />
           </div>
         ) : items.length === 0 ? (
-          <div className="px-st-gutter lg:px-0 py-st-space-xl">
-            <div className="mx-auto max-w-md bg-st-surface-container-lowest rounded-2xl p-st-space-lg shadow-sm text-center">
-              <div className="w-20 h-20 rounded-full bg-st-surface-container-low flex items-center justify-center mx-auto mb-st-space-md text-st-outline">
-                <Icon name="shopping_bag" className="text-[40px]" />
-              </div>
-              <h2 className="text-st-title-lg text-st-primary-container mb-1">سبد خرید شما خالی است</h2>
-              <p className="text-st-body-md text-st-on-surface-variant mb-st-space-lg">محصولات موردعلاقه‌تان را اضافه کنید</p>
-              <Link
-                href="/search"
-                className="inline-flex h-12 items-center gap-2 px-6 rounded-xl bg-st-primary-container text-st-on-primary text-st-label-lg hover:bg-st-secondary transition-colors"
-              >
-                مشاهده محصولات
-              </Link>
-            </div>
+          <div className="px-st-gutter lg:px-0 py-st-space-lg">
+            <EmptyState className="mx-auto max-w-md" icon="shopping_bag" title="سبد خرید شما خالی است"
+              body="کالاها را از دسته‌بندی‌ها یا پک‌های آماده اضافه کنید؛ برای خرید سازمانی هم می‌توانید پیش‌فاکتور بگیرید."
+              action={{ href: "/search", label: "مشاهده محصولات", icon: "storefront" }} secondary={{ href: "/packs", label: "پک‌های آماده" }} />
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-st-gutter-lg items-start">
@@ -311,7 +307,7 @@ export default function CartPage() {
             </div>
 
             {/* Summary — server numbers only. */}
-            <div className="lg:col-span-4 lg:sticky lg:top-32 px-st-gutter lg:px-0 mt-st-space-md lg:mt-0 flex flex-col gap-st-space-md">
+            <div className="lg:col-span-4 lg:sticky lg:top-[124px] px-st-gutter lg:px-0 mt-st-space-md lg:mt-0 flex flex-col gap-st-space-md">
               <div className="bg-st-surface-container-lowest rounded-2xl p-st-space-md shadow-sm flex flex-col gap-st-space-sm">
                 <div className="flex items-center justify-between pb-st-space-xs">
                   <div className="flex items-center gap-2">
@@ -338,14 +334,14 @@ export default function CartPage() {
                   <span>مالیات بر ارزش افزوده</span>
                   <span className="text-st-on-surface text-st-body-sm">در مرحله تسویه‌حساب محاسبه می‌شود</span>
                 </div>
-                {cartTotal !== undefined && <div className="mt-1 bg-st-surface-container-low rounded-xl p-st-space-sm flex items-center justify-between">
+                {cartTotal !== undefined && <div className="mt-1 bg-st-navy rounded-xl p-3 flex items-center justify-between text-white">
                   <div className="flex flex-col">
-                    <span className="text-st-title-md text-st-primary-container">جمع سبد</span>
-                    <span className="text-st-label-sm text-st-on-surface-variant">بدون احتساب مالیات</span>
+                    <span className="text-st-title-md text-white">جمع سبد</span>
+                    <span className="text-st-label-sm text-st-on-navy-muted">بدون احتساب مالیات</span>
                   </div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-st-headline-lg-mobile text-st-primary-container font-extrabold tabular-nums">{toman(cartTotal)}</span>
-                    <span className="text-st-label-md text-st-primary-container font-medium">تومان</span>
+                    <span className="text-st-headline-lg-mobile text-white font-extrabold tabular-nums">{toman(cartTotal)}</span>
+                    <span className="text-st-label-md text-st-on-navy-muted font-medium">تومان</span>
                   </div>
                 </div>}
 
@@ -366,9 +362,9 @@ export default function CartPage() {
                     ) : (
                       <Link
                         href="/checkout"
-                        className="h-12 px-6 bg-st-primary-container text-st-on-primary rounded-xl text-st-label-lg flex items-center justify-center gap-2 shadow-md hover:bg-st-secondary active:scale-[0.98] transition-all shrink-0 lg:w-full"
+                        className="h-12 min-w-0 flex-1 px-4 bg-st-secondary text-white rounded-xl text-st-label-lg font-bold flex items-center justify-center gap-2 shadow-[0_10px_24px_-12px_rgb(3_78_162/0.8)] hover:bg-st-navy active:scale-[0.98] transition-all lg:w-full"
                       >
-                        <span>ادامه فرایند خرید و ثبت نشانی</span>
+                        <span className="truncate"><span className="lg:hidden">ادامه و ثبت نشانی</span><span className="hidden lg:inline">ادامه فرایند خرید و ثبت نشانی</span></span>
                         <Icon name="arrow_back" className="text-[18px] rotate-180" />
                       </Link>
                     )}

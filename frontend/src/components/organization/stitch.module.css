@@ -1,36 +1,15 @@
 /* Organization panel shell — Stitch screens 26 (light) and 21 (dark).
-   Light mode uses the st- Tailwind tokens directly. Dark mode (html[data-theme=dark]) remaps the st- tokens used
-   inside the panel to the screen-21 palette: bg #0B1418, surfaces #111D23, hairlines #1F2D35, text #E8EEF1,
-   muted #8FA2AD, petrol accent #004E72, coral #FF6D41. Scoped to .shell so nothing outside the panel changes. */
-.shell { font-size: 16px; line-height: 1.5; }
+   Both themes use the site-wide st- tokens (globals.css, «ویترین سازمانی گرم»; navy-based dark). */
+.shell { font-size: 15px; line-height: 1.55; }
 .shell :global(.material-symbols-outlined) { user-select: none; }
 
-:global(html[data-theme="dark"]) .shell { background: #0b1418; color: #e8eef1; }
-:global(html[data-theme="dark"]) .shell :global(:is(.bg-st-background, .bg-st-surface)) { background-color: #0b1418 !important; }
-:global(html[data-theme="dark"]) .shell :global(.bg-st-surface-container-lowest) { background-color: #111d23 !important; }
-:global(html[data-theme="dark"]) .shell :global(:is(.bg-st-surface-container-low, .bg-st-surface-container)) { background-color: #16252d !important; }
-:global(html[data-theme="dark"]) .shell :global(:is(.bg-st-surface-container-high, .bg-st-surface-container-highest)) { background-color: #1f2d35 !important; }
-:global(html[data-theme="dark"]) .shell :global(:is(.bg-st-primary-container, .bg-st-primary)) { background-color: #004e72 !important; color: #e8eef1 !important; }
-:global(html[data-theme="dark"]) .shell :global(.bg-st-secondary) { background-color: #1f4fa8 !important; }
-:global(html[data-theme="dark"]) .shell :global(.bg-st-secondary-fixed) { background-color: rgb(0 78 114 / 0.35) !important; }
-:global(html[data-theme="dark"]) .shell :global(:is(.text-st-primary, .text-st-on-surface, .text-st-primary-container, .text-st-on-secondary-fixed)) { color: #e8eef1 !important; }
-:global(html[data-theme="dark"]) .shell :global(:is(.text-st-on-surface-variant, .text-st-outline)) { color: #8fa2ad !important; }
-:global(html[data-theme="dark"]) .shell :global(.text-st-secondary) { color: #5fb4e0 !important; }
-:global(html[data-theme="dark"]) .shell :global(:is(.text-st-tertiary-container, .text-st-on-tertiary-container)) { color: #ff6d41 !important; }
-:global(html[data-theme="dark"]) .shell :global(:is(.border-st-surface-container, .border-st-surface-container-low, .border-st-outline-variant, .border-st-surface-variant)) { border-color: #1f2d35 !important; }
-:global(html[data-theme="dark"]) .shell :global(:is(input, select)) { background-color: #0b1418; color: #e8eef1; }
-:global(html[data-theme="dark"]) .shell :global(.shadow-sm) { box-shadow: none; outline: 1px solid #1f2d35; outline-offset: -1px; }
-
-.shell :global(:is(a, button, input, select, [role="switch"])):focus-visible { outline: 2px solid #266489; outline-offset: 2px; }
+.shell :global(:is(a, button, input, select, [role="switch"])):focus-visible { outline: 2px solid rgb(var(--st-brand)); outline-offset: 2px; }
 
 /* Toggle switch (Stitch peer switch) */
-.switch { position: relative; width: 44px; height: 24px; border-radius: 999px; background: #e8e8e8; transition: background .2s; flex-shrink: 0; }
+.switch { position: relative; width: 44px; height: 24px; border-radius: 999px; background: rgb(var(--st-surface-container-high)); transition: background .2s; flex-shrink: 0; }
 .switch::after { content: ""; position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; border-radius: 999px; background: #fff; transition: transform .2s; }
-.switch[aria-checked="true"] { background: #266489; }
+.switch[aria-checked="true"] { background: rgb(var(--st-brand)); }
 .switch[aria-checked="true"]::after { transform: translateX(-20px); }
 .switch:disabled { opacity: .5; }
-:global(html[data-theme="dark"]) .switch { background: #1f2d35; }
-:global(html[data-theme="dark"]) .switch[aria-checked="true"] { background: #004e72; }
-:global(html[data-theme="dark"]) .switch::after { background: #e8eef1; }
 
 @media (max-width: 1023px) { .shell { font-size: 15px; } }

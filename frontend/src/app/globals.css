@@ -36,114 +36,128 @@
 /* ── Stitch colour tokens (st-*) as CSS variables: light = screen 30, dark = screens 22/33 (Stitch dark palette).
    tailwind.config.ts maps every st- colour to rgb(var(--st-…) / <alpha>), so one class works in both themes. */
 :root {
-  --st-accent-coral: 255 109 65;
-  --st-accent-electric: 31 79 168;
-  --st-accent-primary: 0 78 114;
-  --st-background: 249 249 249;
+  /* «ویترین سازمانی گرم» (2026-11-18): owner-approved pack-builder palette, site-wide.
+     navy #112D46 = dark surfaces/headings · brand-blue #034EA2 = links/active/secondary buttons ·
+     orange #FF7A00 = badges/discounts/key numbers · warm canvas #F6F5F1 · white cards · mint/sand bands. */
+  --st-navy: 17 45 70; --st-navy-deep: 11 31 49; --st-brand: 3 78 162; --st-accent: 255 122 0;
+  --st-canvas: 246 245 241; --st-card: 255 255 255; --st-mint: 237 243 238; --st-sand: 244 238 230; --st-info: 231 240 251;
+  --st-on-navy: 255 255 255; --st-on-navy-muted: 176 196 216; --st-mint-ink: 47 107 79; --st-sand-ink: 138 90 31;
+  --st-accent-coral: 255 122 0;
+  --st-accent-electric: 3 78 162;
+  --st-accent-primary: 3 78 162;
+  --st-background: 246 245 241;
   --st-error: 186 26 26;
-  --st-error-container: 255 218 214;
-  --st-hairline-border: 236 236 236;
-  --st-inverse-on-surface: 241 241 241;
-  --st-inverse-primary: 175 202 221;
-  --st-inverse-surface: 47 49 49;
-  --st-on-background: 26 28 28;
+  --st-error-container: 255 225 220;
+  --st-hairline-border: 232 228 219;
+  --st-inverse-on-surface: 236 241 246;
+  --st-inverse-primary: 160 196 240;
+  --st-inverse-surface: 17 45 70;
+  --st-on-background: 23 33 46;
   --st-on-error: 255 255 255;
   --st-on-error-container: 147 0 10;
   --st-on-primary: 255 255 255;
-  --st-on-primary-container: 117 143 160;
-  --st-on-primary-fixed: 1 30 44;
-  --st-on-primary-fixed-variant: 48 74 89;
+  --st-on-primary-container: 176 196 216;
+  --st-on-primary-fixed: 10 30 50;
+  --st-on-primary-fixed-variant: 30 64 100;
   --st-on-secondary: 255 255 255;
-  --st-on-secondary-container: 29 93 130;
-  --st-on-secondary-fixed: 0 30 47;
-  --st-on-secondary-fixed-variant: 0 75 111;
-  --st-on-surface: 26 28 28;
-  --st-on-surface-variant: 66 71 75;
+  --st-on-secondary-container: 2 62 130;
+  --st-on-secondary-fixed: 2 56 118;
+  --st-on-secondary-fixed-variant: 3 78 162;
+  --st-on-surface: 23 33 46;
+  --st-on-surface-variant: 74 87 101;
   --st-on-tertiary: 255 255 255;
-  --st-on-tertiary-container: 235 95 52;
-  --st-on-tertiary-fixed: 59 10 0;
-  --st-on-tertiary-fixed-variant: 134 34 0;
-  --st-outline: 115 120 124;
-  --st-outline-variant: 194 199 204;
-  --st-primary: 0 17 26;
-  --st-primary-container: 10 39 53;
-  --st-primary-fixed: 203 230 249;
-  --st-primary-fixed-dim: 175 202 221;
-  --st-secondary: 38 100 137;
-  --st-secondary-container: 158 213 255;
-  --st-secondary-fixed: 201 230 255;
-  --st-secondary-fixed-dim: 149 205 247;
-  --st-surface: 249 249 249;
-  --st-surface-bright: 249 249 249;
-  --st-surface-container: 238 238 238;
-  --st-surface-container-high: 232 232 232;
-  --st-surface-container-highest: 226 226 226;
-  --st-surface-container-low: 243 243 243;
+  --st-on-tertiary-container: 240 112 0;
+  --st-on-tertiary-fixed: 122 52 0;
+  --st-on-tertiary-fixed-variant: 160 72 0;
+  --st-outline: 122 131 141;
+  --st-outline-variant: 214 210 200;
+  --st-primary: 17 45 70;
+  --st-primary-container: 17 45 70;
+  --st-primary-fixed: 220 232 246;
+  --st-primary-fixed-dim: 180 202 226;
+  --st-secondary: 3 78 162;
+  --st-secondary-container: 214 230 250;
+  --st-secondary-fixed: 231 240 251;
+  --st-secondary-fixed-dim: 190 214 243;
+  --st-surface: 246 245 241;
+  --st-surface-bright: 255 255 255;
+  --st-surface-container: 233 230 222;
+  --st-surface-container-high: 226 222 213;
+  --st-surface-container-highest: 218 214 204;
+  --st-surface-container-low: 241 239 233;
   --st-surface-container-lowest: 255 255 255;
-  --st-surface-dim: 218 218 218;
-  --st-surface-tint: 72 98 114;
-  --st-surface-variant: 226 226 226;
-  --st-tertiary: 37 4 0;
-  --st-tertiary-container: 74 15 0;
-  --st-tertiary-fixed: 255 219 209;
-  --st-tertiary-fixed-dim: 255 181 159;
-  --st-text-primary: 10 39 53;
-  --st-text-secondary: 107 118 125;
+  --st-surface-dim: 218 214 204;
+  --st-surface-tint: 3 78 162;
+  --st-surface-variant: 226 222 213;
+  --st-tertiary: 122 52 0;
+  --st-tertiary-container: 255 122 0;
+  --st-tertiary-fixed: 255 236 217;
+  --st-tertiary-fixed-dim: 255 196 140;
+  --st-text-primary: 17 45 70;
+  --st-text-secondary: 98 110 122;
+  --st-shadow-card: 0 1px 2px rgb(17 45 70 / 0.04), 0 4px 14px -6px rgb(17 45 70 / 0.10);
+  --st-shadow-raise: 0 2px 4px rgb(17 45 70 / 0.05), 0 14px 32px -12px rgb(17 45 70 / 0.22);
 }
 html[data-theme="dark"] {
-  --st-accent-coral: 255 109 65;
-  --st-accent-electric: 31 79 168;
-  --st-accent-primary: 0 78 114;
-  --st-background: 11 20 24;
+  /* navy-based dark for «ویترین سازمانی گرم» */
+  --st-navy: 14 34 56; --st-navy-deep: 8 20 34; --st-brand: 110 168 255; --st-accent: 255 138 31;
+  --st-canvas: 9 20 33; --st-card: 17 33 51; --st-mint: 18 42 40; --st-sand: 40 35 30; --st-info: 22 48 82;
+  --st-on-navy: 236 242 248; --st-on-navy-muted: 150 172 196; --st-mint-ink: 143 211 176; --st-sand-ink: 236 196 140;
+  --st-accent-coral: 255 138 31;
+  --st-accent-electric: 110 168 255;
+  --st-accent-primary: 110 168 255;
+  --st-background: 9 20 33;
   --st-error: 255 180 171;
-  --st-error-container: 147 0 10;
-  --st-hairline-border: 31 45 53;
-  --st-inverse-on-surface: 41 50 54;
-  --st-inverse-primary: 38 100 137;
-  --st-inverse-surface: 218 228 234;
-  --st-on-background: 218 228 234;
+  --st-error-container: 110 20 20;
+  --st-hairline-border: 31 50 72;
+  --st-inverse-on-surface: 17 45 70;
+  --st-inverse-primary: 3 78 162;
+  --st-inverse-surface: 226 236 248;
+  --st-on-background: 230 236 243;
   --st-on-error: 105 0 5;
   --st-on-error-container: 255 218 214;
-  --st-on-primary: 0 52 78;
-  --st-on-primary-container: 135 191 232;
-  --st-on-primary-fixed: 0 30 47;
-  --st-on-primary-fixed-variant: 0 75 111;
-  --st-on-secondary: 0 44 112;
-  --st-on-secondary-container: 150 180 255;
-  --st-on-secondary-fixed: 0 25 70;
-  --st-on-secondary-fixed-variant: 6 66 155;
-  --st-on-surface: 218 228 234;
-  --st-on-surface-variant: 193 199 207;
-  --st-on-tertiary: 95 21 0;
-  --st-on-tertiary-container: 255 159 132;
-  --st-on-tertiary-fixed: 59 10 0;
-  --st-on-tertiary-fixed-variant: 134 34 0;
-  --st-outline: 139 145 152;
-  --st-outline-variant: 65 72 78;
-  --st-primary: 149 205 247;
-  --st-primary-container: 0 78 114;
-  --st-primary-fixed: 201 230 255;
-  --st-primary-fixed-dim: 149 205 247;
-  --st-secondary: 177 198 255;
-  --st-secondary-container: 6 66 155;
-  --st-secondary-fixed: 217 226 255;
-  --st-secondary-fixed-dim: 177 198 255;
-  --st-surface: 17 29 35;
-  --st-surface-bright: 49 59 63;
-  --st-surface-container: 24 33 37;
-  --st-surface-container-high: 34 43 48;
-  --st-surface-container-highest: 45 54 59;
-  --st-surface-container-low: 20 29 33;
-  --st-surface-container-lowest: 7 15 19;
-  --st-surface-dim: 12 21 25;
-  --st-surface-tint: 149 205 247;
-  --st-surface-variant: 45 54 59;
-  --st-tertiary: 255 181 159;
-  --st-tertiary-container: 138 35 0;
-  --st-tertiary-fixed: 255 219 209;
-  --st-tertiary-fixed-dim: 255 181 159;
-  --st-text-primary: 232 238 241;
-  --st-text-secondary: 143 162 173;
+  --st-on-primary: 17 45 70;
+  --st-on-primary-container: 180 205 235;
+  --st-on-primary-fixed: 220 232 246;
+  --st-on-primary-fixed-variant: 180 205 235;
+  --st-on-secondary: 6 26 48;
+  --st-on-secondary-container: 190 214 255;
+  --st-on-secondary-fixed: 200 222 255;
+  --st-on-secondary-fixed-variant: 150 190 255;
+  --st-on-surface: 230 236 243;
+  --st-on-surface-variant: 168 182 198;
+  --st-on-tertiary: 60 25 0;
+  --st-on-tertiary-container: 255 145 50;
+  --st-on-tertiary-fixed: 255 214 176;
+  --st-on-tertiary-fixed-variant: 255 190 140;
+  --st-outline: 128 145 164;
+  --st-outline-variant: 46 66 90;
+  --st-primary: 226 236 248;
+  --st-primary-container: 30 74 120;
+  --st-primary-fixed: 30 60 95;
+  --st-primary-fixed-dim: 150 190 235;
+  --st-secondary: 110 168 255;
+  --st-secondary-container: 22 60 110;
+  --st-secondary-fixed: 22 48 82;
+  --st-secondary-fixed-dim: 150 190 255;
+  --st-surface: 12 25 40;
+  --st-surface-bright: 40 56 74;
+  --st-surface-container: 27 46 68;
+  --st-surface-container-high: 34 54 78;
+  --st-surface-container-highest: 42 63 88;
+  --st-surface-container-low: 21 39 59;
+  --st-surface-container-lowest: 17 33 51;
+  --st-surface-dim: 9 20 33;
+  --st-surface-tint: 110 168 255;
+  --st-surface-variant: 34 54 78;
+  --st-tertiary: 255 180 120;
+  --st-tertiary-container: 255 138 31;
+  --st-tertiary-fixed: 74 40 10;
+  --st-tertiary-fixed-dim: 255 170 100;
+  --st-text-primary: 232 238 245;
+  --st-text-secondary: 150 166 184;
+  --st-shadow-card: 0 0 0 1px rgb(31 50 72);
+  --st-shadow-raise: 0 0 0 1px rgb(46 66 90), 0 14px 32px -12px rgb(0 0 0 / 0.5);
 }
 
 /* ── CSS custom properties (design tokens) ────────────────────────────────── */
@@ -959,12 +973,12 @@ body {
    borders, navy ink, coral only for prices/badges. Markup & roles unchanged.
    ══════════════════════════════════════════════════════════════════════════ */
 :root {
-  --mc-canvas: #f7f7f5;
+  --mc-canvas: #f6f5f1;
   --mc-surface: #ffffff;
-  --mc-sunken: #f1f1ee;
-  --mc-line: #ecedee;
+  --mc-sunken: #f1efe9;
+  --mc-line: #e8e4db;
   --mc-line-strong: #dcdfe1;
-  --mc-ink: #0a2735;
+  --mc-ink: #112d46;
   --mc-ink-soft: #33434c;
   --mc-muted: #6b767d;
   --mc-faint: #9aa3a8;
@@ -1096,9 +1110,9 @@ tbody tr + tr td { border-top: 1px solid var(--mc-line); }
 
 /* ── Dark mode (site-wide; html[data-theme=dark], set before paint in layout.tsx) ── */
 html[data-theme="dark"] {
-  --dash-bg: #0b1418; --dash-surface: #111d23; --dash-sunken: #16252c; --dash-line: #1f2d35; --dash-line-strong: #2c3e48;
+  --dash-bg: #091421; --dash-surface: #112133; --dash-sunken: #15273b; --dash-line: #1f3248; --dash-line-strong: #2e425a;
   --dash-ink: #e8eef1; --dash-soft: #c3cfd5; --dash-muted: #8d9ca4;
-  --mc-canvas: #0b1418; --mc-surface: #111d23; --mc-sunken: #16252c; --mc-line: #1f2d35; --mc-line-strong: #2c3e48;
+  --mc-canvas: #091421; --mc-surface: #112133; --mc-sunken: #15273b; --mc-line: #1f3248; --mc-line-strong: #2e425a;
   --mc-ink: #e8eef1; --mc-ink-soft: #c3cfd5; --mc-muted: #8d9ca4; --mc-faint: #6c7c85;
   background: var(--dash-bg); color: var(--dash-ink); color-scheme: dark;
 }
@@ -1201,3 +1215,23 @@ html[data-theme="dark"] .mobile-bottom-nav.st-bottom-nav { background: rgb(var(-
 /* Dark: Stitch's light screens use primary-container (#0a2735) as a TEXT colour; its dark value is a fill colour
    (#004e72) that is unreadable as text, so text uses the dark palette's text-primary instead (as screens 22/33 do). */
 html[data-theme="dark"] .text-st-primary-container { color: rgb(var(--st-text-primary)); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   «ویترین سازمانی گرم» composition layer (2026-11-18, owner feedback: compact, chic, not flat white/blue).
+   Tokens live in the st- variables above; this layer only gives st- cards one consistent body:
+   white card + hairline + soft layered navy shadow (dark: hairline ring), brand-blue focus.
+   ══════════════════════════════════════════════════════════════════════════ */
+.bg-st-surface-container-lowest:is(.shadow-sm, .shadow, .shadow-md),
+.st-card { box-shadow: var(--st-shadow-card); }
+.bg-st-surface-container-lowest[class*="hover:shadow-md"]:hover,
+.st-card-hover:hover { box-shadow: var(--st-shadow-raise); }
+:focus-visible { outline-color: rgb(var(--st-brand)) !important; }
+::selection { background: rgb(3 78 162 / 0.16); }
+html[data-theme="dark"] { --dash-bg: rgb(var(--st-canvas)); }
+html[data-theme="dark"] body { background-color: rgb(var(--st-canvas)); }
+/* Mobile bottom nav: navy active state + orange cart badge */
+.mobile-bottom-nav.st-bottom-nav { border-top: 1px solid rgb(var(--st-hairline-border)); box-shadow: 0 -6px 20px -14px rgb(17 45 70 / 0.35); }
+.mobile-bottom-nav.st-bottom-nav a[aria-current="page"] { color: rgb(var(--st-brand)); font-weight: 700; }
+.mobile-bottom-nav.st-bottom-nav a[aria-current="page"] .material-symbols-outlined { font-variation-settings: "FILL" 1; }
+html[data-theme="dark"] .mobile-bottom-nav.st-bottom-nav a[aria-current="page"] { color: rgb(var(--st-brand)); }
+.mobile-bottom-nav.st-bottom-nav b { background: rgb(var(--st-accent)); }

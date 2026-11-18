@@ -31,10 +31,10 @@ const addressValid = (a: Address) =>
 
 function Card({ icon, title, aside, children }: { icon: string; title: string; aside?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="lg:bg-st-surface-container-lowest lg:rounded-xl lg:p-st-space-lg lg:shadow-sm">
+    <section className="lg:bg-st-surface-container-lowest lg:rounded-xl lg:p-5 lg:shadow-st-card">
       <div className="flex items-center justify-between gap-st-space-sm mb-st-space-xs lg:mb-st-space-md">
         <div className="flex items-center gap-st-space-xs lg:gap-st-space-sm">
-          <Icon name={icon} className="text-st-secondary text-[20px] lg:text-[24px]" />
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-st-secondary-fixed text-st-secondary lg:h-9 lg:w-9"><Icon name={icon} className="text-[18px] lg:text-[20px]" /></span>
           <h2 className="text-st-title-md lg:text-base text-st-primary-container lg:text-st-primary font-bold">{title}</h2>
         </div>
         {aside}
@@ -78,32 +78,32 @@ function Stepper({ addressDone }: { addressDone: boolean }) {
   ];
   return (
     <>
-      <section className="hidden lg:block w-full mb-st-space-xl">
-        <div className="bg-st-surface-container-lowest rounded-xl p-st-space-lg shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-l from-st-secondary/5 via-transparent to-transparent pointer-events-none" />
+      <section className="hidden lg:block w-full mb-5">
+        <div className="bg-st-navy text-white rounded-xl px-6 py-4 shadow-st-raise flex items-center justify-between relative overflow-hidden">
+          <div className="absolute -left-10 -top-16 h-40 w-40 rounded-full bg-st-accent/20 blur-3xl pointer-events-none" />
           {steps.map((s, i) => (
             <div key={s.label} className="contents">
               <div className={cn("flex items-center gap-st-space-sm z-10", s.state === "todo" && "opacity-60")}>
                 <div className={cn("w-10 h-10 rounded-full flex items-center justify-center font-bold",
-                  s.state === "done" && "bg-st-secondary text-st-on-secondary shadow-sm",
-                  s.state === "active" && "bg-st-primary-container text-st-on-primary shadow-sm ring-4 ring-st-primary-fixed",
-                  s.state === "todo" && "bg-st-surface-container-highest text-st-on-surface-variant")}>
+                  s.state === "done" && "bg-st-secondary text-white",
+                  s.state === "active" && "bg-st-accent text-white ring-4 ring-st-accent/25",
+                  s.state === "todo" && "bg-white/10 text-st-on-navy-muted")}>
                   {s.state === "done" ? <Icon name="check" className="text-[20px]" /> : <span className="leading-none">{toPersianNum(i + 1)}</span>}
                 </div>
                 <div className="flex flex-col">
-                  <span className={s.state === "todo" ? "text-st-outline" : "text-st-secondary font-bold"}>{s.sub}</span>
-                  <span className={s.state === "todo" ? "text-st-on-surface" : "text-st-primary font-bold"}>{s.label}</span>
+                  <span className={cn("text-st-label-md", s.state === "active" ? "text-st-accent font-bold" : "text-st-on-navy-muted")}>{s.sub}</span>
+                  <span className={s.state === "todo" ? "text-st-on-navy-muted" : "text-white font-bold"}>{s.label}</span>
                 </div>
               </div>
               {i < steps.length - 1 && (
-                <div className={cn("flex-1 h-0.5 mx-st-space-md", steps[i + 1].state === "todo" ? "bg-st-surface-container-highest" : "bg-st-secondary opacity-40")} />
+                <div className={cn("flex-1 h-0.5 mx-st-space-md", steps[i + 1].state === "todo" ? "bg-white/15" : "bg-st-accent/70")} />
               )}
             </div>
           ))}
         </div>
       </section>
       <section className="lg:hidden pt-st-space-md pb-st-space-sm">
-        <div className="bg-st-surface-container-lowest rounded-xl p-st-space-md shadow-sm">
+        <div className="bg-st-surface-container-lowest rounded-xl p-3 shadow-st-card">
           <div className="relative flex items-center justify-between">
             <div className="absolute top-4 left-6 right-6 -translate-y-1/2 h-0.5 bg-st-surface-container-high z-0">
               <div className={cn("h-full bg-st-secondary transition-all duration-300", addressDone ? "w-full" : "w-1/2")} />
@@ -112,7 +112,7 @@ function Stepper({ addressDone }: { addressDone: boolean }) {
               <div key={s.label} className="relative z-10 flex flex-col items-center gap-st-space-xs">
                 <div className={cn("w-8 h-8 rounded-full flex items-center justify-center",
                   s.state === "done" && "bg-st-secondary text-st-on-secondary shadow-sm",
-                  s.state === "active" && "bg-st-primary-container text-st-on-primary shadow-sm ring-4 ring-st-secondary/20",
+                  s.state === "active" && "bg-st-navy text-white shadow-sm ring-4 ring-st-accent/30",
                   s.state === "todo" && "bg-st-surface-container-high text-st-outline")}>
                   <Icon name={s.state === "done" ? "check" : s.icon} className={s.state === "done" ? "text-[18px]" : "text-[16px]"} />
                 </div>
@@ -249,7 +249,7 @@ const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className={cn(stRoot, "min-h-[60vh] text-base")}>
-      <div className="max-w-[1440px] mx-auto w-full px-st-gutter lg:px-st-margin-lg lg:py-st-space-xl">{children}</div>
+      <div className="max-w-[1280px] mx-auto w-full px-st-gutter lg:px-8 lg:py-5">{children}</div>
     </div>
   );
 }
@@ -463,7 +463,7 @@ function CheckoutForm({ cart, quote, token, paymentResult }: { cart: Cart; quote
           </div>
         )}
 
-        <div className="grid grid-cols-12 gap-st-space-md lg:gap-st-gutter-lg items-start">
+        <div className="grid grid-cols-12 gap-st-space-md lg:gap-5 items-start">
           {/* Right column: form cards */}
           <div className="col-span-12 lg:col-span-8 flex flex-col gap-st-space-md lg:gap-st-space-lg">
             <AddressCard address={address} onChange={setAddress} editing={editingAddress} setEditing={setEditingAddress} />
@@ -606,8 +606,8 @@ function CheckoutForm({ cart, quote, token, paymentResult }: { cart: Cart; quote
           </div>
 
           {/* Left column: order summary (sticky on desktop; on phones the 29-style breakdown + fixed CTA bar) */}
-          <div className="col-span-12 lg:col-span-4 lg:sticky lg:top-32 flex flex-col gap-st-space-md">
-            <div className="bg-st-surface-container-lowest rounded-xl p-st-space-md lg:p-st-space-lg shadow-sm">
+          <div className="col-span-12 lg:col-span-4 lg:sticky lg:top-[124px] flex flex-col gap-st-space-md">
+            <div className="bg-st-surface-container-lowest rounded-xl p-st-space-md lg:p-5 shadow-st-card">
               <div className="hidden lg:flex items-center justify-between mb-st-space-md pb-st-space-sm border-b border-st-surface-container-low">
                 <h3 className="text-st-primary font-bold">خلاصه سفارش</h3>
                 <span className="bg-st-surface-container-low text-st-on-surface-variant px-st-space-sm py-0.5 rounded-full font-bold text-st-label-md">
@@ -670,11 +670,11 @@ function CheckoutForm({ cart, quote, token, paymentResult }: { cart: Cart; quote
                   </label>
                 )}
                 <div className="hidden lg:block h-0.5 bg-st-surface-container my-st-space-xs" />
-                <div className="hidden lg:flex items-center justify-between pt-st-space-xs">
-                  <span className="text-st-primary font-bold">مبلغ نهایی قابل پرداخت:</span>
+                <div className="hidden lg:flex items-center justify-between rounded-xl bg-st-navy px-4 py-3 text-white">
+                  <span className="font-bold">مبلغ نهایی قابل پرداخت:</span>
                   <div className="flex items-baseline gap-st-space-xs">
-                    <span className="text-st-primary font-bold text-st-headline-md tabular-nums">{toman(payable)}</span>
-                    <span className="text-st-on-surface-variant">تومان</span>
+                    <span className="font-black text-[24px] leading-none tabular-nums">{toman(payable)}</span>
+                    <span className="text-st-on-navy-muted">تومان</span>
                   </div>
                 </div>
                 {useWelfare && <p className="text-st-label-sm text-st-on-surface-variant">مبلغ نهایی کارت پس از اعمال کیف پول رفاهی توسط سرور قطعی می‌شود.</p>}
@@ -719,7 +719,7 @@ function CheckoutForm({ cart, quote, token, paymentResult }: { cart: Cart; quote
                     type="button"
                     onClick={handlePlace}
                     disabled={!canPlace}
-                    className="flex-1 lg:w-full h-12 lg:h-14 px-3 whitespace-nowrap bg-st-primary-container hover:bg-st-secondary text-st-on-primary rounded-xl lg:rounded-full flex items-center justify-center gap-st-space-sm text-st-label-lg lg:text-base font-bold transition-all active:scale-[0.98] shadow-sm lg:shadow-md disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                    className="flex-1 lg:w-full h-12 lg:h-[52px] px-3 whitespace-nowrap bg-st-secondary hover:bg-st-navy text-white rounded-xl flex items-center justify-center gap-st-space-sm text-st-label-lg lg:text-base font-bold transition-all active:scale-[0.98] shadow-sm lg:shadow-md disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
                   >
                     {placing ? (
                       <>

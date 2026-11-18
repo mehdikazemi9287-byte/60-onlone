@@ -59,7 +59,7 @@ export function MegaMenu() {
   return (
     <div ref={root} className="relative flex h-full items-center" onMouseEnter={() => hover(true)} onMouseLeave={() => hover(false)}>
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="mega-menu"
-        className="flex cursor-pointer items-center gap-1 whitespace-nowrap py-2 font-bold text-st-secondary transition-colors hover:text-st-primary">
+        className="flex h-8 cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-st-accent px-3 text-st-label-lg font-bold text-white shadow-[0_6px_16px_-8px_rgb(255_122_0/0.9)] transition-colors hover:bg-st-on-tertiary-container">
         <Icon name="menu" className="text-[18px]" /><span>دسته‌بندی کالاها</span>
         <Icon name="expand_more" className={cn("text-[16px] transition-transform", open && "rotate-180")} />
       </button>
