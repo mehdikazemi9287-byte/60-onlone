@@ -12,6 +12,7 @@ import {
   downloadAuthed, type ApprovalRule, type CreditContract, type CreditStatement, type OrgInvoice, type OrgOrderRow, type PreferredSeller, type WelfarePlan,
 } from "@/lib/commerce";
 import { useOrganization, OrgSelector } from "./Dashboard";
+import MoadianPreview from "./MoadianPreview";
 import { Card, Flash, ListState, btnCls, btnGhost, inputCls, n } from "@/components/commerce/ui";
 
 type OrgState = ReturnType<typeof useOrganization>;
@@ -72,25 +73,34 @@ function OrdersBody({ token, orgId }: Ctx) {
   const [retry, setRetry] = useState(0);
   const [rows, error] = useLoad<OrgOrderRow[]>(`/orgs/${orgId}/orders`, token, retry, (r: { items: OrgOrderRow[] }) => r.items);
   const [open, setOpen] = useState<number | null>(null);
+  // Deep link from the dashboard: /organization/b2b-orders?order=<id> opens that order's invoice.
+  useEffect(() => { const q = Number(new URLSearchParams(window.location.search).get("order")); if (q) setOpen(q); }, []);
   return (
-    <Card title="سفارش‌های سازمان">
-      <ListState items={rows} error={error} empty="هنوز سفارش سازمانی ثبت نشده است." onRetry={() => setRetry((x) => x + 1)} />
+    <section className="overflow-hidden rounded-xl bg-st-surface-container-lowest shadow-sm" aria-labelledby="oo-h">
+      <div className="flex flex-col gap-st-space-xs p-st-space-lg">
+        <div className="flex items-center gap-st-space-sm"><h1 id="oo-h" className="font-bold text-st-primary">سفارش‌ها، فاکتورها و پیش‌نمایش صورتحساب مودیان</h1>
+          {rows && <span className="rounded-full bg-st-surface-container px-st-space-xs py-0.5 text-st-on-surface-variant">{n(rows.length)} سفارش</span>}</div>
+        <span className="text-st-outline">فاکتور خریدار، لغو سفارش (در وضعیت مجاز) و پیش‌نمایش صورتحساب الکترونیکی هر سفارش سازمان</span>
+      </div>
+      <div className="px-st-space-lg"><ListState items={rows} error={error} empty="هنوز سفارش سازمانی ثبت نشده است." onRetry={() => setRetry((x) => x + 1)} /></div>
       {rows && rows.length > 0 && (
-        <ul className="divide-y divide-neutral-100">
-          {rows.map((r) => (
-            <li key={r.id} className="py-2">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <span className="min-w-0"><span dir="ltr" className="font-bold">{r.order_number}</span>
-                  <span className="block text-xs text-neutral-500">{faDate(r.placed_at)} · {ORDER_STATUS_FA[r.status] ?? r.status}{r.po_reference ? ` · PO ${r.po_reference}` : ""}</span></span>
-                <span className="flex items-center gap-2"><b>{formatPrice(r.total_minor)}</b>
-                  <button type="button" className={btnGhost} aria-expanded={open === r.id} onClick={() => setOpen(open === r.id ? null : r.id)}>{open === r.id ? "بستن" : "فاکتور"}</button></span>
+        <ul>
+          {rows.map((r, i) => (
+            <li key={r.id} className={i % 2 ? "bg-st-surface" : ""}>
+              <div className="flex flex-wrap items-center justify-between gap-st-space-sm px-st-space-lg py-st-space-md">
+                <span className="min-w-0"><span dir="ltr" className="font-bold text-st-primary">{r.order_number}</span>
+                  <span className="block text-st-on-surface-variant">{faDate(r.placed_at)} · {ORDER_STATUS_FA[r.status] ?? r.status}{r.po_reference ? ` · PO ${r.po_reference}` : ""}</span></span>
+                <span className="flex items-center gap-st-space-sm"><b className="text-st-primary">{formatPrice(r.total_minor)}</b>
+                  <button type="button" aria-expanded={open === r.id} onClick={() => setOpen(open === r.id ? null : r.id)}
+                    className="inline-flex items-center gap-1 rounded-lg bg-st-surface-container px-st-space-sm py-1.5 font-semibold text-st-primary hover:bg-st-surface-container-high">
+                    <span aria-hidden className="material-symbols-outlined text-[18px]">receipt_long</span>{open === r.id ? "بستن" : "فاکتور"}</button></span>
               </div>
-              {open === r.id && <OrderInvoice token={token} orgId={orgId} row={r} onCancelled={() => { setOpen(null); setRetry((x) => x + 1); }} />}
+              {open === r.id && <div className="px-st-space-lg pb-st-space-md"><OrderInvoice token={token} orgId={orgId} row={r} onCancelled={() => { setOpen(null); setRetry((x) => x + 1); }} /></div>}
             </li>
           ))}
         </ul>
       )}
-    </Card>
+    </section>
   );
 }
 
@@ -99,6 +109,7 @@ function OrderInvoice({ token, orgId, row, onCancelled }: { token: string; orgId
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
+  const [preview, setPreview] = useState(false);
   const cancellable = ["pending", "paid"].includes(row.status);
   const cancel = async () => {
     if (!window.confirm(`سفارش ${row.order_number} لغو شود؟`)) return;
@@ -111,22 +122,26 @@ function OrderInvoice({ token, orgId, row, onCancelled }: { token: string; orgId
   if (error) return <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>;
   if (!inv) return <p role="status" className="mt-2 text-sm text-neutral-400">در حال دریافت فاکتور…</p>;
   return (
-    <div className="mt-2 space-y-2 rounded-xl bg-neutral-50 p-3 text-sm">
-      <p className="text-xs text-neutral-600">فاکتور <span dir="ltr">{inv.invoice_number}</span> · {inv.buyer.legal_name ?? inv.buyer.display_name}
+    <div className="space-y-2 rounded-xl border border-st-surface-container bg-st-surface-container-lowest p-st-space-md text-[14px]">
+      <p className="text-st-on-surface-variant">فاکتور <span dir="ltr">{inv.invoice_number}</span> · {inv.buyer.legal_name ?? inv.buyer.display_name}
         {inv.buyer.national_id ? ` · شناسهٔ ملی ${inv.buyer.national_id}` : ""}{inv.purchase_request_number ? ` · درخواست ${inv.purchase_request_number}` : ""}</p>
       <ul className="space-y-1">
         {inv.lines.map((l) => <li key={l.id} className="flex justify-between gap-2"><span className="min-w-0 truncate">{l.title_fa} × {n(l.quantity)}</span><span>{formatPrice(l.line_total_minor)}</span></li>)}
       </ul>
-      <dl className="grid grid-cols-2 gap-1 border-t border-neutral-200 pt-2 text-xs">
+      <dl className="grid grid-cols-2 gap-1 border-t border-st-surface-container pt-2 text-[13px]">
         <dt>جمع کالا</dt><dd className="text-left">{formatPrice(inv.subtotal_minor)}</dd>
         <dt>ارسال</dt><dd className="text-left">{formatPrice(inv.shipping_fee_minor)}</dd>
         <dt>مالیات بر ارزش افزوده</dt><dd className="text-left">{formatPrice(inv.tax_minor)}</dd>
         <dt className="font-black">مبلغ کل</dt><dd className="text-left font-black">{formatPrice(inv.total_minor)}</dd>
         {inv.credit_minor > 0 && <><dt>از اعتبار</dt><dd className="text-left">{formatPrice(inv.credit_minor)}</dd></>}
       </dl>
-      <button type="button" className={btnGhost} onClick={() => window.print()}>چاپ فاکتور</button>
+      <div className="flex flex-wrap gap-st-space-xs">
+        <button type="button" onClick={() => setPreview(true)} className="inline-flex items-center gap-1 rounded-lg bg-st-primary-container px-st-space-md py-1.5 font-semibold text-st-on-primary">
+          <span aria-hidden className="material-symbols-outlined text-[18px]">account_balance</span>پیش‌نمایش صورتحساب مودیان</button>
+      </div>
+      {preview && <MoadianPreview inv={inv} onClose={() => setPreview(false)} />}
       {cancellable && (
-        <div className="space-y-2 border-t border-neutral-200 pt-2">
+        <div className="space-y-2 border-t border-st-surface-container pt-2">
           <label className="block text-xs font-bold">دلیل لغو <span className="font-normal text-neutral-500">(اختیاری)</span>
             <input className={inputCls} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
           <button type="button" className={`${btnGhost} text-red-700`} disabled={busy} onClick={cancel}>{busy ? "در حال لغو…" : "لغو سفارش"}</button>
