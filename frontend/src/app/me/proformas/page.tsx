@@ -113,10 +113,10 @@ export default function ProformaListPage() {
     try { setPrintDocs(await fetchDetails("print")); } catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "آماده‌سازی چاپ ناموفق بود" }); } finally { setBusy(null); }
   };
 
-  if (!loading && !user) return <main dir="rtl" className={cn(st.shell, "mx-auto max-w-[1440px] px-st-margin py-st-space-xl")}><div className="rounded-xl bg-st-surface-container-lowest p-st-space-lg shadow-sm"><h1 className="font-bold text-st-primary">پیش‌فاکتورهای رسمی</h1><p className="mt-1 text-st-on-surface-variant">برای مشاهده پیش‌فاکتورها وارد شوید.</p><Link href="/login?next=/me/proformas" className="mt-st-space-md inline-flex rounded-full bg-st-primary-container px-st-space-lg py-st-space-sm text-st-on-primary">ورود</Link></div></main>;
+  if (!loading && !user) return <main dir="rtl" className={cn(st.shell, "mx-auto max-w-[1280px] px-st-margin py-st-space-xl")}><div className="rounded-xl bg-st-surface-container-lowest p-st-space-lg shadow-sm"><h1 className="font-bold text-st-primary">پیش‌فاکتورهای رسمی</h1><p className="mt-1 text-st-on-surface-variant">برای مشاهده پیش‌فاکتورها وارد شوید.</p><Link href="/login?next=/me/proformas" className="mt-st-space-md inline-flex rounded-full bg-st-primary-container px-st-space-lg py-st-space-sm text-st-on-primary">ورود</Link></div></main>;
 
   return (
-    <main dir="rtl" className={cn(st.shell, "mx-auto max-w-[1440px] bg-st-background px-st-space-md pb-28 pt-st-space-lg text-st-on-surface md:px-st-margin-lg md:pb-st-space-xl")}>
+    <main dir="rtl" className={cn(st.shell, "mx-auto max-w-[1280px] bg-st-background px-st-space-md pb-28 pt-st-space-lg text-st-on-surface md:px-8 md:pb-st-space-xl")}>
       <div className="flex flex-wrap items-center justify-between gap-st-space-sm text-[13px]">
         <nav aria-label="مسیر" className="flex items-center gap-1 text-st-on-surface-variant"><Link href="/account">حساب کاربری</Link><Icon name="chevron_left" className="text-[14px]" /><Link href="/org">اسناد و فاکتورهای رسمی</Link><Icon name="chevron_left" className="text-[14px]" /><span className="font-bold text-st-secondary">خروجی تجمیعی پیش‌فاکتورها</span></nav>
         <span className="inline-flex items-center gap-1 rounded-full bg-st-surface-container-low px-st-space-sm py-0.5 text-st-on-surface-variant"><span className="h-1.5 w-1.5 rounded-full bg-st-secondary" />ساخت فایل‌ها در مرورگر شما؛ بدون ارسال به سرور</span>

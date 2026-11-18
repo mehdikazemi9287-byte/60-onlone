@@ -249,7 +249,7 @@ const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className={cn(stRoot, "min-h-[60vh] text-base")}>
-      <div className="max-w-[1440px] mx-auto w-full px-st-gutter lg:px-st-margin-lg lg:py-st-space-xl">{children}</div>
+      <div className="max-w-[1280px] mx-auto w-full px-st-gutter lg:px-8 lg:py-st-space-xl">{children}</div>
     </div>
   );
 }

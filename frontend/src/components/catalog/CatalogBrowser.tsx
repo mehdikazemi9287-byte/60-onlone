@@ -116,7 +116,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
     <div className={cn(dark.root, "w-full bg-st-background text-st-on-surface")} dir="rtl">
       {/* ── Breadcrumb + meta bar (Stitch 23) ─────────────────────────── */}
       <section className="hidden w-full bg-st-surface-container-lowest shadow-sm md:block">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-st-space-md px-st-margin-md py-st-space-md xl:px-st-margin-lg">
+        <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-st-space-md px-st-margin-md py-st-space-md xl:px-8">
           <nav aria-label="مسیر راهنما" className="flex flex-wrap items-center gap-st-space-xs text-st-on-surface-variant">
             <Link className="flex items-center gap-1 transition-colors hover:text-st-primary" href="/"><Icon name="home" className="text-[18px]" /><span>خانه</span></Link>
             <Icon name="chevron_left" className="text-[16px] text-st-outline" />
@@ -203,7 +203,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
         loading={loading} total={total} sort={sort} onSort={(v) => change({ sort: v, page: "1" })} categories={catLinks} />
 
       {/* ── Desktop body: sidebar + catalog (Stitch 23) ───────────────── */}
-      <section className="mx-auto hidden w-full max-w-[1440px] px-st-margin-md py-st-space-xl md:block xl:px-st-margin-lg">
+      <section className="mx-auto hidden w-full max-w-[1280px] px-st-margin-md py-st-space-xl md:block xl:px-8">
         <div className="flex items-start gap-st-gutter-lg">
           <aside className="sticky top-32 z-10 flex w-72 shrink-0 flex-col gap-st-space-md lg:w-80" aria-label="فیلترها">
             <FilterSidebar facets={facets} attrFacets={attrFacets} state={filterState} change={change} loading={loading} total={total} categories={catLinks} />
@@ -279,7 +279,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
       </section>
 
       {!loading && packs.length > 0 && (
-        <section className="mx-auto w-full max-w-[1440px] px-st-margin pb-st-space-xl md:px-st-margin-md xl:px-st-margin-lg" aria-label="پک‌های مرتبط">
+        <section className="mx-auto w-full max-w-[1280px] px-st-margin pb-st-space-xl md:px-st-margin-md xl:px-8" aria-label="پک‌های مرتبط">
           <h2 className="mb-st-space-sm text-st-title-lg text-st-primary-container">پک‌هایی که این کالا را دارند</h2>
           <div className="grid gap-st-space-sm sm:grid-cols-2 lg:grid-cols-4">{packs.map((p) => (
             <Link key={p.slug} href={`/packs/${p.slug}`} className="flex flex-col gap-1 rounded-xl bg-st-surface-container-lowest p-st-space-md shadow-sm transition-shadow hover:shadow-md">

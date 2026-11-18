@@ -25,8 +25,8 @@ const HELP: [string, string][] = [
 function Col({ title, items }: { title: string; items: [string, string][] }) {
   return (
     <div className="flex flex-col gap-st-space-sm">
-      <span className="text-st-title-md font-bold text-st-primary">{title}</span>
-      {items.map(([label, href]) => <Link key={href + label} href={href} className="text-st-body-sm text-st-on-surface-variant hover:text-st-on-surface">{label}</Link>)}
+      <span className="flex items-center gap-2 text-st-title-md font-bold text-white"><span aria-hidden className="h-4 w-1 rounded-full bg-st-accent" />{title}</span>
+      {items.map(([label, href]) => <Link key={href + label} href={href} className="text-st-body-sm text-st-on-navy-muted transition-colors hover:text-white">{label}</Link>)}
     </div>
   );
 }
@@ -35,23 +35,23 @@ export function Footer() {
   const tree = useTaxonomy();
   const cats: [string, string][] = (tree ?? []).slice().sort((a, b) => b.product_count - a.product_count).slice(0, 5).map((n) => [n.name_fa, `/category/${n.slug}`]);
   return (
-    <footer className="hidden w-full border-t border-st-surface-container bg-st-surface-container-lowest py-st-space-xl md:block">
-      <div className="mx-auto w-full max-w-[1440px] px-st-gutter md:px-st-margin-md xl:px-st-margin-lg">
-        <div className="grid grid-cols-1 gap-st-gutter-lg border-b border-st-surface-container-low pb-st-space-xl md:grid-cols-4">
+    <footer className="mt-8 hidden w-full bg-st-navy-deep py-8 md:block">
+      <div className="mx-auto w-full max-w-[1280px] px-4 md:px-6 xl:px-8">
+        <div className="grid grid-cols-1 gap-8 border-b border-white/10 pb-8 md:grid-cols-4">
           <div className="flex flex-col gap-st-space-md">
             <Link href="/" className="flex items-center gap-st-space-sm">
-              <Image src="/brand/60online-mark.png" alt="" width={256} height={241} className="brand-mark h-8 w-auto" />
-              <span className="text-st-title-lg font-bold text-st-primary">شصت‌آنلاین</span>
+              <span className="rounded-lg bg-white p-1"><Image src="/brand/60online-mark.png" alt="" width={256} height={241} className="brand-mark h-7 w-auto" /></span>
+              <span className="text-st-title-lg font-bold text-white">شصت‌آنلاین</span>
             </Link>
-            <p className="text-st-body-sm leading-relaxed text-st-on-surface-variant">مارکت‌پلیس تأمین کالای سازمانی و خانگی؛ خرید برای سازمان، کارکنان و خانه، با پیش‌فاکتور رسمی و قیمت‌های تأییدشده.</p>
+            <p className="text-st-body-sm leading-relaxed text-st-on-navy-muted">مارکت‌پلیس تأمین کالای سازمانی و خانگی؛ خرید برای سازمان، کارکنان و خانه، با پیش‌فاکتور رسمی و قیمت‌های تأییدشده.</p>
           </div>
           <Col title="خدمات شرکتی و سازمانی" items={SERVICES} />
           <Col title="راهنما و شفافیت حقوقی" items={HELP} />
           {cats.length > 0 && <Col title="دسته‌بندی‌های پرطرفدار" items={cats} />}
         </div>
-        <div className="flex flex-col items-center justify-between gap-st-space-md pt-st-space-lg md:flex-row">
-          <span className="text-st-body-sm text-st-on-surface-variant">کلیه حقوق مادی و معنوی این پلتفرم متعلق به «شصت‌آنلاین» است.</span>
-          <span className="text-st-label-sm text-st-outline">© ۱۴۰۵ شصت‌آنلاین</span>
+        <div className="flex flex-col items-center justify-between gap-st-space-md pt-5 md:flex-row">
+          <span className="text-st-body-sm text-st-on-navy-muted">کلیه حقوق مادی و معنوی این پلتفرم متعلق به «شصت‌آنلاین» است.</span>
+          <span className="text-st-label-sm text-st-on-navy-muted">© ۱۴۰۵ شصت‌آنلاین</span>
         </div>
       </div>
     </footer>

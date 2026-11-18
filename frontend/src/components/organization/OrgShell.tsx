@@ -77,7 +77,7 @@ export default function OrgShell({ children }: { children: React.ReactNode }) {
   const role = org.org ? ROLE_FA[org.org.membership.role] ?? org.org.membership.role : null;
 
   return (
-    <div dir="rtl" className={cn(st.shell, "mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1440px] bg-st-background text-st-on-surface")}>
+    <div dir="rtl" className={cn(st.shell, "mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1280px] bg-st-background text-st-on-surface")}>
       {/* Sidebar (right, RTL) */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between overflow-y-auto border-l border-st-surface-container bg-st-surface-container-lowest px-st-space-md py-st-space-lg lg:flex">
         <div className="flex flex-col gap-st-space-lg">

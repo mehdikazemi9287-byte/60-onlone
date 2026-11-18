@@ -204,7 +204,7 @@ export default function CartPage() {
 
   return (
     <div className={cn(stRoot, "min-h-[60vh] pb-48 lg:pb-st-space-xl")}>
-      <div className="max-w-[1440px] mx-auto w-full lg:px-st-margin-lg lg:py-st-space-xl">
+      <div className="max-w-[1280px] mx-auto w-full lg:px-8 lg:py-st-space-xl">
         {/* Free-shipping banner — only when the server's cart says shipping is free. */}
         {cart && items.length > 0 && freeShipping && (
           <div className="px-st-gutter lg:px-0 pt-st-space-sm pb-st-space-xs lg:pb-st-space-md">

@@ -16,7 +16,7 @@ import { categorySymbol } from "./categoryIcon";
 import { DashThemeToggle, useDashTheme } from "@/components/ui/DashTheme";
 
 const Icon = ({ name, className = "" }: { name: string; className?: string }) => <span aria-hidden className={cn("material-symbols-outlined", className)}>{name}</span>;
-export const SITE_W = "mx-auto w-full max-w-[1440px] px-st-gutter md:px-st-margin-md xl:px-st-margin-lg";
+export const SITE_W = "mx-auto w-full max-w-[1280px] px-4 md:px-6 xl:px-8";
 
 function Logo({ compact = false }: { compact?: boolean }) {
   return (
@@ -35,8 +35,8 @@ function SearchBox({ id, mobile = false }: { id: string; mobile?: boolean }) {
     <form action="/search" method="get" role="search" className={cn("relative", mobile ? "w-full" : "max-w-xl flex-1")}>
       <label htmlFor={id} className="sr-only">جستجو</label>
       <div className={cn("flex items-center transition-colors",
-        mobile ? "rounded-full bg-st-surface-container-lowest px-st-space-md py-2.5 shadow-sm"
-          : "h-12 rounded-xl border border-st-surface-container bg-st-surface px-st-space-md focus-within:border-st-secondary")}>
+        mobile ? "rounded-full bg-st-surface-container-lowest px-4 py-2 shadow-st-card"
+          : "h-11 rounded-full border border-st-hairline-border bg-st-surface-container-low px-4 focus-within:border-st-secondary focus-within:bg-st-surface-container-lowest")}>
         <Icon name="search" className={cn("ml-st-space-sm text-st-outline", mobile && "ml-st-space-xs text-[22px]")} />
         <input id={id} type="search" name="q" autoComplete="off"
           placeholder={mobile ? "جستجو در میان کالاها، برندها و غرفه‌ها..." : "جستجوی کالا، برند، غرفه یا دسته‌بندی..."}
@@ -96,36 +96,39 @@ export function Header() {
   const badge = cartCount > 99 ? "۹۹+" : toPersianNum(cartCount);
 
   return <>
-    <header className="sticky top-0 z-50 border-b border-st-surface-container bg-st-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.03)] max-md:border-b-0 max-md:bg-st-surface/85 max-md:backdrop-blur-xl">
-      {/* Desktop (screen 30): two rows, h-28 */}
-      <div className={cn(SITE_W, "hidden h-28 flex-col justify-between py-st-space-sm md:flex")}>
-        <div className="flex h-14 items-center justify-between gap-st-gutter-lg">
-          <div className="flex flex-1 items-center gap-st-space-lg">
-            <button onClick={() => setMobileOpen(true)} className="flex h-11 w-11 items-center justify-center rounded-xl text-st-on-surface-variant hover:bg-st-surface-container-low lg:hidden" aria-label="باز کردن منوی اصلی" aria-expanded={mobileOpen}><Icon name="menu" /></button>
+    <header className="sticky top-0 z-50 bg-st-surface-container-lowest shadow-[0_6px_20px_-16px_rgb(17_45_70/0.5)] max-md:bg-st-surface-container-lowest/90 max-md:backdrop-blur-xl max-md:border-b max-md:border-st-hairline-border">
+      {/* Desktop (screen 30): white action row + navy navigation strip («ویترین سازمانی گرم») */}
+      <div className="hidden md:block">
+        <div className={cn(SITE_W, "flex h-16 items-center justify-between gap-6")}>
+          <div className="flex flex-1 items-center gap-5">
+            <button onClick={() => setMobileOpen(true)} className="flex h-10 w-10 items-center justify-center rounded-xl text-st-on-surface-variant hover:bg-st-surface-container-low lg:hidden" aria-label="باز کردن منوی اصلی" aria-expanded={mobileOpen}><Icon name="menu" /></button>
             <Logo />
             <SearchBox id="site-search" />
           </div>
-          <div className="flex items-center gap-st-space-md">
-            {org && <Link href="/organization" className="hidden items-center gap-st-space-xs rounded-full bg-st-surface-container-low px-st-space-md py-st-space-xs text-st-on-surface transition-colors hover:bg-st-surface-container xl:flex">
-              <Icon name="corporate_fare" className="text-[18px] text-st-secondary" /><span className="max-w-[12rem] truncate">{org.display_name}</span></Link>}
+          <div className="flex items-center gap-2.5">
+            {org && <Link href="/organization" className="hidden items-center gap-1.5 rounded-full bg-st-secondary-fixed px-3 py-1.5 text-st-label-lg text-st-on-secondary-fixed transition-colors hover:bg-st-secondary-container xl:flex">
+              <Icon name="corporate_fare" className="text-[18px]" /><span className="max-w-[12rem] truncate">{org.display_name}</span></Link>}
             <DashThemeToggle theme={theme} onToggle={toggleTheme} />
-            <Link href="/cart" aria-label="سبد خرید" className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-st-surface transition-colors hover:bg-st-surface-container-low">
-              <Icon name="shopping_bag" className="text-st-on-surface-variant" />
-              {cartCount > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-st-tertiary-container px-1 text-st-label-sm font-bold text-white">{badge}</span>}
+            <Link href="/cart" aria-label="سبد خرید" className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-st-surface-container-low transition-colors hover:bg-st-surface-container">
+              <Icon name="shopping_bag" className="text-st-primary" />
+              {cartCount > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-st-accent px-1 text-st-label-sm font-bold text-white ring-2 ring-st-surface-container-lowest">{badge}</span>}
             </Link>
-            <Link href={accountHref} className="flex items-center gap-st-space-sm rounded-full border border-st-surface-container bg-st-surface py-st-space-xs pl-st-space-xs pr-st-space-sm transition-colors hover:bg-st-surface-container-low">
-              <span className="max-w-[10rem] select-none truncate text-st-on-surface">{user ? user.full_name : "ورود / ثبت‌نام"}</span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-st-primary"><Icon name={user ? "person" : "login"} className="text-[18px] text-st-on-primary" /></span>
+            <Link href={accountHref} className="flex h-10 items-center gap-2 rounded-full bg-st-navy py-1 pl-1 pr-3.5 text-white transition-colors hover:bg-st-secondary">
+              <span className="max-w-[10rem] select-none truncate text-st-label-lg">{user ? user.full_name : "ورود / ثبت‌نام"}</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15"><Icon name={user ? "person" : "login"} className="text-[18px] text-white" /></span>
             </Link>
           </div>
         </div>
-        <nav aria-label="منوی اصلی" className="flex h-10 items-center justify-start gap-st-gutter-md border-t border-st-surface-container-low">
-          <MegaMenu />
-          {NAV.map(([label, href]) => (
-            <Link key={href} href={href} aria-current={active(href) ? "page" : undefined}
-              className={cn("whitespace-nowrap transition-colors hover:text-st-on-surface", active(href) ? "font-bold text-st-secondary" : "text-st-on-surface-variant", href === "/organization/supply-contracts" && "hidden xl:inline")}>{label}</Link>
-          ))}
-        </nav>
+        <div className="bg-st-navy">
+          <nav aria-label="منوی اصلی" className={cn(SITE_W, "flex h-11 items-center justify-start gap-5 text-st-label-lg")}>
+            <MegaMenu />
+            {NAV.map(([label, href]) => (
+              <Link key={href} href={href} aria-current={active(href) ? "page" : undefined}
+                className={cn("relative whitespace-nowrap py-3 transition-colors hover:text-white", active(href) ? "font-bold text-white after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full after:bg-st-accent" : "text-st-on-navy-muted", href === "/organization/supply-contracts" && "hidden xl:inline")}>{label}</Link>
+            ))}
+            <Link href="/pack-builder" className="mr-auto hidden items-center gap-1 whitespace-nowrap rounded-full bg-white/10 px-3 py-1 text-st-label-md text-white ring-1 ring-white/15 hover:bg-white/20 lg:flex"><Icon name="package_2" className="text-[16px]" />پک‌ساز</Link>
+          </nav>
+        </div>
       </div>
       {/* Mobile (screen 16): h-16 bar */}
       <div className="flex h-16 items-center justify-between px-st-gutter md:hidden">
@@ -134,7 +137,7 @@ export function Header() {
           <DashThemeToggle theme={theme} onToggle={toggleTheme} size="sm" />
           <Link href="/notifications" aria-label="اعلان‌ها" className="flex min-h-[44px] min-w-[44px] items-center justify-center text-st-on-surface-variant transition-colors hover:text-st-primary"><Icon name="notifications" className="text-[22px]" /></Link>
           <button onClick={() => setMobileOpen(true)} aria-label="باز کردن منوی اصلی" aria-expanded={mobileOpen} className="flex min-h-[44px] min-w-[44px] items-center justify-center">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-st-primary-container text-white"><Icon name={user ? "person" : "menu"} className="text-[18px]" /></span>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-st-navy text-white"><Icon name={user ? "person" : "menu"} className="text-[18px]" /></span>
           </button>
         </div>
       </div>

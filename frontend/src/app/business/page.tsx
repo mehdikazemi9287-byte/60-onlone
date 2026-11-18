@@ -39,7 +39,7 @@ export default function BusinessPage() {
     <main dir="rtl" className={`${st.shell} bg-st-background text-st-on-surface`}>
       {/* Hero */}
       <section className="border-b border-st-surface-container bg-st-surface-container-lowest">
-        <div className="mx-auto max-w-[1440px] px-st-space-md py-st-space-lg md:px-st-margin-lg">
+        <div className="mx-auto max-w-[1280px] px-st-space-md py-st-space-lg md:px-8">
           <nav aria-label="مسیر" className="flex items-center gap-1 text-[13px] text-st-outline"><Link href="/">۶۰ آنلاین</Link><Icon name="chevron_left" className="text-[14px]" /><Link href="/org">خرید سازمانی</Link><Icon name="chevron_left" className="text-[14px]" /><span className="font-bold text-st-primary">سفارش عمده و حساب سازمانی</span></nav>
           <div className="mt-st-space-md flex flex-col justify-between gap-st-space-lg lg:flex-row lg:items-end">
             <div className="max-w-3xl">
@@ -63,7 +63,7 @@ export default function BusinessPage() {
       </section>
 
       {/* Feature strip */}
-      <section className="mx-auto grid max-w-[1440px] grid-cols-2 gap-st-space-sm px-st-space-md py-st-space-lg md:grid-cols-3 md:px-st-margin-lg lg:grid-cols-6">
+      <section className="mx-auto grid max-w-[1280px] grid-cols-2 gap-st-space-sm px-st-space-md py-st-space-lg md:grid-cols-3 md:px-8 lg:grid-cols-6">
         {FEATURES.map(([i, t, d]) => (
           <div key={t} className="flex flex-col items-center gap-st-space-xs rounded-xl bg-st-surface-container-lowest p-st-space-md text-center shadow-sm">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-st-secondary-fixed text-st-on-secondary-fixed"><Icon name={i} className="text-[22px]" /></span>
@@ -71,7 +71,7 @@ export default function BusinessPage() {
           </div>))}
       </section>
 
-      <div className="mx-auto grid max-w-[1440px] gap-st-space-lg px-st-space-md pb-st-space-xl md:px-st-margin-lg lg:grid-cols-[1fr_380px]">
+      <div className="mx-auto grid max-w-[1280px] gap-st-space-lg px-st-space-md pb-st-space-xl md:px-8 lg:grid-cols-[1fr_380px]">
         {/* Payment methods */}
         <section aria-labelledby="pay-h" className="flex flex-col gap-st-space-md">
           <div><h2 id="pay-h" className="flex items-center gap-st-space-xs text-[20px] font-bold text-st-primary"><Icon name="payments" className="text-[22px] text-st-secondary" />روش‌های پرداخت و تسهیلات تجاری تدارکات</h2>

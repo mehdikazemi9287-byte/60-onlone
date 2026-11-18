@@ -149,7 +149,7 @@ export default function ProductDetail({ initial }: { initial: ProductPage }) {
 
   return (
     <div className={cn(dark.root, "min-h-screen w-full bg-st-background pb-36 text-st-on-surface lg:pb-0")} dir="rtl">
-      <div className="mx-auto w-full max-w-[1440px] lg:px-st-margin-md lg:py-st-space-lg xl:px-st-margin-lg">
+      <div className="mx-auto w-full max-w-[1280px] lg:px-st-margin-md lg:py-st-space-lg xl:px-8">
         <nav aria-label="مسیر راهنما" className="mb-st-space-lg hidden flex-wrap items-center gap-st-space-xs text-st-on-surface-variant lg:flex">
           <Link href="/" className="transition-colors hover:text-st-primary">خانه</Link>
           {d.breadcrumbs.map((b) => <span key={b.slug} className="flex items-center gap-st-space-xs">
