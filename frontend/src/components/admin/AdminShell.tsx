@@ -44,7 +44,7 @@ export function AdminShell({children}:{children:React.ReactNode}) {
     <div className="flex items-center justify-between gap-st-space-sm px-st-space-xs">
      <Link href="/admin" onClick={go} className="flex items-center gap-st-space-sm">
       <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-st-surface-container-lowest"><NextImage src="/brand/60online-mark.png" width={36} height={34} alt="" unoptimized/></span>
-      <span className="flex flex-col"><span className="font-bold text-st-primary">پیشخوان مدیریت ۶۰</span><span className="text-st-on-surface-variant">مدیریت کسب‌وکار و تدارکات</span></span>
+      <span className="flex flex-col"><span className="font-bold text-st-primary">پیشخوان مدیریت ۶۰</span><span className="text-st-on-surface-variant">مدیریت کسب‌وکار</span></span>
      </Link>
      <button onClick={()=>setOpen(false)} aria-label="بستن منو" className="flex h-9 w-9 items-center justify-center rounded-xl bg-st-surface text-st-on-surface-variant lg:hidden"><Icon name="close" className="text-[20px]"/></button>
     </div>
