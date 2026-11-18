@@ -77,6 +77,13 @@ def admin_return_refund_split(return_id: int):
 @require_auth("admin")
 def admin_return_action(return_id: int, action: str):
     data = _body()
+    if action == "refund" and data.get("manual_override") is not True:
+        from app.services import gateway_refund_service as gw
+        with get_db().read_transaction() as conn:
+            via = gw.gateway_for_return(conn, return_id)
+        if via:  # VandaPay-paid order: refund through the gateway (HTTP call outside any DB transaction)
+            status, view = gw.refund_return(get_db(), actor=current_user()["id"], return_id=return_id, data=data)
+            return jsonify({"return": view}), status
     with get_db().write_transaction() as conn:
         return _idempotent(conn, lambda: jsonify({"return": ops.admin_transition(conn, actor=current_user()["id"], return_id=return_id,
                                                                                   action=action, data=data)}))

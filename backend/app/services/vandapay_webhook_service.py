@@ -7,6 +7,11 @@ Order of checks — nothing changes before all of them pass:
      stored when the redirect was opened; event data (status, amount, metadata) is never trusted.
   4. The intent is re-read from the VandaPay API; then the same idempotent ``complete_redirect_payment``
      as the browser return runs (it re-fetches and checks status/amount/mode/currency again).
+  4b. ``refund.*`` events settle the matching return request (gateway_refund_service.apply_refund_event):
+     ``refund.succeeded`` is confirmed against the intent's ``refunded_amount`` before the return is marked
+     refunded; ``refund.failed`` hands the return back to finance. Status-guarded → idempotent.
+  4c. Intents that are not retail checkouts may be an organisation order's cash share
+     (org_cash_vandapay_service.settle_by_intent).
   5. Transient problems (API unreachable, a "succeeded" event the API does not confirm yet) → 503
      without recording the event, so VandaPay retries with back-off.
 
@@ -84,11 +89,38 @@ def handle(db: Database, *, raw_body: bytes, signature_header: str | None, expon
         return 200, {"received": True, "outcome": "ignored"}
     summary["intent_id"] = vp_intent_id
 
+    if etype.startswith("refund."):
+        # Refund of a VandaPay-paid order: settle the matching return request (status-guarded, idempotent);
+        # refunds made in the VandaPay panel without a return here are recorded for finance (audit) only.
+        from app.services import gateway_refund_service
+        data = event.get("data") if isinstance(event.get("data"), dict) else {}
+        try:
+            outcome = gateway_refund_service.apply_refund_event(db, provider=provider, event_type=etype, data=data,
+                                                                 vp_intent_id=vp_intent_id)
+        except GatewayError:
+            return 503, {"error": {"code": "vandapay_unreachable"}}
+        if outcome == "refund_not_confirmed":  # the API does not show the refund yet → VandaPay retries
+            return 503, {"error": {"code": "not_final_yet"}}
+        _record(db, event_id, {**summary, "result": outcome})
+        return 200, {"received": True, "outcome": outcome}
+
     with db.read_transaction() as conn:
         local = conn.execute(
             "SELECT id FROM payment_intents WHERE provider = ? AND provider_ref = ?", (NAME, vp_intent_id),
         ).fetchone()
-    if local is None:  # not one of ours (another shop on the same merchant account, or never opened here)
+    if local is None:
+        # Organisation order cash share paid through VandaPay (org_cash_vandapay_service)?
+        from app.services import org_cash_vandapay_service as org_cash
+        try:
+            org_outcome = org_cash.settle_by_intent(db, provider=provider, intent_id=vp_intent_id)
+        except GatewayError:
+            return 503, {"error": {"code": "vandapay_unreachable"}}
+        if org_outcome is not None:
+            if org_outcome == "pending" and etype == "payment_intent.succeeded":
+                return 503, {"error": {"code": "not_final_yet"}}
+            _record(db, event_id, {**summary, "result": f"org_cash:{org_outcome}"})
+            return 200, {"received": True, "outcome": f"org_cash:{org_outcome}"}
+        # not one of ours (another shop on the same merchant account, or never opened here)
         _record(db, event_id, {**summary, "result": "unknown_intent"})
         return 200, {"received": True, "outcome": "unknown_intent"}
 
@@ -106,12 +138,6 @@ def handle(db: Database, *, raw_body: bytes, signature_header: str | None, expon
         if etype == "payment_intent.succeeded":
             return 503, {"error": {"code": "not_final_yet"}}
         return 200, {"received": True, "outcome": "pending"}
-    if etype.startswith("refund."):
-        # Refunds made in the VandaPay panel are logged only; order/ledger adjustment is a manual step.
-        log.warning("vandapay refund event %s for intent %s (status %s): manual review", event_id, vp_intent_id, status)
-        _record(db, event_id, {**summary, "result": "refund_logged"})
-        return 200, {"received": True, "outcome": "refund_logged"}
-
     outcome = checkout_service.complete_redirect_payment(
         db, provider_name=NAME, callback={"invoice_id": str(local["id"])}, exponent=exponent, ip_address=ip_address,
     )

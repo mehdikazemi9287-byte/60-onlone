@@ -110,7 +110,11 @@ def _new_order_number(conn) -> str:
 
 
 def _tax(conn, subtotal_minor: int, organization_id: int | None) -> tuple[int, int]:
-    """(tax_minor, rate_bps) on the merchandise subtotal — same rule as quote_service (shipping exempt)."""
+    """(tax_minor, rate_bps) on the merchandise subtotal — same rule as quote_service (shipping exempt).
+
+    TODO(decision-11): VAT on shipping is an open owner/accountant decision (RFQ/PO charges it); pinned by
+    tests/test_vat_shipping_pin.py and tests/test_vandapay_federated.py.
+    """
     from app.services.tax_service import calculate_line_tax_with_conn
     if subtotal_minor <= 0:
         return 0, 0

@@ -68,6 +68,23 @@ log = logging.getLogger("60online.checkout")
 ENDPOINT = "POST /api/v1/checkout"
 REQUIRED_ADDRESS_FIELDS = ("recipient_name", "recipient_phone", "province", "city", "line1")
 
+# ── Funding-source exclusivity (owner decision 2026-11-18) ───────────────────
+# docs/decisions/2026-11-18-federated-credit-vandapay.md. Every credit program has exactly ONE owning
+# ledger. A checkout is funded EITHER by 60Online's own welfare wallet / organisation credit (+ card for the
+# rest, through the card gateway) OR by VandaPay, which then receives the WHOLE order total and applies
+# whatever organisation credit, gift card, club credit or card the customer chooses on its own page.
+# 60Online never deducts its internal welfare/credit and then also lets VandaPay apply org credit to the
+# same order (that would let one employer budget be spent in two ledgers).
+FUNDING_INTERNAL = "internal"
+FUNDING_VANDAPAY = "vandapay"
+# Providers whose hosted page may apply organisation credit themselves: internal funding is switched off.
+EXTERNAL_FUNDING_PROVIDERS = frozenset({"vandapay"})
+
+
+def funding_source_for(provider_name: str) -> str:
+    return FUNDING_VANDAPAY if provider_name in EXTERNAL_FUNDING_PROVIDERS else FUNDING_INTERNAL
+
+
 # 60Coin purchase-earning rate (see backend/migrations/0025_loyalty_foundation.sql).
 # Approved rule: 1,000 Toman of eligible merchandise value = 1 60Coin.
 # Amounts in this file are IRR minor units (currency_exponent=0, 1 Toman = 10 Rial),
@@ -136,6 +153,7 @@ def _store_idempotent_result(
 def _begin_attempt(
     db: Database, *, user_id: int, cleaned_address: dict, idempotency_key: str,
     payload_hash: str, exponent: int, ip_address: str | None, redeem_coins: int = 0, use_welfare: bool = False,
+    funding_source: str = FUNDING_INTERNAL,
 ) -> tuple[int, dict] | tuple[None, tuple[int, dict]]:
     """Reserve everything and commit. Returns (intent_id, quote) or a replayed response."""
     with db.write_transaction() as conn:
@@ -245,11 +263,21 @@ def _begin_attempt(
         fulfillment_service.reserve_supplier_stock_for_plan(conn, plan=fulfillment_plan)
         # ── End fulfillment-first block ────────────────────────────────────────
 
+        # ── Funding source: internal XOR VandaPay (see FUNDING_* above) ──────────
+        quote["funding_source"] = funding_source
+        if funding_source == FUNDING_VANDAPAY:
+            # VandaPay gets the whole total; no internal welfare and no internal org credit for this order.
+            # (use_welfare=True with VandaPay is refused earlier, in checkout(), with funding_source_conflict.)
+            total = int(quote["cart"]["total_minor"])
+            quote["credit_to_use_minor"] = 0
+            quote["cash_due_minor"] = total
+            quote["lines"] = lines
+
         # ── Welfare wallet (کیف پول رفاهی) ─────────────────────────────────────
         # Applied first (restricted, expiring money), then credit, then card. The welfare share stays inside
         # cash_minor (total = credit + cash) but is owed by the organization: card = cash - welfare.
         welfare_minor, welfare_membership = 0, None
-        if use_welfare:
+        if use_welfare and funding_source == FUNDING_INTERNAL:
             welfare_membership, allowed = welfare_wallet_service.best_membership(conn, user_id, lines)
             total = int(quote["cart"]["total_minor"])
             welfare_minor = min(allowed, total)
@@ -308,7 +336,8 @@ def _begin_attempt(
             metadata={"total_minor": quote["cart"]["total_minor"],
                       "credit_minor": quote["credit_to_use_minor"],
                       "cash_minor": quote["cash_due_minor"],
-                      "organization_id": (quote.get("organization") or {}).get("id")},
+                      "organization_id": (quote.get("organization") or {}).get("id"),
+                      "funding_source": funding_source},
             ip_address=ip_address,
         )
         return intent_id, quote
@@ -647,6 +676,15 @@ def checkout(
     if not isinstance(redeem_coins, int) or isinstance(redeem_coins, bool) or redeem_coins < 0:
         raise ValidationError("redeem_coins باید عدد صحیح نامنفی باشد")
 
+    funding_source = funding_source_for(payment_provider_name)
+    if funding_source == FUNDING_VANDAPAY and use_welfare:
+        raise ValidationError(
+            "کیف پول رفاهی شصت‌آنلاین و پرداخت با ونداپی را نمی‌توان در یک سفارش با هم استفاده کرد؛ "
+            "یکی را انتخاب کنید. اعتبار سازمانی در ونداپی، در صفحهٔ ونداپی اعمال می‌شود.",
+            code="funding_source_conflict",
+            details={"funding_source": funding_source, "use_welfare": True},
+        )
+
     cleaned_address = validate_address(address)
     payload_hash = _request_hash({
         "address": cleaned_address, "method": payment_method, "redeem_coins": redeem_coins,
@@ -672,7 +710,7 @@ def checkout(
     intent_id, quote_or_replay = _begin_attempt(
         db, user_id=user_id, cleaned_address=cleaned_address, idempotency_key=idempotency_key,
         payload_hash=payload_hash, exponent=exponent, ip_address=ip_address,
-        redeem_coins=redeem_coins, use_welfare=bool(use_welfare),
+        redeem_coins=redeem_coins, use_welfare=bool(use_welfare), funding_source=funding_source,
     )
     if intent_id is None:
         return quote_or_replay  # replayed a completed attempt
@@ -771,7 +809,18 @@ def _start_redirect(
     cash_minor = int(quote.get("card_due_minor", quote["cash_due_minor"]))  # card share only
     failure: ApiError | None = None
     instruction = None
-    if not callback_url:
+    metadata = {"payment_intent_id": intent_id, "credit_minor": quote["credit_to_use_minor"]}
+    if quote.get("funding_source") == FUNDING_VANDAPAY:
+        # Exclusive funding: the gateway is asked for the whole order, never a remainder after internal credit.
+        if (int(quote["credit_to_use_minor"]) != 0 or int(quote.get("welfare_minor") or 0) != 0
+                or cash_minor != int(quote["cart"]["total_minor"])):
+            failure = PaymentFailedError("ترکیب منبع پرداخت نامعتبر است؛ پولی کسر نشد.",
+                                         code="funding_source_conflict")
+        else:
+            metadata["vandapay"] = _vandapay_context(db, user_id=user_id, quote=quote)
+    if failure is not None:
+        pass
+    elif not callback_url:
         failure = PaymentFailedError("نشانی بازگشت از درگاه تنظیم نشده است", code="payment_gateway_unavailable")
     else:
         try:
@@ -779,8 +828,7 @@ def _start_redirect(
                 PaymentRequest(
                     amount_minor=cash_minor, currency=quote["currency"],
                     order_reference=f"intent:{intent_id}", idempotency_key=f"{user_id}:{idempotency_key}",
-                    customer_email=user_email, method=payment_method,
-                    metadata={"payment_intent_id": intent_id, "credit_minor": quote["credit_to_use_minor"]},
+                    customer_email=user_email, method=payment_method, metadata=metadata,
                 ),
                 invoice_id=intent_id, callback_url=callback_url,
             )
@@ -823,6 +871,22 @@ def _start_redirect(
             ip_address=ip_address,
         )
     return 202, body
+
+
+def _vandapay_context(db: Database, *, user_id: int, quote: dict) -> dict:
+    """What the VandaPay adapter needs to build ``items`` — all from the server-side quote, never the client."""
+    with db.read_transaction() as conn:
+        row = conn.execute("SELECT phone_verified FROM users WHERE id = ?", (user_id,)).fetchone()
+    return {
+        "lines": [dict(l) for l in quote.get("lines") or []],
+        "subtotal_minor": int(quote["cart"]["subtotal_minor"]),
+        "shipping_minor": int(quote["cart"]["shipping_fee_minor"]),
+        "tax_minor": int(quote.get("tax_minor") or 0),
+        "tax_rate_bps": int(quote.get("tax_rate_bps") or 0),
+        # Retail cart prices are always the public tier (cart_service.unit_price, channel="retail").
+        "price_tier": "public",
+        "customer_phone": (row["phone_verified"] if row is not None and "phone_verified" in row.keys() else None),
+    }
 
 
 def complete_redirect_payment(

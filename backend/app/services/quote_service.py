@@ -6,6 +6,11 @@ address and an idempotency key. `checkout_service` recomputes this same quote
 inside the checkout transaction, so a quote that went stale between display and
 submission cannot be exploited.
 
+TODO(decision-11, VAT on shipping — owner/accountant decision pending, do NOT change silently):
+    this retail path treats shipping as VAT-exempt while rfq_service charges VAT on RFQ/PO shipping.
+    Current behaviour is pinned by tests/test_vat_shipping_pin.py; see
+    docs/decisions/2026-11-18-federated-credit-vandapay.md §VAT.
+
 Money equation (v6):
     taxable_base_minor = subtotal_minor   (shipping is VAT-exempt)
     tax_minor          = taxable_base_minor * rate_bps // 10000  (integer floor)

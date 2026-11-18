@@ -507,6 +507,8 @@ def submit_supplier_quote(
     # Aggregate VAT — integer floor division only, never float arithmetic
     items_vat = sum(pi["vat_amount_minor"] for pi in prepared_items)
     # Shipping VAT uses the same rate as items (one quote = one VAT rate)
+    # TODO(decision-11): retail checkout treats shipping as VAT-exempt; this RFQ/PO path charges it.
+    # Owner/accountant decision pending — pinned by tests/test_vat_shipping_pin.py; do not change silently.
     shipping_vat = (shipping_cost_minor * vat_rate_bps) // 10_000
     total_vat = items_vat + shipping_vat
     grand_total = items_total + shipping_cost_minor + total_vat
