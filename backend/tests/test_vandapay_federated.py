@@ -491,54 +491,82 @@ class OrgCashVandaPayTest(Phase3Base):
 
 # ─────────────────────────────────────────────────────── issuer connector stub ──
 class IssuerStubTest(AppTestCase):
+    """Wire conformance with VandaPay Issuer Connector v1 (ISSUER-CONNECTOR.md); synthetic values only."""
     SECRET = "issuer_secret_synthetic_0123456789"
+    ENV = {"FEDERATED_ISSUER_ENABLED": "1", "FEDERATED_ISSUER_SECRET": SECRET, "FEDERATED_ISSUER_ID": "fis_test"}
+    BASE = {"protocol": "1", "mode": "test"}
+    ELIG = {**BASE, "request_ref": "fel_1", "phone": "+989120000000", "amount": 12_000_000, "currency": "IRR",
+            "merchant": {"id": "mer_1", "name": "شصت‌آنلاین"}, "category": "goods.livelihood",
+            "consent": {"consent_ref": "fcn_1", "scope": "checkout"}}
+    AUTH = {**BASE, "authorization_ref": "fau_1", "phone": "+989120000000", "amount": 10_000_000, "currency": "IRR",
+            "merchant": {"id": "mer_1", "name": "x"}, "category": "goods.livelihood", "intent_id": "pi_1",
+            "order_ref": "ORD-1", "consent": {"consent_ref": "fcn_1", "scope": "checkout"}, "expires_in_seconds": 900}
 
-    def _post(self, path, body, *, secret=None, key="idem-1", env=None):
+    def _post(self, op, body, *, secret=None, key="fau_1", env=None, issuer_id="fis_test"):
         raw = json.dumps(body).encode("utf-8")
         ts = int(time.time())
         headers = {"Content-Type": "application/json",
                    "VandaPay-Signature": f"t={ts},v1={compute_signature(secret or self.SECRET, ts, raw)}"}
         if key:
             headers["Idempotency-Key"] = key
-        environ = {"FEDERATED_ISSUER_ENABLED": "1", "FEDERATED_ISSUER_SECRET": self.SECRET} if env is None else env
-        with mock.patch.dict(os.environ, environ, clear=False):
-            return self.client.post(f"/api/v1/federation/issuer{path}", data=raw, headers=headers)
+        if issuer_id:
+            headers["VandaPay-Issuer"] = issuer_id
+        with mock.patch.dict(os.environ, self.ENV if env is None else env, clear=False):
+            return self.client.post(f"/api/v1/federation/issuer/v1/{op}", data=raw, headers=headers)
 
-    AUTH = {"authorization_ref": "lg_1", "customer_phone": "09120000000", "program_ref": "prg_60o_1",
-            "amount": 1000, "currency": "IRR", "order_ref": "ORD-1", "merchant_ref": "mer_1"}
+    def _signed_ok(self, r):
+        from app.adapters.payment.vandapay import verify_signature
+        self.assertEqual(r.status_code, 200, r.get_data(as_text=True))
+        verify_signature(r.get_data(), r.headers.get("VandaPay-Issuer-Signature"), self.SECRET)  # raises if bad
+        return json.loads(r.get_data())
 
     def test_off_by_default(self):
         with mock.patch.dict(os.environ, {"FEDERATED_ISSUER_ENABLED": "0"}):
-            r = self.client.post("/api/v1/federation/issuer/authorizations", json=self.AUTH)
+            r = self.client.post("/api/v1/federation/issuer/v1/authorize", json=self.AUTH)
         self.assertEqual(r.status_code, 404)
         self.assertIsNone(issuer.config({"FEDERATED_ISSUER_ENABLED": "1", "FEDERATED_ISSUER_SECRET": "short"}))
 
-    def test_signature_required(self):
-        self.assertEqual(self._post("/authorizations", self.AUTH, secret="wrong_secret_wrong_secret").status_code, 401)
+    def test_bad_signature_or_unknown_issuer_is_401(self):
+        self.assertEqual(self._post("authorize", self.AUTH, secret="wrong_secret_wrong_secret").status_code, 401)
+        self.assertEqual(self._post("authorize", self.AUTH, issuer_id="fis_other").status_code, 401)
 
-    def test_valid_requests_are_not_implemented_and_move_nothing(self):
-        for path, body in (("/eligibility", {"customer_phone": "09120000000", "program_ref": "prg_1", "amount": 5}),
-                           ("/authorizations", self.AUTH),
-                           ("/authorizations/fa_1/capture", {"amount": 1000}),
-                           ("/authorizations/fa_1/void", {}),
-                           ("/authorizations/fa_1/refunds", {"amount": 10, "refund_ref": "re_1"})):
-            r = self._post(path, body)
-            self.assertEqual(r.status_code, 501, (path, r.get_json()))
-            self.assertEqual(r.get_json()["error"]["code"], "issuer_not_implemented")
+    def test_truthful_no_credit_answers_are_signed(self):
+        self.assertEqual(self._signed_ok(self._post("eligibility", self.ELIG, key=None)),
+                         {"status": "ok", "eligible": False, "max_amount": 0, "label_fa": "اعتبار سازمانی شصت‌آنلاین",
+                          "reasons": [{"code": "no_credit_account"}]})
+        a = self._signed_ok(self._post("authorize", self.AUTH))
+        self.assertEqual((a["status"], a["decline_code"]), ("declined", "no_credit_account"))
+        c = self._signed_ok(self._post("capture", {**self.BASE, "authorization_ref": "fau_1",
+                                                   "capture_ref": "fau_1:capture", "amount": 10_000_000}))
+        self.assertEqual(c["status"], "declined")
+        v = self._signed_ok(self._post("void", {**self.BASE, "authorization_ref": "fau_1", "reason": "confirm_refused"}))
+        self.assertEqual(v["status"], "not_found")  # nothing was held → VandaPay treats it as released
+        s = self._signed_ok(self._post("status", {**self.BASE, "authorization_ref": "fau_1"}, key=None))
+        self.assertEqual(s["status"], "not_found")
+        f = self._signed_ok(self._post("refund", {**self.BASE, "authorization_ref": "fau_1", "refund_ref": "rl_1",
+                                                  "amount": 1_000, "reason": None}))
+        self.assertEqual((f["status"], f["decline_code"]), ("declined", "refund_exceeds"))
+        for op, ans in (("eligibility", "ok"), ("authorize", a["status"]), ("capture", c["status"]),
+                        ("void", v["status"]), ("status", s["status"]), ("refund", f["status"])):
+            self.assertIn(ans, issuer.STATUSES[op])
 
     def test_validation(self):
-        self.assertEqual(self._post("/authorizations", dict(self.AUTH, amount=0)).status_code, 422)
-        self.assertEqual(self._post("/authorizations", dict(self.AUTH, currency="USD")).status_code, 422)
-        self.assertEqual(self._post("/authorizations", dict(self.AUTH, customer_phone="0912")).status_code, 422)
-        bad_items = dict(self.AUTH, items=[{"amount": 999, "category": "goods"}])
-        self.assertEqual(self._post("/authorizations", bad_items).get_json()["error"]["code"], "items_total_mismatch")
-        self.assertEqual(self._post("/authorizations", self.AUTH, key=None).status_code, 400)
+        self.assertEqual(self._post("authorize", dict(self.AUTH, amount=0)).status_code, 422)
+        self.assertEqual(self._post("authorize", dict(self.AUTH, currency="USD")).status_code, 422)
+        self.assertEqual(self._post("authorize", dict(self.AUTH, phone="09120000000")).status_code, 422)
+        self.assertEqual(self._post("authorize", {k: v for k, v in self.AUTH.items() if k != "consent"})
+                         .get_json()["error"]["code"], "consent_required")
+        self.assertEqual(self._post("authorize", dict(self.AUTH, protocol="2")).status_code, 422)
+        self.assertEqual(self._post("authorize", self.AUTH, key=None).status_code, 400)
+        self.assertEqual(self._post("transfer", self.AUTH).status_code, 404)
+        self.assertEqual(self._post("authorize", dict(self.AUTH, mode="live")).status_code, 403)  # live not enabled
 
     def test_outbound_event_is_signed_with_the_shared_scheme(self):
         from app.adapters.payment.vandapay import verify_signature
-        raw, headers = issuer.build_outbound_event("issuer.authorization.expired", {"authorization_id": "fa_1"},
-                                                   secret=self.SECRET, now=1_700_000_000, event_id="evt_x")
-        verify_signature(raw, headers["SixtyOnline-Signature"], self.SECRET, now=1_700_000_010)
+        raw, headers = issuer.build_outbound_event("authorization.expired", {"authorization_ref": "fau_1"},
+                                                   secret=self.SECRET, now=1_700_000_000, event_id="evt-1")
+        verify_signature(raw, headers["VandaPay-Issuer-Signature"], self.SECRET, now=1_700_000_010)
+        self.assertEqual(json.loads(raw)["created_at"], "2023-11-14T22:13:20Z")
         with self.assertRaises(ValueError):
             issuer.build_outbound_event("issuer.anything", {}, secret=self.SECRET)
 

@@ -28,7 +28,7 @@
 - تا وقتی رابط صادرکننده روشن نشده، برنامه‌های داخلی فقط در checkout «داخلی» خرج می‌شوند.
 - وقتی روشن شد: خرید با ونداپی همچنان **هیچ کسر داخلی در checkout ندارد**؛ خرج اعتبار شصت‌آنلاین فقط از مسیر رابط (که خودش دفتر شصت‌آنلاین را به‌روز می‌کند) انجام می‌شود. پس قاعدهٔ «یک دفتر» در هر دو حالت برقرار است.
 - برعکس: برنامه‌ای که مالکش ونداپی است (purse ونداپی) در شصت‌آنلاین کپی نمی‌شود و فقط در صفحهٔ ونداپی خرج می‌شود.
-- رابط صادرکننده فعلاً **استاب مستند و خاموش** است: `backend/app/services/federated_issuer_service.py` و `docs/integrations/federated-issuer-connector.md`. قرارداد آن پیشنهاد حداقلی شصت‌آنلاین است و **باید با سند ونداپی `docs/integration-plans/federated-credit/ISSUER-CONNECTOR.md` هم‌تراز شود** (این سند هنگام انجام کار در دسترس نبود).
+- رابط صادرکننده فعلاً **استاب خاموش و هم‌تراز با پروتکل ونداپی (Issuer Connector v1)** است: `backend/app/services/federated_issuer_service.py` و `docs/integrations/federated-issuer-connector.md`. سطح سیم مطابق سند ونداپی `docs/integration-plans/federated-credit/ISSUER-CONNECTOR.md` است. چون هنوز برنامهٔ فدرالی تعریف نشده، رابط برای همه «بدون اعتبار» پاسخ می‌دهد و چیزی را جابه‌جا نمی‌کند.
 
 ### ۳. VAT حمل — تصمیم باز («تصمیم ۱۱»)
 - سبد خرده‌فروشی و سفارش سازمانی: حمل **معاف** (`quote_service.py`، `org_order_service._tax`).
