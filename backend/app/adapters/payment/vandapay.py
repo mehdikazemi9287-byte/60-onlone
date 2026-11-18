@@ -108,8 +108,9 @@ def _spread(total: int, weights: list[int]) -> list[int]:
 def line_vat(bases: list[int], *, tax_minor: int, rate_bps: int) -> list[int]:
     """Per-line VAT that adds up to the order's ``tax_minor`` exactly.
 
-    Basis-points rule: ``vat_i = base_i * rate_bps // 10000`` and the remainder (order VAT minus the sum of
-    the per-line floors, always 0 <= r < number of lines) goes on the largest line. When the order VAT is
+    Basis-points rule: ``vat_i = base_i * rate_bps // 10000``. If those floors already add up to the order
+    VAT they are used as they are; otherwise, when the order VAT is the rule applied to the whole base, the
+    remainder (always 0 < r < number of lines) goes on the largest line. When the order VAT is
     not the bps rule applied to the whole base (organisation exemption, a 0 rate, a pre-computed snapshot
     from another rule) the order's own ``tax_minor`` is spread in proportion instead — the invoice total
     is what was charged and must never be re-derived here.
@@ -120,7 +121,9 @@ def line_vat(bases: list[int], *, tax_minor: int, rate_bps: int) -> list[int]:
         raise GatewayError("negative VAT cannot be sent to VandaPay")
     vat = [b * rate_bps // 10_000 for b in bases]
     remainder = tax_minor - sum(vat)
-    if 0 <= remainder < len(bases) and tax_minor == sum(bases) * rate_bps // 10_000:
+    if remainder == 0:
+        return vat  # the order VAT IS the per-line rule (e.g. RFQ/PO: per item + shipping, each floored)
+    if 0 < remainder < len(bases) and tax_minor == sum(bases) * rate_bps // 10_000:
         vat[_largest_index(bases)] += remainder
         return vat
     return _spread(tax_minor, bases)
@@ -135,11 +138,11 @@ def build_items(*, lines: list[dict], subtotal_minor: int, shipping_minor: int, 
     ``lines`` are the order lines at their (pre-discount) line totals; ``subtotal_minor`` is the merchandise
     subtotal actually charged (after 60Coin / recurring discounts), so the discount is spread over the lines
     first, then VAT on the discounted bases. No separate "tax" line is ever sent (a category-limited credit
-    would refuse it). Shipping is one extra line without VAT.
+    would refuse it). Shipping is one extra line that carries its own VAT.
 
-    TODO(decision-11, VAT on shipping): the retail cart treats shipping as VAT-exempt (quote_service) while
-    RFQ/PO charges VAT on shipping (rfq_service). Pending the owner/accountant decision this function sends
-    shipping exactly as the order charged it — no VAT is added here. Pinned by tests/test_vat_shipping_pin.py.
+    VAT on shipping (owner decision 11, 2026-11-18): shipping is always VAT-chargeable, so the order's
+    ``tax_minor`` covers merchandise AND shipping; the shipping amount is one more base in ``line_vat`` and the
+    shipping line is ``shipping + its VAT``. ``sum(items.amount) == subtotal + shipping + tax`` still holds.
     """
     category_map = category_map or {}
     if not lines:
@@ -154,7 +157,10 @@ def build_items(*, lines: list[dict], subtotal_minor: int, shipping_minor: int, 
     bases = [g - c for g, c in zip(gross, cut)]
     if any(b < 0 for b in bases):
         raise GatewayError("discount larger than a line")
-    vat = line_vat(bases, tax_minor=int(tax_minor), rate_bps=int(tax_rate_bps))
+    ship = int(shipping_minor)
+    all_bases = bases + ([ship] if ship > 0 else [])
+    vat = line_vat(all_bases, tax_minor=int(tax_minor), rate_bps=int(tax_rate_bps))
+    shipping_vat = vat[-1] if ship > 0 else 0
     items: list[dict] = []
     for line, base, v in zip(lines, bases, vat):
         amount = to_rial(base + v, currency)
@@ -167,9 +173,9 @@ def build_items(*, lines: list[dict], subtotal_minor: int, shipping_minor: int, 
         if line.get("product_id") is not None:
             item["product_id"] = str(line["product_id"])
         items.append(item)
-    if shipping_minor > 0:
+    if ship > 0:
         items.append({"sku": SHIPPING_SKU, "name": "هزینهٔ ارسال", "quantity": 1, "category": shipping_category,
-                      "amount": to_rial(int(shipping_minor), currency)})
+                      "amount": to_rial(ship + shipping_vat, currency)})
     return items
 
 

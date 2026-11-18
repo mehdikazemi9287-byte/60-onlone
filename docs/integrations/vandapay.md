@@ -24,11 +24,11 @@
 قواعد: بدون هر دو کلید خاموش است. `sk_live_` فقط با `APP_ENV=production` پذیرفته می‌شود. `sk_test_` در production رد می‌شود مگر `DEMO_MODE=1`، تا پرداخت آزمایشی هرگز سفارش واقعی نسازد. فقط وقتی روشن باشد گزینهٔ «پرداخت با ونداپی» در `GET /api/v1/checkout/payment-options` می‌آید.
 
 ## منبع پرداخت انحصاری (تصمیم مالک ۱۴۰۵/۰۸/۲۷)
-با انتخاب ونداپی، کیف رفاهی و اعتبار سازمانی **داخلی** شصت‌آنلاین برای آن سفارش کسر نمی‌شوند و **کل سفارش** به ونداپی می‌رود؛ `use_welfare=true` همراه ونداپی خطای ۴۲۲ `funding_source_conflict` می‌گیرد. جزئیات: `docs/decisions/2026-11-18-federated-credit-vandapay.md`.
+با انتخاب ونداپی، کیف رفاهی و اعتبار سازمانی **داخلی** شصت‌آنلاین برای آن سفارش کسر نمی‌شوند و **کل سفارش** به ونداپی می‌رود؛ `use_welfare=true` همراه ونداپی خطای ۴۲۲ `funding_source_conflict` می‌گیرد. صفحهٔ checkout هم با انتخاب ونداپی گزینهٔ رفاهی را برمی‌دارد و غیرفعال می‌کند. جزئیات: `docs/decisions/2026-11-18-federated-credit-vandapay.md`.
 
 ## بدنهٔ intent
 `amount` (کل سفارش، ریال)، `order_ref`، `return_url`، `category`، `customer_phone` (فقط موبایل تأییدشدهٔ کاربر، فقط برای پیش‌پر کردن OTP ونداپی)، `items[]` و `metadata` (`source, invoice_id, price_tier, vat_bps, vat_rial, shipping_rial, funding`).
-`items[]`: هر سطر `{sku, product_id, name, quantity, category, amount}`؛ تخفیف (۶۰کوین/خرید دوره‌ای) اول به‌نسبت روی سطرها پخش می‌شود، سپس VAT هر سطر = `base × rate_bps // 10000` و باقی‌ماندهٔ گرد کردن روی بزرگ‌ترین سطر؛ حمل یک سطر جدا (`SHIPPING`، `goods.general`، **بدون VAT** — تصمیم ۱۱ باز است). سطر جدای مالیات ساخته نمی‌شود. اگر `sum(items) != amount` باشد چیزی ارسال نمی‌شود.
+`items[]`: هر سطر `{sku, product_id, name, quantity, category, amount}`؛ تخفیف (۶۰کوین/خرید دوره‌ای) اول به‌نسبت روی سطرها پخش می‌شود، سپس VAT هر سطر = `base × rate_bps // 10000` و باقی‌ماندهٔ گرد کردن روی بزرگ‌ترین سطر؛ حمل یک سطر جدا (`SHIPPING`، `goods.general`) که **VAT خودش را دارد** (`shipping + VAT حمل` — تصمیم ۱۱ مالک: VAT حمل همیشه اعمال می‌شود). سطر جدای مالیات ساخته نمی‌شود. اگر `sum(items) != amount` باشد چیزی ارسال نمی‌شود.
 
 ## جریان
 1. `POST /api/v1/checkout` با `"payment_provider": "vandapay"`: موجودی و اعتبار رزرو می‌شود و سرور `POST /payment_intents` را با مبلغ ریالی (تومان ×۱۰)، `order_ref = intent:<id>`، `return_url = …/api/v1/payments/vandapay/callback?invoice_id=<id>` و `Idempotency-Key` ثابت `60online-intent:<id>-invoice-<id>` می‌فرستد. پاسخ ۲۰۲ با `payment_redirect` به `checkout_url` است.

@@ -6,13 +6,12 @@ address and an idempotency key. `checkout_service` recomputes this same quote
 inside the checkout transaction, so a quote that went stale between display and
 submission cannot be exploited.
 
-TODO(decision-11, VAT on shipping — owner/accountant decision pending, do NOT change silently):
-    this retail path treats shipping as VAT-exempt while rfq_service charges VAT on RFQ/PO shipping.
-    Current behaviour is pinned by tests/test_vat_shipping_pin.py; see
-    docs/decisions/2026-11-18-federated-credit-vandapay.md §VAT.
+VAT on shipping (owner decision 2026-11-18, «تصمیم ۱۱»): shipping is ALWAYS VAT-chargeable, in this
+retail path exactly as in organisation orders and RFQ/PO. See tests/test_vat_shipping.py and
+docs/decisions/2026-11-18-federated-credit-vandapay.md §VAT.
 
-Money equation (v6):
-    taxable_base_minor = subtotal_minor   (shipping is VAT-exempt)
+Money equation (v6 + decision 11):
+    taxable_base_minor = subtotal_minor + shipping_fee_minor   (shipping is VAT-chargeable)
     tax_minor          = taxable_base_minor * rate_bps // 10000  (integer floor)
     total_minor        = subtotal_minor + shipping_fee_minor + tax_minor
     credit_to_use      = min(eligible_credit, total_minor)
@@ -96,7 +95,7 @@ def build_quote(
         redeem_discount_minor = min(redeem_coins * 10_000, subtotal_minor,
                                      subtotal_minor * 50%)   (see loyalty_service caps)
         discounted_subtotal   = subtotal_minor - redeem_discount_minor
-        taxable_base_minor    = discounted_subtotal   (shipping excluded from VAT)
+        taxable_base_minor    = discounted_subtotal + shipping_fee_minor   (shipping is VAT-chargeable)
         tax_minor             = taxable_base_minor * rate_bps // 10000
         total_minor           = discounted_subtotal + shipping_fee_minor + tax_minor
         credit_to_use         = min(eligible_credit, total_minor)
@@ -148,23 +147,24 @@ def build_quote(
     subtotal_minor = gross_subtotal_minor - redeem_discount_minor - recurring_discount_minor
 
     # ── VAT calculation ────────────────────────────────────────────────────────
-    # Taxable base is the (discount-adjusted) merchandise subtotal; shipping
-    # is VAT-exempt. We need the organization for exemption checking — use
+    # Taxable base is the (discount-adjusted) merchandise subtotal PLUS shipping
+    # (owner decision 11: VAT on shipping is always applied; one integer floor on
+    # the whole base). We need the organization for exemption checking — use
     # the user's active membership (if any) so employees buying on behalf of
     # their org get the correct exemption applied at quote time.
     org_id = _user_organization_id(conn, user_id)
     today_str = now.strftime("%Y-%m-%d")
 
+    taxable_base_minor = subtotal_minor + shipping_minor
     tax_result = calculate_line_tax_with_conn(
         conn,
-        subtotal_minor=subtotal_minor,
+        subtotal_minor=taxable_base_minor,
         tax_category_code="STANDARD",
         effective_date=today_str,
         organization_id=org_id,
     )
     tax_minor          = tax_result["tax_minor"]
     tax_rate_bps       = tax_result["rate_bps"]
-    taxable_base_minor = subtotal_minor   # shipping excluded
 
     total_minor = subtotal_minor + shipping_minor + tax_minor
 

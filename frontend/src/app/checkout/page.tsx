@@ -243,6 +243,11 @@ function ConfirmStep({
   // Card gateway or an external credit provider (Tara pattern: the lender funds, we only accept).
   const [payOptions, setPayOptions] = useState<{ provider: string; kind: string; label: string; note?: string }[]>([]);
   const [provider, setProvider] = useState<string | null>(null);
+  // Exclusive funding (owner decision 2026-11-18): VandaPay carries the whole order, so the internal
+  // welfare wallet cannot be combined with it — the server refuses use_welfare=true with VandaPay (422).
+  const vandapaySelected = payOptions.some((o) => o.provider === provider && o.kind === "vandapay");
+  const welfareApplied = useWelfare && !vandapaySelected;
+  useEffect(() => { if (vandapaySelected) setUseWelfare(false); }, [vandapaySelected]);
   useEffect(() => {
     apiRequest<{ options: { provider: string; kind: string; label: string; note?: string }[] }>("/checkout/payment-options")
       .then((r) => setPayOptions(r.options)).catch(() => {});
@@ -285,7 +290,7 @@ function ConfirmStep({
       const external = payOptions.find((o) => o.provider === provider && o.kind !== "card");
       let proforma: string | undefined;
       try { proforma = new URLSearchParams(window.location.search).get("proforma") ?? undefined; } catch {}
-      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, useWelfare, proforma);
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, welfareApplied, proforma);
       if (placed.payment_redirect) {
         // Pay on the bank page; the bank sends the customer back to the order or here with the result.
         setRedirecting(true);
@@ -402,9 +407,18 @@ function ConfirmStep({
           </div>
         )}
         {welfare?.available && (
-          <label className="flex items-start gap-2 rounded-lg bg-success-50 p-2 text-success-700">
-            <input type="checkbox" className="mt-1" checked={useWelfare} onChange={(e) => setUseWelfare(e.target.checked)} />
-            <span>پرداخت با کیف پول رفاهی (تا {formatPrice(welfare.allowed_minor)} از این سبد). سهم رفاهی را سازمان می‌پردازد و از کارت کم می‌شود.</span>
+          <label className={`flex items-start gap-2 rounded-lg p-2 ${vandapaySelected ? "bg-neutral-50 text-neutral-500" : "bg-success-50 text-success-700"}`}>
+            <input type="checkbox" className="mt-1" checked={welfareApplied} disabled={vandapaySelected}
+              aria-describedby={vandapaySelected ? "welfare-vandapay-note" : undefined}
+              onChange={(e) => setUseWelfare(e.target.checked)} />
+            <span>
+              پرداخت با کیف پول رفاهی (تا {formatPrice(welfare.allowed_minor)} از این سبد). سهم رفاهی را سازمان می‌پردازد و از کارت کم می‌شود.
+              {vandapaySelected && (
+                <span id="welfare-vandapay-note" className="block text-xs">
+                  با پرداخت از طریق ونداپی، کیف پول رفاهی قابل استفاده نیست؛ کل مبلغ در صفحهٔ ونداپی پرداخت می‌شود.
+                </span>
+              )}
+            </span>
           </label>
         )}
         {method !== "card" && quote.credit_to_use_minor > 0 && (
@@ -415,9 +429,9 @@ function ConfirmStep({
         )}
         <div className="border-t border-neutral-100 pt-2 flex justify-between font-bold text-neutral-900">
           <span>پرداختی نهایی</span>
-          <span className="text-primary-700 text-base tabular-nums">{formatPrice(useWelfare && welfare ? Math.max(0, quote.cash_due_minor - welfare.allowed_minor) : quote.cash_due_minor)}</span>
+          <span className="text-primary-700 text-base tabular-nums">{formatPrice(welfareApplied && welfare ? Math.max(0, quote.cash_due_minor - welfare.allowed_minor) : quote.cash_due_minor)}</span>
         </div>
-        {useWelfare && <p className="text-2xs text-neutral-500">مبلغ نهایی کارت پس از اعمال کیف پول رفاهی توسط سرور قطعی می‌شود.</p>}
+        {welfareApplied && <p className="text-2xs text-neutral-500">مبلغ نهایی کارت پس از اعمال کیف پول رفاهی توسط سرور قطعی می‌شود.</p>}
         <p className="text-2xs text-neutral-400 text-left">
           روش پرداخت: {method === "card" ? "کارت بانکی" : method === "credit" ? "اعتبار سازمانی" : "ترکیبی"}
         </p>

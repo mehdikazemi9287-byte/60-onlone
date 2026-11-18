@@ -100,14 +100,14 @@ class ItemsAndVatTest(unittest.TestCase):
     def test_items_add_up_exactly_with_discount_vat_and_shipping(self):
         gross = sum(l["line_total_minor"] for l in self.LINES)
         subtotal = gross - 77_777  # 60Coin / recurring discount spread over the lines first
-        tax = subtotal * 1000 // 10_000
+        tax = (subtotal + 45_000) * 1000 // 10_000  # decision 11: shipping is in the VAT base
         items = build_items(lines=self.LINES, subtotal_minor=subtotal, shipping_minor=45_000, tax_minor=tax,
                             tax_rate_bps=1000, currency="IRR", category_map={"rice": "goods.livelihood"})
         self.assertEqual(sum(i["amount"] for i in items), subtotal + 45_000 + tax)
         self.assertEqual(items[0]["category"], "goods.livelihood")
         self.assertEqual(items[1]["category"], "goods.general")  # unmapped → default
         self.assertEqual(items[-1], {"sku": "SHIPPING", "name": "هزینهٔ ارسال", "quantity": 1,
-                                     "category": "goods.general", "amount": 45_000})  # shipping: no VAT added
+                                     "category": "goods.general", "amount": 45_000 + 4_500})  # shipping + its VAT
         self.assertNotIn("tax", [i["sku"].lower() for i in items])  # never a separate VAT line
         self.assertTrue(all(type(i["amount"]) is int for i in items))
 
@@ -147,7 +147,7 @@ class AdapterIntentBodyTest(unittest.TestCase):
     def test_items_category_phone_and_metadata_sent(self):
         lines = ItemsAndVatTest.LINES[:2]
         sub = sum(l["line_total_minor"] for l in lines)
-        tax = sub * 1000 // 10_000
+        tax = (sub + 50_000) * 1000 // 10_000  # decision 11: shipping is in the VAT base
         ctx = {"lines": lines, "subtotal_minor": sub, "shipping_minor": 50_000, "tax_minor": tax,
                "tax_rate_bps": 1000, "price_tier": "public", "customer_phone": "09120000000"}
         self.vp.initiate(self._req(ctx, sub + tax + 50_000), invoice_id=9, callback_url="https://60online.test/cb")
@@ -202,6 +202,7 @@ class VandaPayExclusiveFundingTest(AppTestCase):
         q = self.quote(self.emp["headers"])
         self.assertGreater(q["cart"]["shipping_fee_minor"], 0)
         self.total, self.subtotal = q["cart"]["total_minor"], q["cart"]["subtotal_minor"]
+        self.ship = q["cart"]["shipping_fee_minor"]
         self.assertGreater(q["credit_to_use_minor"], 0)  # internal org credit WOULD apply on the card path
         from app.services import welfare_wallet_service as wf
         with self.db.write_transaction() as conn:
@@ -249,7 +250,7 @@ class VandaPayExclusiveFundingTest(AppTestCase):
         self.assertEqual(create["amount"], self.total)
         self.assertEqual(sum(i["amount"] for i in create["items"]), self.total)
         ship = [i for i in create["items"] if i["sku"] == "SHIPPING"]
-        self.assertEqual(ship[0]["amount"], self.total - self.subtotal - self.subtotal * 1000 // 10_000)
+        self.assertEqual(ship[0]["amount"], self.ship + self.ship * 1000 // 10_000)  # shipping + its VAT
         self.assertEqual(create["customer_phone"], "09120000001")
         self.assertEqual(self._credit_available(), credit_before)  # no internal hold
         self.assertEqual(self._welfare_left(), welfare_before)
@@ -439,8 +440,9 @@ class OrgCashVandaPayTest(Phase3Base):
     def test_full_cash_order_paid_through_vandapay(self):
         order = self._due_order("cash")
         self.assertEqual(order["cash_minor"], order["total_minor"])
-        # VAT-on-shipping PIN for the org-order path (decision 11 pending): VAT on merchandise only
-        self.assertEqual(order["tax_minor"], order["subtotal_minor"] * order["tax_rate_bps"] // 10_000)
+        # decision 11: VAT on merchandise AND shipping in the org-order path
+        self.assertEqual(order["tax_minor"], (order["subtotal_minor"] + order["shipping_fee_minor"])
+                         * order["tax_rate_bps"] // 10_000)
         r = self._start(order)
         self.assertEqual(r.status_code, 201, r.get_json())
         body = r.get_json()

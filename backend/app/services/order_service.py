@@ -55,7 +55,8 @@ def read_order(conn: sqlite3.Connection, *, order_id: int, user_id: int | None, 
         "shipping_fee_minor": row["shipping_fee_minor"],
         "total": format_minor(row["total_minor"], exponent),
         "total_minor": row["total_minor"],
-        # VAT breakdown (v6): taxable_base = subtotal (shipping excluded from VAT)
+        # VAT breakdown: taxable_base is stored per order (since decision 11 it includes shipping);
+        # the subtotal fallback only applies to legacy rows written before the column existed
         "taxable_base_minor": row["taxable_base_minor"] if row["taxable_base_minor"] is not None else row["subtotal_minor"],
         "tax_rate_bps": row["tax_rate_bps"] if row["tax_rate_bps"] is not None else 0,
         "tax": format_minor(row["tax_minor"] if row["tax_minor"] is not None else 0, exponent),

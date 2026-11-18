@@ -109,18 +109,18 @@ def _new_order_number(conn) -> str:
     raise ConflictError("شمارهٔ سفارش قابل تخصیص نبود؛ دوباره تلاش کنید")
 
 
-def _tax(conn, subtotal_minor: int, organization_id: int | None) -> tuple[int, int]:
-    """(tax_minor, rate_bps) on the merchandise subtotal — same rule as quote_service (shipping exempt).
+def _tax(conn, taxable_base_minor: int, organization_id: int | None) -> tuple[int, int]:
+    """(tax_minor, rate_bps) on a taxable base — same rule as quote_service (one integer floor on the base).
 
-    TODO(decision-11): VAT on shipping is an open owner/accountant decision (RFQ/PO charges it); pinned by
-    tests/test_vat_shipping_pin.py and tests/test_vandapay_federated.py.
+    Owner decision 11 (2026-11-18): shipping is always VAT-chargeable, so callers pass
+    ``subtotal + shipping`` as the base (see convert_purchase_request; tests/test_vat_shipping.py).
     """
     from app.services.tax_service import calculate_line_tax_with_conn
-    if subtotal_minor <= 0:
+    if taxable_base_minor <= 0:
         return 0, 0
     try:
         result = calculate_line_tax_with_conn(
-            conn, subtotal_minor=subtotal_minor, tax_category_code="STANDARD",
+            conn, subtotal_minor=taxable_base_minor, tax_category_code="STANDARD",
             effective_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"), organization_id=organization_id)
     except NotFoundError:
         return 0, 0
@@ -558,6 +558,7 @@ def create_order_rows(conn, *, user_id: int, organization_id: int | None, actor_
     """
     subtotal = sum(int(l["unit_price_minor"]) * int(l["quantity"]) for l in lines)
     total = subtotal + shipping_minor + tax_minor
+    taxable_base = subtotal + shipping_minor  # decision 11: shipping is VAT-chargeable
     if credit_minor + cash_minor != total:  # pragma: no cover - guarded by callers
         raise ValidationError("تفکیک پرداخت با جمع سفارش برابر نیست")
     from app.services.payment_service import new_reference, transition
@@ -569,7 +570,7 @@ def create_order_rows(conn, *, user_id: int, organization_id: int | None, actor_
                 recipient_name, recipient_phone, shipping_province, shipping_city, shipping_line1,
                 shipping_postal_code, fulfillment_plan_json, created_at, updated_at)
            VALUES (?,?,?,?, 'pending', 'IRR', ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?)""",
-        (new_reference(), user_id, idempotency_key, request_hash, subtotal, shipping_minor, tax_minor, subtotal,
+        (new_reference(), user_id, idempotency_key, request_hash, subtotal, shipping_minor, tax_minor, taxable_base,
          tax_rate_bps, total, credit_minor, cash_minor, organization_id, allocation_id if credit_minor else None,
          address["recipient_name"], address["recipient_phone"], address["province"], address["city"],
          address["line1"], address["postal_code"], json.dumps(plan, ensure_ascii=False), _sql_now(), _sql_now()))
@@ -582,7 +583,7 @@ def create_order_rows(conn, *, user_id: int, organization_id: int | None, actor_
                                shipping_province, shipping_city, shipping_line1, shipping_postal_code,
                                organization_id, credit_minor, cash_minor, payment_intent_id, placed_at)
            VALUES (?,?,'pending',?,?,?,?,?,?,'IRR',?,?,?,?,?,?,?,?,?,?,?)""",
-        (order_number, user_id, subtotal, shipping_minor, total, tax_minor, subtotal, tax_rate_bps,
+        (order_number, user_id, subtotal, shipping_minor, total, tax_minor, taxable_base, tax_rate_bps,
          address["recipient_name"], address["recipient_phone"], address["province"], address["city"],
          address["line1"], address["postal_code"], organization_id, credit_minor, cash_minor, intent_id, _sql_now()))
     order_id = int(cur.lastrowid)
@@ -772,7 +773,8 @@ def _lines_from_quote(conn, pr_row, pr_items: list, quote_id) -> tuple[list[dict
                                 details={"rfq_item_id": r["rfq_item_id"]})
         lines.append({"offer": offer, "pr_item_ids": [r["purchase_request_item_id"]] if r["purchase_request_item_id"] else [],
                       "quantity": qty, "unit_price_minor": gross // qty, "vat_bps": int(r["vat_rate_bps"])})
-    return lines, int(quote["shipping_cost_minor"] or 0), quote_id
+    shipping_minor = int(quote["shipping_cost_minor"] or 0)
+    return lines, shipping_minor, int(quote["shipping_vat_minor"] or 0), quote_id
 
 
 def _merge_by_product(lines: list[dict]) -> list[dict]:
@@ -894,9 +896,11 @@ def convert_purchase_request(conn, *, organization_id: int, actor_user_id: int, 
     if data.get("supplier_quote_id") is not None and data.get("lines") is not None:
         raise ValidationError("یا پیش‌فاکتور پذیرفته‌شده یا پیشنهادهای انتخابی؛ نه هر دو")
     if data.get("supplier_quote_id") is not None:
-        raw, shipping_minor, quote_id = _lines_from_quote(conn, pr_row, pr_items, data["supplier_quote_id"])
+        raw, shipping_minor, shipping_vat_minor, quote_id = _lines_from_quote(conn, pr_row, pr_items,
+                                                                              data["supplier_quote_id"])
     else:
         raw, shipping_minor, quote_id = _lines_from_offers(conn, pr_row, pr_items, data.get("lines"))
+        shipping_vat_minor = 0  # computed below on the combined base
     lines = _merge_by_product(raw)
 
     warnings = []
@@ -912,12 +916,17 @@ def convert_purchase_request(conn, *, organization_id: int, actor_user_id: int, 
                              "message": f"«{o['title_fa']}» از فروشندهٔ خارج از فهرست ترجیحی خریداری می‌شود"})
 
     subtotal = sum(l["unit_price_minor"] * l["quantity"] for l in lines)
+    # Owner decision 11: shipping is always VAT-chargeable (retail, org orders and RFQ/PO alike).
     if quote_id is not None:
+        # Awarded supplier quote: per-line VAT plus the quote's own shipping VAT, copied — never re-derived —
+        # so the order total equals the quote's grand total (same rule as purchase_order_service).
         tax_minor = sum(l["unit_price_minor"] * l["quantity"] * l["vat_bps"] // 10000 for l in lines)
+        tax_minor += shipping_vat_minor
         rates = {l["vat_bps"] for l in lines}
-        tax_rate_bps = rates.pop() if len(rates) == 1 else (tax_minor * 10000 // subtotal if subtotal else 0)
+        tax_rate_bps = rates.pop() if len(rates) == 1 else (tax_minor * 10000 // (subtotal + shipping_minor)
+                                                             if subtotal + shipping_minor else 0)
     else:
-        tax_minor, tax_rate_bps = _tax(conn, subtotal, organization_id)
+        tax_minor, tax_rate_bps = _tax(conn, subtotal + shipping_minor, organization_id)
     total = subtotal + shipping_minor + tax_minor
     if total <= 0:
         raise ValidationError("جمع سفارش باید بیشتر از صفر باشد")
