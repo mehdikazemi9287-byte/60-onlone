@@ -114,10 +114,10 @@ function Hero({ content }: { content?: HeroContent }) {
             <Link href="/packs/employee-gift" className="group relative mx-auto block aspect-[5/4] w-full max-w-md overflow-hidden rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-white/20 lg:rotate-[-1.5deg] lg:transition-transform lg:hover:rotate-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={content?.image_url || HERO_IMAGE} alt="جعبه‌ی هدیه‌ی کارکنان" className="h-full w-full rounded-xl object-cover" />
-              <span className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-2 rounded-xl bg-white/95 p-3 shadow-lg backdrop-blur-md">
+              <span className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-2 rounded-xl bg-st-surface-container-lowest/95 p-3 shadow-lg backdrop-blur-md">
                 <span className="flex items-center gap-2">
                   <IconTile icon="stars" tone="accent" size="sm" />
-                  <span className="flex flex-col leading-tight"><span className="text-st-label-lg font-bold text-[#112D46]">هدیه‌ی کارکنان، به تعداد</span><span className="text-st-label-sm text-[#4A5765]">جعبه‌های آجیل و خشکبار با بسته‌بندی کادویی</span></span>
+                  <span className="flex flex-col leading-tight"><span className="text-st-label-lg font-bold text-st-primary">هدیه‌ی کارکنان، به تعداد</span><span className="text-st-label-sm text-st-on-surface-variant">جعبه‌های آجیل و خشکبار با بسته‌بندی کادویی</span></span>
                 </span>
                 <span className="shrink-0 rounded-full bg-st-accent px-2.5 py-1 text-st-label-sm font-bold text-white">هدیه پایان سال</span>
               </span>
@@ -248,7 +248,7 @@ function ProductCard({ p }: { p: Product | null }) {
       <Link href={href} className="relative mb-2 block aspect-square w-full overflow-hidden rounded-lg bg-st-surface-container-low">
         <Photo src={p.image_url} alt={p.name} className="p-2" />
         {pct > 0 && <span className="absolute right-2 top-2 rounded-full bg-st-accent px-2 py-0.5 text-[11px] font-bold text-white">{toPersianNum(pct)}٪</span>}
-        {p.brand && <span className="absolute bottom-2 right-2 hidden max-w-[85%] truncate rounded-md bg-white/90 px-2 py-0.5 text-st-label-sm font-medium text-[#112D46] md:block">{p.brand}</span>}
+        {p.brand && <span className="absolute bottom-2 right-2 hidden max-w-[85%] truncate rounded-md bg-st-surface-container-lowest/90 px-2 py-0.5 text-st-label-sm font-medium text-st-primary md:block">{p.brand}</span>}
       </Link>
       <div className="flex flex-1 flex-col justify-between gap-2">
         <div className="flex flex-col gap-0.5">

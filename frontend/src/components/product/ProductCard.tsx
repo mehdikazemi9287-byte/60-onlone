@@ -112,8 +112,8 @@ function PrimaryAction({ p, onAdd, compact }: { p: Product; onAdd?: (id: number)
   const canAdd = p.purchasable && p.price_minor != null && p.stock !== 0 && !multi;
   const base = compact
     ? "flex items-center gap-1 rounded-lg px-3 py-1.5 text-st-label-md transition-colors active:scale-95"
-    : "flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl font-bold shadow-sm transition-colors";
-  const dark = "bg-st-primary-container text-st-on-primary hover:bg-st-secondary";
+    : "flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg text-st-label-lg font-bold transition-colors";
+  const dark = "bg-st-secondary text-white hover:bg-st-navy";
   if (canAdd) return (
     <span className={cn("relative", !compact && "flex flex-1")}>
       <button type="button" onClick={add} disabled={state === "loading"}
@@ -148,18 +148,18 @@ function ProductTile({ p, onAdd }: { p: Product; onAdd?: (id: number) => void })
   const pv = priceView(p);
   const pct = discountPct(p);
   return (
-    <article className="group flex h-full flex-col justify-between overflow-hidden rounded-xl bg-st-surface-container-lowest shadow-sm transition-shadow hover:shadow-md">
+    <article className="group flex h-full flex-col justify-between overflow-hidden rounded-xl bg-st-surface-container-lowest shadow-st-card transition-all hover:-translate-y-0.5 hover:shadow-st-raise">
       <div className="flex flex-col">
         <div className="relative">
           <Link href={`/products/${p.slug}`} className="block" tabIndex={-1} aria-hidden>
-            <Media p={p} className="aspect-[4/3] w-full" imgClass="p-4" />
+            <Media p={p} className="m-2 aspect-[4/3] w-[calc(100%-1rem)] rounded-lg !bg-st-surface-container-low" imgClass="p-3" />
           </Link>
-          {pct > 0 && <span className="absolute left-st-space-sm top-st-space-sm rounded-full bg-st-on-tertiary-container px-2.5 py-1 font-bold text-st-on-tertiary shadow-sm">٪{toPersianNum(pct)} تخفیف</span>}
+          {pct > 0 && <span className="absolute left-st-space-sm top-st-space-sm rounded-full bg-st-accent px-2 py-0.5 text-st-label-md font-bold text-white">٪{toPersianNum(pct)} تخفیف</span>}
           {p.brand && <span className="absolute bottom-st-space-sm right-st-space-sm flex items-center gap-1 rounded-md bg-st-surface-container-lowest/90 px-2 py-0.5 font-bold text-st-secondary shadow-sm backdrop-blur">
             <Icon name="sell" className="text-[14px]" /><span>{p.brand}</span></span>}
           <WishButton slug={p.slug} className="absolute right-st-space-sm top-st-space-sm" />
         </div>
-        <div className="flex flex-col gap-st-space-xs p-st-space-md">
+        <div className="flex flex-col gap-1 px-3 pb-2 pt-1 text-st-body-sm">
           <div className="flex items-center justify-between text-st-outline">
             <span className="truncate">{p.sku ? <>شناسه کالا: <span dir="ltr">{p.sku}</span></> : ""}</span>
             {p.rating != null && p.rating > 0 && <div className="flex shrink-0 items-center gap-1">
@@ -168,16 +168,16 @@ function ProductTile({ p, onAdd }: { p: Product; onAdd?: (id: number) => void })
               <span className="text-st-outline">({toPersianNum(p.review_count ?? 0)})</span>
             </div>}
           </div>
-          <h3 className="line-clamp-2 font-bold text-st-primary transition-colors group-hover:text-st-secondary">
+          <h3 className="line-clamp-2 text-st-body-md font-bold leading-6 text-st-primary transition-colors group-hover:text-st-secondary">
             <Link href={`/products/${p.slug}`}>{p.name}</Link>
           </h3>
           {p.category?.name && <span className="text-st-on-surface-variant">{p.category.name}</span>}
-          <div className="mt-st-space-sm flex flex-col gap-1 rounded-lg bg-st-surface-container-low p-st-space-xs">
+          <div className="mt-1 flex flex-col gap-0.5 rounded-lg bg-st-surface-container-low px-2 py-1.5">
             {pv.old != null && <div className="flex items-center justify-between text-st-outline">
               <span>قیمت قبل:</span><span className="line-through">{toman(pv.old)} تومان</span></div>}
             <div className="flex items-center justify-between gap-2">
               <span className="font-bold text-st-secondary">{pv.quote ? pv.label : pv.label + ":"}</span>
-              {pv.main != null ? <div className="text-left"><span className="font-bold text-st-primary">{toman(pv.main)}</span> <span className="font-bold text-st-primary">تومان</span></div>
+              {pv.main != null ? <div className="text-left"><span className="text-st-title-md font-extrabold text-st-primary">{toman(pv.main)}</span> <span className="text-st-label-sm text-st-on-surface-variant">تومان</span></div>
                 : pv.hidden ? <Link href="/business" className="text-st-secondary underline">ورود سازمانی</Link> : <Icon name="request_quote" className="text-[18px] text-st-outline" />}
             </div>
           </div>
@@ -186,10 +186,10 @@ function ProductTile({ p, onAdd }: { p: Product; onAdd?: (id: number) => void })
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-st-space-xs p-st-space-md pt-0">
+      <div className="flex items-center gap-1.5 p-3 pt-1">
         <PrimaryAction p={p} onAdd={onAdd} />
         <Link href={`/requests/new?slug=${encodeURIComponent(p.slug)}`} title="درخواست پیش‌فاکتور / استعلام تیراژ بالا" aria-label="درخواست پیش‌فاکتور / استعلام تیراژ بالا"
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-st-surface-container-low text-st-primary transition-colors hover:bg-st-secondary-fixed">
+          className="flex h-10 w-10 items-center justify-center rounded-lg bg-st-tertiary-fixed text-st-on-tertiary-fixed transition-colors hover:bg-st-accent hover:text-white">
           <Icon name="request_quote" className="text-[18px]" />
         </Link>
       </div>
@@ -203,7 +203,7 @@ function ProductRow({ p, onAdd }: { p: Product; onAdd?: (id: number) => void }) 
   const pct = discountPct(p);
   const side = p.stock != null && p.stock > 0 && p.stock < 10 ? `تنها ${toPersianNum(p.stock)} عدد` : p.rating ? null : p.org_only ? "ویژه سازمانی" : (p.variant_count ?? 1) > 1 ? `${toPersianNum(p.variant_count!)} مدل` : null;
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-xl bg-st-surface-container-lowest p-st-space-md shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+    <article className="group relative flex flex-col overflow-hidden rounded-xl bg-st-surface-container-lowest p-3 shadow-st-card">
       <div className="flex gap-st-space-md">
         <Link href={`/products/${p.slug}`} className="relative block shrink-0" tabIndex={-1} aria-hidden>
           <Media p={p} className="h-24 w-24 rounded-lg !bg-st-surface-container-low" imgClass="p-1.5" />
@@ -271,7 +271,7 @@ export function ProductGrid({ products, onAddToCart, cols = 4, view = "grid" }: 
     6: "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6",
   }[cols];
   return (
-    <div className={cn("grid gap-st-space-sm md:gap-st-gutter-md", view === "auto" ? "grid-cols-1" : "grid-cols-2", gridCols)}>
+    <div className={cn("grid gap-2.5 md:gap-3", view === "auto" ? "grid-cols-1" : "grid-cols-2", gridCols)}>
       {products.map((p) => <ProductCard key={p.id} product={p} onAddToCart={onAddToCart} layout={view} />)}
     </div>
   );

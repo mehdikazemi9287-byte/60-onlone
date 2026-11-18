@@ -5,6 +5,7 @@
 // (employee welfare wallet), /me/loyalty (60Coin), /orders (status counts + latest open order). Stitch blocks
 // without a backend (cash wallet top-up, saved addresses, profile edit, app version) are not rendered.
 
+import { IconTile, TONE_CYCLE } from "@/components/ui/st";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -105,14 +106,16 @@ function AccountHomeBody() {
 
   return (
     <main className={cn(stRoot, "min-h-[60vh]")} dir="rtl">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-st-space-lg px-st-margin pt-st-space-md pb-st-space-xl lg:pt-st-space-xl">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-st-margin pt-3 pb-st-space-xl lg:pt-6">
         {token && <OrgInvitations token={token} />}
 
         {/* 1. Profile header */}
-        <section className="w-full bg-st-surface-container-lowest rounded-xl p-st-space-lg shadow-sm relative overflow-hidden">
-          <div className="flex items-start gap-st-space-md">
+        <section className="w-full bg-st-navy text-white rounded-xl p-4 shadow-st-raise relative overflow-hidden">
+          <span aria-hidden className="pointer-events-none absolute -left-10 -top-12 h-40 w-40 rounded-full bg-st-secondary/50 blur-3xl" />
+          <span aria-hidden className="pointer-events-none absolute -bottom-12 left-1/3 h-32 w-32 rounded-full bg-st-accent/25 blur-3xl" />
+          <div className="relative flex items-center gap-st-space-md">
             <div className="relative shrink-0">
-              <div className="w-16 h-16 rounded-full bg-st-surface-container p-0.5 shadow-sm flex items-center justify-center text-st-title-lg text-st-primary-container">
+              <div className="w-14 h-14 rounded-full bg-white/10 ring-2 ring-st-accent flex items-center justify-center text-st-title-lg font-bold text-white">
                 {initials}
               </div>
               {org && (
@@ -122,14 +125,14 @@ function AccountHomeBody() {
               )}
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <h1 className="text-st-headline-lg-mobile text-st-primary-container truncate">{user.full_name}</h1>
-              <div className="inline-flex items-center gap-1.5 self-start mt-1 px-2.5 py-1 bg-st-surface-container-low rounded-full">
-                <span className="w-2 h-2 rounded-full bg-st-secondary" />
-                <span className="text-st-label-sm text-st-secondary font-medium">
+              <h1 className="text-st-title-lg font-extrabold text-white truncate">{user.full_name}</h1>
+              <div className="inline-flex items-center gap-1.5 self-start mt-1 px-2.5 py-0.5 bg-white/10 ring-1 ring-white/15 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-st-accent" />
+                <span className="text-st-label-sm text-white font-medium">
                   {org ? `${ROLE_FA[org.role] ?? org.role} | ${org.display_name}` : ACCOUNT_ROLE_FA[user.role] ?? user.role}
                 </span>
               </div>
-              <div className="flex items-center gap-st-space-xs mt-2 text-st-on-surface-variant text-st-body-sm">
+              <div className="flex items-center gap-st-space-xs mt-1.5 text-st-on-navy-muted text-st-body-sm">
                 <span className="truncate" dir="ltr">{user.email}</span>
               </div>
             </div>
@@ -139,7 +142,7 @@ function AccountHomeBody() {
         {/* 2. Balances */}
         <section className="w-full">
           <div className="flex items-center justify-between mb-st-space-sm">
-            <span className="text-st-title-md text-st-primary-container">دارایی و اعتبارات</span>
+            <span className="flex items-center gap-2 text-st-title-md font-bold text-st-primary-container"><span aria-hidden className="h-5 w-1.5 rounded-full bg-st-accent" />دارایی و اعتبارات</span>
             <Link href="/wallet" className="text-st-label-md text-st-secondary hover:underline flex items-center gap-0.5">
               گردش حساب
               <Icon name="arrow_forward" className="text-[16px] -scale-x-100" />
@@ -205,10 +208,10 @@ function AccountHomeBody() {
         </section>
 
         {/* 3. Orders */}
-        <section className="w-full bg-st-surface-container-lowest rounded-xl p-st-space-lg shadow-sm flex flex-col gap-st-space-md">
+        <section className="w-full bg-st-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Icon name="inventory_2" className="text-st-primary-container text-[20px]" />
+              <IconTile icon="inventory_2" tone="brand" size="sm" />
               <h2 className="text-st-title-md text-st-primary-container">سفارش‌های من</h2>
             </div>
             <Link className="text-st-label-md text-st-secondary hover:underline flex items-center gap-0.5" href="/orders">
@@ -220,9 +223,9 @@ function AccountHomeBody() {
             {([["open", "جاری"], ["delivered", "تحویل شده"], ["cancelled", "لغو شده"]] as const).map(([k, label]) => (
               <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
                 className={cn("flex flex-col items-center justify-center py-2 px-1 rounded-xl text-center",
-                  tab === k ? "bg-st-secondary text-st-on-secondary" : "bg-st-surface-container-low text-st-on-surface-variant")}>
+                  tab === k ? "bg-st-navy text-white" : "bg-st-surface-container-low text-st-on-surface-variant")}>
                 <span className={cn("text-st-label-md", tab === k && "font-bold")}>{label} ({toPersianNum(count[k])})</span>
-                {tab === k && <span className="w-1.5 h-1.5 rounded-full bg-st-on-secondary mt-1" />}
+                {tab === k && <span className="w-1.5 h-1.5 rounded-full bg-st-accent mt-1" />}
               </button>
             ))}
           </div>
@@ -250,20 +253,18 @@ function AccountHomeBody() {
               </div>
             </Link>
           ) : (
-            <p className="rounded-xl bg-st-surface-container-low p-st-space-md text-st-body-sm text-st-on-surface-variant">سفارشی در این وضعیت ندارید.</p>
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-st-info p-3 text-st-body-sm text-st-on-surface-variant"><span className="flex items-center gap-2"><Icon name="inventory_2" className="text-[18px] text-st-secondary" />سفارشی در این وضعیت ندارید.</span><Link href="/category" className="shrink-0 rounded-full bg-st-secondary px-3 py-1 text-st-label-md font-bold text-white">شروع خرید</Link></div>
           )}
         </section>
 
         {/* 4. Quick actions */}
         <section className="w-full">
-          <h2 className="text-st-title-md text-st-primary-container mb-st-space-sm">پنل امور خرید و تدارکات</h2>
+          <h2 className="mb-st-space-sm flex items-center gap-2 text-st-title-md font-bold text-st-primary-container"><span aria-hidden className="h-5 w-1.5 rounded-full bg-st-accent" />پنل امور خرید و تدارکات</h2>
           <div className="grid grid-cols-2 gap-st-space-sm">
-            {quick.map((q) => (
-              <Link key={q.href} href={q.href} className="bg-st-surface-container-lowest p-st-space-md rounded-xl shadow-sm flex flex-col justify-between hover:bg-st-surface-container-low transition-colors">
-                <div className="flex items-center justify-between mb-st-space-sm">
-                  <div className="w-10 h-10 rounded-full bg-st-surface-container-low flex items-center justify-center text-st-primary-container">
-                    <Icon name={q.icon} className="text-[20px]" />
-                  </div>
+            {quick.map((q, qi) => (
+              <Link key={q.href} href={q.href} className="bg-st-surface-container-lowest p-3 rounded-xl shadow-sm hover:shadow-md flex flex-col justify-between transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                  <IconTile icon={q.icon} tone={TONE_CYCLE[qi % TONE_CYCLE.length]} />
                   <Icon name="chevron_right" className="text-st-outline-variant -scale-x-100 text-[18px]" />
                 </div>
                 <div>
@@ -276,25 +277,23 @@ function AccountHomeBody() {
         </section>
 
         {/* 5. Settings, support, role panels, logout */}
-        <section className="w-full bg-st-surface-container-lowest rounded-xl p-st-space-md shadow-sm flex flex-col">
-          {rows.map((r) => (
+        <section className="w-full bg-st-surface-container-lowest rounded-xl p-2 shadow-sm flex flex-col">
+          {rows.map((r, ri) => (
             <div key={r.href}>
-              <Link className="flex items-center justify-between py-3.5 px-st-space-xs hover:bg-st-surface-container-low rounded-lg transition-colors" href={r.href}>
+              <Link className="flex items-center justify-between py-2.5 px-2 hover:bg-st-surface-container-low rounded-lg transition-colors" href={r.href}>
                 <div className="flex items-center gap-st-space-sm">
-                  <div className={cn("w-9 h-9 rounded-full bg-st-surface-container-low flex items-center justify-center", r.accent ? "text-st-secondary" : "text-st-primary-container")}>
-                    <Icon name={r.icon} className="text-[20px]" />
-                  </div>
+                  <IconTile icon={r.icon} tone={r.accent ? "brand" : (["mint", "sand", "info", "accent"] as const)[ri % 4]} size="sm" />
                   <div className="flex flex-col">
-                    <span className="text-st-title-md text-st-primary-container">{r.title}</span>
+                    <span className="text-st-label-lg font-bold text-st-primary-container">{r.title}</span>
                     <span className={cn("text-st-body-sm", r.accent ? "text-st-secondary" : "text-st-on-surface-variant")}>{r.sub}</span>
                   </div>
                 </div>
                 <Icon name="chevron_right" className="text-st-on-surface-variant -scale-x-100 text-[20px]" />
               </Link>
-              <div className="h-[1px] w-full bg-st-surface-container my-1" />
+              <div className="mx-2 h-px bg-st-hairline-border" />
             </div>
           ))}
-          <button type="button" onClick={logout} className="flex items-center justify-between py-3.5 px-st-space-xs hover:bg-st-error-container/20 rounded-lg transition-colors text-right w-full">
+          <button type="button" onClick={logout} className="flex items-center justify-between py-2.5 px-2 hover:bg-st-error-container/20 rounded-lg transition-colors text-right w-full">
             <div className="flex items-center gap-st-space-sm">
               <div className="w-9 h-9 rounded-full bg-st-surface-container-low flex items-center justify-center text-st-error">
                 <Icon name="logout" className="text-[20px]" />

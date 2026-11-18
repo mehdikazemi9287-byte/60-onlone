@@ -1,6 +1,6 @@
 /* Organization panel shell — Stitch screens 26 (light) and 21 (dark).
    Both themes use the site-wide st- tokens (globals.css, «ویترین سازمانی گرم»; navy-based dark). */
-.shell { font-size: 16px; line-height: 1.5; }
+.shell { font-size: 15px; line-height: 1.55; }
 .shell :global(.material-symbols-outlined) { user-select: none; }
 
 .shell :global(:is(a, button, input, select, [role="switch"])):focus-visible { outline: 2px solid rgb(var(--st-brand)); outline-offset: 2px; }

@@ -66,11 +66,12 @@ function StatusPill({ status }: { status: string }) {
 
 function KpiCard({ label, value, unit, icon, iconCls, children }: { label: string; value: React.ReactNode; unit?: string; icon: string; iconCls?: string; children?: React.ReactNode }) {
   return (
-    <div className="flex flex-col justify-between gap-st-space-md rounded-xl bg-st-surface-container-lowest p-st-space-lg shadow-sm">
+    <div className="relative flex flex-col justify-between gap-3 overflow-hidden rounded-xl bg-st-surface-container-lowest p-4 text-[14px] shadow-st-card">
+      <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-gradient-to-l from-st-secondary via-st-secondary/40 to-st-accent/60" />
       <div className="flex items-start justify-between gap-st-space-sm">
         <div className="flex min-w-0 flex-col gap-st-space-xs"><span className="text-st-outline">{label}</span>
-          <div className="flex flex-wrap items-baseline gap-st-space-xs"><span className="font-bold text-st-primary">{value}</span>{unit && <span className="text-st-outline">{unit}</span>}</div></div>
-        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-st-surface-container", iconCls)}><Icon name={icon} className="text-[22px]" /></div>
+          <div className="flex flex-wrap items-baseline gap-st-space-xs"><span className="text-[20px] font-extrabold leading-8 text-st-primary">{value}</span>{unit && <span className="text-st-outline">{unit}</span>}</div></div>
+        <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", iconCls)}><Icon name={icon} className="text-[22px]" /></div>
       </div>
       {children}
     </div>
@@ -129,49 +130,51 @@ export default function OrgDashboard() {
   const shipped = allOrders.filter((r) => r.status === "shipped").length;
 
   return (
-    <div className="flex w-full flex-col gap-st-space-xl">
+    <div className="flex w-full flex-col gap-5">
       {o.orgs.length > 1 && <label className="flex items-center gap-st-space-sm self-start rounded-xl bg-st-surface-container-lowest px-st-space-md py-st-space-xs shadow-sm"><span className="text-st-outline">سازمان فعال</span>
         <select aria-label="سازمان فعال" value={o.selected} onChange={(e) => o.setSelected(e.target.value)} className="rounded-lg border-0 bg-transparent font-bold text-st-primary">{o.orgs.map((x) => <option key={x.id} value={x.id}>{x.display_name}</option>)}</select></label>}
 
       {/* Greeting & corporate status */}
-      <section className="relative overflow-hidden rounded-xl bg-st-surface-container-lowest p-st-space-lg shadow-sm">
-        <div className="flex flex-col justify-between gap-st-space-md lg:flex-row lg:items-center">
+      <section className="relative overflow-hidden rounded-xl bg-st-navy p-5 text-white shadow-st-raise">
+        <span aria-hidden className="pointer-events-none absolute -left-16 -top-20 h-56 w-56 rounded-full bg-st-secondary/50 blur-3xl" />
+        <span aria-hidden className="pointer-events-none absolute -bottom-20 left-1/3 h-40 w-40 rounded-full bg-st-accent/20 blur-3xl" />
+        <div className="relative flex flex-col justify-between gap-st-space-md lg:flex-row lg:items-center">
           <div className="flex min-w-0 flex-col gap-st-space-xs">
-            <div className="flex items-center gap-st-space-xs"><span className="inline-flex h-2 w-2 rounded-full bg-st-secondary" /><span className="font-bold text-st-secondary">عضویت فعال سازمانی • {ROLE_FA[org.membership.role] ?? org.membership.role}</span></div>
+            <div className="flex items-center gap-st-space-xs"><span className="inline-flex h-2 w-2 rounded-full bg-st-accent" /><span className="text-[14px] font-bold text-st-on-navy-muted">عضویت فعال سازمانی • {ROLE_FA[org.membership.role] ?? org.membership.role}</span></div>
             <h1 className="flex flex-wrap items-baseline gap-x-st-space-sm gap-y-1 font-normal">
-              <span className="text-st-primary">خوش‌آمدید، {user.full_name}</span>
-              <span className="text-st-on-surface-variant">{org.legal_name || org.display_name}{org.national_id ? ` (شناسه ملی: ${toPersianNum(org.national_id)})` : ""}</span>
+              <span className="text-[22px] font-extrabold text-white">خوش‌آمدید، {user.full_name}</span>
+              <span className="text-[14px] text-st-on-navy-muted">{org.legal_name || org.display_name}{org.national_id ? ` (شناسه ملی: ${toPersianNum(org.national_id)})` : ""}</span>
             </h1>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-st-space-sm">
-            <Link href={isFinance ? "/organization/statement" : "/me/proformas"} className="inline-flex items-center gap-st-space-xs rounded-full bg-st-surface-container-low px-st-space-md py-st-space-sm text-st-primary transition-colors hover:bg-st-surface-container">
+            <Link href={isFinance ? "/organization/statement" : "/me/proformas"} className="inline-flex items-center gap-st-space-xs rounded-full bg-white/10 px-st-space-md py-2 text-[14px] text-white ring-1 ring-white/20 transition-colors hover:bg-white/20">
               <Icon name="receipt" className="text-[18px]" /><span>{isFinance ? "صورت‌حساب تجمیعی ماهانه" : "پیش‌فاکتورهای من"}</span></Link>
-            <Link href="/organization/compose" className="inline-flex items-center gap-st-space-xs rounded-full bg-st-primary-container px-st-space-lg py-st-space-sm text-st-on-primary shadow-sm transition-colors hover:bg-st-secondary">
+            <Link href="/organization/compose" className="inline-flex items-center gap-st-space-xs rounded-full bg-st-accent px-st-space-lg py-2 text-[14px] font-bold text-white shadow-[0_10px_24px_-10px_rgb(255_122_0/0.8)] transition-transform hover:-translate-y-0.5">
               <Icon name="add_circle" className="text-[20px]" /><span>ثبت سفارش شرکتی جدید</span></Link>
           </div>
         </div>
       </section>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 gap-st-space-md md:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label="اعتبار سازمانی قابل استفاده" icon="account_balance_wallet" iconCls="text-st-secondary"
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <KpiCard label="اعتبار سازمانی قابل استفاده" icon="account_balance_wallet" iconCls="bg-st-navy text-white"
           value={!isFinance ? "ویژه مدیر و مالی" : credit.state === "loading" ? "…" : contract ? tomanDigits(contract.headroom_minor) : "قرارداد ثبت نشده"} unit={contract ? "تومان" : undefined}>
           {contract ? <div className="flex flex-col gap-st-space-xs pt-st-space-xs">
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-st-surface-container"><div className="h-full rounded-full bg-st-secondary" style={{ width: `${limit ? Math.min(100, Math.round((contract.headroom_minor / limit) * 100)) : 0}%` }} /></div>
             <div className="flex items-center justify-between gap-2 text-st-on-surface-variant"><span>سقف مصوب: {tomanDigits(limit)}</span><span className="font-bold text-st-secondary">{contract.status === "active" ? `مهلت پرداخت ${fa(contract.due_days)} روزه` : contract.status === "frozen" ? "مسدود موقت" : "بسته‌شده"}</span></div>
           </div> : <span className="text-st-on-surface-variant">{isFinance ? "قرارداد اعتباری پس از عقد قرارداد فعال می‌شود" : "مبلغ اعتبار فقط برای نقش مالی نمایش داده می‌شود"}</span>}
         </KpiCard>
-        <KpiCard label="سفارش‌های در حال پردازش" icon="conveyor_belt" iconCls="text-st-primary-container"
+        <KpiCard label="سفارش‌های در حال پردازش" icon="conveyor_belt" iconCls="bg-st-secondary-fixed text-st-secondary"
           value={orders.state === "ok" ? fa(processing + shipped) : orders.state === "forbidden" ? "—" : "…"} unit={orders.state === "ok" ? "سفارش جاری" : undefined}>
           {orders.state === "ok" ? <div className="flex flex-wrap items-center gap-st-space-sm pt-st-space-xs text-st-on-surface-variant">
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-st-secondary" />{fa(processing)} در حال آماده‌سازی</span><span className="text-st-outline">•</span>
             <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-st-on-tertiary-container" />{fa(shipped)} ارسال‌شده</span></div>
             : <span className="text-st-on-surface-variant">{orders.state === "forbidden" ? "سفارش‌های سازمان برای نقش شما قابل مشاهده نیست" : " "}</span>}
         </KpiCard>
-        <KpiCard label="صرفه‌جویی تدارکات امسال" icon="trending_up" iconCls="bg-st-secondary-fixed text-st-on-secondary-fixed" value="به‌زودی">
+        <KpiCard label="صرفه‌جویی تدارکات امسال" icon="trending_up" iconCls="bg-st-tertiary-fixed text-st-on-tertiary-container" value="به‌زودی">
           <span className="text-st-on-surface-variant">گزارش صرفه‌جویی پس از اتصال گزارش‌های مالی فعال می‌شود</span>
         </KpiCard>
-        <KpiCard label="قراردادهای دوره‌ای فعال" icon="autorenew" iconCls="text-st-primary" value={lists ? fa(active.length) : "…"} unit={lists ? "فهرست تأمین مداوم" : undefined}>
+        <KpiCard label="قراردادهای دوره‌ای فعال" icon="autorenew" iconCls="bg-st-mint text-st-mint-ink" value={lists ? fa(active.length) : "…"} unit={lists ? "فهرست تأمین مداوم" : undefined}>
           <div className="flex items-center gap-st-space-xs truncate pt-st-space-xs text-st-on-surface-variant">
             {lists?.length ? <><span className="truncate font-semibold text-st-primary">{lists.slice(0, 3).map((l) => l.title).join("، ")}</span><span className="shrink-0 text-st-outline">| فهرست‌های شما</span></> : <span>هنوز فهرستی تعریف نشده</span>}</div>
         </KpiCard>
@@ -182,7 +185,7 @@ export default function OrgDashboard() {
         <div className="flex flex-col justify-between gap-st-space-md p-st-space-lg lg:flex-row lg:items-center">
           <div className="flex flex-col gap-st-space-xs">
             <div className="flex items-center gap-st-space-sm"><h2 id="orders-h" className="font-bold text-st-primary">آخرین سفارش‌ها و درخواست‌های تدارکات شرکت</h2>
-              {orders.state === "ok" && <span className="rounded-full bg-st-surface-container px-st-space-xs py-0.5 text-st-on-surface-variant">{fa(allOrders.length)} سفارش</span>}</div>
+              {orders.state === "ok" && <span className="whitespace-nowrap rounded-full bg-st-accent px-2 py-0.5 text-[12px] font-bold text-white">{fa(allOrders.length)} سفارش</span>}</div>
             <span className="text-st-outline">{orders.state === "forbidden" ? "درخواست‌های خرید مجاز حساب شما" : "فاکتورها، وضعیت پردازش و شیوه تسویه سفارش‌های سازمان"}</span>
           </div>
           {orders.state === "ok" && <div className="flex flex-wrap items-center gap-st-space-sm">
