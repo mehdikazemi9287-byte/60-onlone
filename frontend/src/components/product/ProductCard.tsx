@@ -1,276 +1,255 @@
 "use client";
 
-import { addProductToOrgDraft } from "@/lib/procurement/draft";
+// Product listing card — faithful to Stitch 23 (desktop grid card) and 14 (mobile row card).
+// Every value comes from the storefront row: price/old price/list price, brand, category, SKU, rating,
+// stock, variants. Stitch's sample perks (logo printing, credit sale, tier price…) have no per-product
+// data in the listing API, so they are not shown.
 
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { formatPrice, toPersianNum } from "@/lib/utils";
+import { cn, toPersianNum } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
 import { cart as cartApi, ApiError } from "@/lib/api";
 import { useWishlist } from "@/lib/wishlist";
 
-// ── Star rating ───────────────────────────────────────────────────────────────
+/** Source images under 200px (e.g. 40×40 supplier thumbnails) look broken when scaled up; show the no-image state instead. */
+export const isTinyImage = (el: HTMLImageElement) => el.naturalWidth > 0 && Math.min(el.naturalWidth, el.naturalHeight) < 200;
 
-function Stars({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <svg
-          key={i}
-          className={cn("w-3.5 h-3.5", i <= Math.round(rating) ? "text-amber-400" : "text-neutral-200")}
-          viewBox="0 0 24 24"
-          fill="currentColor"
-        >
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
+/** Toman amount without the unit (the Stitch cards print «تومان» separately). */
+export const toman = (minor: number) => Math.round(minor / 10).toLocaleString("fa-IR", { maximumFractionDigits: 0 });
 
-// ── Add to cart button ────────────────────────────────────────────────────────
+const Icon = ({ name, className, fill }: { name: string; className?: string; fill?: boolean }) =>
+  <span aria-hidden className={cn("material-symbols-outlined", fill && "icon-fill", className)}>{name}</span>;
 
-function AddToCartButton({ productId, onAdd }: { productId: number; onAdd?: (id: number) => void }) {
+function useAddToCart(productId: number, onAdd?: (id: number) => void) {
   const { token } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [added, setAdded] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<"idle" | "loading" | "added" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
-
-  const handle = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!token) {
-      router.push(`/login?next=${encodeURIComponent(pathname)}`);
-      return;
-    }
-    setLoading(true);
-    setError(null);
+  const add = async () => {
+    if (!token) { router.push(`/login?next=${encodeURIComponent(pathname)}`); return; }
+    setState("loading"); setError(null);
     try {
       await cartApi.add(token, productId, 1);
-      setAdded(true);
-      onAdd?.(productId);
-      setTimeout(() => setAdded(false), 2000);
+      setState("added"); onAdd?.(productId);
+      setTimeout(() => setState("idle"), 2000);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "افزودن به سبد ناموفق بود");
-      setTimeout(() => setError(null), 3000);
-    } finally {
-      setLoading(false);
+      setState("error");
+      setTimeout(() => { setState("idle"); setError(null); }, 3000);
     }
   };
+  return { state, error, add };
+}
 
+type PriceView = { main: number | null; old: number | null; label: string; quote: boolean; hidden: boolean; from: boolean };
+function priceView(p: Product): PriceView {
+  const hidden = !!(p as { price_hidden?: boolean }).price_hidden;
+  const old = p.price_minor != null && p.original_price_minor && p.original_price_minor > p.price_minor ? p.original_price_minor : null;
+  const from = !!p.price_from || (p.variant_count ?? 1) > 1;
+  if (hidden) return { main: null, old: null, label: "قیمت فقط برای مشتریان سازمانی", quote: true, hidden, from };
+  if (p.price_minor != null) return { main: p.price_minor, old, label: from ? "قیمت از" : "قیمت هر عدد", quote: false, hidden, from };
+  if (p.list_price_minor) return { main: p.list_price_minor, old: null, label: "آخرین قیمت اعلامی تأمین‌کننده", quote: false, hidden, from };
+  return { main: null, old: null, label: "قیمت با استعلام", quote: true, hidden, from };
+}
+
+function tags(p: Product): string[] {
+  const t: string[] = [];
+  if ((p.variant_count ?? 0) > 1) t.push(`${toPersianNum(p.variant_count!)} مدل/اندازه`);
+  if (p.org_only) t.push("ویژه خرید سازمانی");
+  else if (p.purchasable && p.price_minor != null) t.push("قابل خرید آنلاین");
+  else t.push("خرید با استعلام");
+  if (p.stock != null && p.stock > 0 && p.stock < 10) t.push(`تنها ${toPersianNum(p.stock)} عدد موجود`);
+  if (p.stock === 0 && p.price_minor != null) t.push("ناموجود");
+  return t;
+}
+
+function Media({ p, className, imgClass }: { p: Product; className: string; imgClass: string }) {
+  const [failed, setFailed] = useState(false);
+  const ok = !!p.image_url && !p.image_url.includes("picsum.photos") && !failed;
   return (
-    <div className="relative flex-shrink-0">
-      <button
-        onClick={handle}
-        disabled={loading}
-        className={cn(
-          "flex min-h-9 items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200",
-          error
-            ? "bg-danger-100 text-danger-700"
-            : added
-            ? "bg-success-100 text-success-700"
-            : "border border-line-strong bg-white text-ink hover:border-ink hover:bg-ink hover:text-white active:scale-95",
-          loading && "opacity-60 cursor-wait"
-        )}
-      >
-        {loading ? (
-          <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
-        ) : added ? (
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-          </svg>
-        ) : (
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-          </svg>
-        )}
-        {error ? "خطا" : added ? "افزوده شد" : "افزودن"}
-      </button>
-      {error && (
-        <span className="absolute top-full mt-1 right-0 z-10 w-40 text-2xs text-danger-600 bg-white border border-danger-100 rounded-lg p-2 shadow-lg">
-          {error}
-        </span>
+    <div className={cn("relative overflow-hidden bg-st-surface-container", className)}>
+      {ok ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={p.image_url} alt={p.name} loading="lazy" onError={() => setFailed(true)}
+          onLoad={(e) => { if (isTinyImage(e.currentTarget)) setFailed(true); }}
+          className={cn("h-full w-full object-contain transition-transform duration-500 group-hover:scale-105", imgClass)} />
+      ) : (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-st-outline" role="img" aria-label={`تصویر ${p.name} ثبت نشده است`}>
+          <Icon name="inventory_2" className="text-[32px]" />
+          <span className="text-[11px]">تصویر ثبت نشده</span>
+        </div>
       )}
     </div>
   );
 }
 
-// ── Product card ──────────────────────────────────────────────────────────────
-
-/** Source images under 200px (e.g. 40×40 supplier thumbnails) look broken when scaled up; show the no-image state instead. */
-export const isTinyImage = (el: HTMLImageElement) => el.naturalWidth > 0 && Math.min(el.naturalWidth, el.naturalHeight) < 200;
-
-interface ProductCardProps {
-  product: Product;
-  onAddToCart?: (id: number) => void;
+function discountPct(p: Product) {
+  return p.original_price_minor && p.price_minor != null && p.original_price_minor > p.price_minor
+    ? Math.round((1 - p.price_minor / p.original_price_minor) * 100) : 0;
 }
 
-/** Unpriced catalog item: add it to the organizational order draft (not a sale). */
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+function WishButton({ slug, className }: { slug: string; className?: string }) {
   const wishlist = useWishlist();
-  const [imageFailed, setImageFailed] = useState(false);
-  const discountPct = product.original_price_minor
-    && product.price_minor != null
-    ? Math.round((1 - product.price_minor / product.original_price_minor) * 100)
-    : 0;
-  const hasRealImage = !!product.image_url && !product.image_url.includes("picsum.photos") && !imageFailed;
-
+  const on = wishlist.has(slug);
   return (
-    <Link
-      href={`/products/${product.slug}`}
-      className="group card card-hover overflow-hidden flex flex-col h-full block"
-    >
-      {/* Image — fixed-height, Fit/Contain so every card reads at a consistent scale */}
-      <div className={`relative m-2 mb-0 overflow-hidden rounded-xl bg-canvas flex-shrink-0 ${hasRealImage ? "aspect-square" : "aspect-[5/2]"}`}>
-        {hasRealImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={product.image_url}
-            alt={product.name}
-            onError={() => setImageFailed(true)}
-            onLoad={(e) => { if (isTinyImage(e.currentTarget)) setImageFailed(true); }}
-            className="w-full h-full object-contain p-6 md:p-7 group-hover:scale-[1.03] transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-canvas" aria-hidden>
-            {/* No verified photo: a compact brand/category band instead of a large empty box. */}
-            <span className="flex items-center gap-2 px-3 text-right">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-base font-black text-ink ring-1 ring-line">{(product.brand || product.name).slice(0, 1)}</span>
-              <span className="min-w-0"><span className="block truncate text-xs font-black text-brand-navy">{product.brand || ""}</span><span className="block truncate text-[11px] text-neutral-500">{product.category?.name ?? ""}</span></span>
-            </span>
-          </div>
-        )}
+    <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); wishlist.toggle(slug); }}
+      aria-label={on ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"} aria-pressed={on}
+      className={cn("flex h-8 w-8 items-center justify-center rounded-full bg-st-surface-container-lowest/90 shadow-sm backdrop-blur hover:text-st-on-tertiary-container",
+        on ? "text-st-on-tertiary-container" : "text-st-outline", className)}>
+      <Icon name="favorite" fill={on} className="text-[18px]" />
+    </button>
+  );
+}
 
-        {/* Discount badge */}
-        {discountPct > 0 && (
-          <span className="absolute top-2 right-2 bg-brand-coral text-white text-2xs font-bold px-2 py-0.5 rounded-full">
-            ٪{toPersianNum(discountPct)} تخفیف
-          </span>
-        )}
-
-        {/* Wishlist button */}
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); wishlist.toggle(product.slug); }}
-          className={cn(
-            "absolute top-2 left-2 w-8 h-8 rounded-lg bg-white/80 backdrop-blur-sm",
-            "flex items-center justify-center hover:text-brand-coral",
-            wishlist.has(product.slug) ? "text-brand-coral opacity-100" : "text-neutral-400 opacity-100 md:opacity-0 md:group-hover:opacity-100",
-            "transition-all duration-200"
-          )}
-          aria-label={wishlist.has(product.slug) ? "حذف از علاقه‌مندی‌ها" : "افزودن به علاقه‌مندی‌ها"}
-          aria-pressed={wishlist.has(product.slug)}
-        >
-          <svg className="w-4 h-4" fill={wishlist.has(product.slug) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Body — fixed heights on title/rating so every card ends up the same height */}
-      <div className="flex flex-col flex-1 p-4 gap-2">
-        {product.category && (
-          <span className="text-[11px] font-medium text-neutral-500">
-            {product.category.name}
-          </span>
-        )}
-
-        <h3 className="text-sm font-medium text-ink leading-6 line-clamp-2 h-12">
-          {product.name}
-        </h3>
-
-        {(product.variant_count ?? 0) > 1 && (
-          <span className="w-fit rounded-full bg-canvas-sunken px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
-            {toPersianNum(product.variant_count!)} مدل/اندازه{product.variant_labels?.length ? `: ${product.variant_labels[0]} تا ${product.variant_labels[product.variant_labels.length - 1]}` : ""}
-          </span>
-        )}
-        <div className="h-4 flex items-center gap-1.5">
-          {product.rating != null && product.rating > 0 && (
-            <>
-              <Stars rating={product.rating} />
-              <span className="text-2xs text-neutral-400">({toPersianNum(product.review_count ?? 0)})</span>
-            </>
-          )}
-        </div>
-
-        <div className="flex-1" />
-
-        <div className="flex items-end justify-between gap-2 pt-1">
-          <div className="flex flex-col">
-            {product.price_minor != null && product.original_price_minor && product.original_price_minor > product.price_minor && (
-              <span className="text-2xs text-neutral-400 line-through tabular-nums">
-                {formatPrice(product.original_price_minor)}
-              </span>
-            )}
-            {(product as { price_hidden?: boolean }).price_hidden ? (
-              <a href="/business" className="inline-flex w-fit items-center rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-bold text-neutral-700">قیمت فقط برای مشتریان سازمانی</a>
-            ) : product.price_minor == null && product.list_price_minor ? (
-              <>
-                <span className="text-[10px] font-bold text-neutral-500">آخرین قیمت اعلامی تأمین‌کننده</span>
-                <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from || (product.variant_count ?? 1) > 1 ? "از " : ""}{formatPrice(product.list_price_minor)}</span>
-              </>
-            ) : product.price_minor == null ? (
-              <span className="inline-flex w-fit items-center rounded-full bg-canvas-sunken px-2 py-0.5 text-[11px] font-bold text-ink-soft">قیمت با استعلام</span>
-            ) : (
-              <span className="text-base font-black text-brand-navy tabular-nums">{product.price_from ? "از " : ""}{formatPrice(product.price_minor)}</span>
-            )}
-          </div>
-          {product.purchasable && product.stock !== 0 && (product.variant_count ?? 1) <= 1 && <AddToCartButton productId={product.id} onAdd={onAddToCart} />}
-          {product.purchasable && (product.variant_count ?? 1) > 1 && <span className="rounded-full bg-ink px-3 py-1.5 text-xs font-bold text-white">انتخاب اندازه</span>}
-        </div>
-        {product.price_minor == null && (
-          <span className="flex min-h-10 items-center justify-center rounded-full border border-ink px-3 text-center text-xs font-bold text-ink hover:bg-ink hover:text-white">{product.org_only ? "ویژه خرید سازمانی" : product.list_price_minor ? "انتخاب و استعلام" : "درخواست قیمت روز"}</span>
-        )}
-
-        {product.stock != null && product.stock < 10 && product.stock > 0 && (
-          <p className="text-2xs text-brand-coral">تنها {toPersianNum(product.stock)} عدد باقی مانده</p>
-        )}
-        {product.stock === 0 && product.price_minor != null && <p className="rounded-lg bg-neutral-100 px-2 py-1 text-center text-xs font-bold text-neutral-500">در حال حاضر ناموجود</p>}
-      </div>
+/** Primary action: add to cart (single purchasable SKU) · choose variant · request a quote. */
+function PrimaryAction({ p, onAdd, compact }: { p: Product; onAdd?: (id: number) => void; compact?: boolean }) {
+  const { state, error, add } = useAddToCart(p.id, onAdd);
+  const multi = (p.variant_count ?? 1) > 1;
+  const canAdd = p.purchasable && p.price_minor != null && p.stock !== 0 && !multi;
+  const base = compact
+    ? "flex items-center gap-1 rounded-lg px-3 py-1.5 text-st-label-md transition-colors active:scale-95"
+    : "flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl font-bold shadow-sm transition-colors";
+  const dark = "bg-st-primary-container text-st-on-primary hover:bg-st-secondary";
+  if (canAdd) return (
+    <span className={cn("relative", !compact && "flex flex-1")}>
+      <button type="button" onClick={add} disabled={state === "loading"}
+        className={cn(base, state === "error" ? "bg-st-error-container text-st-on-error-container" : state === "added" ? "bg-st-secondary-fixed text-st-on-secondary-fixed" : dark, state === "loading" && "cursor-wait opacity-60")}>
+        <Icon name={state === "added" ? "check" : "add_shopping_cart"} className="text-[18px]" />
+        <span>{state === "error" ? "خطا" : state === "added" ? "افزوده شد" : compact ? "افزودن" : "افزودن به سبد"}</span>
+      </button>
+      {error && <span role="alert" className="absolute right-0 top-full z-10 mt-1 w-44 rounded-lg bg-st-surface-container-lowest p-2 text-[11px] text-st-error shadow-sm">{error}</span>}
+    </span>
+  );
+  if (p.purchasable && multi) return (
+    <Link href={`/products/${p.slug}`} className={cn(base, dark)}><Icon name="tune" className="text-[18px]" /><span>انتخاب مدل</span></Link>
+  );
+  return (
+    <Link href={`/products/${p.slug}`} className={cn(base, compact ? "bg-st-surface-container text-st-primary-container hover:bg-st-surface-container-high" : dark)}>
+      <Icon name={p.org_only ? "domain" : "request_quote"} className="text-[18px]" />
+      <span>{p.org_only ? "خرید سازمانی" : "استعلام قیمت"}</span>
     </Link>
   );
 }
 
-// ── Category card ─────────────────────────────────────────────────────────────
+interface ProductCardProps { product: Product; onAddToCart?: (id: number) => void; layout?: "auto" | "grid" | "list" }
 
-interface CategoryCardProps {
-  name: string;
-  href: string;
-  count?: number;
-  icon?: React.ReactNode;
-  color?: string;
+export function ProductCard({ product: p, onAddToCart, layout = "grid" }: ProductCardProps) {
+  if (layout === "list") return <ProductRow p={p} onAdd={onAddToCart} />;
+  if (layout === "auto") return <><div className="md:hidden"><ProductRow p={p} onAdd={onAddToCart} /></div><div className="hidden h-full md:block"><ProductTile p={p} onAdd={onAddToCart} /></div></>;
+  return <ProductTile p={p} onAdd={onAddToCart} />;
 }
 
-export function CategoryCard({ name, href, count, icon, color = "bg-brand-blueLight" }: CategoryCardProps) {
+/** Stitch 23 grid card. */
+function ProductTile({ p, onAdd }: { p: Product; onAdd?: (id: number) => void }) {
+  const pv = priceView(p);
+  const pct = discountPct(p);
   return (
-    <Link
-      href={href}
-      className="group card card-hover p-4 flex flex-col items-center text-center gap-3"
-    >
-      <div className={cn(
-        "w-14 h-14 rounded-2xl flex items-center justify-center text-brand-blue transition-all duration-300",
-        color,
-        "group-hover:bg-brand-blue group-hover:text-white"
-      )}>
-        {icon ?? (
-          <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-              d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-          </svg>
-        )}
+    <article className="group flex h-full flex-col justify-between overflow-hidden rounded-xl bg-st-surface-container-lowest shadow-sm transition-shadow hover:shadow-md">
+      <div className="flex flex-col">
+        <div className="relative">
+          <Link href={`/products/${p.slug}`} className="block" tabIndex={-1} aria-hidden>
+            <Media p={p} className="aspect-[4/3] w-full" imgClass="p-4" />
+          </Link>
+          {pct > 0 && <span className="absolute left-st-space-sm top-st-space-sm rounded-full bg-st-on-tertiary-container px-2.5 py-1 font-bold text-st-on-tertiary shadow-sm">٪{toPersianNum(pct)} تخفیف</span>}
+          {p.brand && <span className="absolute bottom-st-space-sm right-st-space-sm flex items-center gap-1 rounded-md bg-st-surface-container-lowest/90 px-2 py-0.5 font-bold text-st-secondary shadow-sm backdrop-blur">
+            <Icon name="sell" className="text-[14px]" /><span>{p.brand}</span></span>}
+          <WishButton slug={p.slug} className="absolute right-st-space-sm top-st-space-sm" />
+        </div>
+        <div className="flex flex-col gap-st-space-xs p-st-space-md">
+          <div className="flex items-center justify-between text-st-outline">
+            <span className="truncate">{p.sku ? <>شناسه کالا: <span dir="ltr">{p.sku}</span></> : ""}</span>
+            {p.rating != null && p.rating > 0 && <div className="flex shrink-0 items-center gap-1">
+              <span className="font-bold text-st-on-surface">{toPersianNum(p.rating.toFixed(1))}</span>
+              <Icon name="star" fill className="text-[14px] text-amber-500" />
+              <span className="text-st-outline">({toPersianNum(p.review_count ?? 0)})</span>
+            </div>}
+          </div>
+          <h3 className="line-clamp-2 font-bold text-st-primary transition-colors group-hover:text-st-secondary">
+            <Link href={`/products/${p.slug}`}>{p.name}</Link>
+          </h3>
+          {p.category?.name && <span className="text-st-on-surface-variant">{p.category.name}</span>}
+          <div className="mt-st-space-sm flex flex-col gap-1 rounded-lg bg-st-surface-container-low p-st-space-xs">
+            {pv.old != null && <div className="flex items-center justify-between text-st-outline">
+              <span>قیمت قبل:</span><span className="line-through">{toman(pv.old)} تومان</span></div>}
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-bold text-st-secondary">{pv.quote ? pv.label : pv.label + ":"}</span>
+              {pv.main != null ? <div className="text-left"><span className="font-bold text-st-primary">{toman(pv.main)}</span> <span className="font-bold text-st-primary">تومان</span></div>
+                : pv.hidden ? <Link href="/business" className="text-st-secondary underline">ورود سازمانی</Link> : <Icon name="request_quote" className="text-[18px] text-st-outline" />}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-1 pt-st-space-xs text-st-outline">
+            {tags(p).map((t) => <span key={t} className="rounded bg-st-surface-container px-1.5 py-0.5">{t}</span>)}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-st-space-xs p-st-space-md pt-0">
+        <PrimaryAction p={p} onAdd={onAdd} />
+        <Link href={`/requests/new?slug=${encodeURIComponent(p.slug)}`} title="درخواست پیش‌فاکتور / استعلام تیراژ بالا" aria-label="درخواست پیش‌فاکتور / استعلام تیراژ بالا"
+          className="flex h-11 w-11 items-center justify-center rounded-xl bg-st-surface-container-low text-st-primary transition-colors hover:bg-st-secondary-fixed">
+          <Icon name="request_quote" className="text-[18px]" />
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+/** Stitch 14 mobile row card. */
+function ProductRow({ p, onAdd }: { p: Product; onAdd?: (id: number) => void }) {
+  const pv = priceView(p);
+  const pct = discountPct(p);
+  const side = p.stock != null && p.stock > 0 && p.stock < 10 ? `تنها ${toPersianNum(p.stock)} عدد` : p.rating ? null : p.org_only ? "ویژه سازمانی" : (p.variant_count ?? 1) > 1 ? `${toPersianNum(p.variant_count!)} مدل` : null;
+  return (
+    <article className="group relative flex flex-col overflow-hidden rounded-xl bg-st-surface-container-lowest p-st-space-md shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+      <div className="flex gap-st-space-md">
+        <Link href={`/products/${p.slug}`} className="relative block shrink-0" tabIndex={-1} aria-hidden>
+          <Media p={p} className="h-24 w-24 rounded-lg !bg-st-surface-container-low" imgClass="p-1.5" />
+          {pct > 0 && <span className="absolute right-1.5 top-1.5 rounded-full bg-st-on-tertiary-container px-1.5 py-0.5 text-[10px] font-bold text-st-on-tertiary">٪{toPersianNum(pct)} تخفیف</span>}
+        </Link>
+        <div className="flex min-w-0 flex-1 flex-col justify-between">
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate text-st-label-sm font-medium text-st-secondary">{p.brand || p.category?.name || ""}</span>
+              {p.rating != null && p.rating > 0 ? <span className="inline-flex items-center gap-0.5 text-[11px] text-st-on-surface-variant">
+                <Icon name="star" fill className="text-[13px] text-st-tertiary-fixed-dim" />{toPersianNum(p.rating.toFixed(1))}</span>
+                : side ? <span className="shrink-0 text-st-label-sm text-st-outline">{side}</span> : null}
+            </div>
+            <h3 className="truncate text-st-title-md text-st-primary-container"><Link href={`/products/${p.slug}`}>{p.name}</Link></h3>
+            <p className="line-clamp-1 text-st-body-sm text-st-on-surface-variant">{[p.category?.name, p.sku].filter(Boolean).join(" · ")}</p>
+          </div>
+          <div className="mt-st-space-xs flex items-end justify-between gap-2">
+            <div className="flex min-w-0 flex-col">
+              {pv.old != null ? <span className="text-st-label-sm text-st-outline line-through">{toman(pv.old)}</span>
+                : <span className="truncate text-st-label-sm text-st-outline">{pv.main != null ? pv.label : ""}</span>}
+              {pv.main != null ? <div className="flex items-baseline gap-1">
+                <span className="text-st-headline-md font-extrabold text-st-primary-container">{toman(pv.main)}</span>
+                <span className="text-st-label-sm text-st-on-surface-variant">تومان</span></div>
+                : <span className="text-st-label-md font-bold text-st-primary-container">{pv.label}</span>}
+            </div>
+            <PrimaryAction p={p} onAdd={onAdd} compact />
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+// ── Category card (kept for existing callers) ────────────────────────────────
+
+interface CategoryCardProps { name: string; href: string; count?: number; icon?: React.ReactNode; color?: string }
+
+export function CategoryCard({ name, href, count, icon }: CategoryCardProps) {
+  return (
+    <Link href={href} className="flex flex-col items-center gap-3 rounded-xl bg-st-surface-container-lowest p-4 text-center shadow-sm hover:shadow-md">
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-st-secondary-fixed text-st-on-secondary-fixed-variant">
+        {icon ?? <Icon name="category" className="text-[26px]" />}
       </div>
       <div>
-        <p className="text-sm font-semibold text-ink">{name}</p>
-        {count != null && <p className={cn("text-2xs mt-0.5", count > 0 ? "text-neutral-400" : "text-amber-600")}>{count > 0 ? `${count} محصول` : "در حال تکمیل محصولات"}</p>}
+        <p className="text-st-label-lg text-st-primary-container">{name}</p>
+        {count != null && <p className="mt-0.5 text-st-label-sm text-st-on-surface-variant">{count > 0 ? `${toPersianNum(count)} کالا` : "در حال تکمیل کالاها"}</p>}
       </div>
     </Link>
   );
@@ -278,28 +257,22 @@ export function CategoryCard({ name, href, count, icon, color = "bg-brand-blueLi
 
 // ── Product grid ──────────────────────────────────────────────────────────────
 
-export function ProductGrid({
-  products,
-  onAddToCart,
-  cols = 4,
-}: {
-  products: Product[];
-  onAddToCart?: (id: number) => void;
-  cols?: 2 | 3 | 4 | 5 | 6;
+export function ProductGrid({ products, onAddToCart, cols = 4, view = "grid" }: {
+  products: Product[]; onAddToCart?: (id: number) => void; cols?: 2 | 3 | 4 | 5 | 6;
+  /** grid = Stitch 23 tiles; list = Stitch 14 rows; auto = rows on mobile, tiles from md. */
+  view?: "auto" | "grid" | "list";
 }) {
+  if (view === "list") return <div className="flex w-full flex-col gap-st-space-sm">{products.map((p) => <ProductCard key={p.id} product={p} onAddToCart={onAddToCart} layout="list" />)}</div>;
   const gridCols = {
-    2: "grid-cols-1 sm:grid-cols-2",
-    3: "grid-cols-2 lg:grid-cols-3",
-    4: "grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-    5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
-    6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6",
+    2: "md:grid-cols-2",
+    3: "md:grid-cols-2 xl:grid-cols-3",
+    4: "md:grid-cols-3 xl:grid-cols-4",
+    5: "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+    6: "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6",
   }[cols];
-
   return (
-    <div className={cn("grid gap-4 md:gap-5", gridCols)}>
-      {products.map((p) => (
-        <ProductCard key={p.id} product={p} onAddToCart={onAddToCart} />
-      ))}
+    <div className={cn("grid gap-st-space-sm md:gap-st-gutter-md", view === "auto" ? "grid-cols-1" : "grid-cols-2", gridCols)}>
+      {products.map((p) => <ProductCard key={p.id} product={p} onAddToCart={onAddToCart} layout={view} />)}
     </div>
   );
 }
