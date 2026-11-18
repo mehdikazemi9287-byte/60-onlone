@@ -1,5 +1,11 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// Teach tailwind-merge the Stitch st- font sizes, otherwise `text-st-label-sm` is treated as a colour and
+// silently dropped when a `text-st-<colour>` class is also present.
+const twMerge = extendTailwindMerge({
+  extend: { classGroups: { "font-size": [{ text: ["st-label-sm", "st-headline-xl", "st-label-md", "st-label-lg", "st-headline-md", "st-headline-lg-mobile", "st-body-lg", "st-body-sm", "st-body-md", "st-headline-xl-mobile", "st-headline-lg", "st-title-md", "st-title-lg"] }] } },
+});
 
 /** Merge Tailwind classes safely */
 export function cn(...inputs: ClassValue[]) {

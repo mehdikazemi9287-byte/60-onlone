@@ -13,6 +13,7 @@
   font-display: block;
   src: url("/fonts/material-symbols-outlined-60online.woff2") format("woff2");
 }
+@layer components {
 .material-symbols-outlined {
   font-family: "Material Symbols Outlined";
   font-weight: normal;
@@ -30,6 +31,7 @@
   user-select: none;
 }
 .material-symbols-outlined.icon-fill { font-variation-settings: "FILL" 1; }
+}
 
 /* ── Stitch colour tokens (st-*) as CSS variables: light = screen 30, dark = screens 22/33 (Stitch dark palette).
    tailwind.config.ts maps every st- colour to rgb(var(--st-…) / <alpha>), so one class works in both themes. */

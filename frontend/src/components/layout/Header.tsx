@@ -141,7 +141,7 @@ export function Header() {
     </header>
     {/* Mobile search pill scrolls with the page, as in screen 16. Catalog pages (Stitch 14/27) have their own
         in-page search box, so the shared row is hidden there. */}
-    {!/^\/(search|category)(\/|$)/.test(pathname) && <div className="px-st-margin pb-st-space-xs pt-st-space-sm md:hidden"><SearchBox id="site-search-m" mobile /></div>}
+    {!/^\/(search|category|cart|checkout|account)(\/|$)/.test(pathname) && <div className="px-st-margin pb-st-space-xs pt-st-space-sm md:hidden"><SearchBox id="site-search-m" mobile /></div>}
 
     {mobileOpen && <div className="fixed inset-0 z-[80] lg:hidden" role="dialog" aria-modal="true" aria-label="منوی اصلی">
       <button className="absolute inset-0 bg-st-primary/40 backdrop-blur-[2px]" onClick={close} aria-label="بستن منو" />
