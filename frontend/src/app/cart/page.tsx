@@ -1,13 +1,20 @@
 "use client";
 
+// Cart — Stitch screen 11 (سبد خرید, mobile 390) rebuilt faithfully; the desktop layout uses the same
+// cards in the 8/4 grid of screen 24. Every number comes from the server's cart response; nothing is
+// computed client-side. Final tax/credit/total is computed authoritatively on /checkout (/checkout/quote).
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { cn, formatPrice, toPersianNum } from "@/lib/utils";
+import { toPersianNum } from "@/lib/utils";
+// clsx, not twMerge: tailwind-merge does not know the st- font-size tokens and drops them next to st- colors.
+import { clsx as cn } from "clsx";
 import { cart as cartApi, ApiError, apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Cart, CartItem } from "@/lib/types";
+import { Icon, stRoot, toman } from "@/components/checkout/st";
 
-// ── Cart item row ─────────────────────────────────────────────────────────────
+// ── Cart item card (screen 11) ───────────────────────────────────────────────
 
 function CartRow({
   item,
@@ -24,80 +31,87 @@ function CartRow({
   const overStock = item.quantity > available;
 
   return (
-    <div className="flex gap-4 py-4 border-b border-neutral-100 last:border-0">
-      {/* Image — real photo when the linked master product has one, same
-          neutral placeholder pattern used everywhere else otherwise. */}
-      <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 rounded-xl overflow-hidden bg-neutral-50 flex items-center justify-center text-3xl">
-        {item.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image_url} alt={item.title_fa} className="w-full h-full object-contain p-2" />
-        ) : (
-          item.image_emoji || "📦"
-        )}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <Link
-          href={item.slug ? `/products/${item.slug}` : "#"}
-          className="text-sm font-semibold text-neutral-900 hover:text-primary-700 transition-colors line-clamp-2"
-        >
-          {item.title_fa}
-        </Link>
-        <p className="text-sm font-bold text-neutral-900 mt-1 tabular-nums">
-          {formatPrice(item.unit_price_minor)}
-        </p>
-        {overStock && (
-          <p className="text-2xs text-danger-600 mt-1">
-            فقط {toPersianNum(available)} عدد موجود است — تعداد را کاهش دهید
-          </p>
-        )}
-      </div>
-
-      {/* Controls */}
-      <div className="flex flex-col items-end justify-between gap-2">
-        {/* Qty */}
-        <div className="flex items-center border border-neutral-200 rounded-lg overflow-hidden">
-          <button
-            disabled={busy}
-            onClick={() => onQtyChange(item.product_id, item.quantity - 1)}
-            className="w-8 h-8 flex items-center justify-center text-neutral-500 hover:bg-neutral-50 disabled:opacity-40"
-          >
-            {item.quantity === 1 ? (
-              <svg className="w-3.5 h-3.5 text-danger-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-              </svg>
-            ) : (
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 12h-15" />
-              </svg>
+    <div className="bg-st-surface-container-lowest rounded-2xl p-st-space-md shadow-sm relative flex flex-col gap-st-space-sm">
+      <div className="flex items-start gap-st-space-md">
+        {/* Thumbnail — real photo when the linked master product has one, otherwise the item's own emoji. */}
+        <div className="relative w-24 h-24 rounded-xl overflow-hidden bg-st-surface-container shrink-0 flex items-center justify-center text-4xl">
+          {item.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.image_url} alt={item.title_fa} className="w-full h-full object-contain p-2" />
+          ) : (
+            <span aria-hidden="true">{item.image_emoji || "📦"}</span>
+          )}
+        </div>
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-1">
+            <Link
+              href={item.slug ? `/products/${item.slug}` : "#"}
+              className="text-st-title-md text-st-on-surface line-clamp-1 hover:text-st-secondary transition-colors"
+            >
+              {item.title_fa}
+            </Link>
+            <button
+              aria-label="حذف کالا"
+              disabled={busy}
+              onClick={() => onRemove(item.product_id)}
+              className="text-st-on-surface-variant hover:text-st-error transition-colors p-1 -mt-1 -ml-1 disabled:opacity-40"
+              type="button"
+            >
+              <Icon name="close" className="text-[20px]" />
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="text-st-label-sm text-st-on-surface-variant" dir="ltr">{item.sku}</span>
+          </div>
+          <div className="mt-2 flex flex-col">
+            <div className="flex items-baseline gap-1 text-st-on-surface-variant text-st-body-sm">
+              <span>قیمت واحد:</span>
+              <span className="font-medium text-st-on-surface">{toman(item.unit_price_minor)} تومان</span>
+            </div>
+            {overStock && (
+              <div className="flex items-center gap-1 text-st-error text-st-label-sm mt-0.5">
+                <Icon name="warning" className="text-[14px]" />
+                <span>فقط {toPersianNum(available)} عدد موجود است — تعداد را کاهش دهید</span>
+              </div>
             )}
-          </button>
-          <span className="w-8 text-center text-sm font-semibold tabular-nums">{toPersianNum(item.quantity)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-st-space-xs mt-0.5">
+        <div className="inline-flex items-center bg-st-surface-container-low rounded-xl p-1 gap-2 shadow-inner">
           <button
+            aria-label="افزایش تعداد"
             disabled={busy || item.quantity >= available}
             onClick={() => onQtyChange(item.product_id, item.quantity + 1)}
-            className="w-8 h-8 flex items-center justify-center text-neutral-500 hover:bg-neutral-50 disabled:opacity-30"
+            className="w-8 h-8 rounded-lg bg-st-surface-container-lowest text-st-primary-container flex items-center justify-center font-bold text-lg shadow-sm active:scale-95 transition-transform disabled:opacity-30"
+            type="button"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
+            +
+          </button>
+          <span className="text-st-title-md text-st-primary-container min-w-[28px] text-center font-semibold tabular-nums">
+            {toPersianNum(item.quantity)}
+          </span>
+          <button
+            aria-label={item.quantity === 1 ? "حذف کالا از سبد" : "کاهش تعداد"}
+            disabled={busy}
+            onClick={() => onQtyChange(item.product_id, item.quantity - 1)}
+            className={cn(
+              "w-8 h-8 rounded-lg bg-st-surface-container-lowest flex items-center justify-center font-bold text-lg shadow-sm active:scale-95 transition-transform disabled:opacity-40",
+              item.quantity === 1 ? "text-st-error" : "text-st-primary-container",
+            )}
+            type="button"
+          >
+            {item.quantity === 1 ? <Icon name="delete" className="text-[18px]" /> : "-"}
           </button>
         </div>
-
-        {/* Line total */}
-        <p className="text-sm font-bold text-primary-600 tabular-nums">
-          {formatPrice(item.line_total_minor)}
-        </p>
-
-        {/* Remove */}
-        <button
-          disabled={busy}
-          onClick={() => onRemove(item.product_id)}
-          className="text-2xs text-neutral-400 hover:text-danger-500 transition-colors disabled:opacity-40"
-        >
-          حذف
-        </button>
+        <div className="flex flex-col items-end">
+          <span className="text-st-label-sm text-st-on-surface-variant">مجموع ردیف</span>
+          <div className="flex items-baseline gap-1">
+            <span className="text-st-headline-md text-st-primary-container font-bold tabular-nums">{toman(item.line_total_minor)}</span>
+            <span className="text-st-label-sm text-st-on-surface-variant font-normal">تومان</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -167,136 +181,237 @@ export default function CartPage() {
 
   if (!authLoading && !token) {
     return (
-      <div className="internal-page container-page py-24 text-center">
-        <h2 className="text-lg font-bold text-neutral-900 mb-2">برای مشاهده سبد خرید وارد شوید</h2>
-        <Link
-          href="/login?next=/cart"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors mt-2"
-        >
-          ورود به حساب کاربری
-        </Link>
+      <div className={cn(stRoot, "min-h-[60vh] px-st-gutter py-24 text-center")}>
+        <div className="mx-auto max-w-md bg-st-surface-container-lowest rounded-2xl p-st-space-lg shadow-sm">
+          <Icon name="shopping_bag" className="text-[40px] text-st-secondary" />
+          <h2 className="mt-st-space-sm text-st-title-lg text-st-primary-container">برای مشاهده سبد خرید وارد شوید</h2>
+          <Link
+            href="/login?next=/cart"
+            className="mt-st-space-md inline-flex h-12 items-center gap-2 px-6 rounded-xl bg-st-primary-container text-st-on-primary text-st-label-lg hover:bg-st-secondary transition-colors"
+          >
+            ورود به حساب کاربری
+          </Link>
+        </div>
       </div>
     );
   }
 
   const items = cart?.items ?? [];
   const hasStockIssue = items.some((i) => (i.quantity_available ?? Infinity) < i.quantity);
+  const freeShipping = cart?.shipping_fee_minor === 0;
+  // The server's own cart total (pre-tax); never recomputed here. Tax is added on /checkout by the server quote.
+  const cartTotal = cart?.total_minor;
 
   return (
-    <div className="internal-page container-page py-6 md:py-8">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-neutral-400 mb-6">
-        <Link href="/" className="hover:text-primary-600">خانه</Link>
-        <span>/</span>
-        <span className="text-neutral-600">سبد خرید</span>
-      </nav>
-
-      <h1 className="text-2xl font-black text-neutral-900 mb-6">سبد خرید</h1>
-
-      {error && (
-        <div className="mb-4 text-sm text-danger-600 bg-danger-50 rounded-xl p-3">{error}</div>
-      )}
-
-      {cart === null ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 card p-6 h-64 animate-pulse bg-neutral-100" />
-          <div className="card p-6 h-48 animate-pulse bg-neutral-100" />
-        </div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-24">
-          <div className="w-20 h-20 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-4 text-neutral-300">
-            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
-            </svg>
-          </div>
-          <h2 className="text-lg font-bold text-neutral-900 mb-2">سبد خرید شما خالی است</h2>
-          <p className="text-sm text-neutral-500 mb-6">محصولات موردعلاقه‌تان را اضافه کنید</p>
-          <Link
-            href="/search"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors"
-          >
-            مشاهده محصولات
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Items */}
-          <div className="lg:col-span-2 card p-4 md:p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-semibold text-neutral-900">
-                {toPersianNum(cart.item_count)} کالا در سبد
-              </h2>
-              <button
-                onClick={handleClear}
-                className="text-xs text-neutral-400 hover:text-danger-500 transition-colors"
-              >
-                پاک کردن سبد
-              </button>
-            </div>
-            {items.map((item) => (
-              <CartRow
-                key={item.product_id}
-                item={item}
-                onQtyChange={handleQtyChange}
-                onRemove={handleRemove}
-                busy={busyId === item.product_id}
-              />
-            ))}
-          </div>
-
-          {/* Summary — every number here comes straight from the server's
-              cart response; nothing is computed client-side. Final tax/total
-              (VAT, org credit, etc.) is computed again, authoritatively, on
-              the checkout page via /checkout/quote. */}
-          <div className="space-y-4">
-            <div className="card p-5">
-              <h2 className="font-bold text-neutral-900 mb-4">خلاصه سبد</h2>
-              <div className="space-y-2.5 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">جمع کالاها</span>
-                  <span className="font-medium tabular-nums">{formatPrice(cart.subtotal_minor)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">هزینه ارسال</span>
-                  <span className={cn("font-medium tabular-nums", cart.shipping_fee_minor === 0 ? "text-success-600" : "")}>
-                    {cart.shipping_fee_minor === 0 ? "رایگان" : formatPrice(cart.shipping_fee_minor)}
-                  </span>
-                </div>
-                <p className="text-2xs text-neutral-400">مالیات در مرحله تسویه‌حساب محاسبه می‌شود</p>
+    <div className={cn(stRoot, "min-h-[60vh] pb-48 lg:pb-st-space-xl")}>
+      <div className="max-w-[1440px] mx-auto w-full lg:px-st-margin-lg lg:py-st-space-xl">
+        {/* Free-shipping banner — only when the server's cart says shipping is free. */}
+        {cart && items.length > 0 && freeShipping && (
+          <div className="px-st-gutter lg:px-0 pt-st-space-sm pb-st-space-xs lg:pb-st-space-md">
+            <div className="bg-[#EBF4F8] text-st-on-secondary-container rounded-xl p-st-space-md shadow-sm flex items-start gap-st-space-sm">
+              <Icon name="local_shipping" fill className="text-[22px] text-st-secondary shrink-0 mt-0.5" />
+              <div className="flex flex-col">
+                <span className="text-st-label-lg text-st-secondary leading-snug">ارسال رایگان فعال شد ✓</span>
+                <span className="text-st-body-sm text-st-on-surface-variant mt-0.5">
+                  هزینه ارسال این سبد طبق محاسبه سرور صفر است.
+                </span>
               </div>
+            </div>
+          </div>
+        )}
 
-              {hasStockIssue ? (
-                <p className="mt-5 text-xs text-center text-danger-600 bg-danger-50 rounded-xl p-3">
-                  موجودی برخی کالاها کافی نیست — قبل از ادامه، تعداد را اصلاح کنید
-                </p>
-              ) : (
-                <Link
-                  href="/checkout"
-                  className="mt-5 block w-full text-center py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors"
-                >
-                  ادامه و پرداخت
-                </Link>
-              )}
-              <ProformaButton />
+        {/* Cart header meta */}
+        <div className="px-st-gutter lg:px-0 py-st-space-sm flex items-center justify-between">
+          <div className="flex items-center gap-st-space-xs">
+            <h1 className="text-st-headline-lg-mobile lg:text-st-headline-lg text-st-primary-container">سبد خرید شما</h1>
+            {cart && items.length > 0 && (
+              <span className="text-st-label-sm px-2 py-0.5 rounded-full bg-st-surface-container-high text-st-on-surface-variant font-medium">
+                ({toPersianNum(cart.item_count)} کالا)
+              </span>
+            )}
+          </div>
+          {cart && items.length > 0 && (
+            <button
+              onClick={handleClear}
+              className="flex items-center gap-1 text-st-on-surface-variant hover:text-st-error transition-colors text-st-label-md py-1 px-2 rounded-lg"
+              type="button"
+            >
+              <Icon name="delete_sweep" className="text-[18px]" />
+              <span>خالی کردن سبد</span>
+            </button>
+          )}
+        </div>
+
+        {error && (
+          <div className="mx-st-gutter lg:mx-0 mb-st-space-sm flex items-start gap-2 rounded-xl bg-st-error-container text-st-on-error-container p-st-space-sm text-st-body-sm" role="alert">
+            <Icon name="error" className="text-[18px]" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {cart === null ? (
+          <div className="px-st-gutter lg:px-0 grid grid-cols-1 lg:grid-cols-12 gap-st-space-md lg:gap-st-gutter-lg">
+            <div className="lg:col-span-8 h-64 rounded-2xl bg-st-surface-container animate-pulse" />
+            <div className="lg:col-span-4 h-48 rounded-2xl bg-st-surface-container animate-pulse" />
+          </div>
+        ) : items.length === 0 ? (
+          <div className="px-st-gutter lg:px-0 py-st-space-xl">
+            <div className="mx-auto max-w-md bg-st-surface-container-lowest rounded-2xl p-st-space-lg shadow-sm text-center">
+              <div className="w-20 h-20 rounded-full bg-st-surface-container-low flex items-center justify-center mx-auto mb-st-space-md text-st-outline">
+                <Icon name="shopping_bag" className="text-[40px]" />
+              </div>
+              <h2 className="text-st-title-lg text-st-primary-container mb-1">سبد خرید شما خالی است</h2>
+              <p className="text-st-body-md text-st-on-surface-variant mb-st-space-lg">محصولات موردعلاقه‌تان را اضافه کنید</p>
               <Link
                 href="/search"
-                className="mt-2 block w-full text-center py-2.5 rounded-xl text-sm text-neutral-500 hover:bg-neutral-50 transition-colors"
+                className="inline-flex h-12 items-center gap-2 px-6 rounded-xl bg-st-primary-container text-st-on-primary text-st-label-lg hover:bg-st-secondary transition-colors"
               >
-                ادامه خرید
-              </Link>
-              {/* 60AI contextual entry point — additive only, no change to
-                  the existing cart/summary logic or numbers. */}
-              <Link
-                href="/assistant"
-                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 py-2.5 text-xs font-medium text-primary-700 hover:border-primary-300 transition-colors"
-              >
-                <span className="text-sm">✦</span> هزینه را با 60AI کمتر کن
+                مشاهده محصولات
               </Link>
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-st-gutter-lg items-start">
+            {/* Items */}
+            <div className="lg:col-span-8 px-st-gutter lg:px-0 flex flex-col gap-st-space-md">
+              {items.map((item) => (
+                <CartRow
+                  key={item.product_id}
+                  item={item}
+                  onQtyChange={handleQtyChange}
+                  onRemove={handleRemove}
+                  busy={busyId === item.product_id}
+                />
+              ))}
+
+              {/* Coupon block — no coupon/gift-card endpoint exists for the online cart yet: shown disabled. */}
+              <div className="bg-st-surface-container-lowest rounded-2xl p-st-space-md shadow-sm">
+                <label className="block text-st-title-md text-st-primary-container mb-2" htmlFor="coupon-code">
+                  کد تخفیف یا کارت هدیه
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      id="coupon-code"
+                      disabled
+                      className="w-full h-12 bg-st-surface-container-low rounded-xl px-4 text-right text-st-body-md text-st-on-surface placeholder:text-st-outline focus:outline-none disabled:cursor-not-allowed"
+                      placeholder="ثبت کد تخفیف به‌زودی"
+                      type="text"
+                    />
+                  </div>
+                  <button disabled className="h-12 px-5 bg-st-secondary text-st-on-secondary rounded-xl text-st-label-lg opacity-50 cursor-not-allowed" type="button">
+                    اعمال
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 mt-2.5 text-st-on-surface-variant text-st-label-sm">
+                  <Icon name="info" className="text-[16px] text-st-secondary" />
+                  <span>اعمال کد تخفیف روی سبد آنلاین هنوز فعال نشده است (به‌زودی).</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary — server numbers only. */}
+            <div className="lg:col-span-4 lg:sticky lg:top-32 px-st-gutter lg:px-0 mt-st-space-md lg:mt-0 flex flex-col gap-st-space-md">
+              <div className="bg-st-surface-container-lowest rounded-2xl p-st-space-md shadow-sm flex flex-col gap-st-space-sm">
+                <div className="flex items-center justify-between pb-st-space-xs">
+                  <div className="flex items-center gap-2">
+                    <Icon name="receipt_long" className="text-[20px] text-st-primary-container" />
+                    <h2 className="text-st-title-lg text-st-primary-container">خلاصه سبد</h2>
+                  </div>
+                  <span className="text-st-label-sm text-st-secondary bg-st-secondary-fixed/50 px-2 py-0.5 rounded-full font-medium">
+                    مالیات در تسویه‌حساب
+                  </span>
+                </div>
+                <div className="flex items-center justify-between py-1 text-st-on-surface-variant text-st-body-md">
+                  <span>مجموع قیمت کالاها</span>
+                  <span className="font-medium text-st-on-surface tabular-nums">{toman(cart.subtotal_minor)} تومان</span>
+                </div>
+                <div className="flex items-center justify-between py-1 text-st-on-surface-variant text-st-body-md">
+                  <span>هزینه بسته‌بندی و ارسال</span>
+                  {freeShipping ? (
+                    <span className="text-st-secondary font-semibold">رایگان</span>
+                  ) : (
+                    <span className="text-st-on-surface tabular-nums">{toman(cart.shipping_fee_minor)} تومان</span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between py-1 text-st-on-surface-variant text-st-body-md">
+                  <span>مالیات بر ارزش افزوده</span>
+                  <span className="text-st-on-surface text-st-body-sm">در مرحله تسویه‌حساب محاسبه می‌شود</span>
+                </div>
+                {cartTotal !== undefined && <div className="mt-1 bg-st-surface-container-low rounded-xl p-st-space-sm flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-st-title-md text-st-primary-container">جمع سبد</span>
+                    <span className="text-st-label-sm text-st-on-surface-variant">بدون احتساب مالیات</span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-st-headline-lg-mobile text-st-primary-container font-extrabold tabular-nums">{toman(cartTotal)}</span>
+                    <span className="text-st-label-md text-st-primary-container font-medium">تومان</span>
+                  </div>
+                </div>}
+
+                {/* CTA bar: fixed above the site's mobile bottom nav (68px) on phones, inline on desktop. */}
+                <div className="fixed bottom-[68px] md:bottom-0 inset-x-0 z-40 bg-st-surface-container-lowest/95 backdrop-blur-md shadow-[0_-4px_16px_rgba(10,39,53,0.06)] px-st-gutter py-st-space-sm lg:static lg:z-auto lg:bg-transparent lg:backdrop-blur-none lg:shadow-none lg:p-0 lg:mt-st-space-sm">
+                  <div className="flex items-center justify-between gap-st-space-md max-w-lg mx-auto lg:max-w-none">
+                    {cartTotal !== undefined && <div className="flex flex-col lg:hidden">
+                      <span className="text-st-label-sm text-st-on-surface-variant">جمع سبد (بدون مالیات)</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-st-headline-lg-mobile text-st-primary-container font-extrabold tabular-nums">{toman(cartTotal)}</span>
+                        <span className="text-st-label-sm text-st-on-surface font-normal">تومان</span>
+                      </div>
+                    </div>}
+                    {hasStockIssue ? (
+                      <p className="flex-1 text-st-label-md text-center text-st-on-error-container bg-st-error-container rounded-xl p-st-space-sm">
+                        موجودی برخی کالاها کافی نیست — قبل از ادامه، تعداد را اصلاح کنید
+                      </p>
+                    ) : (
+                      <Link
+                        href="/checkout"
+                        className="h-12 px-6 bg-st-primary-container text-st-on-primary rounded-xl text-st-label-lg flex items-center justify-center gap-2 shadow-md hover:bg-st-secondary active:scale-[0.98] transition-all shrink-0 lg:w-full"
+                      >
+                        <span>ادامه فرایند خرید و ثبت نشانی</span>
+                        <Icon name="arrow_back" className="text-[18px] rotate-180" />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+
+                <ProformaButton />
+                <Link
+                  href="/search"
+                  className="block w-full text-center py-2.5 rounded-xl text-st-label-lg text-st-on-surface-variant hover:bg-st-surface-container-low transition-colors"
+                >
+                  ادامه خرید
+                </Link>
+                {/* 60AI contextual entry point — additive only. */}
+                <Link
+                  href="/assistant"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-st-secondary-fixed/50 py-2.5 text-st-label-md text-st-on-secondary-fixed-variant hover:bg-st-secondary-fixed transition-colors"
+                >
+                  <Icon name="auto_awesome" className="text-[16px]" /> هزینه را با 60AI کمتر کن
+                </Link>
+              </div>
+
+              {/* Trust badges — statements that are true for the site (buyer terms: 7-day withdrawal). */}
+              <div className="grid grid-cols-2 gap-st-space-sm">
+                <div className="bg-st-surface-container-low rounded-xl p-3 flex items-center gap-2.5">
+                  <Icon name="request_quote" className="text-st-secondary text-[22px]" />
+                  <div className="flex flex-col">
+                    <span className="text-st-label-md text-st-primary-container font-semibold">پیش‌فاکتور رسمی</span>
+                    <span className="text-st-label-sm text-st-on-surface-variant">۷۲ ساعت معتبر</span>
+                  </div>
+                </div>
+                <div className="bg-st-surface-container-low rounded-xl p-3 flex items-center gap-2.5">
+                  <Icon name="security" className="text-st-secondary text-[22px]" />
+                  <div className="flex flex-col">
+                    <span className="text-st-label-md text-st-primary-container font-semibold">حق انصراف</span>
+                    <span className="text-st-label-sm text-st-on-surface-variant">۷ روز کاری پس از تحویل</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -315,10 +430,11 @@ function ProformaButton() {
   return (
     <>
       <button type="button" disabled={busy} onClick={make}
-        className="mt-2 block w-full rounded-xl border border-neutral-200 py-2.5 text-center text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50">
+        className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-st-surface-container-low py-2.5 text-center text-st-label-lg text-st-primary-container hover:bg-st-surface-container disabled:opacity-50">
+        <Icon name="request_quote" className="text-[18px]" />
         دریافت پیش‌فاکتور (۷۲ ساعت معتبر)
       </button>
-      {err && <p role="alert" className="mt-1 text-center text-xs text-red-700">{err}</p>}
+      {err && <p role="alert" className="text-center text-st-label-md text-st-error">{err}</p>}
     </>
   );
 }
