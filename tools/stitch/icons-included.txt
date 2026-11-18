@@ -36,6 +36,7 @@ award_star
 backpack
 badge
 bar_chart
+barcode
 barcode_scanner
 bedtime
 bolt
@@ -56,11 +57,14 @@ cancel
 card_giftcard
 category
 celebration
+chair
 chat
 check
 check_circle
+checkroom
 chevron_left
 chevron_right
+child_care
 chrome_reader_mode
 clean_hands
 cleaning_services
@@ -71,6 +75,8 @@ coffee
 coffee_maker
 collections_bookmark
 compare_arrows
+computer
+construction
 contact_page
 contact_phone
 contact_support
@@ -89,6 +95,7 @@ dashboard
 delete
 delete_sweep
 description
+diamond
 directions_car
 diversity_1
 document_scanner
@@ -106,6 +113,7 @@ eco
 edit
 edit_note
 edit_square
+egg
 emoji_food_beverage
 error
 event
@@ -125,6 +133,7 @@ filter_alt
 filter_list
 fingerprint
 fire_truck
+fitness_center
 flag
 folder_special
 folder_zip
@@ -156,6 +165,8 @@ info
 inventory
 inventory_2
 keyboard_arrow_up
+kitchen
+laptop_mac
 layers
 library_add
 light_mode
@@ -199,6 +210,7 @@ pending
 pending_actions
 percent
 person
+pets
 phone
 phone_in_talk
 photo_camera
@@ -232,6 +244,7 @@ restaurant
 rice_bowl
 rotate_right
 route
+router
 rule
 rv_hookup
 sanitizer
@@ -240,6 +253,7 @@ scale
 schedule
 school
 search
+search_off
 security
 sell
 send
@@ -257,6 +271,7 @@ shopping_basket
 shopping_cart
 shopping_cart_checkout
 smart_toy
+smartphone
 sms
 sort
 spa
@@ -282,6 +297,7 @@ touch_app
 trending_down
 trending_up
 tune
+tv
 upload
 upload_file
 verified
@@ -294,6 +310,7 @@ volunteer_activism
 warehouse
 warning
 waterfall_chart
+work_history
 workspace_premium
 zoom_in
 zoom_out
