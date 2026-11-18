@@ -114,7 +114,7 @@ export default function QuoteComparison({ requestId, rfqId }: { requestId: strin
             <table className={s.compare}>
               <thead>
                 <tr>
-                  <th scope="col" style={{ right: 0, position: "sticky", zIndex: 3, background: "#f8fafc" }}>شاخص</th>
+                  <th scope="col" style={{ right: 0, position: "sticky", zIndex: 3, background: "#F7F7F5" }}>شاخص</th>
                   {data.quotes.map((q) => (
                     <th key={q.quote_id} scope="col">
                       <div className={s.supHead}>
@@ -168,7 +168,7 @@ export default function QuoteComparison({ requestId, rfqId }: { requestId: strin
             {detail && (
               <div className={s.compareWrap} style={{ marginTop: 10 }}>
                 <table className={s.compare}>
-                  <thead><tr><th style={{ right: 0, position: "sticky", zIndex: 3, background: "#f8fafc" }}>قلم (نیاز)</th>{data.quotes.map((q) => <th key={q.quote_id}>{q.supplier_name}</th>)}</tr></thead>
+                  <thead><tr><th style={{ right: 0, position: "sticky", zIndex: 3, background: "#F7F7F5" }}>قلم (نیاز)</th>{data.quotes.map((q) => <th key={q.quote_id}>{q.supplier_name}</th>)}</tr></thead>
                   <tbody>
                     {data.rfq_items.map((it) => (
                       <tr key={it.id}>

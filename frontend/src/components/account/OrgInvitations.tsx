@@ -30,7 +30,7 @@ export function OrgInvitations({ token }: { token: string }) {
           <li key={i.membership_id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white p-3 text-sm">
             <span><b>{i.organization}</b> شما را با نقش «{ROLE_FA[i.role] ?? i.role}» دعوت کرده{i.invited_by ? ` (${i.invited_by})` : ""}. اگر این سازمان را نمی‌شناسید، رد کنید.</span>
             <span className="flex gap-2">
-              <button className="rounded-lg bg-primary-600 px-3 py-1.5 font-bold text-white" onClick={() => answer(i.membership_id, "accept")}>می‌پذیرم</button>
+              <button className="rounded-full bg-ink px-3 py-1.5 font-bold text-white" onClick={() => answer(i.membership_id, "accept")}>می‌پذیرم</button>
               <button className="rounded-lg bg-neutral-100 px-3 py-1.5" onClick={() => answer(i.membership_id, "decline")}>رد</button>
             </span>
           </li>

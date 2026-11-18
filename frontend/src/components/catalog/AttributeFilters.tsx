@@ -164,7 +164,7 @@ export function ActiveFilterChips({ attrFacets, state, change }: { attrFacets: A
     <div className="mb-3 flex flex-wrap items-center gap-2" aria-label="فیلترهای فعال">
       {chips.map((c) => (
         <button key={c.key} type="button" onClick={c.remove} aria-label={`حذف فیلتر ${c.label}`}
-          className="inline-flex max-w-full items-center gap-1 rounded-full border border-brand-navy/30 bg-brand-navy/5 px-3 py-1.5 text-xs font-bold text-brand-navy">
+          className="inline-flex max-w-full items-center gap-1 rounded-full border border-brand-navy/30 bg-ink/5 px-3 py-1.5 text-xs font-bold text-white">
           <span className="truncate">{c.label}</span><span aria-hidden>×</span>
         </button>
       ))}
@@ -201,7 +201,7 @@ export function FilterPanel(props: { facets: Facets | null; attrFacets: Attribut
     <>
       <button ref={trigger} type="button" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}
         className="mb-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-bold text-brand-navy md:hidden">
-        فیلترها{active > 0 && <span className="rounded-full bg-brand-navy px-2 text-[11px] text-white">{toPersianNum(active)}</span>}
+        فیلترها{active > 0 && <span className="rounded-full bg-ink px-2 text-[11px] text-white">{toPersianNum(active)}</span>}
       </button>
       <aside className="hidden md:block" aria-label="فیلترها">
         <div className="card sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto p-4">

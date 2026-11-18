@@ -59,7 +59,7 @@ export function BusinessApplication() {
         <input type="checkbox" required className="mt-1.5" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
         <span>موافقم شصت آنلاین برای بررسی درخواست و عقد قرارداد با رابط معرفی‌شده تماس بگیرد. این اطلاعات فقط برای همین منظور نگهداری می‌شود و اگر قراردادی بسته نشود حداکثر پس از ۱۸۰ روز حذف می‌شود (<a href="/privacy" className="underline">حریم خصوصی</a>).</span>
       </label>
-      <div className="md:col-span-2"><button disabled={state === "busy" || !consent} className="w-full rounded-xl bg-primary-600 py-3 text-sm font-bold text-white disabled:opacity-60 md:w-auto md:px-10">{state === "busy" ? "در حال ارسال…" : "ارسال درخواست"}</button></div>
+      <div className="md:col-span-2"><button disabled={state === "busy" || !consent} className="w-full rounded-full bg-ink py-3 text-sm font-bold text-white disabled:opacity-60 md:w-auto md:px-10">{state === "busy" ? "در حال ارسال…" : "ارسال درخواست"}</button></div>
     </form>
   );
 }

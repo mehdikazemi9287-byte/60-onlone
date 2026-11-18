@@ -94,7 +94,7 @@ function BookVisit({ token, store, onClose }: { token: string; store: Store; onC
       </label>
       {msg && <p role="status" className={`text-sm ${msg.ok ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>}
       <div className="flex gap-2">
-        <button type="submit" disabled={busy || !when} className="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{busy ? "…" : "ثبت درخواست"}</button>
+        <button type="submit" disabled={busy || !when} className="rounded-full bg-ink px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{busy ? "…" : "ثبت درخواست"}</button>
         <button type="button" onClick={onClose} className="rounded-xl border px-4 py-2 text-sm">بستن</button>
       </div>
     </form>

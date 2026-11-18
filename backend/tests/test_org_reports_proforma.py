@@ -57,3 +57,21 @@ class ProformaTest(AppTestCase):
                                                        "proforma_number": pf["number"]},
                              headers={**h, "Idempotency-Key": uuid.uuid4().hex})
         self.assertEqual((r.status_code, r.get_json()["error"]["code"]), (409, "proforma_price_changed"))
+
+    def test_proforma_list_is_owner_scoped_and_filtered(self):
+        _, h = self.new_customer()
+        product = self.product()
+        self.set_stock(product["id"], 10)
+        self.add_to_cart(h, product["id"], 2)
+        numbers = [self.client.post("/api/v1/me/proformas", headers=h).get_json()["number"] for _ in range(2)]
+        r = self.client.get("/api/v1/me/proformas", headers=h)
+        self.assertEqual(r.status_code, 200, r.get_json())
+        items = r.get_json()["items"]
+        self.assertEqual(sorted(i["number"] for i in items), sorted(numbers))
+        self.assertEqual({(i["item_count"], i["used"], i["expired"]) for i in items}, {(1, False, False)})
+        _, other = self.new_customer()
+        self.assertEqual(self.client.get("/api/v1/me/proformas", headers=other).get_json()["items"], [])
+        self.assertEqual(self.client.get("/api/v1/me/proformas?from=2000-01-01&to=2000-01-02", headers=h).get_json()["items"], [])
+        bad = self.client.get("/api/v1/me/proformas?from=1405/08/01", headers=h)
+        self.assertEqual((bad.status_code, bad.get_json()["error"]["code"]), (422, "invalid_date"))
+        self.assertEqual(self.client.get("/api/v1/me/proformas").status_code, 401)

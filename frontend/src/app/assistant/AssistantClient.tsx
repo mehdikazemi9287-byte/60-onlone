@@ -131,7 +131,7 @@ export function AssistantClient() {
             className="min-h-11 w-full resize-none bg-transparent py-2 text-sm outline-none" />
         </div>
         <button type="submit" disabled={loading}
-          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-primary-700 px-4 text-sm font-bold text-white disabled:opacity-60">
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-ink px-4 text-sm font-bold text-white disabled:opacity-60">
           <Send className="h-4 w-4" />{loading ? "…" : "بپرس"}
         </button>
       </form>
@@ -148,7 +148,7 @@ export function AssistantClient() {
         <div role="alertdialog" aria-label="جایگزینی پیش‌نویس" className="card border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
           <p>در پک‌ساز یک پیش‌نویس ذخیره‌شده دارید. با انتقال این پک، آن پیش‌نویس جایگزین می‌شود.</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            <button type="button" onClick={() => transferToPackBuilder(confirmReplace, true)} className="rounded-xl bg-brand-navy px-4 py-2 text-xs font-bold text-white">جایگزین کن و ادامه بده</button>
+            <button type="button" onClick={() => transferToPackBuilder(confirmReplace, true)} className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-white">جایگزین کن و ادامه بده</button>
             <Link href="/pack-builder" className="rounded-xl border border-brand-navy px-4 py-2 text-xs font-bold text-brand-navy">ادامه پیش‌نویس قبلی</Link>
             <button type="button" onClick={() => setConfirmReplace(null)} className="px-2 text-xs font-bold text-neutral-600">انصراف</button>
           </div>
@@ -156,7 +156,7 @@ export function AssistantClient() {
 
       <div className="space-y-3">
         {turns.map((t, i) => t.role === "user" ? (
-          <div key={i} className="mr-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-primary-700 px-4 py-2 text-sm text-white">{t.text}</div>
+          <div key={i} className="mr-auto max-w-[85%] rounded-full rounded-tr-sm bg-ink px-4 py-2 text-sm text-white">{t.text}</div>
         ) : t.account ? (
           <AccountAnswer key={i} a={t.account} query={t.query ?? ""} />
         ) : t.draft ? (
@@ -221,7 +221,7 @@ export function AssistantClient() {
                   <p className="mt-1 text-2xs text-amber-700">{t.draft.unpricedCount.toLocaleString("fa-IR")} قلم بدون قیمت رسمی؛ جمع دقیق پس از «درخواست پیش‌فاکتور» در پک‌ساز مشخص می‌شود.</p>
                 )}
                 <button onClick={() => transferToPackBuilder(t.draft!)}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-700 px-4 py-2.5 text-sm font-bold text-white">
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-bold text-white">
                   <ShoppingBag className="h-4 w-4" /> انتقال این پک به پک‌ساز برای ویرایش و ثبت
                 </button>
               </div>
@@ -284,7 +284,7 @@ function AccountAnswer({ a, query }: { a: Account; query: string }) {
       {!a.signedIn ? (
         <div className="card flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
           <span>{a.notes[0] ?? "برای دیدن وضعیت، وارد حساب شوید."}</span>
-          <Link href={`/login?next=${encodeURIComponent("/assistant?q=" + query)}`} className="inline-flex items-center gap-1 rounded-xl bg-brand-navy px-3 py-2 text-xs font-bold text-white"><LogIn className="h-3.5 w-3.5" /> ورود</Link>
+          <Link href={`/login?next=${encodeURIComponent("/assistant?q=" + query)}`} className="inline-flex items-center gap-1 rounded-full bg-ink px-3 py-2 text-xs font-bold text-white"><LogIn className="h-3.5 w-3.5" /> ورود</Link>
         </div>
       ) : (
         <div className="card p-3 text-sm">

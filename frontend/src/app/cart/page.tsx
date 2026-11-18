@@ -171,7 +171,7 @@ export default function CartPage() {
         <h2 className="text-lg font-bold text-neutral-900 mb-2">برای مشاهده سبد خرید وارد شوید</h2>
         <Link
           href="/login?next=/cart"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors mt-2"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors mt-2"
         >
           ورود به حساب کاربری
         </Link>
@@ -214,7 +214,7 @@ export default function CartPage() {
           <p className="text-sm text-neutral-500 mb-6">محصولات موردعلاقه‌تان را اضافه کنید</p>
           <Link
             href="/search"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-ink text-white font-semibold text-sm hover:bg-ink transition-colors"
           >
             مشاهده محصولات
           </Link>

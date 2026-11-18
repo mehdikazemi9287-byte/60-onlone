@@ -28,7 +28,7 @@ export function PwaClient() {
   };
   return (
     <button type="button" onClick={install}
-      className="fixed bottom-20 left-4 z-40 flex min-h-11 items-center gap-2 rounded-full bg-neutral-900 px-4 py-2 text-sm font-bold text-white shadow-lg md:bottom-6">
+      className="fixed bottom-20 left-4 z-40 flex min-h-11 items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-bold text-white shadow-lg md:bottom-6">
       <Download className="h-4 w-4" aria-hidden="true" />نصب اپ
     </button>
   );

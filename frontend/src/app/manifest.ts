@@ -1,2 +1,17 @@
 import type { MetadataRoute } from "next";
-export default function manifest(): MetadataRoute.Manifest { return { name: "60Online | خرید برای خانه و سازمان", short_name: "60Online", description: "نسخه وب فروشگاه 60Online", start_url: "/", display: "standalone", background_color: "#fffaf0", theme_color: "#102A43", orientation: "portrait-primary", icons: [{ src: "/brand/60online-app-icon.png", sizes: "512x512", type: "image/png", purpose: "any" }, { src: "/brand/60online-app-icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" }] }; }
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "شصت‌آنلاین | خرید برای خانه و سازمان", short_name: "شصت‌آنلاین", description: "اپ فروشگاه شصت‌آنلاین",
+    id: "/", start_url: "/", scope: "/", lang: "fa", dir: "rtl", display: "standalone",
+    background_color: "#F7F7F5", theme_color: "#FFFFFF", orientation: "portrait-primary",
+    icons: [
+      { src: "/brand/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/brand/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/brand/icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/brand/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+    ],
+    shortcuts: [
+      { name: "سبد خرید", url: "/cart" }, { name: "سفارش‌های من", url: "/orders" }, { name: "دسته‌بندی‌ها", url: "/category" },
+    ],
+  };
+}

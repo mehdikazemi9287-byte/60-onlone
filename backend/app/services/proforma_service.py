@@ -59,6 +59,24 @@ def get(conn, *, user_id: int, number: str) -> dict:
             "used": row["used_order_id"] is not None, **json.loads(row["snapshot_json"])}
 
 
+def list_for_user(conn, *, user_id: int, date_from: str | None = None, date_to: str | None = None,
+                  limit: int = 200) -> list[dict]:
+    """The caller's own pro-formas, newest first (owner-scoped; dates are YYYY-MM-DD, inclusive)."""
+    sql = ("SELECT p.number, p.created_at, p.valid_until, p.used_order_id, p.total_minor, p.snapshot_json, o.legal_name "
+           "FROM proformas p LEFT JOIN organizations o ON o.id=p.organization_id WHERE p.user_id=?")
+    args: list = [user_id]
+    if date_from:
+        sql += " AND p.created_at>=?"; args.append(f"{date_from}T00:00:00Z")
+    if date_to:
+        sql += " AND p.created_at<=?"; args.append(f"{date_to}T23:59:59Z")
+    sql += " ORDER BY p.created_at DESC, p.id DESC LIMIT ?"; args.append(max(1, min(int(limit), 200)))
+    now = _iso(_now())
+    return [{"number": r["number"], "organization": r["legal_name"], "created_at": r["created_at"],
+             "valid_until": r["valid_until"], "expired": r["valid_until"] <= now, "used": r["used_order_id"] is not None,
+             "total_minor": r["total_minor"], "item_count": len(json.loads(r["snapshot_json"]).get("items", []))}
+            for r in conn.execute(sql, args).fetchall()]
+
+
 def guard_checkout(conn, *, user_id: int, number: str) -> None:
     """Refuse a checkout that would cost more than the approved pro-forma (cheaper is fine)."""
     pf = get(conn, user_id=user_id, number=number)

@@ -69,7 +69,7 @@ export function CatalogBrowser({ categorySlug }: { categorySlug?: string }) {
       <form className="mb-4 flex flex-wrap gap-3" onSubmit={(e) => { e.preventDefault(); change({ q: query, page: "1", sort: "" }); }}>
         <input aria-label="جستجوی کالا" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="نام کالا، برند، مدل، وزن یا کد کالا"
           className="min-h-12 min-w-0 flex-1 rounded-xl border p-3" />
-        <button className="rounded-xl bg-primary-600 px-5 text-white">جستجو</button>
+        <button className="rounded-full bg-ink px-5 text-white">جستجو</button>
         {!categorySlug && (
           <select aria-label="دسته‌بندی" value={cat} onChange={(e) => change({ cat: e.target.value, page: "1" })} className="min-h-12 max-w-full rounded-xl border p-3">
             <option value="">همه دسته‌ها</option>

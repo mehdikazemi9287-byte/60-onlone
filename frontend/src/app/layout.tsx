@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Vazirmatn } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { PublicChrome } from "@/components/layout/PublicChrome";
 import { Toaster } from "@/components/ui/Toaster";
@@ -7,9 +7,10 @@ import { AuthProvider } from "@/lib/auth-context";
 import { PwaClient } from "@/components/pwa/PwaClient";
 import { RefCapture } from "@/components/affiliate/RefCapture";
 
-const vazirmatn = Vazirmatn({
-  subsets: ["arabic"],
-  weight: ["400", "500", "600", "700", "800"],
+// Self-hosted (SIL OFL, rastikerdar/vazirmatn v33.0.3): Google Fonts is unreliable from Iran and blocks builds offline.
+const vazirmatn = localFont({
+  src: "./fonts/Vazirmatn-wght.woff2",
+  weight: "100 900",
   variable: "--font-vazirmatn",
   display: "swap",
 });
@@ -26,6 +27,8 @@ export const metadata: Metadata = {
   keywords: ["خرید اینترنتی", "کالای دیجیتال", "لوازم خانگی", "سوپرمارکت", "خرید سازمانی", "60Online"],
   authors: [{ name: "60Online" }],
   manifest: "/manifest.webmanifest",
+  icons: { icon: [{ url: "/brand/icon-192.png", sizes: "192x192" }], apple: "/brand/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "شصت‌آنلاین", statusBarStyle: "default" },
   applicationName: "60Online",
   openGraph: {
     title: "60Online | بازار جامع خرید ایران",
@@ -38,7 +41,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#102A43",
+  themeColor: "#FFFFFF",
   colorScheme: "light",
 };
 
@@ -48,8 +51,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fa" dir="rtl" className={vazirmatn.variable}>
-      <body className="min-h-screen flex flex-col bg-neutral-50">
+    <html lang="fa" dir="rtl" className={vazirmatn.variable} suppressHydrationWarning>
+      <head>
+        {/* Apply the saved light/dark theme before first paint (no flash). */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("60online_theme");if(t==="dark"){document.documentElement.dataset.theme="dark";document.documentElement.style.colorScheme="dark"}}catch(e){}` }} />
+      </head>
+      <body className="min-h-screen flex flex-col bg-canvas">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

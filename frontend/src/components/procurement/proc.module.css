@@ -1,11 +1,11 @@
 /* Enterprise procurement UI — RTL-first, dense-but-calm data surfaces. */
 .root {
-  --ink: #0b1f2a; --ink2: #33495a; --muted: #6a7d8b; --faint: #9aabb7;
-  --line: #e2e8ee; --line2: #eef2f6; --bg: #f4f6f9; --surface: #fff;
-  --navy: #0a2735; --blue: #1560d4; --blueSoft: #eaf1fd; --blueInk: #0e4aa8;
+  --ink: var(--dash-ink,#0a2735); --ink2: var(--dash-soft,#33495a); --muted: var(--dash-muted,#6a7d8b); --faint: #9aabb7;
+  --line: var(--dash-line,#ecedee); --line2: var(--dash-sunken,#f1f1ee); --bg: var(--dash-bg,#f7f7f5); --surface: var(--dash-surface,#fff);
+  --navy: #0a2735; --blue: var(--dash-ink,#0a2735); --blueSoft: var(--dash-sunken,#f1f1ee); --blueInk: #004e72;
   --green: #0c7a54; --greenSoft: #e5f4ed; --amber: #9a5b00; --amberSoft: #fff3dc;
   --red: #b8322a; --redSoft: #fdeceb; --violet: #5a44c4; --violetSoft: #efecfd;
-  --r: 14px; --shadow: 0 1px 2px rgb(11 31 42 / .04), 0 8px 24px -18px rgb(11 31 42 / .25);
+  --r: 14px; --shadow: none;
   color: var(--ink); direction: rtl; font-size: 14px; line-height: 1.75; min-width: 0;
 }
 .root * { box-sizing: border-box; }
@@ -106,7 +106,7 @@
 /* ── Tables (cards on mobile) ───────────────────────────────────────────── */
 .tableWrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
 .table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); }
-.table th { text-align: right; font-size: 11.5px; font-weight: 700; color: var(--muted); background: #f8fafc; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.table th { text-align: right; font-size: 11.5px; font-weight: 700; color: var(--muted); background: #F7F7F5; padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .table td { padding: 10px 12px; border-bottom: 1px solid var(--line2); vertical-align: middle; }
 .table tr:last-child td { border-bottom: 0; }
 .thumb { width: 42px; height: 42px; border-radius: 10px; background: var(--blueSoft); display: grid; place-items: center; overflow: hidden; flex: none; color: var(--blue); }
@@ -226,7 +226,7 @@ button.sumTile:hover { border-color: #c6d3e0; }
 .compareWrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
 .compare { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 640px; font-size: 13px; }
 .compare th, .compare td { padding: 11px 14px; border-bottom: 1px solid var(--line2); text-align: center; vertical-align: top; }
-.compare thead th { background: #f8fafc; position: sticky; top: 0; z-index: 2; min-width: 190px; }
+.compare thead th { background: #F7F7F5; position: sticky; top: 0; z-index: 2; min-width: 190px; }
 .compare tbody th { position: sticky; right: 0; background: #fbfcfd; text-align: right; font-weight: 600; color: var(--ink2); white-space: nowrap; z-index: 1; min-width: 150px; }
 .compare .grand td { font-size: 15px; font-weight: 800; background: #fafcff; }
 .compare .best { color: var(--green); }

@@ -13,7 +13,7 @@ type Payout = { id: number; reference: string; code: string; amount_minor: numbe
 type Preview = { min_payout_minor: number; ready: Row[]; waiting: Row[]; ready_total_minor: number; unverified: Unv[]; batches: Batch[] };
 const REASON_FA: Record<string, string> = { no_sheba: "بدون شبا", sheba_unverified: "شبا تأیید نشده", below_minimum: "کمتر از حداقل" };
 const STATUS_FA: Record<string, string> = { open: "باز", exported: "فایل گرفته شد", closed: "بسته", pending: "در انتظار", paid: "واریز شد", failed: "ناموفق" };
-const btn = "rounded-lg bg-[#102B7A] px-3 py-1.5 text-sm font-bold text-white disabled:opacity-50";
+const btn = "rounded-lg bg-[#0A2735] px-3 py-1.5 text-sm font-bold text-white disabled:opacity-50";
 
 export default function AffiliatePayoutsAdmin() {
   const { token } = useAuth();

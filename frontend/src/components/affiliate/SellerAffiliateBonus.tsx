@@ -25,7 +25,7 @@ export function SellerAffiliateBonus({ token }: { token: string }) {
           <input inputMode="decimal" dir="ltr" className="mt-1 block w-24 rounded-xl border p-2" value={pct}
             onChange={(e) => setPct(latinDigits(e.target.value).replace(/[^\d.]/g, ""))} />
         </label>
-        <button type="submit" disabled={pct === "" || Number(pct) > 20} className="rounded-xl bg-neutral-900 px-4 py-2 font-bold text-white disabled:opacity-50">ذخیره</button>
+        <button type="submit" disabled={pct === "" || Number(pct) > 20} className="rounded-full bg-ink px-4 py-2 font-bold text-white disabled:opacity-50">ذخیره</button>
         {msg && <span role="status" className={msg.ok ? "text-emerald-700" : "text-red-600"}>{msg.text}</span>}
       </form>
     </section>
