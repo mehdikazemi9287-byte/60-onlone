@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Stitch icons: Material Symbols Outlined, self-hosted subset ──────────────
+   Only the icons used by the Stitch designs (tools/stitch/icons-included.txt), static wght 400 / opsz 24,
+   FILL axis kept. To add an icon, rebuild the subset (tools/stitch/README.md); an icon missing from the
+   subset renders as its plain name. */
+@font-face {
+  font-family: "Material Symbols Outlined";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/fonts/material-symbols-outlined-60online.woff2") format("woff2");
+}
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.material-symbols-outlined.icon-fill { font-variation-settings: "FILL" 1; }
+
 /* ── CSS custom properties (design tokens) ────────────────────────────────── */
 :root {
   --color-primary: #004e72;
