@@ -1,6 +1,6 @@
 """Structured JSON logging — Phase 8 Observability.
 
-Configures the root logger and the '70online' logger to emit structured
+Configures the root logger and the '60online' logger to emit structured
 JSON lines so log aggregators (ELK, CloudWatch, Loki, etc.) can parse them.
 
 Each log line is a single JSON object with these fields:
@@ -82,7 +82,7 @@ def configure_logging(*, level: str = "INFO", json_output: bool = False) -> None
     handler.setFormatter(formatter)
 
     # Configure the application logger
-    app_logger = logging.getLogger("70online")
+    app_logger = logging.getLogger("60online")
     app_logger.setLevel(numeric_level)
     app_logger.handlers.clear()
     app_logger.addHandler(handler)

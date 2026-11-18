@@ -1,6 +1,6 @@
 """Connector abstraction layer.
 
-70online will connect to ERP systems, chain stores, wholesalers, etc.
+60online will connect to ERP systems, chain stores, wholesalers, etc.
 This module defines:
 - The abstract Connector interface (pull_products, pull_prices, pull_inventory, push_order, health_check)
 - The MANUAL connector (static data, always healthy) — used for demo/offline offers

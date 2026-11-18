@@ -75,7 +75,7 @@ class Migration0008PopulatedDBTest(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        self.tmpdir    = tempfile.mkdtemp(prefix="70online-mig0008-test-")
+        self.tmpdir    = tempfile.mkdtemp(prefix="60online-mig0008-test-")
         self.db_path   = os.path.join(self.tmpdir, "test0008.db")
         self.staging   = Path(self.tmpdir) / "migrations"
         self.staging.mkdir()

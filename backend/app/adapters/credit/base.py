@@ -1,6 +1,6 @@
 """Credit provider port.
 
-Designed now so that an organisation wallet, a 70online in-house credit line, a
+Designed now so that an organisation wallet, a 60online in-house credit line, a
 bank, a leasing company or a fintech BNPL can each be plugged in later as a
 separate implementation.
 

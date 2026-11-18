@@ -24,7 +24,7 @@ import sqlite3
 
 from app.core.errors import ConflictError, NotFoundError, ValidationError
 
-log = logging.getLogger("70online.supplier_ledger")
+log = logging.getLogger("60online.supplier_ledger")
 
 DEFAULT_COMMISSION_RATE_BPS = 1000  # 10% platform commission
 

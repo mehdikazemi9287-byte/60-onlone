@@ -72,8 +72,8 @@ PRODUCTS = [
 ]
 
 USERS = [
-    ("demo@70online.ir", "Demo!2345", "کاربر نمونه", "09120000000", "customer"),
-    ("admin@70online.ir", "Admin!2345", "مدیر سامانه", "09121111111", "admin"),
+    ("demo@60online.ir", "Demo!2345", "کاربر نمونه", "09120000000", "customer"),
+    ("admin@60online.ir", "Admin!2345", "مدیر سامانه", "09121111111", "admin"),
     # --- Phase 2 demo organization ---
     ("hr@parsco.ir", "Hr!23456789", "سمیرا مرادی", "09122222222", "customer"),
     ("alice@parsco.ir", "Alice!23456", "الهام رضایی", "09123333333", "customer"),
@@ -115,7 +115,7 @@ def _seed_organization(conn) -> dict:
     ).fetchone()
     if row is None:
         admin = conn.execute(
-            "SELECT id FROM users WHERE email_normalized = 'admin@70online.ir'"
+            "SELECT id FROM users WHERE email_normalized = 'admin@60online.ir'"
         ).fetchone()
         cursor = conn.execute(
             """
@@ -229,24 +229,24 @@ PRODUCT_FULFILLMENT_POLICIES = {
 
 # Demo supplier users: (email, password, full_name, phone)
 SUPPLIER_USERS = [
-    ("supplier.tehran@70online.ir",     "Sup!Tehran1",  "مدیر تأمین‌کننده تهران",   "09130000001"),
-    ("supplier.isfahan@70online.ir",    "Sup!Isfahan1", "مدیر تأمین‌کننده اصفهان",  "09130000002"),
-    ("supplier.kermanshah@70online.ir", "Sup!Krmsh1",   "مدیر تأمین‌کننده کرمانشاه","09130000003"),
+    ("supplier.tehran@60online.ir",     "Sup!Tehran1",  "مدیر تأمین‌کننده تهران",   "09130000001"),
+    ("supplier.isfahan@60online.ir",    "Sup!Isfahan1", "مدیر تأمین‌کننده اصفهان",  "09130000002"),
+    ("supplier.kermanshah@60online.ir", "Sup!Krmsh1",   "مدیر تأمین‌کننده کرمانشاه","09130000003"),
 ]
 
 # Suppliers: (national_id, legal_name, display_name, type, status, rating_x10, user_email)
 DEMO_SUPPLIERS = [
     # Tehran
-    ("20101000001", "شرکت لوازم اداری البرز (سهامی خاص)",   "لوازم اداری البرز",   "retailer",   "active", 42, "supplier.tehran@70online.ir"),
-    ("20101000002", "موبایل‌فروشی فناوران تهران",             "فناوران تهران",       "retailer",   "active", 45, "supplier.tehran@70online.ir"),
-    ("20101000003", "سوپرمارکت تازه‌کالا تهران",             "تازه‌کالا تهران",     "local_shop", "active", 38, "supplier.tehran@70online.ir"),
+    ("20101000001", "شرکت لوازم اداری البرز (سهامی خاص)",   "لوازم اداری البرز",   "retailer",   "active", 42, "supplier.tehran@60online.ir"),
+    ("20101000002", "موبایل‌فروشی فناوران تهران",             "فناوران تهران",       "retailer",   "active", 45, "supplier.tehran@60online.ir"),
+    ("20101000003", "سوپرمارکت تازه‌کالا تهران",             "تازه‌کالا تهران",     "local_shop", "active", 38, "supplier.tehran@60online.ir"),
     # Isfahan
-    ("20101000004", "شرکت لوازم اداری سپاهان",               "لوازم اداری سپاهان",  "retailer",   "active", 40, "supplier.isfahan@70online.ir"),
-    ("20101000005", "موبایل‌پلازا اصفهان",                   "موبایل‌پلازا اصفهان", "retailer",   "active", 43, "supplier.isfahan@70online.ir"),
-    ("20101000006", "تازه‌بازار اصفهان (محلی)",              "تازه‌بازار اصفهان",   "local_shop", "active", 36, "supplier.isfahan@70online.ir"),
+    ("20101000004", "شرکت لوازم اداری سپاهان",               "لوازم اداری سپاهان",  "retailer",   "active", 40, "supplier.isfahan@60online.ir"),
+    ("20101000005", "موبایل‌پلازا اصفهان",                   "موبایل‌پلازا اصفهان", "retailer",   "active", 43, "supplier.isfahan@60online.ir"),
+    ("20101000006", "تازه‌بازار اصفهان (محلی)",              "تازه‌بازار اصفهان",   "local_shop", "active", 36, "supplier.isfahan@60online.ir"),
     # Kermanshah
-    ("20101000007", "موبایل‌ورز کرمانشاه",                  "موبایل‌ورز کرمانشاه", "retailer",   "active", 41, "supplier.kermanshah@70online.ir"),
-    ("20101000008", "کالای عمومی غرب",                       "کالای عمومی غرب",    "wholesaler", "active", 39, "supplier.kermanshah@70online.ir"),
+    ("20101000007", "موبایل‌ورز کرمانشاه",                  "موبایل‌ورز کرمانشاه", "retailer",   "active", 41, "supplier.kermanshah@60online.ir"),
+    ("20101000008", "کالای عمومی غرب",                       "کالای عمومی غرب",    "wholesaler", "active", 39, "supplier.kermanshah@60online.ir"),
     # Mazandaran (rice/citrus)
     ("20101000009", "تعاونی برنج شمال",                      "تعاونی برنج شمال",   "producer",   "active", 46, None),
     # Neyriz/Fars (pomegranate)
@@ -517,8 +517,8 @@ def main() -> int:
     print(f"totals:   {totals}")
     print()
     print("demo accounts")
-    print("  retail customer   demo@70online.ir  / Demo!2345")
-    print("  platform admin    admin@70online.ir / Admin!2345")
+    print("  retail customer   demo@60online.ir  / Demo!2345")
+    print("  platform admin    admin@60online.ir / Admin!2345")
     print("  org admin         hr@parsco.ir      / Hr!23456789      (پارس فناوری)")
     print("  employee + credit alice@parsco.ir   / Alice!23456      (۲۰,۰۰۰,۰۰۰ تومان)")
     print("  employee category bob@parsco.ir     / Bob!23456789     (محدود به اداری/لوازم برقی)")

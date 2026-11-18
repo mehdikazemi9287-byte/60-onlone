@@ -39,7 +39,7 @@ def _apply_all(db: Database, staging_dir: Path) -> None:
 class E2EScenariosTest(unittest.TestCase):
 
     def setUp(self):
-        self.tmpdir = tempfile.mkdtemp(prefix="70online-e2e-")
+        self.tmpdir = tempfile.mkdtemp(prefix="60online-e2e-")
         self.db_path = os.path.join(self.tmpdir, "e2e.db")
         self.staging = Path(self.tmpdir) / "migrations"
         self.staging.mkdir()

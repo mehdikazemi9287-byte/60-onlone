@@ -52,7 +52,7 @@ from app.adapters.logistics.registry import get_carrier_adapter
 from app.core.db import Database
 from app.core.errors import ConflictError, NotFoundError, PermissionError_, ValidationError
 
-log = logging.getLogger("70online.logistics")
+log = logging.getLogger("60online.logistics")
 
 # Normalized shipment status ordering (higher = more advanced)
 _STATUS_RANK: dict[str, int] = {

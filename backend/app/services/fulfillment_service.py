@@ -477,7 +477,7 @@ def release_supplier_stock_for_plan(
         except Exception:
             # Best-effort: log but do not stop the compensation flow
             import logging
-            logging.getLogger("70online").warning(
+            logging.getLogger("60online").warning(
                 "Could not release supplier stock for offer_id=%s qty=%s",
                 item.get("offer_id"), item.get("quantity"), exc_info=True,
             )

@@ -26,7 +26,7 @@ from app.adapters.logistics.base import VerifiedWebhookEvent, WebhookVerificatio
 from app.adapters.logistics.registry import get_carrier_adapter, list_provider_codes
 from app.core.db import Database
 
-log = logging.getLogger("70online.webhook")
+log = logging.getLogger("60online.webhook")
 
 # Shipment status progression rank (used to prevent regression).
 # out_for_delivery sits between in_transit and delivered.
