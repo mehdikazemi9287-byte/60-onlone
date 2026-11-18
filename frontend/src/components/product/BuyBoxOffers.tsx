@@ -35,10 +35,10 @@ export function BuyBoxOffers({ slug, vatBps }: { slug: string; vatBps?: number }
   const w = data.winner;
 
   return (
-    <section aria-label="فروشندگان دیگر" className="rounded-2xl border border-neutral-200 bg-white p-4">
+    <section aria-label="فروشندگان دیگر" className="flex flex-col gap-st-space-sm rounded-xl bg-st-surface-container-lowest p-st-space-md shadow-sm lg:p-st-space-lg">
       {w && (
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-emerald-50 p-3">
-          <p className="flex min-w-0 items-center gap-1 text-sm font-bold text-emerald-900">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-st-secondary-fixed p-st-space-md">
+          <p className="flex min-w-0 items-center gap-1 font-bold text-st-on-secondary-fixed">
             <Trophy className="h-4 w-4 flex-none" aria-hidden="true" />
             <span className="truncate">بهترین پیشنهاد: <SellerName o={w} /></span>
           </p>
@@ -47,13 +47,13 @@ export function BuyBoxOffers({ slug, vatBps }: { slug: string; vatBps?: number }
       )}
       {others.length > 0 && (
         <>
-          <h2 className="mb-2 text-sm font-black text-neutral-900">فروشندگان دیگر ({toPersianNum(others.length)})</h2>
-          <ul className="divide-y divide-neutral-100">
+          <h2 className="font-bold text-st-primary">فروشندگان دیگر ({toPersianNum(others.length)})</h2>
+          <ul className="flex flex-col gap-st-space-xs">
             {others.map((o) => (
-              <li key={o.offer_id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+              <li key={o.offer_id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-st-surface-container-low px-st-space-md py-st-space-sm">
                 <span className="min-w-0">
                   <SellerName o={o} />
-                  <span className="block text-xs text-neutral-500">
+                  <span className="block text-st-label-md text-st-on-surface-variant">
                     {o.in_stock ? "موجود" : "ناموجود"}{o.lead_time_days != null ? ` · ارسال ${toPersianNum(o.lead_time_days)} روزه` : ""}
                   </span>
                 </span>
@@ -68,11 +68,11 @@ export function BuyBoxOffers({ slug, vatBps }: { slug: string; vatBps?: number }
 }
 
 function SellerName({ o }: { o: BuyBoxOffer }) {
-  const label = <>{o.seller_name}{o.official && <BadgeCheck className="mr-1 inline h-4 w-4 text-emerald-600" aria-label="برند رسمی" />}</>;
+  const label = <>{o.seller_name}{o.official && <BadgeCheck className="mr-1 inline h-4 w-4 text-st-secondary" aria-label="برند رسمی" />}</>;
   return o.shop_slug ? <Link href={`/shops/${encodeURIComponent(o.shop_slug)}`} className="font-bold hover:underline">{label}</Link> : <span className="font-bold">{label}</span>;
 }
 
 function PriceTag({ value }: { value: number | null }) {
-  if (value == null) return <span className="text-xs text-neutral-500">استعلام قیمت</span>;
-  return <span className="text-left font-black text-neutral-900">{formatPrice(value)}<span className="block text-[10px] font-normal text-neutral-500">با مالیات بر ارزش افزوده</span></span>;
+  if (value == null) return <span className="text-st-label-md text-st-on-surface-variant">استعلام قیمت</span>;
+  return <span className="text-left font-extrabold text-st-primary">{formatPrice(value)}<span className="block text-[10px] font-normal text-st-on-surface-variant">با مالیات بر ارزش افزوده</span></span>;
 }
