@@ -80,7 +80,7 @@ class RedirectInstruction:
 
 
 class GatewayError(Exception):
-    """The gateway could not be reached or refused the request. No money moved."""
+    """The gateway failed or has not confirmed an outcome; money movement may be unknown."""
 
 
 class RedirectPaymentProvider(PaymentProvider):

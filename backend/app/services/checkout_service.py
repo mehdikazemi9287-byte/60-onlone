@@ -775,12 +775,24 @@ def _start_redirect(
         failure = PaymentFailedError("نشانی بازگشت از درگاه تنظیم نشده است", code="payment_gateway_unavailable")
     else:
         try:
+            # Immutable server snapshot: never reconstruct policy items from a
+            # mutable cart or client-supplied amounts/categories after reservation.
+            with db.read_transaction() as conn:
+                saved = dict(payment_service.get_intent(conn, intent_id))
+                basket = {key: saved[key] for key in (
+                    "subtotal_minor", "tax_minor", "shipping_fee_minor", "total_minor", "credit_minor",
+                )}
+                basket["welfare_minor"] = saved.get("welfare_minor", 0)
+                basket["items"] = [{key: line[key] for key in (
+                    "sku", "title_fa", "category_slug", "quantity", "unit_price_minor", "line_total_minor",
+                )} for line in payment_service.intent_items(conn, intent_id)]
             instruction = provider.initiate(
                 PaymentRequest(
                     amount_minor=cash_minor, currency=quote["currency"],
                     order_reference=f"intent:{intent_id}", idempotency_key=f"{user_id}:{idempotency_key}",
                     customer_email=user_email, method=payment_method,
-                    metadata={"payment_intent_id": intent_id, "credit_minor": quote["credit_to_use_minor"]},
+                    metadata={"payment_intent_id": intent_id, "credit_minor": quote["credit_to_use_minor"],
+                              "basket": basket},
                 ),
                 invoice_id=intent_id, callback_url=callback_url,
             )
