@@ -101,6 +101,18 @@ const config: Config = {
           gray: "#F9F9F9",
           coral: "#FF6D41",
         },
+        // ── Mega-market homepage (owner-approved 2026-11-19, Stitch screens 65/66) ──
+        // Honey yellow is an emphasis accent only (primary CTAs, badges, timers, assistant FAB).
+        honey: { DEFAULT: "#E9B949", hover: "#D4A43A", tint: "#FFF6DC" },
+        mm: {
+          blue: "#034EA2",
+          navy: "#112D46",
+          deep: "#0A2735",
+          text: "#111827",
+          bg: "#F9F9F9",
+          mint: "#EDF3EE",
+          muted: "#526778",
+        },
       },
 
       // ── Typography ─────────────────────────────────────────────────────────
