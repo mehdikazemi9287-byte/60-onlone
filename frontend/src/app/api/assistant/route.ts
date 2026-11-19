@@ -1,3 +1,4 @@
+import { readCatalogPages } from "@/lib/paged-catalog";
 import { NextRequest, NextResponse } from "next/server";
 import { runAssistant, buildPackDraft, type RawProduct } from "@/lib/assistant";
 import { detectAccountIntent, fetchAccountContext } from "@/lib/assistantAccount";
@@ -13,25 +14,20 @@ type StorefrontCard = {
 
 // Only what the public storefront shows: the same visibility, price and availability rules as the store itself.
 // (The legacy /products listing also returns hidden placeholder rows, which must never surface here.)
-async function fetchAllProducts(): Promise<RawProduct[]> {
-  const out: RawProduct[] = [];
-  for (let page = 1; page <= 50; page++) {
+async function fetchAllProducts(signal: AbortSignal): Promise<RawProduct[]> {
+  const cards = await readCatalogPages<StorefrontCard>(async (page, pageSignal) => {
     const res = await fetch(`${origin}/api/v1/storefront/products?group=sku&page_size=48&page=${page}`, {
       cache: "no-store",
-      signal: AbortSignal.timeout(10000),
+      signal: pageSignal,
     });
     if (!res.ok) throw new Error("catalog fetch failed");
-    const data = await res.json();
-    for (const c of data.items as StorefrontCard[]) {
-      out.push({
-        id: c.id, slug: c.slug, title_fa: c.title_fa, brand_fa: c.brand_fa, category_slug: c.category_slug, category_name_fa: c.category_name_fa,
-        price: c.price_minor, price_minor: c.price_minor, currency: c.currency || "IRR", in_stock: !!c.in_stock,
-        purchasable: c.availability === "purchasable", quantity_available: null, image_url: c.image_url,
-      });
-    }
-    if (page >= (data.total_pages ?? 1)) break;
-  }
-  return out;
+    return await res.json();
+  }, signal);
+  return cards.map(c => ({
+    id: c.id, slug: c.slug, title_fa: c.title_fa, brand_fa: c.brand_fa, category_slug: c.category_slug, category_name_fa: c.category_name_fa,
+    price: c.price_minor, price_minor: c.price_minor, currency: c.currency || "IRR", in_stock: !!c.in_stock,
+    purchasable: c.availability === "purchasable", quantity_available: null, image_url: c.image_url,
+  }));
 }
 
 async function fetchCategories(): Promise<{ slug: string; name_fa: string }[]> {
@@ -59,7 +55,7 @@ export async function GET(req: NextRequest) {
       const account = await fetchAccountContext(origin, token, intent);
       return NextResponse.json({ intent: "account", account }, { headers: { "cache-control": "no-store" } });
     }
-    const [products, categories] = await Promise.all([fetchAllProducts(), fetchCategories()]);
+    const [products, categories] = await Promise.all([fetchAllProducts(req.signal), fetchCategories()]);
     const result = runAssistant(q, products, categories);
     const packDraft = buildPackDraft(q, products, categories);
     return NextResponse.json({ intent: "catalog", ...result, packDraft }, { headers: { "cache-control": "no-store" } });
