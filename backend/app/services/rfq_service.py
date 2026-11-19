@@ -506,7 +506,8 @@ def submit_supplier_quote(
 
     # Aggregate VAT — integer floor division only, never float arithmetic
     items_vat = sum(pi["vat_amount_minor"] for pi in prepared_items)
-    # Shipping VAT uses the same rate as items (one quote = one VAT rate)
+    # Shipping VAT uses the same rate as items (one quote = one VAT rate). Owner decision 11 (2026-11-18):
+    # shipping is always VAT-chargeable — here, in retail checkout and in organisation orders alike.
     shipping_vat = (shipping_cost_minor * vat_rate_bps) // 10_000
     total_vat = items_vat + shipping_vat
     grand_total = items_total + shipping_cost_minor + total_vat

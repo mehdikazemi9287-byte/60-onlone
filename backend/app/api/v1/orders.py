@@ -155,6 +155,41 @@ def vandapay_webhook():
     return jsonify(body), status
 
 
+@bp.post("/orgs/<int:org_id>/orders/<int:order_id>/pay/vandapay")
+@require_auth()
+def org_cash_vandapay(org_id: int, order_id: int):
+    """Open a VandaPay checkout for an organisation order's due cash share (flag VANDAPAY_ORG_CASH_ENABLED)."""
+    from app.services import org_cash_vandapay_service as org_cash
+    if org_cash.provider_or_none() is None:
+        return jsonify({"error": {"code": "not_found", "message": "یافت نشد"}}), 404
+    body = org_cash.start(get_db(), organization_id=org_id, order_id=order_id, actor_user_id=current_user()["id"],
+                          public_base_url=get_settings().public_base_url)
+    return jsonify(body), 201
+
+
+@bp.get("/payments/vandapay/org-cash/return")
+def org_cash_vandapay_return():
+    """Browser return from VandaPay for an org cash share. Nothing from the browser is trusted: the intent id
+    is the one WE stored on the order, and its state is re-read server-to-server."""
+    from app.adapters.payment.base import GatewayError
+    from app.adapters.payment.vandapay import VandaPayPending
+    from app.services import org_cash_vandapay_service as org_cash
+    raw = request.args.get("order_id", "")
+    if org_cash.provider_or_none() is None or not raw.isdigit() or len(raw) > 18:
+        return redirect("/organization/orders?" + urlencode({"payment": "failed", "reason": "unknown_payment"}), 303)
+    try:
+        outcome = org_cash.settle(get_db(), order_id=int(raw))
+    except VandaPayPending:
+        outcome = "pending"
+    except GatewayError:
+        outcome = "verify_unavailable"
+    ok = outcome in ("ok", "already_paid")
+    params = {"payment": "success" if ok else ("pending" if outcome in ("pending", "verify_unavailable") else "failed")}
+    if not ok:
+        params["reason"] = outcome
+    return redirect("/organization/orders?" + urlencode(params), 303)
+
+
 @bp.route("/payments/<provider>/callback", methods=["GET", "POST"])
 def payment_callback(provider: str):
     """The bank returns the customer's browser here (no auth header on this hop)."""

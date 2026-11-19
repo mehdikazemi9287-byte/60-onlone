@@ -155,7 +155,9 @@ def admin_returns(conn, status: str | None) -> list[dict]:
     return [_return_view(conn, r) for r in conn.execute(sql, (status,) if status else ())]
 
 
-def admin_transition(conn, *, actor: int, return_id: int, action: str, data: dict) -> dict:
+def admin_transition(conn, *, actor: int, return_id: int, action: str, data: dict,
+                     gateway_settled: bool = False) -> dict:
+    """``gateway_settled`` is set only by gateway_refund_service after VandaPay confirmed the refund."""
     r = conn.execute("SELECT * FROM order_return_requests WHERE id=?", (return_id,)).fetchone()
     if not r:
         raise NotFoundError("درخواست مرجوعی یافت نشد")
@@ -177,6 +179,13 @@ def admin_transition(conn, *, actor: int, return_id: int, action: str, data: dic
             raise ValidationError("مبلغ بازپرداخت نامعتبر است یا از مانده سفارش بیشتر است")
         if not 3 <= len(ref) <= 200:
             raise ValidationError("مرجع بانکی بازپرداخت الزامی است")
+        if not gateway_settled:
+            from app.services.gateway_refund_service import gateway_payment
+            if gateway_payment(conn, int(r["order_id"])) is not None and data.get("manual_override") is not True:
+                # VandaPay-paid: the refund goes back through VandaPay (each funding leg to its source).
+                raise ConflictError("این سفارش با ونداپی پرداخت شده؛ بازپرداخت از طریق ونداپی انجام می‌شود. "
+                                    "برای ثبت دستی (پس از بررسی)، manual_override=true بفرستید.",
+                                    code="gateway_refund_required")
         split = refund_split(conn, return_id=return_id, amount=amount)
         if split["welfare_minor"] and data.get("bank_amount_minor") != split["bank_minor"]:
             raise ConflictError(f"بخشی از این بازپرداخت ({split['welfare_minor']:,} ریال) به کیف پول رفاهی برمی‌گردد؛ "
