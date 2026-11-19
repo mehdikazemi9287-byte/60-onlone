@@ -1031,3 +1031,20 @@ html.theme-vt::view-transition-new(root) { animation: theme-reveal 0.55s cubic-b
 }
 html[data-theme="dark"] .brand-mark { filter: brightness(1.45) saturate(1.1); opacity: 1; }
 html[data-theme="dark"] :is(.divide-line, .divide-neutral-100, .divide-neutral-200) > :not([hidden]) ~ :not([hidden]) { border-color: var(--dash-line) !important; }
+
+/* ── Mega-market shell (2026-11-19): readable bottom-nav labels, active tab in brand blue, 60AI button above the
+   bottom nav. Extra body padding keeps the last content clear of both the nav and the floating button. ── */
+.assistant-fab { display: none; }
+@media (max-width: 767px) {
+  body { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+  .mobile-bottom-nav a { font-size: 12px; min-height: 44px; }
+  .mobile-bottom-nav a[aria-current="page"] { color: #034EA2; }
+  .mobile-bottom-nav a[aria-current="page"]::before { background: #034EA2; }
+  .assistant-fab {
+    position: fixed; z-index: 61; left: 16px; bottom: calc(76px + env(safe-area-inset-bottom));
+    display: flex; height: 56px; min-width: 56px; align-items: center; justify-content: center; gap: 4px;
+    border-radius: 999px; background: #E9B949; padding: 0 16px; color: #0A2735; font-size: 14px; font-weight: 900;
+    box-shadow: 0 10px 24px rgb(212 164 58 / 0.38);
+  }
+  .assistant-fab:active { background: #D4A43A; }
+}
