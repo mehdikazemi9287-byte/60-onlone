@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Vazirmatn:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;max-width:100%;margin:0;padding:0;overflow-x:hidden;font-family:'Vazirmatn','Plus Jakarta Sans',sans-serif;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'secondary-fixed': '#d0e4ff', 'tertiary': '#612a00', 'primary-fixed': '#d7e2ff', 'primary-fixed-dim': '#acc7ff', 'tertiary-container': '#843c00', 'on-primary': '#ffffff', 'surface-bright': '#f8f9ff', 'on-secondary-fixed': '#001d34', 'on-error': '#ffffff', 'surface-dim': '#d0dbeb', 'background': '#f8f9ff', 'on-tertiary': '#ffffff', 'on-primary-container': '#a6c3ff', 'primary': '#003878', 'tertiary-fixed-dim': '#ffb68b', 'secondary': '#47607c', 'on-tertiary-container': '#ffb284', 'surface-container-high': '#dee9fa', 'inverse-primary': '#acc7ff', 'on-tertiary-fixed-variant': '#753400', 'surface-container-highest': '#d8e3f4', 'on-background': '#111c28', 'on-primary-fixed-variant': '#004591', 'surface-container-lowest': '#ffffff', 'on-surface': '#111c28', 'surface-tint': '#215db1', 'surface-variant': '#d8e3f4', 'on-surface-variant': '#424752', 'surface-container-low': '#eef4ff', 'error-container': '#ffdad6', 'on-error-container': '#93000a', 'on-primary-fixed': '#001a40', 'inverse-surface': '#27313e', 'primary-container': '#034ea2', 'surface': '#f8f9ff', 'tertiary-fixed': '#ffdbc8', 'outline-variant': '#c2c6d3', 'error': '#ba1a1a', 'surface-container': '#e4efff', 'secondary-container': '#c2dcfd', 'inverse-on-surface': '#e9f1ff', 'secondary-fixed-dim': '#afc9e9', 'on-tertiary-fixed': '#321200', 'on-secondary-fixed-variant': '#2f4963', 'on-secondary-container': '#48617d', 'on-secondary': '#ffffff', 'outline': '#737783' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'space-lg': '1.5rem', 'margin-desktop': '2.5rem', 'gutter-desktop': '1.5rem', 'space-sm': '0.5rem', 'gutter': '1rem', 'margin-tablet': '1.5rem', 'space-xl': '2.5rem', 'margin': '1rem', 'space-md': '1rem', 'space-xs': '0.25rem' }, fontFamily: { 'headline-xl': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'body-sm': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'headline-xl-mobile': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'headline-lg-mobile': ['Plus Jakarta Sans'], 'price-display': ['Plus Jakarta Sans'], 'label-sm': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'] }, fontSize: { 'headline-xl': ['36px', { lineHeight: '44px', letterSpacing: '-0.02em', fontWeight: '800' }], 'headline-md': ['20px', { lineHeight: '28px', fontWeight: '700' }], 'body-lg': ['16px', { lineHeight: '26px', fontWeight: '400' }], 'headline-lg': ['28px', { lineHeight: '36px', fontWeight: '700' }], 'body-sm': ['12px', { lineHeight: '18px', fontWeight: '400' }], 'headline-sm': ['16px', { lineHeight: '24px', fontWeight: '700' }], 'headline-xl-mobile': ['28px', { lineHeight: '36px', letterSpacing: '-0.01em', fontWeight: '800' }], 'body-md': ['14px', { lineHeight: '22px', fontWeight: '400' }], 'label-md': ['12px', { lineHeight: '16px', fontWeight: '600' }], 'headline-lg-mobile': ['22px', { lineHeight: '30px', fontWeight: '700' }], 'price-display': ['18px', { lineHeight: '24px', fontWeight: '800' }], 'label-sm': ['10px', { lineHeight: '14px', letterSpacing: '0.02em', fontWeight: '700' }], 'label-lg': ['14px', { lineHeight: '20px', fontWeight: '600' }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface flex flex-col min-h-screen selection:bg-secondary-container"><header class="fixed top-0 inset-x-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] pt-safe"><div class="h-36 px-margin flex flex-col justify-between py-space-xs"><div class="w-full flex items-center justify-center"><div class="w-full max-w-[358px] bg-surface-container-high rounded-full p-0.5 flex items-center justify-between text-center select-none"><button class="flex-1 h-7 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm shadow-[0_1px_4px_rgba(3,78,162,0.2)] transition-all flex items-center justify-center" type="button">خرید شخصی</button><button class="flex-1 h-7 rounded-full text-on-surface-variant font-label-sm text-label-sm hover:text-on-surface transition-all flex items-center justify-center" type="button">سازمانی و عمده</button><button class="flex-1 h-7 rounded-full text-on-surface-variant font-label-sm text-label-sm hover:text-on-surface transition-all flex items-center justify-center" type="button">بسته‌های هدیه</button></div></div><div class="flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-primary-container/20" src="https://lh3.googleusercontent.com/aida/ALJJyrAc9_rxGkuHNCNAyHAFb-H7-Ki-pNtaEy0hbSlxf-Pr-svD7HrBsPCtKMOiiEUm-wEtSEakdzO9Vh0KsK7aOJSoiaG9pSk1Oq947aDiOFTiwvxC7hVd9OGIGAAWY6nS1D67SOe1sYvVFV0qVAcIemudldoT-FdIvRXkKNmEzP2Qpx6vM1zzspw6AgagidNi7e9ZFE9W9NGgyLMVBe4cvVl1Vv2b-Va58XX-ttxsUvsr"/><div class="flex flex-col"><span class="text-primary font-headline-sm text-headline-sm tracking-tight leading-none">۶۰ آنلاین</span><span class="font-label-sm text-label-sm text-on-surface-variant hidden">Home</span></div></div></div><div class="flex items-center gap-space-xs"><button aria-label="اعلان‌ها" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary active:bg-surface-container transition-colors relative" type="button"><span class="material-symbols-outlined">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface"></span></button><button aria-label="پروفایل حساب کاربری" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary active:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined">account_circle</span></button></div></div><div class="w-full"><div class="w-full h-10 bg-surface-container-lowest rounded-lg px-space-sm flex items-center justify-between shadow-[0_1px_4px_rgba(17,45,70,0.04)] focus-within:ring-2 focus-within:ring-primary-container transition-all"><div class="flex items-center gap-space-xs flex-1"><span class="material-symbols-outlined text-outline text-lg">search</span><input class="w-full bg-transparent border-none outline-none font-body-sm text-body-sm text-on-surface placeholder:text-outline" placeholder="جستجوی کالا، برند یا کد سفارش..." type="search"/><button aria-label="بارکدخوان کالا" class="w-8 h-8 flex items-center justify-center text-primary hover:text-primary-container transition-colors" type="button"><span class="material-symbols-outlined text-xl">barcode_scanner</span></button></div></div></div></div></header><main class="flex flex-col relative w-full px-margin pt-36 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full pb-6 space-y-4">
+<!-- 1. Consumer Header Value Strip -->
+<section class="w-full bg-surface-container-high rounded-xl p-3 shadow-sm">
+<div class="flex items-center justify-between text-on-surface">
+<div class="flex items-center gap-1.5 flex-1 min-w-0">
+<div class="w-7 h-7 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-secondary-container text-base">local_shipping</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg font-bold truncate">خرید مستقیم برای همه</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">ارسال فوق‌سریع امروز</span>
+</div>
+</div>
+<div class="w-px h-7 bg-outline-variant/40 mx-2 shrink-0"></div>
+<div class="flex items-center gap-1.5 shrink-0">
+<div class="w-7 h-7 rounded-full bg-tertiary-fixed flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-tertiary-fixed text-base">credit_score</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-lg text-label-lg font-bold text-tertiary">اقساط ونداپی</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">۴ قسطه بدون ضامن</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Consumer Promo Banner Slider -->
+<section class="w-full relative overflow-hidden rounded-xl shadow-sm">
+<div class="relative w-full h-44 bg-surface-container-lowest flex items-center justify-between overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Modern organic pantry goods and fresh supermarket grocery delivery box with fresh milk, olive oil, and artisan bread, soft warm daylight, studio product photography, clean minimalist Persian market aesthetic, pastel mint and navy tones" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuADhvXf0nrsk1x6aEuGP520tVGE2pXjXY6W1TTSXNuZMNblmrZBmAlreDKlRJXjXSJe8N-X4ouokSgkaF0ucHpLW-rAA57vIy-ztIwXiOgHxCUHlNo2J0ZKVJdaJyWJT44OI_mbnC6X5kgkcLPZ_3EOVsuiSDCOg7mViGgG5jcSbkHp1vGxruSttBH9C2ezC9NdoXKAanZo8A84hyxOkHgAIVaV4az5yYUcNjXIRgk')"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/75 to-transparent flex flex-col justify-center px-4 z-10">
+<span class="inline-block px-2.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold w-fit mb-1.5">
+          جشنواره هفتگی سوپرمارکت
+        </span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-primary font-extrabold leading-tight mb-1">
+          مایحتاج خانه با قیمت بنکداری
+        </h2>
+<p class="font-body-md text-body-md text-primary-fixed-dim line-clamp-1 mb-3">
+          تا ۴۵٪ تخفیف بدون محدودیت حداقل خرید
+        </p>
+<button class="h-11 px-4 rounded-lg bg-surface-container-lowest text-primary font-label-lg text-label-lg font-bold flex items-center gap-1.5 w-fit shadow-md active:scale-95 transition-transform" type="button">
+<span>مشاهده و خرید خانوادگی</span>
+<span class="material-symbols-outlined text-lg">arrow_back</span>
+</button>
+</div>
+<div class="absolute bottom-2 left-3 z-20 flex items-center gap-1">
+<div class="w-4 h-1.5 rounded-full bg-surface-container-lowest"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-surface-container-lowest/50"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-surface-container-lowest/50"></div>
+</div>
+</div>
+</section>
+<!-- 3. Quick Consumer Categories Grid -->
+<section class="w-full bg-surface-container-lowest rounded-xl p-3 shadow-sm">
+<div class="flex items-center justify-between mb-3 px-1">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">دسته‌بندی‌های روزمره</h3>
+<span class="font-label-md text-label-md text-primary-container font-semibold">همه کالاها</span>
+</div>
+<div class="grid grid-cols-3 gap-2.5">
+<!-- Item 1 -->
+<a class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors active:scale-95" href="#">
+<div class="w-12 h-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-2xl">rice_bowl</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold text-center">خواربار و برنج</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تضمین پخت</span>
+</a>
+<!-- Item 2 -->
+<a class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors active:scale-95" href="#">
+<div class="w-12 h-12 rounded-full bg-error-container text-on-error-container flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-2xl">set_meal</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold text-center">پروتئینی تازه</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">کشتار روز</span>
+</a>
+<!-- Item 3 -->
+<a class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors active:scale-95" href="#">
+<div class="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-2xl">egg_alt</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold text-center">لبنیات و صبحانه</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">برندهای برتر</span>
+</a>
+<!-- Item 4 -->
+<a class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors active:scale-95" href="#">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-2xl">cleaning_services</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold text-center">شوینده و نظافت</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">بسته‌های اقتصادی</span>
+</a>
+<!-- Item 5 -->
+<a class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors active:scale-95" href="#">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-2xl">inventory_2</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold text-center">پک خانوادگی</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">صرفه‌جویی بالا</span>
+</a>
+<!-- Item 6 -->
+<a class="flex flex-col items-center justify-center p-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors active:scale-95" href="#">
+<div class="w-12 h-12 rounded-full bg-tertiary-container text-on-tertiary flex items-center justify-center mb-1.5 shadow-sm">
+<span class="material-symbols-outlined text-2xl">local_fire_department</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface font-semibold text-center">تخفیف‌دارها</span>
+<span class="font-body-sm text-body-sm text-tertiary font-bold">تا ۵۰٪</span>
+</a>
+</div>
+</section>
+<!-- 4. Daily Flash Deals (Personal Shopping First) -->
+<section class="w-full bg-primary-container text-on-primary rounded-xl p-3.5 shadow-md flex flex-col space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest/15 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-xl">bolt</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-primary font-extrabold leading-none">شگفت‌انگیز روزانه</h3>
+<span class="font-body-sm text-body-sm text-primary-fixed-dim">خرید تکی ویژه مصرف خانگی</span>
+</div>
+</div>
+<!-- Timer Display -->
+<div class="flex items-center gap-1 font-label-md text-label-md bg-surface-container-lowest/20 px-2.5 py-1 rounded-lg">
+<span class="font-bold" id="countdown-sec">۳۴</span>
+<span>:</span>
+<span class="font-bold" id="countdown-min">۱۸</span>
+<span>:</span>
+<span class="font-bold" id="countdown-hour">۰۶</span>
+<span class="material-symbols-outlined text-sm mr-1">schedule</span>
+</div>
+</div>
+<!-- Product Deal Card 1 -->
+<div class="w-full bg-surface-container-lowest text-on-surface rounded-xl p-3 flex flex-col space-y-2.5 shadow-sm">
+<div class="flex gap-3">
+<div class="relative w-24 h-24 rounded-lg bg-surface-container-low overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Branded premium Iranian 5kg rice linen fabric pouch pack with golden seal, natural lighting, isolated commercial studio food product photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW92PAbz9pEdfkYBh1SJsKn6CJtlAcyCmXqos0ODFsvfirvd1yeHZhXjBCAmrgwnrd_XCuo0MA2hIaYQYEIcMBeqbCibBrskOq_3ONsjCzgrzEbc1PHMbQmlt9kjtfI7uhqvJkB1FNTrCmFtjborCZciPnU_bUssUhUcbUg5mA1W-iVYDTlfezgut6kH9k0SVFkSIiYMSxms1otonshxNoTClvr8ToyMetf2jTJ3Q"/>
+<span class="absolute top-1 right-1 bg-tertiary-container text-on-tertiary font-label-sm text-label-sm font-bold px-1.5 py-0.5 rounded-full">
+            ۲۸٪
+          </span>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div>
+<span class="inline-block px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm mb-1">
+              امکان خرید عمده پلکانی
+            </span>
+<h4 class="font-label-lg text-label-lg font-bold text-on-surface truncate">برنج طارم هاشمی درجه یک (کیسه ۵ کیلویی)</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">خالص معطر، سورت شده بدون خردی</p>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-body-sm text-body-sm text-outline line-through">۹۸۰,۰۰۰</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md font-extrabold text-primary">۷۰۵,۰۰۰</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 h-11 rounded-lg bg-primary text-on-primary font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 active:bg-primary-container shadow-sm" type="button">
+<span class="material-symbols-outlined text-xl">add_shopping_cart</span>
+<span>افزودن به سبد خرید تکی</span>
+</button>
+<button aria-label="مشاهده قیمت خرید کارتنی" class="h-11 px-3 rounded-lg bg-surface-container-high text-primary font-label-md text-label-md flex items-center gap-1 active:bg-surface-container-highest" type="button">
+<span class="material-symbols-outlined text-lg">layers</span>
+<span>خرید عمده</span>
+</button>
+</div>
+</div>
+<!-- Product Deal Card 2 -->
+<div class="w-full bg-surface-container-lowest text-on-surface rounded-xl p-3 flex flex-col space-y-2.5 shadow-sm">
+<div class="flex gap-3">
+<div class="relative w-24 h-24 rounded-lg bg-surface-container-low overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Pack of two clear pure cooking corn and sunflower oil bottles with yellow vibrant tone, pristine white backdrop, clean product photography for supermarket store" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu-Whbe2cBO648zPlnt-K1f5YRkOoQ_PyOIyskQsgfgbzW1aYYUFcHRUyTv5JRXflp8oWtFWbUWkL5Zir0QlPwNvcl3uo8FNGkyqPQ1qqxKaLNCXO2ZfU9aWF-s0PvFzXvEaYx4GxN53dEhBEfux7U0ymG2FQVk_FjWkczjXsmu90-DxgY9YUphumwRTGkFV_FLI7Bop7M3-flExNZIfttTszDeMiA0KpHzlhSXGI"/>
+<span class="absolute top-1 right-1 bg-tertiary-container text-on-tertiary font-label-sm text-label-sm font-bold px-1.5 py-0.5 rounded-full">
+            ۳۵٪
+          </span>
+</div>
+<div class="flex flex-col justify-between flex-1 min-w-0">
+<div>
+<span class="inline-block px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm mb-1">
+              امکان خرید عمده پلکانی
+            </span>
+<h4 class="font-label-lg text-label-lg font-bold text-on-surface truncate">روغن مایع آفتابگردان ۱.۸ لیتری (پک ۲ عددی)</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">ویژه پخت‌وپز و سالاد بدون پالم</p>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-body-sm text-body-sm text-outline line-through">۲۹۰,۰۰۰</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md font-extrabold text-primary">۱۸۸,۰۰۰</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2 pt-1">
+<button class="flex-1 h-11 rounded-lg bg-primary text-on-primary font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 active:bg-primary-container shadow-sm" type="button">
+<span class="material-symbols-outlined text-xl">add_shopping_cart</span>
+<span>افزودن به سبد خرید تکی</span>
+</button>
+<button aria-label="مشاهده قیمت خرید کارتنی" class="h-11 px-3 rounded-lg bg-surface-container-high text-primary font-label-md text-label-md flex items-center gap-1 active:bg-surface-container-highest" type="button">
+<span class="material-symbols-outlined text-lg">layers</span>
+<span>خرید عمده</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 5. Curated Family Packs (Single Pack Direct Purchase) -->
+<section class="w-full flex flex-col space-y-3">
+<div class="flex items-center justify-between px-1">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-extrabold">پک‌های مناسبتی و معیشتی خانواده</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">امکان خرید حتی ۱ بسته تکی برای مصرف خانه</p>
+</div>
+<span class="material-symbols-outlined text-primary text-2xl">card_giftcard</span>
+</div>
+<!-- Pack Card A: ارزاق ماهانه -->
+<div class="w-full bg-surface-container-lowest rounded-xl p-3.5 shadow-sm flex flex-col space-y-3">
+<div class="relative w-full h-32 rounded-lg bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A large curated grocery family hamper box filled with tea, sugar, lentils, tuna, and pasta in a sturdy modern carton with Persian branding typography, studio lighting, cozy warm tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4-Z15yX8s8kF2gGnIQva2s9iiAufCGHcxsJUSgmcASI497N0lGkgsZRLc5zWDHgLO-D4zlwhpNhXtmsM05QcRJ929vwQF9syCZRmPOHcMb7kv30SDSNPCGG5FNbTeAUx5zsHx_22cKksCnh5KStqRA9ftJyF4NdHfrmavqfwnl9t2mVlbG27J6ZhifAy4Y2coeoaMpv35Nz7Yuhhu8kAUUqB_YVGtNy9APPj_A2c"/>
+<div class="absolute bottom-2 right-2 bg-on-surface/80 backdrop-blur-md text-surface font-label-sm text-label-sm px-2 py-0.5 rounded">
+          محتویات: ۷ قلم کالای ضروری
+        </div>
+</div>
+<div>
+<div class="flex items-center justify-between mb-1">
+<h4 class="font-headline-sm text-headline-sm font-bold text-on-surface">پک معیشتی ماهانه خانواده (اقتصادی)</h4>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">ارسال رایگان</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          شامل برنج، روغن، قند، چای ممتاز، ماکارونی، رب گوجه‌فرنگی و تن ماهی با ضمانت تاریخ انقضای بلندمدت.
+        </p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div>
+<span class="font-body-sm text-body-sm text-on-surface-variant block">قیمت بسته تکی:</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md font-extrabold text-primary">۱,۴۵۰,۰۰۰</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+<button class="h-11 px-5 rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-lg">shopping_bag</span>
+<span>خرید ۱ بسته</span>
+</button>
+</div>
+</div>
+<!-- Pack Card B: یلدا و شیرینی خانگی -->
+<div class="w-full bg-surface-container-lowest rounded-xl p-3.5 shadow-sm flex flex-col space-y-3">
+<div class="relative w-full h-32 rounded-lg bg-surface-container-low overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Artisanal festive gift hamper box with Iranian premium nuts, dried fruits, pomegranate preserve, and saffron sweets, warm festive Persian mood, high resolution photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYfWMyXWop9LsJeN1JSwKUIJelYEM33mPSy7xs9sLz7x4-E82dQ0_ydhkqnE-0_PAUa4MpIYxyHe23UrI9NJAYJd7_OjlSEGDJhjJMzR3fzGsYwhHSFwx37XPthk2inqM7fv3SpvzFXZEtpe7W1TgOpwlsSXaxVaHPxcMZdua2ugMHeXzzfFOUWJDfW3TlPzPGss-sRvUprPpJ93XgSLFZKrJZz6LNgoZvNc-Yd8k"/>
+<div class="absolute bottom-2 right-2 bg-on-surface/80 backdrop-blur-md text-surface font-label-sm text-label-sm px-2 py-0.5 rounded">
+          محتویات: آجیل چهارمغز و تنقلات
+        </div>
+</div>
+<div>
+<div class="flex items-center justify-between mb-1">
+<h4 class="font-headline-sm text-headline-sm font-bold text-on-surface">پک پذیرایی و یلدایی خانوادگی</h4>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold">بسته‌بندی کادویی</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+          بسته شکیل مقوایی مناسب دورهمی‌های خانوادگی شامل ۱ کیلو پسته، بادام هندی، فندق و میوه خشک درجه یک.
+        </p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div>
+<span class="font-body-sm text-body-sm text-on-surface-variant block">قیمت بسته تکی:</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md font-extrabold text-primary">۱,۱۸۰,۰۰۰</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تومان</span>
+</div>
+</div>
+<button class="h-11 px-5 rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-lg">shopping_bag</span>
+<span>خرید ۱ بسته</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 6. Top Selling Supermarket Daily Essentials (Vertical Sleek List) -->
+<section class="w-full bg-surface-container-lowest rounded-xl p-3.5 shadow-sm flex flex-col space-y-3">
+<div class="flex items-center justify-between pb-1">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-xl">trending_up</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-extrabold">پرفروش‌های امروز مصرف‌کنندگان</h3>
+</div>
+<span class="font-label-md text-label-md text-primary-container font-semibold">بیشتر</span>
+</div>
+<!-- Item Row 1 -->
+<div class="flex items-center justify-between py-2 border-none">
+<div class="flex items-center gap-2.5 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-container overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Carton box of whole pasteurized fresh milk 1 liter, clean studio lighting, realistic grocery product mock" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN9rfazmBUzQrV153G3up4lAhcuq-6tkaWwGPhzisPgL5UKyrvuuoFB_nAFdRmMAJ-Uw0FGKnj02e1j3GZAHxSogQwIEPeenf92RX0vps-uSnCY1RVVwbGE3_A_bw6k4I4NqAU-36_g43TJd0h9Sep2iCLShOIon9xwaT_LbDtkh-rAYK-z6PhwA69R8UD0RTdH1Vvle4gI9g4L3MnDek-pXVw3i9bnmjmS94koCA"/>
+</div>
+<div class="flex flex-col min-w-0 pr-1">
+<span class="font-label-lg text-label-lg font-bold text-on-surface truncate">شیر کم‌چرب ۱ لیتری پگاه</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">تحویل خنک با یخچال</span>
+<span class="font-label-lg text-label-lg font-extrabold text-primary mt-0.5">۳۸,۵۰۰ تومان</span>
+</div>
+</div>
+<button aria-label="افزودن شیر به سبد" class="h-11 w-11 rounded-lg bg-surface-container-high text-primary flex items-center justify-center shrink-0 active:bg-primary active:text-on-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+<div class="w-full h-px bg-surface-container"></div>
+<!-- Item Row 2 -->
+<div class="flex items-center justify-between py-2 border-none">
+<div class="flex items-center gap-2.5 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-container overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Traditional premium Iranian black tea in red carton box 450 grams, tea leaves visible, premium lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE-5JWJchlo99FiRBmo6-TuoQirl_u-1SuySsVrlxVp_xl1w0J4kf46cVJgDLZ8gT8xLOmskC6DBzzhBoo5FMb9BdETmNliYEpt2WxlqUydi2q2edyD9aOUza8BWqZgfxFlXAIeCSGarbZSaLbgXNHzqe0DirYF2cDF0wgL0Ij09epA5vSL3oL3q8Chd2H24aY9jXLCsp-kH6Xn_X_f0xbdH-5ZS192vfkO6WJVNc"/>
+</div>
+<div class="flex flex-col min-w-0 pr-1">
+<span class="font-label-lg text-label-lg font-bold text-on-surface truncate">چای ممتاز سیلان زرین (۴۵۰ گرمی)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">عطر طبیعی بدون اسانس</span>
+<span class="font-label-lg text-label-lg font-extrabold text-primary mt-0.5">۲۴۵,۰۰۰ تومان</span>
+</div>
+</div>
+<button aria-label="افزودن چای به سبد" class="h-11 w-11 rounded-lg bg-surface-container-high text-primary flex items-center justify-center shrink-0 active:bg-primary active:text-on-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+<div class="w-full h-px bg-surface-container"></div>
+<!-- Item Row 3 -->
+<div class="flex items-center justify-between py-2 border-none">
+<div class="flex items-center gap-2.5 min-w-0 flex-1">
+<div class="w-14 h-14 rounded-lg bg-surface-container overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="High quality concentrated liquid dishwashing detergent bottle in turquoise blue background, transparent liquid packaging" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_pU47XLl3U_yaVENUB0tzU1i7zGWkHBiZ7vx2uPKznkkufVZQvPi3egTjG4iSjJdvJpfkVk0OjTFMGHOKL-3qzRr9G8kFYzbZ6GrIlJwCoM0OZglh93HKoWCkcGeLeF3W-41juJtuqMvqumlPTkhpy9Azl5wrOlDhB80CyhFWooRY7V06awNcfx_j-C1O6sRl6qCCUmMRj0FlCPv11_j4-ZPtaYCkrhQKEaJZhgY"/>
+</div>
+<div class="flex flex-col min-w-0 pr-1">
+<span class="font-label-lg text-label-lg font-bold text-on-surface truncate">مایع ظرفشویی پریل ۴ لیتری لیمو</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">بسته مقرون‌به‌صرفه خانگی</span>
+<span class="font-label-lg text-label-lg font-extrabold text-primary mt-0.5">۱۹۲,۰۰۰ تومان</span>
+</div>
+</div>
+<button aria-label="افزودن مایع ظرفشویی به سبد" class="h-11 w-11 rounded-lg bg-surface-container-high text-primary flex items-center justify-center shrink-0 active:bg-primary active:text-on-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+</section>
+<!-- 7. 60Club Consumer Loyalty & Instant Loan -->
+<section class="w-full bg-gradient-to-br from-surface-container to-secondary-container/40 rounded-xl p-3.5 shadow-sm flex flex-col space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">workspace_premium</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-extrabold">باشگاه وفاداری ۶۰کلاب</h3>
+<span class="font-body-sm text-body-sm text-on-surface-variant">امتیاز نقدی و خرید اعتباری</span>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-container-lowest text-primary font-label-sm text-label-sm font-bold">
+        عضویت فوری
+      </span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-3 flex items-center justify-between gap-3 shadow-xs">
+<div class="flex items-center gap-2 min-w-0">
+<div class="w-8 h-8 rounded-full bg-tertiary/10 text-tertiary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-lg">monetization_on</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">موجودی ۶۰‌کوین شما</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">با وارد کردن شماره موبایل فعال می‌شود</span>
+</div>
+</div>
+<button class="h-9 px-3 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-semibold shrink-0" type="button">
+        ورود با پیامک
+      </button>
+</div>
+<div class="grid grid-cols-2 gap-2 text-center">
+<div class="bg-surface-container-lowest/80 rounded-lg p-2.5 flex flex-col items-center">
+<span class="material-symbols-outlined text-primary text-xl mb-0.5">local_mall</span>
+<span class="font-label-md text-label-md font-bold text-on-surface">تا ۱۰ میلیون تومان وام</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">اعتبار فوری خرید خواربار</span>
+</div>
+<div class="bg-surface-container-lowest/80 rounded-lg p-2.5 flex flex-col items-center">
+<span class="material-symbols-outlined text-tertiary text-xl mb-0.5">percent</span>
+<span class="font-label-md text-label-md font-bold text-on-surface">سکه تخفیف خرید بعد</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">بازگشت ۵٪ از هر فاکتور</span>
+</div>
+</div>
+</section>
+<!-- 8. Dedicated Corporate & B2B procurement Box at the BOTTOM -->
+<section class="w-full bg-surface-container-high rounded-xl p-4 shadow-sm flex flex-col space-y-3">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-2xl">apartment</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h3 class="font-headline-md text-headline-md text-primary font-extrabold">بخش سازمانی و خرید عمده</h3>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-bold">B2B</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">ویژه شرکت‌ها، کارخانجات و مسئولین تدارکات</p>
+</div>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+      صدور رسمی پیش‌فاکتور با ارزش افزوده، امکان چیدمان سفارشی بسته‌های هدیه کارکنان و تحویل تجاری با نازل‌ترین نرخ تامین مستقیم کارخانه.
+    </p>
+<!-- B2B Action Buttons -->
+<div class="flex flex-col space-y-2 pt-1">
+<div class="grid grid-cols-2 gap-2">
+<button class="h-11 px-3 rounded-lg bg-primary text-on-primary font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 shadow-sm active:bg-primary-container" type="button">
+<span class="material-symbols-outlined text-lg">tune</span>
+<span>پک‌ساز سازمانی</span>
+</button>
+<button class="h-11 px-3 rounded-lg bg-surface-container-lowest text-primary font-label-lg text-label-lg font-bold flex items-center justify-center gap-1.5 shadow-sm active:bg-surface-container-low" type="button">
+<span class="material-symbols-outlined text-lg">request_quote</span>
+<span>استعلام قیمت تجاری</span>
+</button>
+</div>
+<button class="w-full h-11 px-3 rounded-lg bg-surface-container-lowest text-on-surface-variant font-label-md text-label-md font-semibold flex items-center justify-center gap-1.5 shadow-xs" type="button">
+<span class="material-symbols-outlined text-lg">download</span>
+<span>دانلود کاتالوگ و تعرفه عمده ۱۴۰۳ (PDF)</span>
+</button>
+</div>
+</section>
+<!-- 9. Trust Badges & 24/7 Consumer Support -->
+<section class="w-full bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-col space-y-3.5">
+<div class="grid grid-cols-3 gap-2 text-center pb-2">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary mb-1">
+<span class="material-symbols-outlined text-2xl">verified</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface">ضمانت اصالت</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">۱۰۰٪ اصل و بهداشتی</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary mb-1">
+<span class="material-symbols-outlined text-2xl">animated_images</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface">۷ روز مرجوعی</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">بی‌قید و شرط</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary mb-1">
+<span class="material-symbols-outlined text-2xl">verified_user</span>
+</div>
+<span class="font-label-md text-label-md font-bold text-on-surface">اینماد ۵ ستاره</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">پرداخت امن شاپرک</span>
+</div>
+</div>
+<!-- Support hotline banner -->
+<div class="w-full bg-surface-container-low rounded-xl p-3 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-xl">support_agent</span>
+</div>
+<div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface block">پشتیبانی ۲۴ ساعته مردم</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">پاسخگویی سریع حتی روزهای تعطیل</span>
+</div>
+</div>
+<a class="h-11 px-3.5 rounded-lg bg-surface-container-lowest text-primary font-headline-sm text-headline-sm font-extrabold flex items-center justify-center shadow-xs dir-ltr" href="tel:0216100060">
+        ۰۲۱-۶۱۰۰۰۶۰
+      </a>
+</div>
+<!-- Final micro note -->
+<p class="font-body-sm text-body-sm text-center text-outline">
+      «۶۰ آنلاین» سامانه جامع تامین ارزاق خانوار و سوپرمارکت مستقیم با کد ثبت سراسری
+    </p>
+</section>
+</div>
+<script>
+  // Simple interactive countdown ticker for daily deals
+  (function initDealCountdown() {
+    let totalSec = 6 * 3600 + 18 * 60 + 34;
+    const secEl = document.getElementById('countdown-sec');
+    const minEl = document.getElementById('countdown-min');
+    const hourEl = document.getElementById('countdown-hour');
+
+    if (!secEl || !minEl || !hourEl) return;
+
+    function toFa(num) {
+      return num.toString().padStart(2, '0').replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    }
+
+    const interval = setInterval(() => {
+      if (totalSec <= 0) {
+        clearInterval(interval);
+        return;
+      }
+      totalSec--;
+      const hours = Math.floor(totalSec / 3600);
+      const minutes = Math.floor((totalSec % 3600) / 60);
+      const seconds = totalSec % 60;
+
+      hourEl.textContent = toFa(hours);
+      minEl.textContent = toFa(minutes);
+      secEl.textContent = toFa(seconds);
+    }, 1000);
+  })();
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-container-lowest/95 backdrop-blur-xl shadow-[0_-2px_12px_rgba(17,45,70,0.06)]" data-active-classes="text-primary-container font-label-md"><div class="flex items-center justify-around h-16 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-12 transition-colors text-primary-container font-label-md" data-path="home" href="#"><span class="material-symbols-outlined text-2xl">home</span><span class="font-label-sm text-label-sm">خانه</span></a><a class="flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-12 text-on-surface-variant transition-colors" data-path="categories" href="#"><span class="material-symbols-outlined text-2xl">grid_view</span><span class="font-label-sm text-label-sm">دسته‌بندی‌ها</span></a><a class="flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-12 text-on-surface-variant transition-colors relative" data-path="personal-cart" href="#"><div class="relative flex items-center justify-center"><span class="material-symbols-outlined text-2xl">shopping_bag</span><span class="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm flex items-center justify-center ring-2 ring-surface-container-lowest">۳</span></div><span class="font-label-sm text-label-sm">سبد خرید</span></a><a class="flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-12 text-on-surface-variant transition-colors" data-path="club-wallet" href="#"><span class="material-symbols-outlined text-2xl">workspace_premium</span><span class="font-label-sm text-label-sm">60Club</span></a><a class="flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-12 text-on-surface-variant transition-colors" data-path="user-profile" href="#"><span class="material-symbols-outlined text-2xl">person</span><span class="font-label-sm text-label-sm">حساب من</span></a></div></nav></body></html>
