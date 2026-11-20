@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface-container-lowest":"#ffffff","surface-container-high":"#dee9fa","tertiary-fixed-dim":"#ffb68b","primary-fixed":"#d7e2ff","error-container":"#ffdad6","on-error":"#ffffff","on-background":"#111c28","surface-variant":"#d8e3f4","primary-container":"#034ea2","tertiary-container":"#843c00","surface-container-highest":"#d8e3f4","on-primary":"#ffffff","surface-container":"#e4efff","on-tertiary":"#ffffff","inverse-surface":"#27313e","surface-dim":"#d0dbeb","surface-bright":"#f8f9ff","secondary-container":"#c2dcfd","on-secondary-container":"#48617d","on-surface-variant":"#424752","on-tertiary-fixed":"#321200","on-primary-container":"#a6c3ff","on-primary-fixed-variant":"#004591","error":"#ba1a1a","tertiary":"#612a00","primary":"#003878","on-tertiary-container":"#ffb284","on-secondary-fixed-variant":"#2f4963","secondary-fixed-dim":"#afc9e9","inverse-on-surface":"#e9f1ff","on-secondary-fixed":"#001d34","on-tertiary-fixed-variant":"#753400","secondary":"#47607c","inverse-primary":"#acc7ff","outline":"#737783","on-surface":"#111c28","surface-container-low":"#eef4ff","surface":"#f8f9ff","on-error-container":"#93000a","primary-fixed-dim":"#acc7ff","tertiary-fixed":"#ffdbc8","surface-tint":"#215db1","secondary-fixed":"#d0e4ff","outline-variant":"#c2c6d3","on-secondary":"#ffffff","on-primary-fixed":"#001a40","background":"#f8f9ff"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"gutter-desktop":"1.5rem","gutter":"1rem","space-sm":"0.5rem","margin":"1rem","space-xl":"2.5rem","space-xs":"0.25rem","space-md":"1rem","space-lg":"1.5rem","margin-desktop":"2.5rem","margin-tablet":"1.5rem"},fontFamily:{"headline-xl":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"price-display":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"headline-xl-mobile":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"]},fontSize:{"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"800"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","fontWeight":"700"}],"headline-lg-mobile":["22px",{"lineHeight":"30px","fontWeight":"700"}],"headline-lg":["28px",{"lineHeight":"36px","fontWeight":"700"}],"price-display":["18px",{"lineHeight":"24px","fontWeight":"800"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"label-sm":["10px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"700"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.01em","fontWeight":"800"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}]}}}}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface"><aside class="fixed right-0 top-0 h-full w-72 bg-surface-container-lowest z-50 flex flex-col pt-space-md pb-space-lg shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="px-space-md mb-space-md flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center text-on-primary font-headline-md text-headline-md font-bold">۶۰</div><div><div class="font-headline-sm text-headline-sm font-bold text-primary">۶۰ آنلاین</div><div class="font-label-sm text-label-sm text-outline">پیشخوان یکپارچه مالی</div></div></div><span class="px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">B2B</span></div><div class="px-space-md mb-space-md"><div class="bg-surface-container-low p-space-xs rounded-xl flex items-center justify-between text-center gap-0.5"><button class="flex-1 py-1 rounded bg-surface-container-lowest text-primary font-label-sm text-label-sm font-bold shadow-[0_1px_8px_rgba(0,0,0,0.04)]" type="button">سازمانی</button><button class="flex-1 py-1 rounded text-on-surface-variant font-label-sm text-label-sm hover:text-on-surface" type="button">پرسنل</button><button class="flex-1 py-1 rounded text-on-surface-variant font-label-sm text-label-sm hover:text-on-surface" type="button">فروشنده</button><button class="flex-1 py-1 rounded text-on-surface-variant font-label-sm text-label-sm hover:text-on-surface" type="button">مالی</button></div></div><nav class="flex-1 px-space-sm space-y-1 overflow-y-auto" data-active-classes="bg-primary-container text-on-primary font-bold"><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="financial-overview" href="#"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="font-label-lg text-label-lg">پیشخوان مالی کل</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg transition-all bg-primary-container text-on-primary font-bold" data-path="wallet-and-credits" href="#"><span class="material-symbols-outlined text-[20px]">account_balance_wallet</span><span class="font-label-lg text-label-lg">کیف پول و اعتبارات</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="vendapay-installments" href="#"><span class="material-symbols-outlined text-[20px]">credit_score</span><span class="font-label-lg text-label-lg">اقساط ونداپِی</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="invoices-and-billing" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span class="font-label-lg text-label-lg">صورتحساب و فاکتور رسمی</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="vendor-settlements" href="#"><span class="material-symbols-outlined text-[20px]">payments</span><span class="font-label-lg text-label-lg">تسویه فروشندگان</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="accounting-and-ledger" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span class="font-label-lg text-label-lg">اسناد حسابداری و دفتر کل</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" data-path="tax-compliance-portal" href="#"><span class="material-symbols-outlined text-[20px]">verified</span><span class="font-label-lg text-label-lg">انطباق مؤدیان</span></a></nav><div class="px-space-md pt-space-sm bg-surface-container-low mx-space-sm rounded-xl"><div class="flex items-center justify-between mb-space-xs"><span class="font-label-sm text-label-sm text-outline">سقف اعتباری سازمانی</span><span class="font-label-sm text-label-sm font-bold text-primary">۸۵٪ فعال</span></div><div class="w-full h-1.5 bg-surface-variant rounded-full overflow-hidden"><div class="w-[85%] h-full bg-primary-container rounded-full"></div></div><div class="flex items-center justify-between mt-space-xs font-label-sm text-label-sm"><span class="text-on-surface-variant">باقیمانده:</span><span class="font-bold text-on-surface">۱۴,۲۰۰,۰۰۰,۰۰۰ ریال</span></div></div></aside><div class="pr-72"><header class="fixed top-0 right-72 left-0 h-16 bg-surface-container-lowest/95 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-margin-tablet"><div class="flex items-center gap-space-md flex-1 max-w-lg"><div class="w-full flex items-center gap-space-sm bg-surface-container-low px-space-md py-space-xs rounded-xl"><span class="material-symbols-outlined text-outline text-[18px]">search</span><input class="w-full bg-transparent border-0 outline-none font-body-sm text-body-sm text-on-surface placeholder:text-outline" placeholder="جستجو در تراکنش‌ها، شماره فاکتور، کد شناسه ملی، فروشندگان..." type="text"/></div></div><div class="flex items-center gap-space-md"><div class="hidden md:flex items-center gap-space-xs px-space-sm py-1 rounded-lg bg-surface-container text-on-surface font-label-sm text-label-sm"><span class="material-symbols-outlined text-[16px] text-secondary">calendar_today</span><span>۱۴۰۳/۰۸/۲۴</span><span class="mx-1 text-outline-variant">|</span><span class="material-symbols-outlined text-[16px] text-secondary">schedule</span><span>۱۴:۳۲</span></div><button class="relative p-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-1 left-1 w-2 h-2 rounded-full bg-error"></span></button><button class="p-space-xs rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[22px]">help_outline</span></button><div class="h-6 w-[1px] bg-outline-variant"></div><div class="flex items-center gap-space-sm"><div class="text-left"><div class="font-label-md text-label-md font-bold text-on-surface leading-none">شرکت توسعه فناوری پارس</div><div class="font-label-sm text-label-sm text-outline leading-none mt-1">شناسه: ۱۰۱۰۲۳۹۸۴۱</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="relative pt-16 bg-surface min-h-screen px-margin-tablet py-space-md"><div class="flex flex-col w-full gap-space-lg">
+<!-- Header Section with Organization Summary & Quick Action Trigger -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
+<div class="absolute -left-12 -top-12 h-44 w-44 rounded-full bg-primary-container/10 blur-2xl pointer-events-none"></div>
+<div class="absolute right-1/3 -bottom-10 h-32 w-32 rounded-full bg-tertiary-container/10 blur-2xl pointer-events-none"></div>
+<div class="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="h-14 w-14 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-md">
+<span class="material-symbols-outlined text-[32px]">domain_verification</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">شرکت پتروشیمی مارون (نمونه)</span>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">کد خریدار: B2B-98421</span>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm">حساب طلایی VIP</span>
+</div>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 font-body-sm text-body-sm text-on-surface-variant">
+<span>شناسه ملی: <strong class="text-on-surface font-semibold">۱۰۸۶۱۶۴۲۹۰۰</strong> (نمونه)</span>
+<span>•</span>
+<span>کد اقتصادی: <strong class="text-on-surface font-semibold">۴۱۱۳۸۶۵۱۹۸۷۱</strong> (نمونه)</span>
+<span>•</span>
+<span>دوره مالی جاری: <strong class="text-on-surface font-semibold">سال مالی ۱۴۰۳</strong></span>
+<span>•</span>
+<span class="text-primary font-bold">اتصال زنده به سامانه مؤدیان فعال</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm w-full lg:w-auto">
+<button class="flex-1 lg:flex-initial flex items-center justify-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors font-label-md text-label-md" type="button">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span>ریز گردش اعتبار</span>
+</button>
+<button class="flex-1 lg:flex-initial flex items-center justify-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary hover:bg-primary-container text-on-primary shadow-sm transition-all font-label-md text-label-md" type="button">
+<span class="material-symbols-outlined text-[18px]">add_card</span>
+<span>درخواست افزایش سقف اعتبار</span>
+</button>
+</div>
+</div>
+</div>
+<!-- SECTION 1: Master Credit Line & Budget Status -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md">
+<!-- Big Credit Metrics Bento Card (8 Cols) -->
+<div class="xl:col-span-8 rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">account_balance</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">وضعیت سقف اعتباری و بودجه سالانه سازمان (نمونه)</h2>
+</div>
+<span class="font-label-sm text-label-sm text-outline">بروزرسانی زنده: ۲ دقیقه پیش</span>
+</div>
+<!-- 4 Metric Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm mb-space-lg">
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">کل سقف اعتبار مصوب</span>
+<div class="font-price-display text-price-display text-primary font-extrabold mt-1">۵,۰۰۰,۰۰۰,۰۰۰</div>
+<span class="font-label-sm text-label-sm text-outline">تومان (نمونه)</span>
+<div class="mt-2 text-[11px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">verified</span>
+<span>مصوب هیئت‌مدیره</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">اعتبار مصرف‌شده قطعی</span>
+<div class="font-price-display text-price-display text-on-surface font-extrabold mt-1">۲,۱۰۰,۰۰۰,۰۰۰</div>
+<span class="font-label-sm text-label-sm text-outline">تومان (نمونه)</span>
+<div class="mt-2 text-[11px] text-tertiary font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">pie_chart</span>
+<span>۴۲٪ کل سقف</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">مسدود / سفارش جاری</span>
+<div class="font-price-display text-price-display text-tertiary-container font-extrabold mt-1">۶۵۰,۰۰۰,۰۰۰</div>
+<span class="font-label-sm text-label-sm text-outline">تومان (نمونه)</span>
+<div class="mt-2 text-[11px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-tertiary-container">lock</span>
+<span>۱۳٪ در گردش تأمین</span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-high flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-primary font-bold">اعتبار آزاد قابل خرید</span>
+<div class="font-price-display text-price-display text-primary font-black mt-1">۲,۲۵۰,۰۰۰,۰۰۰</div>
+<span class="font-label-sm text-label-sm text-primary">تومان (نمونه)</span>
+<div class="mt-2 text-[11px] text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>۴۵٪ موجودی فعال</span>
+</div>
+</div>
+</div>
+<!-- Segmented Dynamic Progress Bar -->
+<div class="space-y-space-xs">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-on-surface font-bold">ترکیب تحلیلی مانده اعتبار سالانه</span>
+<span class="text-outline">مجموع اعتبار اختصاصی: ۵ میلیارد تومان</span>
+</div>
+<div class="h-4 w-full rounded-full bg-surface-container-highest overflow-hidden flex">
+<!-- Consumed (42%) -->
+<div class="h-full bg-primary flex items-center justify-center text-[10px] text-on-primary font-bold" style="width: 42%;" title="۴۲٪ مصرف‌شده">
+              ۴۲٪
+            </div>
+<!-- Reserved (13%) -->
+<div class="h-full bg-tertiary-container flex items-center justify-center text-[10px] text-on-tertiary font-bold" style="width: 13%;" title="۱۳٪ رزرو سفارش">
+              ۱۳٪
+            </div>
+<!-- Available (45%) -->
+<div class="h-full bg-secondary-container flex items-center justify-center text-[10px] text-on-secondary-container font-bold" style="width: 45%;" title="۴۵٪ آزاد">
+              ۴۵٪ آزاد
+            </div>
+</div>
+<div class="flex flex-wrap items-center justify-between pt-1 font-label-sm text-label-sm text-on-surface-variant">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-primary inline-block"></span>
+<span>تسویه‌شده قطعی: ۴۲٪</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-tertiary-container inline-block"></span>
+<span>تعهدات در جریان: ۱۳٪</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-secondary-container inline-block"></span>
+<span>اعتبار آماده تخصیص: ۴۵٪</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between font-body-sm text-body-sm text-on-surface-variant bg-surface-container-low px-space-md py-space-xs rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">info</span>
+<span>قرارداد گشایش اعتبار اسنادی داخلی به شماره کلاسه ۹۸۲-ص با بانک تجارت منعقد گردیده است.</span>
+</div>
+<a class="text-primary font-bold hover:underline flex items-center gap-0.5 text-label-sm" href="#">
+          مشاهده تضامین
+          <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+</a>
+</div>
+</div>
+<!-- Quick Visual Health & Sparkline Widget (4 Cols) -->
+<div class="xl:col-span-4 rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">شاخص انطباق نقدینگی</span>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm font-bold text-label-sm">رتبه A+</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+          میانگین دوره بازپرداخت سازمان در تسویه ونداپِی ۲۲ روز بوده که ۵ روز زودتر از مهلت مصوب است.
+        </p>
+<!-- Inline SVG Trend Chart (Monthly Consumption Rhythm) -->
+<div class="bg-surface-container-low p-space-md rounded-xl">
+<div class="flex items-center justify-between mb-2 font-label-sm text-label-sm">
+<span class="text-on-surface-variant">روند مصرف اعتبار ۶ ماهه اخیر</span>
+<span class="font-bold text-primary">میانگین: ۳۵۰ م.ت / ماه</span>
+</div>
+<svg class="w-full h-24 overflow-visible" fill="none" viewbox="0 0 320 80">
+<path class="text-primary" d="M 0 65 Q 40 45, 80 50 T 160 30 T 240 45 T 320 15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="3"></path>
+<path class="text-primary-container opacity-10" d="M 0 65 Q 40 45, 80 50 T 160 30 T 240 45 T 320 15 L 320 80 L 0 80 Z" fill="currentColor"></path>
+<circle class="fill-surface-container-lowest stroke-primary stroke-2" cx="80" cy="50" r="4"></circle>
+<circle class="fill-surface-container-lowest stroke-primary stroke-2" cx="160" cy="30" r="4"></circle>
+<circle class="fill-surface-container-lowest stroke-primary stroke-2" cx="240" cy="45" r="4"></circle>
+<circle class="fill-primary stroke-surface-container-lowest stroke-2" cx="320" cy="15" r="5"></circle>
+</svg>
+<div class="flex justify-between font-label-sm text-label-sm text-outline mt-1">
+<span>خرداد</span>
+<span>تیر</span>
+<span>مرداد</span>
+<span>شهریور</span>
+<span>مهر</span>
+<span class="font-bold text-primary">آبان</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">speed</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">ضریب گردش اعتبار: ۲.۳ بار در سال</span>
+</div>
+<button class="text-primary hover:text-primary-container font-label-sm text-label-sm font-bold" type="button">
+          گزارش تحلیلی
+        </button>
+</div>
+</div>
+</div>
+<!-- SECTION 2 & SECTION 5: Department Quotas & Internal Approval Workflow -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md">
+<!-- Departmental & Event Budget Allocation Table (7 Cols) -->
+<div class="xl:col-span-7 rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">سهمیه بودجه تفکیک‌شده واحدها و مناسبت‌ها (نمونه)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">نظارت بر سهمیه‌های سازمانی و میزان جذب اعتبار هر دپارتمان</p>
+</div>
+<button class="px-space-sm py-1 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>تخصیص سهمیه جدید</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">
+<th class="p-space-sm rounded-r-lg">عنوان واحد / مناسبت</th>
+<th class="p-space-sm">کل بودجه مصوب</th>
+<th class="p-space-sm">اعتبار مصرفی</th>
+<th class="p-space-sm">درصد مصرف</th>
+<th class="p-space-sm rounded-l-lg text-left">وضعیت سهمیه</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant font-body-sm text-body-sm">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-xs font-semibold text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]">diversity_3</span>
+<span>خدمات رفاهی پرسنل</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">شامل بسته‌های انگیزشی فصلی</span>
+</td>
+<td class="p-space-sm font-semibold">۱,۸۰۰,۰۰۰,۰۰۰ <span class="font-label-sm text-outline">تومان (نمونه)</span></td>
+<td class="p-space-sm text-tertiary font-bold">۱,۴۴۰,۰۰۰,۰۰۰ <span class="font-label-sm text-outline">تومان (نمونه)</span></td>
+<td class="p-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-16 h-2 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="w-[80%] h-full bg-tertiary rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-tertiary">۸۰٪</span>
+</div>
+</td>
+<td class="p-space-sm text-left">
+<span class="px-space-xs py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold">نزدیک به سقف</span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-xs font-semibold text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]">corporate_fare</span>
+<span>امور اداری و تشریفات</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">پذیرایی، هدایای میهمانان و ملزومات</span>
+</td>
+<td class="p-space-sm font-semibold">۹۰۰,۰۰۰,۰۰۰ <span class="font-label-sm text-outline">تومان (نمونه)</span></td>
+<td class="p-space-sm text-on-surface">۴۰۵,۰۰۰,۰۰۰ <span class="font-label-sm text-outline">تومان (نمونه)</span></td>
+<td class="p-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-16 h-2 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="w-[45%] h-full bg-primary rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-primary">۴۵٪</span>
+</div>
+</td>
+<td class="p-space-sm text-left">
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">عادی و پایدار</span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-xs font-semibold text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]">warehouse</span>
+<span>انبار مرکزی و لجستیک</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">تجهیزات مصرفی و بسته‌بندی</span>
+</td>
+<td class="p-space-sm font-semibold">۸۰۰,۰۰۰,۰۰۰ <span class="font-label-sm text-outline">تومان (نمونه)</span></td>
+<td class="p-space-sm text-on-surface">۲۴۰,۰۰۰,۰۰۰ <span class="font-label-sm text-outline">تومان (نمونه)</span></td>
+<td class="p-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-16 h-2 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="w-[30%] h-full bg-primary rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-primary">۳۰٪</span>
+</div>
+</td>
+<td class="p-space-sm text-left">
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">ظرفیت بالا</span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-space-sm">
+<div class="flex items-center gap-space-xs font-semibold text-on-surface">
+<span class="material-symbols-outlined text-tertiary-container text-[18px]">celebration</span>
+<span>پک معیشتی رمضان و نوروز ۱۴۰۴</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">سفارش انبوه خواربار و هدایای نوروزی</span>
+</td>
+<td class="p-space-sm font-semibold">۱,۵۰۰,۰۰۰,۰۰۰ <span class="font-label-sm text-outline">تومان (نمونه)</span></td>
+<td class="p-space-sm text-tertiary-container font-bold">۶۶۰,۰۰۰,۰۰۰ <span class="font-label-sm text-outline">تومان (نمونه)</span></td>
+<td class="p-space-sm">
+<div class="flex items-center gap-2">
+<div class="w-16 h-2 rounded-full bg-surface-container-highest overflow-hidden">
+<div class="w-[44%] h-full bg-tertiary-container rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm font-bold text-tertiary-container">۴۴٪</span>
+</div>
+</td>
+<td class="p-space-sm text-left">
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm font-bold">رزرو پیش‌خرید</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between font-label-sm text-label-sm border-t border-surface-variant">
+<span class="text-on-surface-variant">مجموع سهمیه‌های تخصیص‌یافته: ۵,۰۰۰,۰۰۰,۰۰۰ تومان (نمونه)</span>
+<button class="text-primary font-bold hover:underline" type="button">درخواست جابجایی بودجه بین واحدها</button>
+</div>
+</div>
+<!-- Workflow: Internal Approval Stepper & Document Verification (5 Cols) -->
+<div class="xl:col-span-5 rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">assignment_turned_in</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">گردش کار تاییدات مالی سازمانی</h2>
+</div>
+<span class="px-space-xs py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm font-bold text-label-sm">نیاز به اقدام</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+          فاکتور جاری شماره ۶۰-۸۹۴۲۱ به مبلغ ۲۷۵,۰۰۰,۰۰۰ تومان در چرخه کنترل چندامضایی قرار دارد:
+        </p>
+<!-- Stepper Component -->
+<div class="space-y-space-md relative pr-2">
+<!-- Step 1: Approved -->
+<div class="flex items-start gap-space-md relative">
+<div class="relative z-10 w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="flex-1 bg-surface-container-low p-space-sm rounded-lg">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">مرحله اول: کارشناس ارشد تدارکات</span>
+<span class="font-label-sm text-label-sm text-outline">۱۴۰۳/۰۸/۲۴ - ۱۰:۱۵</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                تأیید اصالت کالا، پیش‌فاکتور رسمی و تطبیق با استعلام بها توسط مهندس کیانی انجام شد.
+              </p>
+<div class="mt-2 flex items-center gap-2 font-label-sm text-label-sm text-primary font-bold">
+<span class="material-symbols-outlined text-[14px]">done_all</span>
+<span>تأیید شده با امضای الکترونیک امن</span>
+</div>
+</div>
+</div>
+<!-- Step 2: Pending Approval -->
+<div class="flex items-start gap-space-md relative">
+<div class="relative z-10 w-9 h-9 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary animate-pulse">
+<span class="material-symbols-outlined text-[18px]">hourglass_top</span>
+</div>
+<div class="flex-1 bg-surface-container-low p-space-sm rounded-lg">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">مرحله دوم: مدیر مالی و عضو هیئت‌مدیره</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">در انتظار امضا</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                دکتر صادقی (مدیر امور مالی سازمان) — منوط به تخصیص از ردیف بودجه خدمات رفاهی.
+              </p>
+<div class="mt-3 flex items-center gap-space-xs">
+<button class="px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm font-bold shadow-sm transition-all flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">draw</span>
+<span>امضای دیجیتال و صدور مجوز پرداخت</span>
+</button>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm" type="button">
+                  عودت جهت اصلاح
+                </button>
+</div>
+</div>
+</div>
+<!-- Step 3: Bank Action Scheduled -->
+<div class="flex items-start gap-space-md relative opacity-60">
+<div class="relative z-10 w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+</div>
+<div class="flex-1 bg-surface-container-low p-space-sm rounded-lg">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">مرحله سوم: صدور حواله و کسر از خط اعتباری</span>
+<span class="font-label-sm text-label-sm text-outline">گام نهایی</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                تخصیص خودکار وجه از حساب اعتباری ۶۰ آنلاین و ارسال به کارپوشه سامانه مؤدیان.
+              </p>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs font-label-sm text-label-sm text-outline flex items-center justify-between">
+<span>پروتکل امنیتی: توکن سخت‌افزاری پارس‌پک معتبر</span>
+<span>لاگ شماره: #SEC-44102</span>
+</div>
+</div>
+</div>
+<!-- SECTION 3: Official Invoices, Pre-Invoices & Tax Portal Integration (سامانه مؤدیان) -->
+<div class="rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm mb-space-md">
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[24px]">receipt_long</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">مدیریت فاکتورهای رسمی و اتصال به کارپوشه سامانه مؤدیان (نمونه)</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          استعلام لحظه‌ای صورتحساب‌های الکترونیکی نوع اول با کد اقتصادی، مالیات بر ارزش افزوده و کد رهگیری مالیاتی
+        </p>
+</div>
+<!-- Toolbar Filter & Export -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<div class="flex items-center bg-surface-container-low px-space-sm py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-outline text-[18px] ml-1">filter_alt</span>
+<select class="bg-transparent border-0 outline-none font-label-sm text-label-sm text-on-surface cursor-pointer">
+<option>همه اسناد (فاکتور و پیش‌فاکتور)</option>
+<option>تأییدشده در کارپوشه</option>
+<option>در انتظار تأیید مؤدیان</option>
+<option>پیش‌فاکتور باز</option>
+</select>
+</div>
+<button class="flex items-center gap-1 px-space-sm py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary">download</span>
+<span>دریافت اکسل ریز اقلام</span>
+</button>
+<button class="flex items-center gap-1 px-space-sm py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm shadow-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">sync</span>
+<span>همگام‌سازی با کارپوشه مؤدیان</span>
+</button>
+</div>
+</div>
+<!-- Official Documents Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">
+<th class="p-space-sm rounded-r-lg">شماره سند / کد مالیاتی سامانه مؤدیان</th>
+<th class="p-space-sm">تاریخ شمسی</th>
+<th class="p-space-sm">فروشنده / طرف حساب</th>
+<th class="p-space-sm">مبلغ ناخالص (تومان)</th>
+<th class="p-space-sm">ارزش افزوده (۱۰٪)</th>
+<th class="p-space-sm">مبلغ نهایی (تومان)</th>
+<th class="p-space-sm">وضعیت کارپوشه مالیاتی</th>
+<th class="p-space-sm rounded-l-lg text-left">عملیات سند</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant font-body-sm text-body-sm">
+<!-- Document Row 1 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-space-sm">
+<div class="font-bold text-on-surface">فاکتور رسمی #INV-1403-89421</div>
+<div class="font-mono text-[11px] text-primary font-semibold mt-0.5" dir="ltr">TX-A819-0029-44109823</div>
+</td>
+<td class="p-space-sm font-semibold text-on-surface">۱۴۰۳/۰۸/۲۲</td>
+<td class="p-space-sm">
+<div class="font-semibold text-on-surface">بازرگانی ۶۰ آنلاین (ونداتجهیز)</div>
+<div class="font-label-sm text-label-sm text-outline">شناسه: ۱۴۰۰۹۲۱۸۸۳۱</div>
+</td>
+<td class="p-space-sm font-semibold text-on-surface">۲۵۰,۰۰۰,۰۰۰</td>
+<td class="p-space-sm text-on-surface-variant">۲۵,۰۰۰,۰۰۰</td>
+<td class="p-space-sm font-price-display text-price-display font-bold text-primary">۲۷۵,۰۰۰,۰۰۰</td>
+<td class="p-space-sm">
+<span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>تأییدشده در کارپوشه</span>
+</span>
+</td>
+<td class="p-space-sm text-left">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface" title="دانلود فاکتور رسمی PDF استاندارد A4" type="button">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+</button>
+<button class="px-space-sm py-1 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm font-bold" type="button">
+                  پرداخت مرحله‌ای
+                </button>
+</div>
+</td>
+</tr>
+<!-- Document Row 2 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-space-sm">
+<div class="font-bold text-on-surface">پیش‌فاکتور معتبر #PF-1403-77102</div>
+<div class="font-mono text-[11px] text-outline" dir="ltr">PRE-ORDER-MAROON-09</div>
+</td>
+<td class="p-space-sm font-semibold text-on-surface">۱۴۰۳/۰۸/۲۰</td>
+<td class="p-space-sm">
+<div class="font-semibold text-on-surface">صنایع بسته‌بندی نوآوران هدیه</div>
+<div class="font-label-sm text-label-sm text-outline">شناسه: ۱۰۳۸۰۲۹۳۸۱۱</div>
+</td>
+<td class="p-space-sm font-semibold text-on-surface">۴۵۰,۰۰۰,۰۰۰</td>
+<td class="p-space-sm text-on-surface-variant">۴۵,۰۰۰,۰۰۰</td>
+<td class="p-space-sm font-price-display text-price-display font-bold text-on-surface">۴۹۵,۰۰۰,۰۰۰</td>
+<td class="p-space-sm">
+<span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+<span>پیش‌فاکتور (در انتظار تایید)</span>
+</span>
+</td>
+<td class="p-space-sm text-left">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface" title="دانلود پیش‌فاکتور رسمی A4" type="button">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+</button>
+<button class="px-space-sm py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm" type="button">
+                  تبدیل به فاکتور قطعی
+                </button>
+</div>
+</td>
+</tr>
+<!-- Document Row 3 -->
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="p-space-sm">
+<div class="font-bold text-on-surface">فاکتور رسمی #INV-1403-61109</div>
+<div class="font-mono text-[11px] text-primary font-semibold mt-0.5" dir="ltr">TX-B904-7712-99014382</div>
+</td>
+<td class="p-space-sm font-semibold text-on-surface">۱۴۰۳/۰۸/۱۵</td>
+<td class="p-space-sm">
+<div class="font-semibold text-on-surface">گروه تولیدی زعفران و خواربار زرین</div>
+<div class="font-label-sm text-label-sm text-outline">شناسه: ۱۰۱۰۸۹۲۱۴۴۳</div>
+</td>
+<td class="p-space-sm font-semibold text-on-surface">۶۰۰,۰۰۰,۰۰۰</td>
+<td class="p-space-sm text-on-surface-variant">۶۰,۰۰۰,۰۰۰</td>
+<td class="p-space-sm font-price-display text-price-display font-bold text-primary">۶۶۰,۰۰۰,۰۰۰</td>
+<td class="p-space-sm">
+<span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>در انتظار واکنش خریدار در سامانه</span>
+</span>
+</td>
+<td class="p-space-sm text-left">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface" title="دانلود فاکتور A4" type="button">
+<span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+</button>
+<button class="px-space-sm py-1 rounded-lg bg-tertiary-container hover:bg-tertiary text-on-tertiary font-label-sm text-label-sm font-bold" type="button">
+                  تأیید در سامانه مالیاتی
+                </button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer Note -->
+<div class="mt-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm text-outline font-label-sm text-label-sm bg-surface-container-low p-space-sm rounded-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary">verified_user</span>
+<span>تمام اقلام مشمول قانون پایانه‌های فروشگاهی و سامانه مؤدیان با نرخ قانونی ۱۰٪ ارزش افزوده محاسبه گردیده‌اند.</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span>نمایش ۱ تا ۳ از مجموع ۴۸ سند مالیاتی</span>
+</div>
+</div>
+</div>
+<!-- SECTION 4: Staged Payments & Settlement Engine (پرداخت مرحله‌ای و شیوه‌های تسویه) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-md">
+<!-- 3-Stage Milestone Settlement Status (5 Cols) -->
+<div class="xl:col-span-5 rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">splitscreen</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">شیوه تسویه ۳ مرحله‌ای شرکتی</h2>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">سفارش جاری #۸۹۴۲۱</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">
+          تسهیلات تأمین اعتباری ۶۰ آنلاین بر پایه مدل پرداخت ایمن مبتنی بر تایید تحویل ناوگان
+        </p>
+<!-- 3 Stages Breakdown -->
+<div class="space-y-space-md">
+<!-- Stage 1 -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-start justify-between">
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-label-md">
+                ۱
+              </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md font-bold text-on-surface">مرحله اول: ۴۰٪ پیش‌پرداخت</span>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[11px] font-bold">پرداخت شده</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  مبلغ: <strong class="text-on-surface font-semibold">۱۱۰,۰۰۰,۰۰۰ تومان (نمونه)</strong>
+</div>
+<div class="font-label-sm text-label-sm text-outline mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">tag</span>
+<span>کد پیگیری شتابی: #۸۹۴۲۱-TX1</span>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary text-[22px]">check_circle</span>
+</div>
+<!-- Stage 2 -->
+<div class="p-space-md rounded-xl bg-surface-container-high/60 flex items-start justify-between">
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-on-tertiary font-bold text-label-md">
+                ۲
+              </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md font-bold text-on-surface">مرحله دوم: ۴۰٪ پس از صدور بارنامه</span>
+<span class="px-space-xs py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-bold">در انتظار بارگیری</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  مبلغ: <strong class="text-on-surface font-semibold">۱۱۰,۰۰۰,۰۰۰ تومان (نمونه)</strong>
+</div>
+<div class="font-label-sm text-label-sm text-outline mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">local_shipping</span>
+<span>کد بارنامه پایانه مرکزی: BL-9932-IR</span>
+</div>
+</div>
+</div>
+<button class="px-space-sm py-1 rounded bg-primary text-on-primary font-label-sm text-label-sm font-bold shadow-sm" type="button">
+              پرداخت قسط ۲
+            </button>
+</div>
+<!-- Stage 3 -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-start justify-between opacity-80">
+<div class="flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant font-bold text-label-md">
+                ۳
+              </div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md font-bold text-on-surface">مرحله سوم: ۲۰٪ تسویه نهایی</span>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container text-on-surface-variant text-[11px]">انبار مقصد</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  مبلغ: <strong class="text-on-surface font-semibold">۵۵,۰۰۰,۰۰۰ تومان (نمونه)</strong>
+</div>
+<div class="font-label-sm text-label-sm text-outline mt-1">
+                  پس از تایید کنترل کیفیت (QC) و رسید انبار شرکت مارون
+                </div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[22px]">pending</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-outline font-label-sm text-label-sm">
+<span>مجموع کل سفارش: ۲۷۵,۰۰۰,۰۰۰ تومان</span>
+<span class="text-primary font-bold">سود تسهیلات: ۰٪ (تأمین ویژه سازمانی)</span>
+</div>
+</div>
+<!-- Settlement Execution Form: Direct SHEBA & Sayad Cheque (7 Cols) -->
+<div class="xl:col-span-7 rounded-xl bg-surface-container-lowest p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">درگاه تسویه مالی و اسناد خزانه</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">انتخاب شیوه پرداخت شرکتی و بارگذاری مستندات پرداخت</p>
+</div>
+<span class="material-symbols-outlined text-primary text-[24px]">payments</span>
+</div>
+<!-- Settlement Method Tabs (Pure CSS / Vanilla switch ready) -->
+<div class="bg-surface-container-low p-1 rounded-xl flex items-center mb-space-md" id="paymentTabs">
+<button class="flex-1 py-2 rounded-lg bg-surface-container-lowest text-primary font-label-md text-label-md font-bold shadow-sm flex items-center justify-center gap-2 transition-all" id="tabBtn-sheba" onclick="switchTab('sheba')" type="button">
+<span class="material-symbols-outlined text-[18px]">account_balance</span>
+<span>واریز مستقیم پایا / ساتنا (شبا)</span>
+</button>
+<button class="flex-1 py-2 rounded-lg text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-semibold flex items-center justify-center gap-2 transition-all" id="tabBtn-cheque" onclick="switchTab('cheque')" type="button">
+<span class="material-symbols-outlined text-[18px]">style</span>
+<span>ثبت چک صیادی بنفش</span>
+</button>
+</div>
+<!-- TAB CONTENT 1: SHEBA / Direct Wire -->
+<div class="space-y-space-md" id="content-sheba">
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-sm">
+<div>
+<span class="font-label-sm text-label-sm text-outline">شماره شبای حقوقی مقصد (۶۰ آنلاین):</span>
+<div class="font-mono font-bold text-on-surface text-label-lg mt-0.5" dir="ltr">
+                IR82 0180 0000 0000 9842 1098 12
+              </div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">بانک تجارت — به‌نام شرکت توسعه تجارت الکترونیک ۶۰ آنلاین</span>
+</div>
+<button class="px-space-sm py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm font-bold flex items-center gap-1" onclick="navigator.clipboard?.writeText('IR820180000000009842109812')" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+<span>کپی شبا</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface font-bold">کد رهگیری تراکنش پایا / ساتنا</label>
+<input class="w-full bg-surface-container-low border-0 rounded-lg p-space-sm font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary" placeholder="مثال: ۹۸۴۲۱۱۵۴۳" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface font-bold">مبلغ واریزی به ریال / تومان</label>
+<input class="w-full bg-surface-container-low border-0 rounded-lg p-space-sm font-body-sm text-body-sm text-on-surface font-bold focus:outline-none focus:ring-2 focus:ring-primary" type="text" value="۱۱۰,۰۰۰,۰۰۰ تومان (نمونه)"/>
+</div>
+</div>
+<!-- File Upload Zone -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">cloud_upload</span>
+</div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">بارگذاری تصویر فیش واریزی بانکی</div>
+<div class="font-label-sm text-label-sm text-outline">فرمت‌های مجاز: JPG, PNG یا PDF (حداکثر ۵ مگابایت)</div>
+</div>
+</div>
+<label class="px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm font-bold cursor-pointer transition-colors">
+              انتخاب فایل
+              <input class="hidden" type="file"/>
+</label>
+</div>
+</div>
+<!-- TAB CONTENT 2: Sayad Violet Cheque -->
+<div class="hidden space-y-space-md" id="content-cheque">
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[28px]">verified</span>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">پذیرش انحصاری چک‌های صیادی بنفش با استعلام ثبت در پیچک</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">شناسه ملی گیرنده جهت ثبت چک در سامانه صیاد بانک مرکزی: <strong>۱۴۰۰۹۲۱۸۸۳۱</strong></p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface font-bold">شناسه صیاد ۱۶ رقمی</label>
+<input class="w-full bg-surface-container-low border-0 rounded-lg p-space-sm font-mono text-center text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary" dir="ltr" maxlength="16" placeholder="xxxx-xxxx-xxxx-xxxx" type="text"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface font-bold">تاریخ سررسید چک</label>
+<input class="w-full bg-surface-container-low border-0 rounded-lg p-space-sm font-body-sm text-body-sm text-on-surface text-center focus:outline-none focus:ring-2 focus:ring-primary" type="text" value="۱۴۰۳/۱۰/۱۵"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-sm text-label-sm text-on-surface font-bold">بانک صادرکننده</label>
+<select class="w-full bg-surface-container-low border-0 rounded-lg p-space-sm font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary">
+<option>بانک تجارت</option>
+<option>بانک ملت</option>
+<option>بانک صادرات</option>
+<option>بانک پاسارگاد</option>
+</select>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">photo_camera</span>
+</div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">بارگذاری اسکن پشت و روی چک صیادی</div>
+<div class="font-label-sm text-label-sm text-outline">وضوح بالا با نمایش واضح بارکد دوبعدی چک</div>
+</div>
+</div>
+<label class="px-space-md py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm font-bold cursor-pointer transition-colors">
+              پیوست تصویر چک
+              <input class="hidden" type="file"/>
+</label>
+</div>
+</div>
+</div>
+<!-- Action Buttons Footer -->
+<div class="mt-space-md pt-space-sm border-t border-surface-variant flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">تأیید اسناد حداکثر طی ۲ ساعت کاری انجام می‌شود.</span>
+<button class="px-space-lg py-space-sm rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-bold shadow-md transition-all flex items-center gap-2" type="button">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span>ثبت قطعی سند و ارسال به واحد مالی ۶۰ آنلاین</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Inline Interactive Script for Payment Tabs -->
+<script>
+  function switchTab(mode) {
+    const shebaBtn = document.getElementById('tabBtn-sheba');
+    const chequeBtn = document.getElementById('tabBtn-cheque');
+    const shebaContent = document.getElementById('content-sheba');
+    const chequeContent = document.getElementById('content-cheque');
+
+    if (mode === 'sheba') {
+      shebaBtn.className = "flex-1 py-2 rounded-lg bg-surface-container-lowest text-primary font-label-md text-label-md font-bold shadow-sm flex items-center justify-center gap-2 transition-all";
+      chequeBtn.className = "flex-1 py-2 rounded-lg text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-semibold flex items-center justify-center gap-2 transition-all";
+      shebaContent.classList.remove('hidden');
+      chequeContent.classList.add('hidden');
+    } else {
+      chequeBtn.className = "flex-1 py-2 rounded-lg bg-surface-container-lowest text-primary font-label-md text-label-md font-bold shadow-sm flex items-center justify-center gap-2 transition-all";
+      shebaBtn.className = "flex-1 py-2 rounded-lg text-on-surface-variant hover:text-on-surface font-label-md text-label-md font-semibold flex items-center justify-center gap-2 transition-all";
+      chequeContent.classList.remove('hidden');
+      shebaContent.classList.add('hidden');
+    }
+  }
+</script></main></div></body></html>
