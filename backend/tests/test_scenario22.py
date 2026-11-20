@@ -461,11 +461,12 @@ class Scenario22Test(AppTestCase):
         expected_net  = gross - expected_comm
         self.assertEqual(int(batch["net_minor"]), expected_net, "A23: net = gross − commission")
 
-        # ── A24: Settlement completed via admin API ───────────────────────────
+        # ── A24: Settlement completed via admin API (second person: two-person control) ──
+        approver_h = self.admin_headers()
         complete_r = self.client.post(
             f"/api/v1/admin/settlement-batches/{batch_id}/complete",
             json={"payment_reference": f"TXN-S22-{uuid.uuid4().hex[:8]}"},
-            headers=admin_h,
+            headers=approver_h,
         )
         self.assertEqual(complete_r.status_code, 200, f"A24 complete: {complete_r.get_json()}")
         result     = complete_r.get_json()
@@ -477,7 +478,7 @@ class Scenario22Test(AppTestCase):
         complete_r2 = self.client.post(
             f"/api/v1/admin/settlement-batches/{batch_id}/complete",
             json={"payment_reference": f"TXN-S22-{uuid.uuid4().hex[:8]}"},
-            headers=admin_h,
+            headers=approver_h,
         )
         self.assertEqual(complete_r2.status_code, 200, complete_r2.get_json())
         self.assertEqual(

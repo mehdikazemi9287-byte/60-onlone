@@ -321,10 +321,11 @@ class SettlementBatchTest(AppTestCase):
         self.assertEqual(resp.status_code, 201)
         batch_id = resp.get_json()["batch"]["id"]
 
+        # Two-person control: a second admin completes the batch.
         resp2 = self.client.post(
             f"/api/v1/admin/settlement-batches/{batch_id}/complete",
             json={"payment_reference": "TXN-789"},
-            headers=admin_h,
+            headers=self.admin_headers(),
         )
         self.assertEqual(resp2.status_code, 200, resp2.get_json())
         result = resp2.get_json()

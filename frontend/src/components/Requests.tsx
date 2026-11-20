@@ -4,6 +4,7 @@ import { useEffect, useState, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest, catalog, newIdempotencyKey } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useCanUseAdmin } from "@/lib/admin-access";
 type Item = { slug: string; name: string; quantity: number };
 type Inquiry = {
   id: number;
@@ -30,6 +31,7 @@ export default function Requests({
   admin?: boolean;
 }) {
   const { user, token, loading } = useAuth();
+  const canAdmin = useCanUseAdmin(user?.role);
   const router = useRouter();
   const params = useSearchParams();
   const [items, setItems] = useState<Item[]>([]),
@@ -79,7 +81,7 @@ export default function Requests({
       .catch((e) => setError(e.message));
   }, [token, create]);
   useEffect(() => {
-    if (!token || create || (admin && user?.role !== "admin")) return;
+    if (!token || create || (admin && !canAdmin)) return;
     let live = true;
     setBusy(true);
     apiRequest<{ items: Inquiry[]; pages: number }>(
@@ -101,7 +103,7 @@ export default function Requests({
     return () => {
       live = false;
     };
-  }, [token, create, admin, user?.role, page, reload]);
+  }, [token, create, admin, canAdmin, page, reload]);
   if (loading) return <p className="p-8">در حال بررسی ورود…</p>;
   if (!user || !token)
     return (
@@ -126,7 +128,7 @@ export default function Requests({
         </Link>
       </main>
     );
-  if (admin && user.role !== "admin")
+  if (admin && !canAdmin)
     return <p className="p-8">دسترسی مدیریت لازم است.</p>;
   async function search(e: FormEvent) {
     e.preventDefault();

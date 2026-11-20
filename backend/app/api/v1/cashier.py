@@ -3,10 +3,10 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify, request
 
-from app.core.deps import authenticate_request, current_user, get_db, require_auth
+from app.core.deps import authenticate_request, client_ip, current_user, get_db, require_auth
 from app.core.errors import ValidationError
 from app.services import cashier_service as cashier
-from app.services import pack_builder_service, recurring_service
+from app.services import audit_service, pack_builder_service, recurring_service
 
 bp = Blueprint("cashier", __name__, url_prefix="/api/v1")
 
@@ -129,8 +129,14 @@ def admin_rules():
 @bp.patch("/admin/cashier-rules/<rule_key>")
 @require_auth("admin")
 def admin_rule_update(rule_key: str):
+    data = _body()
     with get_db().write_transaction() as conn:
-        return jsonify({"rule": cashier.update_rule(conn, rule_key=rule_key, data=_body(), actor=current_user()["id"])})
+        before = conn.execute("SELECT * FROM cashier_rules WHERE rule_key=?", (rule_key,)).fetchone()
+        rule = cashier.update_rule(conn, rule_key=rule_key, data=data, actor=current_user()["id"])
+        audit_service.record(conn, action="cashier.rule_updated", entity_type="cashier_rule", entity_id=rule_key,
+                             actor_user_id=current_user()["id"], ip_address=client_ip(),
+                             metadata={"before": dict(before) if before else None, "changes": data})
+        return jsonify({"rule": rule})
 
 
 @bp.get("/admin/partner-discounts")
@@ -143,15 +149,26 @@ def admin_discounts():
 @bp.post("/admin/partner-discounts")
 @require_auth("admin")
 def admin_discount_create():
+    data = _body()
     with get_db().write_transaction() as conn:
-        return jsonify({"discount": cashier.create_partner_discount(conn, data=_body(), actor=current_user()["id"])}), 201
+        discount = cashier.create_partner_discount(conn, data=data, actor=current_user()["id"])
+        audit_service.record(conn, action="partner_discount.created", entity_type="partner_discount",
+                             entity_id=discount.get("id"), actor_user_id=current_user()["id"], ip_address=client_ip(),
+                             metadata={"after": discount})
+        return jsonify({"discount": discount}), 201
 
 
 @bp.patch("/admin/partner-discounts/<int:discount_id>")
 @require_auth("admin")
 def admin_discount_update(discount_id: int):
+    data = _body()
     with get_db().write_transaction() as conn:
-        return jsonify({"discount": cashier.update_partner_discount(conn, discount_id=discount_id, data=_body())})
+        before = cashier.get_partner_discount(conn, discount_id)
+        discount = cashier.update_partner_discount(conn, discount_id=discount_id, data=data)
+        audit_service.record(conn, action="partner_discount.updated", entity_type="partner_discount",
+                             entity_id=discount_id, actor_user_id=current_user()["id"], ip_address=client_ip(),
+                             metadata={"before": before, "after": discount})
+        return jsonify({"discount": discount})
 
 
 @bp.post("/admin/cashier/recurring/run-due")

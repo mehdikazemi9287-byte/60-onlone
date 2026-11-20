@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useCanUseAdmin } from "@/lib/admin-access";
 import { apiRequest } from "@/lib/api";
 type Supplier = {
   id: number;
@@ -13,6 +14,7 @@ type Supplier = {
 };
 export default function AdminSuppliers() {
   const { user, token, loading } = useAuth();
+  const canAdmin = useCanUseAdmin(user?.role);
   const [rows, setRows] = useState<Supplier[]>([]),
     [page, setPage] = useState(1),
     [reload, setReload] = useState(0),
@@ -25,7 +27,7 @@ export default function AdminSuppliers() {
     [type, setType] = useState(""),
     [source, setSource] = useState("");
   useEffect(() => {
-    if (!token || user?.role !== "admin") return;
+    if (!token || !canAdmin) return;
     let active = true;
     setBusy(true);
     setError("");
@@ -45,7 +47,7 @@ export default function AdminSuppliers() {
     return () => {
       active = false;
     };
-  }, [token, user?.role, page, reload]);
+  }, [token, canAdmin, page, reload]);
   async function create(e: FormEvent) {
     e.preventDefault();
     if (busy) return;
@@ -86,7 +88,7 @@ export default function AdminSuppliers() {
         <Link href="/login?next=%2Fadmin%2Fsuppliers">ورود به حساب مدیر</Link>
       </main>
     );
-  if (user.role !== "admin")
+  if (!canAdmin)
     return <p className="p-8">دسترسی مدیریت لازم است.</p>;
   return (
     <main className="container-page py-8 space-y-6">

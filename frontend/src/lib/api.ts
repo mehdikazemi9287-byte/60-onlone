@@ -85,6 +85,31 @@ export interface AuthUser {
   role: string;
 }
 
+/** Admin-shell access from GET /auth/me (backend app/core/staff_access.py + mfa_service). */
+export interface AdminAccess {
+  super_admin: boolean;
+  staff_roles: string[];
+  is_staff: boolean;
+  mfa_required: boolean;
+  mfa_enrolled: boolean;
+  mfa_verified: boolean;
+  recovery_codes_remaining: number;
+}
+
+type StepUp = { access_token: string; token_type: string; expires_in: number; user: AuthUser };
+
+export const mfa = {
+  status: (token: string) => request<{ admin_access: AdminAccess }>("/auth/mfa/status", { token }),
+  enrollStart: (token: string) =>
+    request<{ secret: string; otpauth_uri: string; digits: number; period: number }>("/auth/mfa/enroll/start", { method: "POST", token }),
+  enrollConfirm: (token: string, code: string) =>
+    request<StepUp & { recovery_codes: string[] }>("/auth/mfa/enroll/confirm", { method: "POST", token, body: JSON.stringify({ code }) }),
+  verify: (token: string, body: { code?: string; recovery_code?: string }) =>
+    request<StepUp & { method: string; recovery_codes_remaining: number }>("/auth/mfa/verify", { method: "POST", token, body: JSON.stringify(body) }),
+  regenerateRecoveryCodes: (token: string) =>
+    request<{ recovery_codes: string[] }>("/auth/mfa/recovery-codes", { method: "POST", token }),
+};
+
 export const auth = {
   register: (
     email: string,
@@ -114,7 +139,7 @@ export const auth = {
   logout: (token: string) =>
     request<{ message: string }>("/auth/logout", { method: "POST", token }),
 
-  me: (token: string) => request<{ user: AuthUser }>("/auth/me", { token }),
+  me: (token: string) => request<{ user: AuthUser; admin_access?: AdminAccess }>("/auth/me", { token }),
 
   otpRequest: (phone: string) =>
     request<{ sent: boolean; expires_in_seconds: number; resend_in_seconds: number }>("/auth/otp/request", {

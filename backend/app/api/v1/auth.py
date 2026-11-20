@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 from flask import Blueprint, jsonify, request
 
 from app.core.deps import _bearer_token, client_ip, current_user, get_db, get_settings, require_auth
@@ -38,6 +40,9 @@ def register():
         algorithm=settings.jwt_algorithm,
         ttl_seconds=settings.access_token_ttl_seconds,
         ip_address=client_ip(),
+        lockout_threshold=settings.login_lockout_threshold,
+        lockout_seconds=settings.login_lockout_seconds,
+        lockout_max_seconds=settings.login_lockout_max_seconds,
     )
     return jsonify({"access_token": token, "token_type": "Bearer", "user": user}), 201
 
@@ -54,6 +59,9 @@ def login():
         algorithm=settings.jwt_algorithm,
         ttl_seconds=settings.access_token_ttl_seconds,
         ip_address=client_ip(),
+        lockout_threshold=settings.login_lockout_threshold,
+        lockout_seconds=settings.login_lockout_seconds,
+        lockout_max_seconds=settings.login_lockout_max_seconds,
     )
     return jsonify(
         {
@@ -90,7 +98,128 @@ def logout():
 @bp.get("/me")
 @require_auth()
 def me():
-    return jsonify({"user": auth_service.get_user(get_db(), current_user()["id"])})
+    return jsonify({"user": auth_service.get_user(get_db(), current_user()["id"]), "admin_access": _admin_access()})
+
+
+# ── Admin / staff second factor (TOTP step-up; see mfa_service) ──
+
+def _admin_access() -> dict:
+    from flask import g
+    from app.core import staff_access
+    from app.services import mfa_service
+    user = current_user()
+    with get_db().read_transaction() as conn:
+        roles = staff_access.active_staff_roles(conn, user["id"])
+        mfa = mfa_service.status(conn, user["id"])
+    out = staff_access.summary(user["role"], roles)
+    mode = get_settings().admin_mfa_enforce
+    out["mfa_required"] = out["is_staff"] and (mode == "all" or (mode == "super_admin" and out["super_admin"]))
+    out["mfa_enrolled"] = mfa["enrolled"]
+    out["mfa_verified"] = bool(getattr(g, "token_mfa", False))
+    out["recovery_codes_remaining"] = mfa["recovery_codes_remaining"]
+    return out
+
+
+def _require_staff_account() -> dict:
+    from app.core.errors import PermissionError_
+    access = _admin_access()
+    if not access["is_staff"]:
+        raise PermissionError_("ورود دومرحله‌ای فقط برای حساب‌های مدیریت و کارکنان است")
+    return access
+
+
+def _step_up_token() -> str:
+    """Issue a token with mfa=true and revoke the one used for this request."""
+    from app.core.security import create_access_token
+    settings = get_settings()
+    user = auth_service.get_user(get_db(), current_user()["id"])
+    token = create_access_token(user_id=user["id"], email=user["email"], role=user["role"], secret=settings.secret_key,
+                                algorithm=settings.jwt_algorithm, ttl_seconds=settings.access_token_ttl_seconds,
+                                mfa=True)
+    try:
+        old = decode_access_token(_bearer_token(), secret=settings.secret_key, algorithm=settings.jwt_algorithm)
+        revoke_token(get_db(), jti=old.jti, user_id=old.user_id, expires_at=old.expires_at)
+    except Exception:  # the new token is valid either way; the old one simply expires
+        pass
+    return token
+
+
+@contextmanager
+def _mfa_attempt():
+    """A wrong code rolls back its transaction; count the failure in a separate, committed one."""
+    from app.services import mfa_service
+    try:
+        yield
+    except mfa_service.MfaInvalid:
+        with get_db().write_transaction() as conn:
+            mfa_service.record_failure(conn, user_id=current_user()["id"], ip_address=client_ip())
+        raise
+
+
+@bp.get("/mfa/status")
+@require_auth()
+def mfa_status():
+    return jsonify({"admin_access": _admin_access()})
+
+
+@bp.post("/mfa/enroll/start")
+@require_auth()
+def mfa_enroll_start():
+    from app.services import mfa_service
+    _require_staff_account()
+    user = current_user()
+    with get_db().write_transaction() as conn:
+        out = mfa_service.enroll_start(conn, user_id=user["id"], email=user["email"],
+                                       secret_key=get_settings().secret_key, ip_address=client_ip())
+    return jsonify(out)
+
+
+@bp.post("/mfa/enroll/confirm")
+@require_auth()
+def mfa_enroll_confirm():
+    from app.services import mfa_service
+    _require_staff_account()
+    body = _json_body()
+    with _mfa_attempt():
+        with get_db().write_transaction() as conn:
+            codes = mfa_service.enroll_confirm(conn, user_id=current_user()["id"], code=body.get("code"),
+                                               secret_key=get_settings().secret_key, ip_address=client_ip())
+    token = _step_up_token()
+    return jsonify({"access_token": token, "token_type": "Bearer",
+                    "expires_in": get_settings().access_token_ttl_seconds, "recovery_codes": codes,
+                    "user": auth_service.get_user(get_db(), current_user()["id"])})
+
+
+@bp.post("/mfa/verify")
+@require_auth()
+def mfa_verify():
+    from app.services import mfa_service
+    _require_staff_account()
+    body = _json_body()
+    with _mfa_attempt():
+        with get_db().write_transaction() as conn:
+            out = mfa_service.verify(conn, user_id=current_user()["id"], secret_key=get_settings().secret_key,
+                                     code=body.get("code"), recovery_code=body.get("recovery_code"),
+                                     ip_address=client_ip())
+    token = _step_up_token()
+    return jsonify({"access_token": token, "token_type": "Bearer",
+                    "expires_in": get_settings().access_token_ttl_seconds, "method": out["method"],
+                    "recovery_codes_remaining": out["recovery_codes_remaining"],
+                    "user": auth_service.get_user(get_db(), current_user()["id"])})
+
+
+@bp.post("/mfa/recovery-codes")
+@require_auth()
+def mfa_recovery_codes():
+    from flask import g
+    from app.core.errors import PermissionError_
+    from app.services import mfa_service
+    _require_staff_account()
+    if not getattr(g, "token_mfa", False):
+        raise PermissionError_("ابتدا تأیید دومرحله‌ای را انجام دهید", code="mfa_required")
+    with get_db().write_transaction() as conn:
+        codes = mfa_service.regenerate_recovery_codes(conn, user_id=current_user()["id"], ip_address=client_ip())
+    return jsonify({"recovery_codes": codes})
 
 
 # ── OTP (SMS one-time code) ──

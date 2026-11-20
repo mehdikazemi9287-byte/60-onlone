@@ -76,6 +76,73 @@ def authenticate_request() -> None:
     # The DB row is the source of truth for role, not the token: a demotion
     # takes effect immediately instead of waiting for the token to expire.
     g.current_user = {"id": int(row["id"]), "email": row["email"], "role": row["role"]}
+    g.token_mfa = bool(claims.mfa)
+    g.admin_access = None
+
+
+def _mfa_required(role: str, via_staff: bool) -> bool:
+    mode = getattr(get_settings(), "admin_mfa_enforce", "off")
+    if mode == "off":
+        return False
+    if role == "admin":
+        return True
+    return mode == "all" and via_staff
+
+
+def enforce_admin_mfa(*, via_staff: bool = False) -> None:
+    """Admin powers need a token issued after a second-factor check (see mfa_service).
+
+    403 (not 401) with code ``mfa_required``: the password session stays valid; the admin
+    shell sends the user to /admin/mfa to enroll or verify.
+    """
+    user = current_user()
+    if not _mfa_required(user["role"], via_staff) or getattr(g, "token_mfa", False):
+        return
+    from app.services import mfa_service
+    with get_db().read_transaction() as conn:
+        enrolled = mfa_service.is_enrolled(conn, user["id"])
+    raise PermissionError_(
+        "برای ورود به بخش مدیریت، تأیید دومرحله‌ای لازم است",
+        code="mfa_required",
+        details={"enrolled": enrolled},
+    )
+
+
+def _grant_staff_access(allowed: set[str]) -> bool:
+    """Open an admin-only endpoint to a scoped staff role listed for it (core.staff_access)."""
+    if allowed != {"admin"}:
+        return False  # endpoints shared with suppliers etc. branch on users.role: never staff
+    from app.core import staff_access
+    rule = request.url_rule.rule if request.url_rule is not None else None
+    permitted = staff_access.roles_for_endpoint(rule, request.method)
+    if not permitted:
+        return False
+    with get_db().read_transaction() as conn:
+        held = set(staff_access.active_staff_roles(conn, g.current_user["id"]))
+    roles = sorted(held & permitted)
+    if not roles:
+        return False
+    g.admin_access = {"via": "staff", "roles": roles}
+    return True
+
+
+def still_authorized(conn) -> bool:
+    """Re-check inside a write transaction that the caller still holds the access this request used."""
+    user = current_user()
+    access = getattr(g, "admin_access", None) or {}
+    if access.get("via") == "staff":
+        roles = access.get("roles") or []
+        if not roles:
+            return False
+        return conn.execute(
+            "SELECT 1 FROM users u JOIN staff_role_assignments s ON s.user_id = u.id "
+            "WHERE u.id = ? AND u.is_active = 1 AND s.revoked_at IS NULL AND s.role IN (%s) LIMIT 1"
+            % ",".join("?" * len(roles)),
+            (user["id"], *roles),
+        ).fetchone() is not None
+    return conn.execute(
+        "SELECT 1 FROM users WHERE id = ? AND role = 'admin' AND is_active = 1", (user["id"],)
+    ).fetchone() is not None
 
 
 def require_auth(*roles: str) -> Callable:
@@ -87,8 +154,16 @@ def require_auth(*roles: str) -> Callable:
         def wrapper(*args, **kwargs):
             authenticate_request()
             if allowed:
-                granted = ROLE_HIERARCHY.get(g.current_user["role"], set())
-                if not granted.intersection(allowed):
+                wanted = set(allowed)
+                role = g.current_user["role"]
+                granted = ROLE_HIERARCHY.get(role, set())
+                if granted.intersection(wanted):
+                    if "admin" in wanted and role == "admin":
+                        g.admin_access = {"via": "super_admin"}
+                        enforce_admin_mfa()
+                elif _grant_staff_access(wanted):
+                    enforce_admin_mfa(via_staff=True)
+                else:
                     raise PermissionError_(
                         "شما به این بخش دسترسی ندارید",
                         details={"required_roles": sorted(allowed)},
@@ -126,6 +201,8 @@ def require_org_role(*org_roles: str) -> Callable:
             db = get_db()
 
             if user["role"] == "admin":
+                g.admin_access = {"via": "super_admin"}
+                enforce_admin_mfa()
                 exists = db.query_one(
                     "SELECT 1 FROM organizations WHERE id = ?", (organization_id,)
                 )

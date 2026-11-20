@@ -2,7 +2,7 @@
 import { bindDraftOwner, clearDraftOwner } from "@/lib/client-draft-storage";
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { auth, type AuthUser, ApiError } from "@/lib/api";
+import { auth, type AdminAccess, type AuthUser, ApiError } from "@/lib/api";
 
 const TOKEN_KEY = "60online_token";
 
@@ -10,6 +10,10 @@ interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
+  /** Admin shell access (staff roles, 2FA state); null for ordinary sessions until loaded. */
+  adminAccess: AdminAccess | null;
+  /** Replace the session token (e.g. after the admin second-factor step-up) and reload access. */
+  adoptToken: (token: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithOtp: (phone: string, code: string, fullName?: string, acceptTerms?: boolean) => Promise<{ created: boolean }>;
   register: (email: string, password: string, fullName: string, phone?: string) => Promise<void>;
@@ -22,16 +26,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [adminAccess, setAdminAccess] = useState<AdminAccess | null>(null);
 
   useEffect(() => {
     let alive=true, generation=0;
     const read=()=>{try{return localStorage.getItem(TOKEN_KEY);}catch{return null;}};
     const refresh=()=>{
       const version=++generation, stored=read();
-      clearDraftOwner(); setToken(null); setUser(null); setLoading(!!stored);
+      clearDraftOwner(); setToken(null); setUser(null); setAdminAccess(null); setLoading(!!stored);
       if(!stored)return;
       auth.me(stored).then(res=>{
-        if(alive && version===generation && read()===stored){bindDraftOwner(res.user.id);setToken(stored);setUser(res.user);}
+        if(alive && version===generation && read()===stored){bindDraftOwner(res.user.id);setToken(stored);setUser(res.user);setAdminAccess(res.admin_access??null);}
       }).catch(err=>{
         // A transient outage must not destroy a valid stored session.
         if(err instanceof ApiError && err.status===401 && read()===stored)
@@ -77,17 +82,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const adoptToken = useCallback(async (next: string) => {
+    const res = await auth.me(next);
+    try { localStorage.setItem(TOKEN_KEY, next); } catch {}
+    bindDraftOwner(res.user.id);
+    setToken(next);
+    setUser(res.user);
+    setAdminAccess(res.admin_access ?? null);
+  }, []);
+
   const logout = useCallback(() => {
     const t = token;
     clearDraftOwner();
     try { localStorage.removeItem(TOKEN_KEY); } catch {}
     setToken(null);
     setUser(null);
+    setAdminAccess(null);
     if (t) auth.logout(t).catch(() => {});
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, loginWithOtp, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, adminAccess, adoptToken, login, loginWithOtp, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

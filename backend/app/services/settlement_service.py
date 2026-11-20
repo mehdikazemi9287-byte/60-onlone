@@ -50,6 +50,7 @@ def create_settlement_batch(
     release_held: bool = False,
     shipping_charge_minor: int = 0,
     shipping_payer: str = "customer",
+    created_by_user_id: int | None = None,
 ) -> dict:
     """Create an idempotent settlement batch.
 
@@ -195,12 +196,12 @@ def create_settlement_batch(
         INSERT INTO settlement_batches
             (supplier_id, idempotency_key, status,
              commission_rate_bps, gross_minor, commission_minor,
-             shipping_charge_minor, net_minor, items_count)
-        VALUES (?, ?, 'pending', ?, ?, ?, ?, ?, ?)
+             shipping_charge_minor, net_minor, items_count, created_by_user_id)
+        VALUES (?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)
         """,
         (supplier_id, idempotency_key, commission_rate_bps,
          gross_minor, commission_minor, effective_shipping,
-         net_minor, len(payable_entry_ids)),
+         net_minor, len(payable_entry_ids), created_by_user_id),
     )
     batch_id = int(cursor.lastrowid)
 
@@ -253,8 +254,12 @@ def complete_settlement_batch(
     batch_id: int,
     payment_reference: str | None = None,
     external_reference: str | None = None,
+    completed_by_user_id: int | None = None,
 ) -> dict:
     """Complete a settlement batch and append exactly ONE settlement_payment entry.
+
+    Two-person control: when the caller is known (every API call), the user who
+    created the batch cannot complete it; a second finance user must.
 
     Idempotent: if the batch is already completed and a payment exists, the
     existing payment is returned without creating a new one.
@@ -285,6 +290,11 @@ def complete_settlement_batch(
             code="batch_not_completable",
         )
 
+    if completed_by_user_id is not None and b.get("created_by_user_id") is not None \
+            and int(b["created_by_user_id"]) == int(completed_by_user_id):
+        raise ConflictError("تکمیل تسویه باید توسط نفر دوم (کاربری غیر از سازندهٔ دسته) انجام شود",
+                            code="second_approver_required")
+
     net_minor = int(b["net_minor"])
     open_return = conn.execute(
         "SELECT 1 FROM supplier_payable_entries pe JOIN fulfillment_orders fo ON fo.id = pe.fulfillment_order_id "
@@ -302,8 +312,9 @@ def complete_settlement_batch(
                      (batch_id,))
         conn.execute(
             "UPDATE settlement_batches SET status='completed', payment_reference=?, external_reference=?, "
-            "updated_at=datetime('now') WHERE id=?",
-            (payment_reference or f"advance-netted:{b['idempotency_key']}", external_reference, batch_id))
+            "completed_by_user_id=?, updated_at=datetime('now') WHERE id=?",
+            (payment_reference or f"advance-netted:{b['idempotency_key']}", external_reference,
+             completed_by_user_id, batch_id))
         log.info("complete_settlement_batch: batch_id=%s settled entirely by advance netting", batch_id)
         _emit_settled(conn, b, batch_id, 0, settled_by_advance=True)
         return {"batch": dict(conn.execute("SELECT * FROM settlement_batches WHERE id = ?", (batch_id,)).fetchone()),
@@ -357,10 +368,11 @@ def complete_settlement_batch(
         SET status = 'completed',
             payment_reference = ?,
             external_reference = ?,
+            completed_by_user_id = ?,
             updated_at = datetime('now')
         WHERE id = ?
         """,
-        (payment_reference, external_reference, batch_id),
+        (payment_reference, external_reference, completed_by_user_id, batch_id),
     )
 
     batch_updated = conn.execute(

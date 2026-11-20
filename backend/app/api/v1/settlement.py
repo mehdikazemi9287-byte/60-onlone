@@ -20,9 +20,9 @@ from __future__ import annotations
 
 from flask import Blueprint, g, jsonify, request
 
-from app.core.deps import get_db, require_auth
+from app.core.deps import client_ip, get_db, require_auth
 from app.core.errors import NotFoundError, ValidationError
-from app.services import fulfillment_service, settlement_service, supplier_ledger_service
+from app.services import audit_service, fulfillment_service, settlement_service, supplier_ledger_service
 
 bp = Blueprint("settlement", __name__)
 
@@ -110,8 +110,12 @@ def admin_create_settlement_batch():
                          (current_user()["id"], "settlement_release_held", "supplier", str(supplier_id), "{}"))
     shipping_charge_minor = _int_body(data, "shipping_charge_minor", required=False, default=0)
     shipping_payer = (data.get("shipping_payer") or "customer").strip()
+    from app.core.deps import current_user
+    actor_id = int(current_user()["id"])
 
     with db.write_transaction() as conn:
+        existed = conn.execute("SELECT 1 FROM settlement_batches WHERE idempotency_key = ?",
+                               (idempotency_key,)).fetchone() is not None
         batch = settlement_service.create_settlement_batch(
             conn,
             supplier_id=supplier_id,
@@ -121,7 +125,14 @@ def admin_create_settlement_batch():
             shipping_charge_minor=shipping_charge_minor,
             shipping_payer=shipping_payer,
             release_held=release_held,
+            created_by_user_id=actor_id,
         )
+        if not existed:
+            audit_service.record(conn, action="settlement.batch_created", entity_type="settlement_batch",
+                                 entity_id=batch["id"], actor_user_id=actor_id, ip_address=client_ip(),
+                                 metadata={"supplier_id": supplier_id, "net_minor": str(batch.get("net_minor")),
+                                           "items_count": batch.get("items_count"), "idempotency_key": idempotency_key})
+    batch["awaiting_second_approver"] = batch.get("status") == "pending" and batch.get("created_by_user_id") is not None
     return jsonify({"batch": batch}), 201
 
 
@@ -167,13 +178,29 @@ def admin_complete_settlement_batch(batch_id: int):
     payment_reference = data.get("payment_reference")
     external_reference = data.get("external_reference")
 
+    from app.core.deps import current_user
+    actor_id = int(current_user()["id"])
+
     with db.write_transaction() as conn:
+        before = conn.execute("SELECT status, created_by_user_id FROM settlement_batches WHERE id = ?",
+                              (batch_id,)).fetchone()
         result = settlement_service.complete_settlement_batch(
             conn,
             batch_id=batch_id,
             payment_reference=payment_reference,
             external_reference=external_reference,
+            completed_by_user_id=actor_id,
         )
+        if before is not None and before["status"] != "completed":
+            b = result["batch"]
+            audit_service.record(
+                conn, action="settlement.batch_completed", entity_type="settlement_batch", entity_id=batch_id,
+                actor_user_id=actor_id, ip_address=client_ip(),
+                metadata={"supplier_id": b.get("supplier_id"), "net_minor": str(b.get("net_minor")),
+                          "created_by_user_id": before["created_by_user_id"], "completed_by_user_id": actor_id,
+                          "creator_unknown": before["created_by_user_id"] is None,
+                          "payment_reference": payment_reference,
+                          "settled_by_advance": bool(result.get("settled_by_advance"))})
     return jsonify(result), 200
 
 

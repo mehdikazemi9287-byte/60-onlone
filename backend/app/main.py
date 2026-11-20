@@ -29,6 +29,7 @@ from app.api.v1 import admin_media as admin_media_api
 from app.api.v1 import admin_content as admin_content_api
 from app.api.v1 import admin_dashboard as admin_dashboard_api
 from app.api.v1 import access_admin as access_admin_api
+from app.api.v1 import admin_staff as admin_staff_api
 from app.api.v1 import marketplace as marketplace_api
 from app.api.v1 import commerce_ops as commerce_ops_api
 from app.api.v1 import organization_operations as organization_operations_api
@@ -107,6 +108,9 @@ def create_app(
 
     app = Flask(__name__)
     app.config["JSON_SORT_KEYS"] = False
+    # Hard cap on every request body, also for chunked uploads without Content-Length (Werkzeug stops
+    # reading and Flask answers 413). _enforce_request_size below lowers it per path.
+    app.config["MAX_CONTENT_LENGTH"] = settings.max_request_bytes
     app.config["TEST_SALES_OVERRIDE"] = settings.app_env == "test"
     app.extensions["settings"] = settings
     app.extensions["db"] = database
@@ -174,6 +178,7 @@ def create_app(
         procurement_api.bp,
         enterprise_procurement_api.bp,
         access_admin_api.bp,
+        admin_staff_api.bp,
         admin_dashboard_api.bp,
         admin_supplier_profile.bp,
         admin_image_review.bp,
@@ -297,14 +302,20 @@ def create_app(
     _IMPORT_SIZE_LIMIT = 10 * 1024 * 1024  # 10 MB
     _DEFAULT_SIZE_LIMIT = 1 * 1024 * 1024  # 1 MB
     _DOCUMENT_SIZE_LIMIT = 6 * 1024 * 1024  # 5 MB file + multipart overhead
+    # Admin media upload: a 2 MB image travels as base64 in JSON (~2.7 MB); the 1 MB default refused it.
+    _MEDIA_SIZE_LIMIT = 3 * 1024 * 1024
 
     @app.before_request
     def _enforce_request_size():
+        limit = _IMPORT_SIZE_LIMIT if "/import" in request.path else (
+            _DOCUMENT_SIZE_LIMIT if request.path.endswith("/documents") else
+            _MEDIA_SIZE_LIMIT if request.path == "/api/v1/admin/media" else _DEFAULT_SIZE_LIMIT)
+        limit = min(limit, settings.max_request_bytes)
+        # Per-request cap for bodies read as a stream (no/false Content-Length): Flask 3.1 raises 413.
+        request.max_content_length = limit
         cl = request.content_length
         if cl is None:
             return
-        limit = _IMPORT_SIZE_LIMIT if "/import" in request.path else (
-            _DOCUMENT_SIZE_LIMIT if request.path.endswith("/documents") else _DEFAULT_SIZE_LIMIT)
         if cl > limit:
             return (
                 jsonify(
@@ -317,6 +328,11 @@ def create_app(
                 ),
                 413,
             )
+
+    @app.errorhandler(413)
+    def _payload_too_large(_exc):
+        return jsonify({"error": {"code": "payload_too_large",
+                                  "message": "حجم درخواست بیش از حد مجاز است"}}), 413
 
     # ---- CORS (explicit allowlist, no wildcard with credentials) ----------
     @app.after_request

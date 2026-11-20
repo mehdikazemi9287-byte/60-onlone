@@ -16,7 +16,9 @@ FIELDS={'id','type','title','body','link','button_label','image_url','key','enab
 def now():return datetime.now(timezone.utc).isoformat()
 
 def assert_admin(c):
- if not c.execute("SELECT 1 FROM users WHERE id=? AND role='admin' AND is_active=1",(current_user()['id'],)).fetchone():
+ # Super-admin: still role 'admin'. Staff: still holds the staff role this request was granted by.
+ from app.core.deps import still_authorized
+ if not still_authorized(c):
   raise PermissionError_('مجوز مدیریت دیگر فعال نیست')
 
 def body():

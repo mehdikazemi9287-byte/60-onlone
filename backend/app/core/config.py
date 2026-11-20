@@ -108,6 +108,17 @@ class Settings:
     sepehr_terminal_id: str = ""
     # Public https origin the bank returns the browser to, e.g. https://60online.ir
     public_base_url: str = ""
+    # Second factor for admin endpoints: "all" (super-admin + staff roles), "super_admin", or "off".
+    # The dataclass default is "off" only so unit tests that build Settings directly keep working;
+    # load_settings() defaults to "all" outside APP_ENV=test (see ADMIN_MFA_ENFORCE).
+    admin_mfa_enforce: str = "off"
+    # Per-account password-login lockout (auth_service): N consecutive failures lock the account
+    # for LOGIN_LOCKOUT_SECONDS, doubling on each further lock up to LOGIN_LOCKOUT_MAX_SECONDS.
+    login_lockout_threshold: int = 5
+    login_lockout_seconds: int = 900
+    login_lockout_max_seconds: int = 86400
+    # Hard cap on any request body (Flask MAX_CONTENT_LENGTH); per-path limits in main.py are lower.
+    max_request_bytes: int = 10 * 1024 * 1024
 
     @property
     def is_production(self) -> bool:
@@ -128,6 +139,7 @@ class Settings:
 
 
 MIN_SECRET_KEY_LENGTH = 32
+ADMIN_MFA_MODES = ("all", "super_admin", "off")
 
 
 def _validate_payment_config(payment_provider: str, sepehr_terminal_id: str, public_base_url: str) -> None:
@@ -210,7 +222,16 @@ def load_settings() -> Settings:
     else:
         seed_on_start = _bool("SEED_ON_START", True)
 
+    admin_mfa_enforce = _optional("ADMIN_MFA_ENFORCE", "off" if app_env == "test" else "all").strip().lower()
+    if admin_mfa_enforce not in ADMIN_MFA_MODES:
+        raise ConfigError(f"ADMIN_MFA_ENFORCE must be one of: {', '.join(ADMIN_MFA_MODES)}")
+
     return Settings(
+        admin_mfa_enforce=admin_mfa_enforce,
+        login_lockout_threshold=max(1, _int("LOGIN_LOCKOUT_THRESHOLD", 5)),
+        login_lockout_seconds=max(1, _int("LOGIN_LOCKOUT_SECONDS", 900)),
+        login_lockout_max_seconds=max(1, _int("LOGIN_LOCKOUT_MAX_SECONDS", 86400)),
+        max_request_bytes=max(64 * 1024, _int("MAX_REQUEST_BYTES", 10 * 1024 * 1024)),
         app_env=app_env,
         secret_key=secret_key,
         database_url=_require("DATABASE_URL"),

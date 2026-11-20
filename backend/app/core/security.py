@@ -97,10 +97,13 @@ class TokenClaims:
     jti: str
     expires_at: int
     issued_at: int = 0
+    # True only on tokens issued after a second-factor check (mfa_service); admin endpoints require it.
+    mfa: bool = False
 
 
 def create_access_token(
-    *, user_id: int, email: str, role: str, secret: str, algorithm: str, ttl_seconds: int
+    *, user_id: int, email: str, role: str, secret: str, algorithm: str, ttl_seconds: int,
+    mfa: bool = False,
 ) -> str:
     now = int(time.time())
     payload = {
@@ -112,6 +115,8 @@ def create_access_token(
         "jti": uuid.uuid4().hex,
         "typ": "access",
     }
+    if mfa:
+        payload["mfa"] = True
     return jwt.encode(payload, secret, algorithm=algorithm)
 
 
@@ -140,4 +145,5 @@ def decode_access_token(token: str, *, secret: str, algorithm: str) -> TokenClai
         jti=payload["jti"],
         expires_at=int(payload["exp"]),
         issued_at=int(payload.get("iat", 0)),
+        mfa=payload.get("mfa") is True,
     )

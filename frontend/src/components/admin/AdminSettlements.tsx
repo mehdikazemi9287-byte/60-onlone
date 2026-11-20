@@ -6,18 +6,21 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiRequest, newIdempotencyKey } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useCanUseAdmin } from "@/lib/admin-access";
 import { formatPrice, toPersianNum } from "@/lib/utils";
 
 type Supplier = { id: number; display_name: string; status: string };
 type Payable = { id: number; fulfillment_order_id: number; order_id: number | null; gross_minor: number; created_at: string };
 type Batch = { id: number; supplier_id: number; status: string; gross_minor: number; commission_minor: number; shipping_charge_minor: number;
-  net_minor: number; items_count: number; commission_rate_bps: number; created_at: string; completed_at?: string | null };
+  net_minor: number; items_count: number; commission_rate_bps: number; created_at: string; completed_at?: string | null;
+  created_by_user_id?: number | null; completed_by_user_id?: number | null };
 
 const BATCH_FA: Record<string, string> = { pending: "در انتظار پرداخت", completed: "پرداخت‌شده", cancelled: "لغوشده" };
 const faDigits = (v: string) => v.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 
 export function AdminSettlements() {
   const { token, user, loading } = useAuth();
+  const canAdmin = useCanUseAdmin(user?.role);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]), [sid, setSid] = useState<number | null>(null);
   const [payables, setPayables] = useState<Payable[]>([]), [batches, setBatches] = useState<Batch[]>([]);
   const [picked, setPicked] = useState<number[]>([]), [commission, setCommission] = useState("10"), [refs, setRefs] = useState<Record<number, string>>({});
@@ -39,7 +42,7 @@ export function AdminSettlements() {
   useEffect(() => { load().catch((e) => setMsg({ ok: false, text: e.message })); }, [load]);
 
   if (loading) return <div className="h-40 animate-pulse rounded-xl bg-neutral-100" />;
-  if (user?.role !== "admin") return <p className="p-8">دسترسی مدیریت لازم است.</p>;
+  if (!canAdmin) return <p className="p-8">دسترسی مدیریت لازم است.</p>;
 
   const create = async () => {
     const pct = Number(faDigits(commission));
@@ -48,7 +51,7 @@ export function AdminSettlements() {
     try {
       await apiRequest("/admin/settlement-batches", { token: token!, method: "POST", body: JSON.stringify({
         supplier_id: sid, payable_entry_ids: picked, commission_rate_bps: Math.round(pct * 100), idempotency_key: newIdempotencyKey() }) });
-      setMsg({ ok: true, text: "دسته تسویه ساخته شد." }); await load();
+      setMsg({ ok: true, text: "دسته تسویه ساخته شد و در انتظار تأیید نفر دوم است." }); await load();
     } catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "ساخت دسته ناموفق بود" }); } finally { setBusy(false); }
   };
   const complete = async (b: Batch) => {
@@ -92,11 +95,12 @@ export function AdminSettlements() {
           <h2 className="font-bold">دسته‌های تسویه</h2>
           {!batches.length ? <p className="text-sm text-neutral-600">دسته‌ای ثبت نشده است.</p> : (
             <ul className="divide-y">{batches.map((b) => <li key={b.id} className="grid gap-2 py-3 text-sm md:grid-cols-[1fr_auto] md:items-center">
-              <div><b>دسته {toPersianNum(b.id)}</b> · {BATCH_FA[b.status] ?? b.status} · {toPersianNum(b.items_count)} قلم
+              <div><b>دسته {toPersianNum(b.id)}</b> · {b.status === "pending" && b.created_by_user_id ? "در انتظار تأیید نفر دوم" : (BATCH_FA[b.status] ?? b.status)} · {toPersianNum(b.items_count)} قلم
+                {b.status === "pending" && b.created_by_user_id === user?.id && <div className="text-xs text-amber-800">این دسته را خودتان ساخته‌اید؛ ثبت پرداخت باید توسط همکار مالی دیگری انجام شود.</div>}
                 <div className="text-xs text-neutral-600">ناخالص {formatPrice(b.gross_minor)} · کارمزد {formatPrice(b.commission_minor)} · ارسال {formatPrice(b.shipping_charge_minor)} · <b>خالص پرداختی {formatPrice(b.net_minor)}</b></div></div>
               {b.status === "pending" && <div className="flex flex-wrap gap-2">
                 <input aria-label={`شماره پیگیری بانکی دسته ${b.id}`} placeholder="شماره پیگیری انتقال بانکی" value={refs[b.id] ?? ""} onChange={(e) => setRefs((r) => ({ ...r, [b.id]: e.target.value }))} className="h-10 min-w-0 flex-1 rounded-xl border px-3" />
-                <button type="button" disabled={busy} onClick={() => complete(b)} className="h-10 rounded-xl border border-brand-navy px-3 text-xs font-bold text-brand-navy">ثبت پرداخت</button>
+                <button type="button" disabled={busy || (!!b.created_by_user_id && b.created_by_user_id === user?.id)} onClick={() => complete(b)} className="h-10 rounded-xl border border-brand-navy px-3 text-xs font-bold text-brand-navy">ثبت پرداخت</button>
               </div>}
             </li>)}</ul>)}
         </section></>}

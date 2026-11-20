@@ -66,6 +66,9 @@ def config_checks() -> list[tuple[str, str, str]]:
     add(BLOCKER if os.environ.get("MOCK_CARRIER_WEBHOOK_SECRET") else OK, "MOCK_CARRIER_WEBHOOK_SECRET",
         "کلید وب‌هوک پیک آزمایشی نباید روی سایت اصلی تنظیم شود")
     add(OK if _on("STOREFRONT_SALES_ENABLED") else WARN, "STOREFRONT_SALES_ENABLED", "خاموش = سایت فقط ویترین است و خرید ممکن نیست")
+    mfa = (os.environ.get("ADMIN_MFA_ENFORCE") or "all").strip().lower()
+    add(OK if mfa == "all" else (WARN if mfa == "super_admin" else BLOCKER), "ADMIN_MFA_ENFORCE",
+        f"ورود دومرحله‌ای مدیران و کارکنان: «{mfa}» (باید all باشد)")
     add(OK if _on("LEGAL_REQUIRE_BUYER_TERMS") else BLOCKER, "LEGAL_REQUIRE_BUYER_TERMS", "پذیرش شرایط خرید باید در پرداخت ثبت شود")
     sms_ok = os.environ.get("SMS_PROVIDER") == "kavenegar" and os.environ.get("KAVENEGAR_API_KEY") and os.environ.get("KAVENEGAR_TEMPLATE")
     add(OK if sms_ok else WARN, "SMS_PROVIDER", "ورود پیامکی بدون کاوه‌نگار کار نمی‌کند")

@@ -3,9 +3,10 @@ from __future__ import annotations
 
 import re
 import sqlite3
+import time
 
 from app.core.db import Database
-from app.core.errors import AuthenticationError, ConflictError, ValidationError
+from app.core.errors import ApiError, AuthenticationError, ConflictError, ValidationError
 from app.core.security import create_access_token, hash_password, verify_password
 from app.services import audit_service
 
@@ -15,6 +16,73 @@ _LATIN_DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s.]+(\.[^@\s.]+)+$")
 MIN_PASSWORD_LENGTH = 8
 VALID_ROLES = {"customer", "employee", "supplier", "org_admin", "admin"}
+
+
+class AccountLocked(ApiError):
+    status_code = 429
+    code = "account_locked"
+
+
+def _lock_message(seconds_left: int) -> str:
+    minutes = max(1, (seconds_left + 59) // 60)
+    return (f"به دلیل چند تلاش ناموفق، ورود با رمز عبور به این حساب تا {minutes} دقیقهٔ دیگر ممکن نیست. "
+            "می‌توانید با کد پیامکی وارد شوید یا از پشتیبانی بخواهید حساب را باز کند.")
+
+
+def _check_lockout(db: Database, user_id: int, now: int) -> None:
+    row = db.query_one("SELECT locked_until FROM login_lockouts WHERE user_id = ?", (user_id,))
+    if row is not None and row["locked_until"] and int(row["locked_until"]) > now:
+        left = int(row["locked_until"]) - now
+        raise AccountLocked(_lock_message(left), details={"retry_after_seconds": left})
+
+
+def _register_failure(conn, *, user_id: int, now: int, threshold: int, base_seconds: int, max_seconds: int,
+                      ip_address: str | None) -> int | None:
+    """Count a failed password; lock after `threshold` in a row. Lock time doubles per repeat lock."""
+    row = conn.execute("SELECT failed_count, lock_level FROM login_lockouts WHERE user_id = ?", (user_id,)).fetchone()
+    failed = (int(row["failed_count"]) if row else 0) + 1
+    level = int(row["lock_level"]) if row else 0
+    locked_until = None
+    if failed >= threshold:
+        level += 1
+        duration = min(max_seconds, base_seconds * (2 ** min(level - 1, 20)))
+        locked_until = now + duration
+        failed = 0
+    if row is None:
+        conn.execute("INSERT INTO login_lockouts (user_id, failed_count, lock_level, locked_until, last_failed_at) "
+                     "VALUES (?,?,?,?,?)", (user_id, failed, level, locked_until, now))
+    else:
+        conn.execute("UPDATE login_lockouts SET failed_count = ?, lock_level = ?, last_failed_at = ?"
+                     + (", locked_until = ?" if locked_until else "") + " WHERE user_id = ?",
+                     (failed, level, now, *((locked_until,) if locked_until else ()), user_id))
+    if locked_until:
+        audit_service.record(conn, action="user.login_locked", entity_type="user", entity_id=user_id,
+                             actor_user_id=None, metadata={"lock_level": level, "locked_seconds": locked_until - now},
+                             ip_address=ip_address)
+    return locked_until
+
+
+def lockout_status(conn, user_id: int, now: int | None = None) -> dict:
+    now = int(time.time()) if now is None else now
+    row = conn.execute("SELECT failed_count, lock_level, locked_until FROM login_lockouts WHERE user_id = ?",
+                       (user_id,)).fetchone()
+    locked = bool(row and row["locked_until"] and int(row["locked_until"]) > now)
+    return {"locked": locked, "locked_until": int(row["locked_until"]) if locked else None,
+            "failed_count": int(row["failed_count"]) if row else 0}
+
+
+def unlock(conn, *, user_id: int, actor_user_id: int, reason: str, ip_address: str | None = None) -> dict:
+    """Admin unlock: clears the lock and the counters; recorded in the audit log."""
+    if conn.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone() is None:
+        from app.core.errors import NotFoundError
+        raise NotFoundError("کاربر یافت نشد")
+    before = lockout_status(conn, user_id)
+    conn.execute("UPDATE login_lockouts SET failed_count = 0, lock_level = 0, locked_until = NULL WHERE user_id = ?",
+                 (user_id,))
+    audit_service.record(conn, action="user.login_unlocked", entity_type="user", entity_id=user_id,
+                         actor_user_id=actor_user_id, metadata={"reason": reason, "was_locked": before["locked"]},
+                         ip_address=ip_address)
+    return lockout_status(conn, user_id)
 
 
 def normalize_email(email: str) -> str:
@@ -85,6 +153,9 @@ def authenticate(
     algorithm: str,
     ttl_seconds: int,
     ip_address: str | None = None,
+    lockout_threshold: int = 5,
+    lockout_seconds: int = 900,
+    lockout_max_seconds: int = 86400,
 ) -> tuple[str, dict]:
     normalized = normalize_email(email)
     row = db.query_one(
@@ -97,6 +168,9 @@ def authenticate(
         # Still burn the CPU cost so timing does not leak account existence.
         verify_password(password, "scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAA")
         raise generic
+    now = int(time.time())
+    # A locked account is refused before the password is checked, so guessing cannot continue.
+    _check_lockout(db, int(row["id"]), now)
     if not verify_password(password, row["password_hash"]):
         with db.write_transaction() as conn:
             audit_service.record(
@@ -108,6 +182,11 @@ def authenticate(
                 metadata={"email": normalized},
                 ip_address=ip_address,
             )
+            locked_until = _register_failure(conn, user_id=int(row["id"]), now=now, threshold=lockout_threshold,
+                                             base_seconds=lockout_seconds, max_seconds=lockout_max_seconds,
+                                             ip_address=ip_address)
+        if locked_until:
+            raise AccountLocked(_lock_message(locked_until - now), details={"retry_after_seconds": locked_until - now})
         raise generic
     if not row["is_active"]:
         raise AuthenticationError("حساب کاربری غیرفعال است", code="account_disabled")
@@ -121,6 +200,8 @@ def authenticate(
         ttl_seconds=ttl_seconds,
     )
     with db.write_transaction() as conn:
+        conn.execute("UPDATE login_lockouts SET failed_count = 0, lock_level = 0, locked_until = NULL "
+                     "WHERE user_id = ? AND (failed_count > 0 OR lock_level > 0)", (int(row["id"]),))
         audit_service.record(
             conn,
             action="user.logged_in",

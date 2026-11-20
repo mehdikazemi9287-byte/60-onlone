@@ -2,10 +2,10 @@
 from flask import Blueprint, g, jsonify, request
 
 from app.api.v1.enterprise_procurement import _idempotent
-from app.core.deps import authenticate_request, current_user, get_db, require_auth
+from app.core.deps import authenticate_request, client_ip, current_user, get_db, require_auth
 from app.core.errors import ApiError, PermissionError_, ValidationError
 from app.services import catalog_metrics, catalog_structure_service, marketplace_offer_service as offers
-from app.services import pack_catalog, pack_service, storefront_service as store
+from app.services import audit_service, pack_catalog, pack_service, storefront_service as store
 from app.services.access_admin_service import current_supplier_id
 
 bp = Blueprint("marketplace", __name__, url_prefix="/api/v1")
@@ -209,6 +209,16 @@ def supplier_contract_orgs():
 
 # ── Pack administration ──
 
+def _audit_pack(conn, action: str, pack_id, pack):
+    """audit_logs entry for an admin pack change (pack_events keeps the full snapshot)."""
+    pid = pack_id if pack_id is not None else (pack.get("id") if isinstance(pack, dict) else None)
+    audit_service.record(conn, action=action[:80], entity_type="pack", entity_id=pid,
+                         actor_user_id=current_user()["id"], ip_address=client_ip(),
+                         metadata={"status": pack.get("status") if isinstance(pack, dict) else None,
+                                   "slug": pack.get("slug") if isinstance(pack, dict) else None})
+    return pack
+
+
 @bp.get("/admin/packs")
 @require_auth("admin")
 def admin_packs():
@@ -221,7 +231,8 @@ def admin_packs():
 def admin_pack_create():
     data = request.get_json(silent=True) or {}
     with get_db().write_transaction() as conn:
-        return _idempotent(conn, lambda: jsonify({"pack": pack_service.admin_save(conn, actor=current_user()["id"], data=data)}))
+        return _idempotent(conn, lambda: jsonify({"pack": _audit_pack(conn, "pack.created", None,
+                                                                     pack_service.admin_save(conn, actor=current_user()["id"], data=data))}))
 
 
 @bp.put("/admin/packs/<int:pack_id>")
@@ -229,14 +240,16 @@ def admin_pack_create():
 def admin_pack_update(pack_id: int):
     data = request.get_json(silent=True) or {}
     with get_db().write_transaction() as conn:
-        return _idempotent(conn, lambda: jsonify({"pack": pack_service.admin_save(conn, actor=current_user()["id"], data=data, pack_id=pack_id)}))
+        return _idempotent(conn, lambda: jsonify({"pack": _audit_pack(conn, "pack.updated", pack_id,
+                                                                     pack_service.admin_save(conn, actor=current_user()["id"], data=data, pack_id=pack_id))}))
 
 
 @bp.post("/admin/packs/<int:pack_id>/<action>")
 @require_auth("admin")
 def admin_pack_status(pack_id: int, action: str):
     with get_db().write_transaction() as conn:
-        return jsonify({"pack": pack_service.admin_status(conn, actor=current_user()["id"], pack_id=pack_id, action=action)})
+        return jsonify({"pack": _audit_pack(conn, f"pack.{action}", pack_id,
+                                            pack_service.admin_status(conn, actor=current_user()["id"], pack_id=pack_id, action=action))})
 
 
 # ── Catalog review → publish ──

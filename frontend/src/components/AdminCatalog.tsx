@@ -4,6 +4,7 @@ import LegacyMatch from "./LegacyMatch";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useCanUseAdmin } from "@/lib/admin-access";
 import { useAdminEditorState } from "./admin/AdminShell";
 import { CATALOG_CSV_TEMPLATE, readCatalogCsv } from "./admin/catalog-file";
 type Master = {
@@ -32,6 +33,7 @@ type Preview = {
 };
 export default function AdminCatalog() {
   const { user, token, loading } = useAuth();
+  const canAdmin = useCanUseAdmin(user?.role);
   const [q, setQ] = useState(""),
     [query, setQuery] = useState(""),
     [page, setPage] = useState(1),
@@ -74,7 +76,7 @@ export default function AdminCatalog() {
     }
   }
   useEffect(() => {
-    if (!token || user?.role !== "admin") return;
+    if (!token || !canAdmin) return;
     let live = true;
     setListBusy(true); setListError(""); setRows([]); setTotal(null);
     apiRequest<{ items: Master[]; total: number }>(
@@ -97,7 +99,7 @@ export default function AdminCatalog() {
     return () => {
       live = false;
     };
-  }, [token, user?.role, page, query, refresh]);
+  }, [token, canAdmin, page, query, refresh]);
   async function upload(confirm: boolean) {
     if (importInFlight.current || reading || !token || !csv || !source.trim()) return;
     if (confirm && (!preview?.preview_token || preview.confirmed || preview.invalid > 0 || preview.valid < 1)) return;
@@ -132,7 +134,7 @@ export default function AdminCatalog() {
         <Link href="/login">ورود به حساب مدیر</Link>
       </main>
     );
-  if (user.role !== "admin")
+  if (!canAdmin)
     return <p className="p-8">دسترسی مدیریت لازم است.</p>;
   return (
     <main className="container-page py-8 space-y-6">
