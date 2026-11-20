@@ -36,6 +36,13 @@ def _check_lockout(db: Database, user_id: int, now: int) -> None:
         raise AccountLocked(_lock_message(left), details={"retry_after_seconds": left})
 
 
+def _locked_seconds_left(conn, user_id: int, now: int) -> int | None:
+    row = conn.execute("SELECT locked_until FROM login_lockouts WHERE user_id = ?", (user_id,)).fetchone()
+    if row is not None and row["locked_until"] and int(row["locked_until"]) > now:
+        return int(row["locked_until"]) - now
+    return None
+
+
 def _register_failure(conn, *, user_id: int, now: int, threshold: int, base_seconds: int, max_seconds: int,
                       ip_address: str | None) -> int | None:
     """Count a failed password; lock after `threshold` in a row. Lock time doubles per repeat lock."""
@@ -171,8 +178,14 @@ def authenticate(
     now = int(time.time())
     # A locked account is refused before the password is checked, so guessing cannot continue.
     _check_lockout(db, int(row["id"]), now)
-    if not verify_password(password, row["password_hash"]):
+    password_ok = verify_password(password, row["password_hash"])
+    # Re-check inside the (serialised) write transaction: a lock set by a parallel request while this
+    # password was being verified must hold too, so parallel guessing gets no more than `threshold`
+    # answers per lock window and a correct guess is not revealed while the account is locked.
+    if not password_ok:
+        locked_left = None
         with db.write_transaction() as conn:
+            locked_left = _locked_seconds_left(conn, int(row["id"]), int(time.time()))
             audit_service.record(
                 conn,
                 action="user.login_failed",
@@ -182,9 +195,11 @@ def authenticate(
                 metadata={"email": normalized},
                 ip_address=ip_address,
             )
-            locked_until = _register_failure(conn, user_id=int(row["id"]), now=now, threshold=lockout_threshold,
-                                             base_seconds=lockout_seconds, max_seconds=lockout_max_seconds,
-                                             ip_address=ip_address)
+            locked_until = None if locked_left else _register_failure(
+                conn, user_id=int(row["id"]), now=now, threshold=lockout_threshold,
+                base_seconds=lockout_seconds, max_seconds=lockout_max_seconds, ip_address=ip_address)
+        if locked_left:
+            raise AccountLocked(_lock_message(locked_left), details={"retry_after_seconds": locked_left})
         if locked_until:
             raise AccountLocked(_lock_message(locked_until - now), details={"retry_after_seconds": locked_until - now})
         raise generic
@@ -200,6 +215,9 @@ def authenticate(
         ttl_seconds=ttl_seconds,
     )
     with db.write_transaction() as conn:
+        locked_left = _locked_seconds_left(conn, int(row["id"]), int(time.time()))
+        if locked_left:
+            raise AccountLocked(_lock_message(locked_left), details={"retry_after_seconds": locked_left})
         conn.execute("UPDATE login_lockouts SET failed_count = 0, lock_level = 0, locked_until = NULL "
                      "WHERE user_id = ? AND (failed_count > 0 OR lock_level > 0)", (int(row["id"]),))
         audit_service.record(

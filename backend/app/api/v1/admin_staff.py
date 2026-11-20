@@ -137,4 +137,9 @@ def user_mfa_reset(uid: int):
             raise PermissionError_("مجوز مدیریت دیگر فعال نیست")
         _user(conn, uid)
         mfa_service.reset(conn, user_id=uid, actor_user_id=current_user()["id"], reason=reason, ip_address=client_ip())
-        return jsonify({"mfa": mfa_service.status(conn, uid)})
+        out = mfa_service.status(conn, uid)
+    # A reset is for a lost or compromised factor: end every session that account already holds,
+    # including ones that passed the old factor.
+    from app.services.revocation_service import invalidate_all_tokens_for_user
+    invalidate_all_tokens_for_user(get_db(), user_id=uid)
+    return jsonify({"mfa": out})

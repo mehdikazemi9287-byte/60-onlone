@@ -17,7 +17,7 @@ import json
 from flask import Blueprint, g, jsonify, request
 
 from app.core.deps import get_db, require_auth
-from app.core.errors import NotFoundError, ValidationError
+from app.core.errors import NotFoundError, PermissionError_, ValidationError
 from app.services import fulfillment_service, supplier_catalog_import_service, supplier_service
 
 bp = Blueprint("suppliers", __name__)
@@ -313,6 +313,9 @@ def admin_create_supplier():
         from app.api.v1.admin_content import assert_admin
         from app.api.v1.admin_supplier_profile import audit
         assert_admin(conn)
+        if body.get("user_id") is not None and (getattr(g, "admin_access", None) or {}).get("via") != "super_admin":
+            # Linking a login to a supplier is access control (staff_access): super-admin only.
+            raise PermissionError_("اتصال حساب کاربری به تأمین‌کننده فقط با مدیر ارشد است")
         for field in ("legal_name", "display_name", "national_id", "supplier_type", "status"):
             if field in body and not isinstance(body[field], str):
                 raise ValidationError("متن مشخصات تأمین‌کننده نامعتبر است")

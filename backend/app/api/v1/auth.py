@@ -111,7 +111,7 @@ def _admin_access() -> dict:
     with get_db().read_transaction() as conn:
         roles = staff_access.active_staff_roles(conn, user["id"])
         mfa = mfa_service.status(conn, user["id"])
-    out = staff_access.summary(user["role"], roles)
+    out = staff_access.summary(getattr(g, "real_role", None) or user["role"], roles)
     mode = get_settings().admin_mfa_enforce
     out["mfa_required"] = out["is_staff"] and (mode == "all" or (mode == "super_admin" and out["super_admin"]))
     out["mfa_enrolled"] = mfa["enrolled"]

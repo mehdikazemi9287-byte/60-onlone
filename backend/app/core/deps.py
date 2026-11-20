@@ -78,6 +78,14 @@ def authenticate_request() -> None:
     g.current_user = {"id": int(row["id"]), "email": row["email"], "role": row["role"]}
     g.token_mfa = bool(claims.mfa)
     g.admin_access = None
+    g.real_role = row["role"]
+    # Least privilege until the second factor: a super-admin session without it acts as an ordinary
+    # signed-in user everywhere, so views that branch on role == 'admin' (open to any signed-in user)
+    # cannot be used to reach admin data. Endpoints that need admin/privileged roles answer
+    # 403 mfa_required (require_auth / require_org_role below).
+    g.mfa_pending_admin = row["role"] == "admin" and _mfa_required("admin", False) and not g.token_mfa
+    if g.mfa_pending_admin:
+        g.current_user["role"] = "customer"
 
 
 def _mfa_required(role: str, via_staff: bool) -> bool:
@@ -96,7 +104,8 @@ def enforce_admin_mfa(*, via_staff: bool = False) -> None:
     shell sends the user to /admin/mfa to enroll or verify.
     """
     user = current_user()
-    if not _mfa_required(user["role"], via_staff) or getattr(g, "token_mfa", False):
+    role = getattr(g, "real_role", None) or user["role"]
+    if not _mfa_required(role, via_staff) or getattr(g, "token_mfa", False):
         return
     from app.services import mfa_service
     with get_db().read_transaction() as conn:
@@ -156,6 +165,9 @@ def require_auth(*roles: str) -> Callable:
             if allowed:
                 wanted = set(allowed)
                 role = g.current_user["role"]
+                if getattr(g, "mfa_pending_admin", False) and "customer" not in wanted:
+                    # Admin (or any role the admin hierarchy grants) without the second factor.
+                    enforce_admin_mfa()
                 granted = ROLE_HIERARCHY.get(role, set())
                 if granted.intersection(wanted):
                     if "admin" in wanted and role == "admin":
@@ -200,7 +212,7 @@ def require_org_role(*org_roles: str) -> Callable:
             user = g.current_user
             db = get_db()
 
-            if user["role"] == "admin":
+            if (getattr(g, "real_role", None) or user["role"]) == "admin":
                 g.admin_access = {"via": "super_admin"}
                 enforce_admin_mfa()
                 exists = db.query_one(

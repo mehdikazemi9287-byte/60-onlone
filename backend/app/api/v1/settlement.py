@@ -20,8 +20,8 @@ from __future__ import annotations
 
 from flask import Blueprint, g, jsonify, request
 
-from app.core.deps import client_ip, get_db, require_auth
-from app.core.errors import NotFoundError, ValidationError
+from app.core.deps import client_ip, get_db, require_auth, still_authorized
+from app.core.errors import NotFoundError, PermissionError_, ValidationError
 from app.services import audit_service, fulfillment_service, settlement_service, supplier_ledger_service
 
 bp = Blueprint("settlement", __name__)
@@ -114,6 +114,8 @@ def admin_create_settlement_batch():
     actor_id = int(current_user()["id"])
 
     with db.write_transaction() as conn:
+        if not still_authorized(conn):  # role revoked between the guard and this transaction
+            raise PermissionError_("مجوز مدیریت دیگر فعال نیست")
         existed = conn.execute("SELECT 1 FROM settlement_batches WHERE idempotency_key = ?",
                                (idempotency_key,)).fetchone() is not None
         batch = settlement_service.create_settlement_batch(
@@ -182,6 +184,8 @@ def admin_complete_settlement_batch(batch_id: int):
     actor_id = int(current_user()["id"])
 
     with db.write_transaction() as conn:
+        if not still_authorized(conn):  # role revoked between the guard and this transaction
+            raise PermissionError_("مجوز مدیریت دیگر فعال نیست")
         before = conn.execute("SELECT status, created_by_user_id FROM settlement_batches WHERE id = ?",
                               (batch_id,)).fetchone()
         result = settlement_service.complete_settlement_batch(
