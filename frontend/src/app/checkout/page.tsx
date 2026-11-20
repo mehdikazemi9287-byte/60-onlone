@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn, formatPrice, toPersianNum } from "@/lib/utils";
-import { cart as cartApi, checkout as checkoutApi, newIdempotencyKey, ApiError, apiRequest, goToPaymentGateway } from "@/lib/api";
+import { addresses as addressesApi, cart as cartApi, checkout as checkoutApi, newIdempotencyKey, ApiError, apiRequest, goToPaymentGateway } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import type { Address, Cart, CheckoutQuote, PaymentMethod } from "@/lib/types";
+import { MODES, useShoppingMode } from "@/lib/shopping-mode";
+import type { Address, Cart, CheckoutQuote, PaymentMethod, SavedAddress } from "@/lib/types";
 
 // ── Step indicator (unchanged visual) ───────────────────────────────────────
 
@@ -38,65 +39,144 @@ function StepBar({ step }: { step: number }) {
   );
 }
 
-// ── Address step — real form, no fake saved-address picker (no such backend
-//    concept exists; every order stores one real typed shipping address). ──
+// ── Address step — saved addresses from the address book (/me/addresses) or a typed address, which can be
+//    saved too. A saved address is sent by id and resolved by the server; the order keeps its own copy. ──
 
 const EMPTY_ADDRESS: Address = {
   recipient_name: "", recipient_phone: "", province: "", city: "", line1: "", postal_code: "",
 };
 
+const fromSaved = (a: SavedAddress): Address => ({
+  recipient_name: a.recipient, recipient_phone: a.phone, province: a.province, city: a.city, line1: a.line1,
+  postal_code: a.postal_code ?? "",
+});
+
 function AddressStep({
-  address, onChange, onNext, fieldErrors,
+  address, onChange, onNext, fieldErrors, token, savedId, onSavedId,
 }: {
   address: Address;
   onChange: (a: Address) => void;
   onNext: () => void;
   fieldErrors: Record<string, string>;
+  token: string;
+  savedId: number | null;
+  onSavedId: (id: number | null) => void;
 }) {
+  const [saved, setSaved] = useState<SavedAddress[] | null>(null);
+  const [save, setSave] = useState(false);
+  const [title, setTitle] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saveError, setSaveError] = useState<string | null>(null);
+  useEffect(() => {
+    addressesApi.list(token).then((r) => {
+      setSaved(r.items);
+      const def = r.items.find((a) => a.is_default);
+      if (def && savedId === null && !address.recipient_name) { onSavedId(def.id); onChange(fromSaved(def)); }
+    }).catch(() => setSaved([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
   const set = (k: keyof Address) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     onChange({ ...address, [k]: e.target.value });
+  const allErrors = { ...fieldErrors, ...errors };
 
-  const valid = address.recipient_name.trim() && address.recipient_phone.trim() &&
-    address.province.trim() && address.city.trim() && address.line1.trim();
+  const valid = savedId !== null || (address.recipient_name.trim() && address.recipient_phone.trim() &&
+    address.province.trim() && address.city.trim() && address.line1.trim());
+
+  const next = async () => {
+    if (savedId === null && save) {
+      setBusy(true); setErrors({}); setSaveError(null);
+      try {
+        const r = await addressesApi.create(token, { title: title.trim() || "نشانی من", recipient: address.recipient_name,
+          phone: address.recipient_phone, province: address.province, city: address.city, line1: address.line1,
+          postal_code: address.postal_code });
+        onSavedId(r.address.id); onChange(fromSaved(r.address));
+      } catch (e) {
+        if (e instanceof ApiError && e.details) {
+          const map: Record<string, keyof Address> = { recipient: "recipient_name", phone: "recipient_phone" };
+          setErrors(Object.fromEntries(Object.entries(e.details).map(([k, v]) => [map[k] ?? k, v])));
+        }
+        setSaveError(e instanceof ApiError ? e.message : "ذخیرهٔ نشانی ناموفق بود");
+        setBusy(false);
+        return;
+      }
+      setBusy(false);
+    }
+    onNext();
+  };
 
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-bold text-neutral-900">آدرس تحویل</h2>
+      {saved && saved.length > 0 && (
+        <fieldset className="space-y-2">
+          <legend className="mb-1 text-sm font-semibold text-neutral-700">نشانی‌های ذخیره‌شده</legend>
+          {saved.map((a) => (
+            <label key={a.id} className={cn("flex cursor-pointer gap-3 rounded-xl border p-3 text-sm", savedId === a.id ? "border-primary-500 bg-primary-50" : "border-neutral-200")}>
+              <input type="radio" name="saved-address" checked={savedId === a.id} onChange={() => { onSavedId(a.id); onChange(fromSaved(a)); }} />
+              <span>
+                <b className="text-neutral-900">{a.title}</b>{a.is_default && <span className="mr-2 text-2xs text-primary-700">پیش‌فرض</span>}
+                <span className="block text-neutral-600">{a.recipient} — <span dir="ltr">{a.phone}</span></span>
+                <span className="block text-xs text-neutral-500">{a.province}، {a.city}، {a.line1} — کد پستی <span dir="ltr">{a.postal_code}</span></span>
+              </span>
+            </label>
+          ))}
+          <label className={cn("flex cursor-pointer gap-3 rounded-xl border p-3 text-sm", savedId === null ? "border-primary-500 bg-primary-50" : "border-neutral-200")}>
+            <input type="radio" name="saved-address" checked={savedId === null} onChange={() => { onSavedId(null); onChange(EMPTY_ADDRESS); }} />
+            <span className="font-semibold text-neutral-800">ارسال به نشانی جدید</span>
+          </label>
+          <Link href="/me/addresses" className="inline-block text-xs text-primary-700 underline">مدیریت دفترچهٔ نشانی</Link>
+        </fieldset>
+      )}
+      {savedId === null && (<>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="form-label">نام تحویل‌گیرنده</label>
           <input value={address.recipient_name} onChange={set("recipient_name")} className="form-input mt-1" />
-          {fieldErrors.recipient_name && <p className="text-2xs text-danger-600 mt-1">{fieldErrors.recipient_name}</p>}
+          {allErrors.recipient_name && <p className="text-2xs text-danger-600 mt-1">{allErrors.recipient_name}</p>}
         </div>
         <div>
           <label className="form-label">شماره تماس</label>
           <input value={address.recipient_phone} onChange={set("recipient_phone")} dir="ltr" className="form-input mt-1" />
-          {fieldErrors.recipient_phone && <p className="text-2xs text-danger-600 mt-1">{fieldErrors.recipient_phone}</p>}
+          {allErrors.recipient_phone && <p className="text-2xs text-danger-600 mt-1">{allErrors.recipient_phone}</p>}
         </div>
         <div>
           <label className="form-label">استان</label>
           <input value={address.province} onChange={set("province")} className="form-input mt-1" />
-          {fieldErrors.province && <p className="text-2xs text-danger-600 mt-1">{fieldErrors.province}</p>}
+          {allErrors.province && <p className="text-2xs text-danger-600 mt-1">{allErrors.province}</p>}
         </div>
         <div>
           <label className="form-label">شهر</label>
           <input value={address.city} onChange={set("city")} className="form-input mt-1" />
-          {fieldErrors.city && <p className="text-2xs text-danger-600 mt-1">{fieldErrors.city}</p>}
+          {allErrors.city && <p className="text-2xs text-danger-600 mt-1">{allErrors.city}</p>}
         </div>
         <div className="sm:col-span-2">
           <label className="form-label">نشانی کامل</label>
           <textarea value={address.line1} onChange={set("line1")} rows={3} className="form-input mt-1" />
-          {fieldErrors.line1 && <p className="text-2xs text-danger-600 mt-1">{fieldErrors.line1}</p>}
+          {allErrors.line1 && <p className="text-2xs text-danger-600 mt-1">{allErrors.line1}</p>}
         </div>
         <div>
-          <label className="form-label">کد پستی (اختیاری)</label>
-          <input value={address.postal_code} onChange={set("postal_code")} dir="ltr" className="form-input mt-1" />
+          <label className="form-label">{save ? "کد پستی (۱۰ رقم)" : "کد پستی (اختیاری، ۱۰ رقم)"}</label>
+          <input value={address.postal_code} onChange={set("postal_code")} dir="ltr" inputMode="numeric" className="form-input mt-1" />
+          {allErrors.postal_code && <p className="text-2xs text-danger-600 mt-1">{allErrors.postal_code}</p>}
         </div>
       </div>
+      <label className="flex items-center gap-2 text-sm text-neutral-700">
+        <input type="checkbox" checked={save} onChange={(e) => setSave(e.target.checked)} />
+        این نشانی در دفترچهٔ نشانی ذخیره شود (موبایل و کد پستی ۱۰ رقمی لازم است)
+      </label>
+      {save && (
+        <div>
+          <label className="form-label">عنوان نشانی</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={50} placeholder="مثلاً خانه" className="form-input mt-1" />
+        </div>
+      )}
+      {saveError && <p role="alert" className="text-sm text-danger-600">{saveError}</p>}
+      </>)}
 
       <button
-        onClick={onNext}
-        disabled={!valid}
+        onClick={next}
+        disabled={!valid || busy}
         className="w-full py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         ادامه
@@ -301,11 +381,12 @@ function PaymentStep({
 //    of risking a double order. ──────────────────────────────────────────
 
 function ConfirmStep({
-  cart, quote, address, method, onBack, token, redeemCoins,
+  cart, quote, address, addressId, method, onBack, token, redeemCoins,
 }: {
   cart: Cart;
   quote: CheckoutQuote;
   address: Address;
+  addressId: number | null;
   method: PaymentMethod;
   onBack: () => void;
   token: string;
@@ -374,7 +455,7 @@ function ConfirmStep({
       const external = payOptions.find((o) => o.provider === provider && o.kind !== "card");
       let proforma: string | undefined;
       try { proforma = new URLSearchParams(window.location.search).get("proforma") ?? undefined; } catch {}
-      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, welfareApplied, proforma, redeemCoins);
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, welfareApplied, proforma, redeemCoins, addressId ?? undefined);
       if (placed.payment_redirect) {
         // Pay on the bank page; the bank sends the customer back to the order or here with the result.
         setRedirecting(true);
@@ -604,6 +685,10 @@ export default function CheckoutPage() {
   const { token, loading: authLoading } = useAuth();
   const [step, setStep] = useState(0);
   const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
+  const [addressId, setAddressId] = useState<number | null>(null);
+  // Checkout pays only the active shopping mode's cart; switching the mode reloads it and restarts the steps.
+  const [mode] = useShoppingMode();
+  const modeLabel = MODES.find((m) => m.key === mode)?.label ?? "شخصی";
   const [method, setMethod] = useState<PaymentMethod>("card");
   const [cart, setCart] = useState<Cart | null>(null);
   const [quote, setQuote] = useState<CheckoutQuote | null>(null);
@@ -620,13 +705,17 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (authLoading || !token) return;
+    let off = false;
+    setCart(null); setQuote(null); setLoadError(null); setStep(0); setRedeemCoins(0);
     Promise.all([cartApi.get(token), checkoutApi.quote(token)])
       .then(([c, q]) => {
+        if (off) return;
         setCart(c);
         setQuote(q);
       })
-      .catch((e) => setLoadError(e instanceof ApiError ? e.message : "خطا در دریافت اطلاعات تسویه‌حساب"));
-  }, [token, authLoading]);
+      .catch((e) => { if (!off) setLoadError(e instanceof ApiError ? e.message : "خطا در دریافت اطلاعات تسویه‌حساب"); });
+    return () => { off = true; };
+  }, [token, authLoading, mode]);
 
   if (!authLoading && !token) {
     return (
@@ -672,7 +761,8 @@ export default function CheckoutPage() {
         <span className="text-neutral-600">پرداخت</span>
       </nav>
 
-      <h1 className="text-2xl font-black text-neutral-900 mb-6">تکمیل خرید</h1>
+      <h1 className="text-2xl font-black text-neutral-900 mb-2">تکمیل خرید</h1>
+      <p className="mb-6 text-sm text-neutral-600">حالت خرید: <b>{modeLabel}</b> — فقط سبد همین حالت پرداخت می‌شود.</p>
       {paymentResult && (
         <div role="alert" className="mb-6 rounded-xl border border-red-200 bg-danger-50 p-4 text-sm leading-7 text-danger-700">
           {paymentResult}
@@ -683,14 +773,15 @@ export default function CheckoutPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 card p-5 md:p-6">
           {step === 0 && (
-            <AddressStep address={address} onChange={setAddress} onNext={() => setStep(1)} fieldErrors={{}} />
+            <AddressStep address={address} onChange={setAddress} onNext={() => setStep(1)} fieldErrors={{}}
+              token={token!} savedId={addressId} onSavedId={setAddressId} />
           )}
           {step === 1 && (
             <PaymentStep quote={quote} method={method} onMethod={setMethod} onNext={() => setStep(2)} onBack={() => setStep(0)}
               token={token!} onCoins={(coins, q) => { setRedeemCoins(coins); setQuote(q); }} />
           )}
           {step === 2 && (
-            <ConfirmStep cart={cart} quote={quote} address={address} method={method} onBack={() => setStep(1)} token={token!} redeemCoins={redeemCoins} />
+            <ConfirmStep cart={cart} quote={quote} address={address} addressId={addressId} method={method} onBack={() => setStep(1)} token={token!} redeemCoins={redeemCoins} />
           )}
         </div>
 

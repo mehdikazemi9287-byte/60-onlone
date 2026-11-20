@@ -1,7 +1,8 @@
 "use client";
 // Three shopping modes (owner decision 2026-11-19): personal is the default for everyone; users switch freely and the
-// last choice is remembered on this device only. Switching never touches the cart or any other server state — the
-// backend has ONE active cart per user (carts.idx_carts_one_active), so per-mode carts are NOT implemented here.
+// last choice is remembered on this device only. Switching changes no server state. Each mode has its OWN cart on the
+// server (migration 0084): lib/api.ts sends the active mode as X-Shopping-Mode on cart/checkout calls, and the server
+// decides whether the user may use it. Employer credit and the welfare wallet apply only to the «پرسنل سازمان» cart.
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -28,6 +29,8 @@ function subscribe(cb: () => void) {
 export function setShoppingMode(mode: ShoppingMode) {
   try { window.localStorage.setItem(KEY, mode); } catch {}
   window.dispatchEvent(new Event(EVENT));
+  // The header badge and cart views re-read the cart of the newly active mode.
+  window.dispatchEvent(new Event("60online:cart-changed"));
 }
 
 /** Current mode; "personal" on the server and before hydration. */

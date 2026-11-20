@@ -10,12 +10,13 @@ import { OrderReturns } from "@/components/OrderReturns";
 import { OrderWithdrawal } from "@/components/OrderWithdrawal";
 import { PickupChooser } from "@/components/inperson/PickupChooser";
 import { OrderTracking } from "@/components/OrderTracking";
+import { OrderCancel } from "@/components/OrderCancel";
 import { Package } from "lucide-react";
-import type { FulfillmentOrder, Order } from "@/lib/types";
+import type { FulfillmentOrder, Order, OrderCancellationStatus } from "@/lib/types";
 
 const FO_STATUS_FA: Record<string, string> = {
-  assigned: "ارجاع‌شده", accepted: "پذیرفته‌شده", preparing: "در حال آماده‌سازی",
-  ready: "آماده ارسال", dispatched: "ارسال‌شده", delivered: "تحویل‌شده",
+  pending_assignment: "در انتظار ارجاع", assigned: "ارجاع‌شده", accepted: "پذیرفته‌شده", preparing: "در حال آماده‌سازی",
+  ready: "آماده ارسال", dispatched: "ارسال‌شده", delivered: "تحویل‌شده", cancelled: "لغوشده",
 };
 
 export default function OrderDetailPage() {
@@ -25,6 +26,7 @@ export default function OrderDetailPage() {
   const [fulfillmentOrders, setFulfillmentOrders] = useState<FulfillmentOrder[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cancellation, setCancellation] = useState<OrderCancellationStatus | null>(null);
 
   useEffect(() => {
     if (authLoading || !token) return;
@@ -33,6 +35,7 @@ export default function OrderDetailPage() {
       .then((res) => {
         setOrder(res.order);
         setFulfillmentOrders(res.fulfillment_orders);
+        setCancellation(res.cancellation ?? null);
       })
       .catch((e) => {
         if (e instanceof ApiError && e.status === 404) setNotFound(true);
@@ -155,6 +158,13 @@ export default function OrderDetailPage() {
           <span className="text-primary-700 text-base tabular-nums">{formatPrice(order.total_minor)}</span>
         </div>
       </div>
+      {token && <OrderCancel token={token} orderNumber={order.order_number} status={cancellation}
+        onCancelled={(o, c) => {
+          setOrder(o);
+          setCancellation({ cancellable: false, code: "already_cancelled", message: null, cancellation: c });
+          // Fulfillment rows changed server-side; re-read them so the progress card says «لغوشده».
+          ordersApi.get(token, order.order_number).then((r) => setFulfillmentOrders(r.fulfillment_orders)).catch(() => {});
+        }} />}
       {token && <OrderTracking token={token} orderId={order.id} />}
       {token && <OrderWithdrawal token={token} orderNumber={order.order_number} />}
       {token && <OrderReturns token={token} orderNumber={order.order_number} status={order.status}

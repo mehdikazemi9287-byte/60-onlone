@@ -6,6 +6,8 @@ import { cn, formatPrice, toPersianNum } from "@/lib/utils";
 import { cart as cartApi, ApiError, apiRequest } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { Cart, CartItem } from "@/lib/types";
+import { MODES, useShoppingMode } from "@/lib/shopping-mode";
+import { ModeSwitch } from "@/components/layout/ModeSwitch";
 
 // ── Cart item row ─────────────────────────────────────────────────────────────
 
@@ -110,6 +112,9 @@ export default function CartPage() {
   const [cart, setCart] = useState<Cart | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  // Each shopping mode has its own cart on the server; switching the mode shows that mode's cart.
+  const [mode] = useShoppingMode();
+  const modeLabel = MODES.find((m) => m.key === mode)?.label ?? "شخصی";
 
   useEffect(() => {
     if (authLoading) return;
@@ -117,11 +122,15 @@ export default function CartPage() {
       setCart(null);
       return;
     }
+    let off = false;
+    setCart(null);
+    setError(null);
     cartApi
       .get(token)
-      .then(setCart)
-      .catch((e) => setError(e instanceof ApiError ? e.message : "خطا در دریافت سبد خرید"));
-  }, [token, authLoading]);
+      .then((c) => { if (!off) setCart(c); })
+      .catch((e) => { if (!off) setError(e instanceof ApiError ? e.message : "خطا در دریافت سبد خرید"); });
+    return () => { off = true; };
+  }, [token, authLoading, mode]);
 
   const handleQtyChange = async (productId: number, qty: number) => {
     if (!token) return;
@@ -181,6 +190,7 @@ export default function CartPage() {
 
   const items = cart?.items ?? [];
   const hasStockIssue = items.some((i) => (i.quantity_available ?? Infinity) < i.quantity);
+  const modeBlocked = cart?.mode_access?.allowed === false;
 
   return (
     <div className="internal-page container-page py-6 md:py-8">
@@ -191,7 +201,16 @@ export default function CartPage() {
         <span className="text-neutral-600">سبد خرید</span>
       </nav>
 
-      <h1 className="text-2xl font-black text-neutral-900 mb-6">سبد خرید</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-black text-neutral-900">سبد خرید <span className="text-base font-bold text-neutral-500">— {modeLabel}</span></h1>
+        <ModeSwitch tone="light" />
+      </div>
+      <p className="-mt-3 mb-4 text-xs text-neutral-500">هر حالت خرید سبد جداگانه دارد؛ با تغییر حالت، سبد همان حالت نمایش داده می‌شود و چیزی پاک نمی‌شود.</p>
+      {modeBlocked && (
+        <div role="status" className="mb-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+          {cart?.mode_access?.reason ?? "این حالت خرید برای حساب شما فعال نیست."} می‌توانید کالاها را از این سبد حذف کنید، اما پرداخت آن ممکن نیست.
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 text-sm text-danger-600 bg-danger-50 rounded-xl p-3">{error}</div>
@@ -266,7 +285,11 @@ export default function CartPage() {
                 <p className="text-2xs text-neutral-400">مالیات در مرحله تسویه‌حساب محاسبه می‌شود</p>
               </div>
 
-              {hasStockIssue ? (
+              {modeBlocked ? (
+                <p className="mt-5 text-xs text-center text-amber-900 bg-amber-50 rounded-xl p-3">
+                  پرداخت سبد این حالت برای حساب شما ممکن نیست
+                </p>
+              ) : hasStockIssue ? (
                 <p className="mt-5 text-xs text-center text-danger-600 bg-danger-50 rounded-xl p-3">
                   موجودی برخی کالاها کافی نیست — قبل از ادامه، تعداد را اصلاح کنید
                 </p>
@@ -278,7 +301,7 @@ export default function CartPage() {
                   ادامه و پرداخت
                 </Link>
               )}
-              <ProformaButton />
+              {!modeBlocked && <ProformaButton />}
               <Link
                 href="/search"
                 className="mt-2 block w-full text-center py-2.5 rounded-xl text-sm text-neutral-500 hover:bg-neutral-50 transition-colors"

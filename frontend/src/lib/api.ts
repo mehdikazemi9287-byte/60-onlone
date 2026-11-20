@@ -17,6 +17,8 @@ class ApiError extends Error {
   }
 }
 
+const SHOPPING_MODE_PATHS = /^\/(cart|checkout)\b|^\/me\/proformas$|^\/me\/recurring\/\d+\/runs\/\d+\/to-cart$/;
+
 async function request<T>(
   path: string,
   options: RequestInit & { token?: string } = {},
@@ -35,6 +37,11 @@ async function request<T>(
   // Users with several supplier accounts pick one; the API verifies membership.
   if (path.startsWith("/supplier") && typeof window !== "undefined") {
     try { const sid = window.localStorage.getItem("60online_supplier"); if (sid) headers["X-Supplier-Id"] = sid; } catch {}
+  }
+  // Each shopping mode has its own cart (backend migration 0084). Cart, checkout, pro-forma and recurring
+  // "to cart" calls name the active mode; the server checks the user may use it. No header = personal.
+  if (typeof window !== "undefined" && !headers["X-Shopping-Mode"] && SHOPPING_MODE_PATHS.test(path)) {
+    try { const m = window.localStorage.getItem("60online_shopping_mode"); if (m === "staff" || m === "org") headers["X-Shopping-Mode"] = m; } catch {}
   }
 
   const res = await fetch(`${BASE}/api/v1${path}`, { ...rest, headers });
@@ -435,11 +442,13 @@ export const checkout = {
     use_welfare?: boolean,
     proforma_number?: string,
     redeem_coins?: number,
+    address_id?: number,
   ) =>
     request<CheckoutPlaced>("/checkout", {
       method: "POST",
       token,
-      body: JSON.stringify({ shipping_address, payment_method, ...(accepted_terms_version ? { accepted_terms_version } : {}),
+      // A saved address is sent by id; the server resolves it (owner-scoped) instead of trusting the typed copy.
+      body: JSON.stringify({ ...(address_id ? { address_id } : { shipping_address }), payment_method, ...(accepted_terms_version ? { accepted_terms_version } : {}),
         ...(payment_provider ? { payment_provider } : {}), ...(use_welfare ? { use_welfare: true } : {}),
         ...(proforma_number ? { proforma_number } : {}), ...(redeem_coins && redeem_coins > 0 ? { redeem_coins } : {}) }),
       headers: { "Idempotency-Key": idempotencyKey },
@@ -459,7 +468,29 @@ export const orders = {
     request<{
       order: import("./types").Order;
       fulfillment_orders: import("./types").FulfillmentOrder[];
+      cancellation?: import("./types").OrderCancellationStatus;
     }>(`/orders/${orderNumber}`, { token }),
+
+  /** Customer cancellation before shipment; repeating it returns the first result. */
+  cancel: (token: string, orderNumber: string, reason?: string) =>
+    request<{ order: import("./types").Order; cancellation: import("./types").OrderCancellation; already_cancelled: boolean }>(
+      `/orders/${encodeURIComponent(orderNumber)}/cancel`,
+      { method: "POST", token, body: JSON.stringify(reason ? { reason } : {}) },
+    ),
+};
+
+// ── Address book (/me/addresses, owner-scoped) ───────────────────────────────
+
+export const addresses = {
+  list: (token: string) => request<{ items: import("./types").SavedAddress[]; max: number }>("/me/addresses", { token }),
+  create: (token: string, body: import("./types").SavedAddressInput) =>
+    request<{ address: import("./types").SavedAddress }>("/me/addresses", { method: "POST", token, body: JSON.stringify(body) }),
+  update: (token: string, id: number, body: Partial<import("./types").SavedAddressInput>) =>
+    request<{ address: import("./types").SavedAddress }>(`/me/addresses/${id}`, { method: "PATCH", token, body: JSON.stringify(body) }),
+  setDefault: (token: string, id: number) =>
+    request<{ address: import("./types").SavedAddress }>(`/me/addresses/${id}/default`, { method: "POST", token }),
+  remove: (token: string, id: number) =>
+    request<{ items: import("./types").SavedAddress[] }>(`/me/addresses/${id}`, { method: "DELETE", token }),
 };
 
 // ── Organization ─────────────────────────────────────────────────────────────

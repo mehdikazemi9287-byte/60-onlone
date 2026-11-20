@@ -94,6 +94,10 @@ export interface Cart {
   total?: string;
   currency: string;
   items: CartItem[];
+  /** Which shopping mode's cart this is (backend 0084); absent on an old backend. */
+  shopping_mode?: "personal" | "staff" | "org";
+  /** false when the user may not use this mode: the cart is read-only and checkout is refused. */
+  mode_access?: { allowed: boolean; reason: string | null };
 }
 
 export interface CheckoutQuote {
@@ -148,6 +152,51 @@ export interface Order {
   placed_at: string;
   shipping_address?: Address;
   items: OrderItem[];
+  shopping_mode?: "personal" | "staff" | "org";
+  welfare_minor?: number;
+  redeem_coins?: number;
+  redeem_discount_minor?: number;
+}
+
+/** Result of a customer cancellation (backend order_cancellation_service). Amounts are IRR minor units. */
+export interface OrderCancellation {
+  id: number;
+  order_id: number;
+  reason: string | null;
+  created_at: string;
+  total_minor: number;
+  card_refund_minor: number;
+  credit_restored_minor: number;
+  welfare_restored_minor: number;
+  coins_restored: number;
+  coins_clawed_back: number;
+  coins_clawback_shortfall: number;
+  refunds: { id: number; amount_minor: number; currency: string; status: "pending_finance" | "paid"; paid_at: string | null }[];
+}
+
+export interface OrderCancellationStatus {
+  cancellable: boolean;
+  code: string | null;
+  message: string | null;
+  cancellation: OrderCancellation | null;
+}
+
+export interface SavedAddressInput {
+  title: string;
+  recipient: string;
+  phone: string;
+  province: string;
+  city: string;
+  postal_code: string;
+  line1: string;
+  is_default?: boolean;
+}
+
+export interface SavedAddress extends SavedAddressInput {
+  id: number;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string | null;
 }
 
 export interface OrderItem {
@@ -181,7 +230,7 @@ export interface Supplier {
 export interface FulfillmentOrder {
   id: number;
   order_id: number;
-  status: "assigned" | "accepted" | "preparing" | "ready" | "dispatched" | "delivered";
+  status: "pending_assignment" | "assigned" | "accepted" | "preparing" | "ready" | "dispatched" | "delivered" | "cancelled" | "rejected" | "failed";
   supplier_name: string;
   created_at: string;
 }
