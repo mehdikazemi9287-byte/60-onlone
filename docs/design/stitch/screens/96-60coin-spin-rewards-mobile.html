@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="fa"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "surface-bright": "#f8f9ff", "inverse-surface": "#27313e", "tertiary-fixed": "#ffdbc8", "primary-fixed": "#d7e2ff", "error-container": "#ffdad6", "primary-container": "#034ea2", "primary": "#003878", "tertiary": "#612a00", "surface": "#f8f9ff", "on-tertiary": "#ffffff", "surface-tint": "#215db1", "on-tertiary-container": "#ffb284", "surface-container-lowest": "#ffffff", "tertiary-fixed-dim": "#ffb68b", "background": "#f8f9ff", "secondary": "#47607c", "surface-dim": "#d0dbeb", "tertiary-container": "#843c00", "on-error-container": "#93000a", "on-primary-fixed": "#001a40", "error": "#ba1a1a", "on-error": "#ffffff", "on-primary-fixed-variant": "#004591", "on-primary-container": "#a6c3ff", "on-secondary": "#ffffff", "on-surface-variant": "#424752", "secondary-fixed": "#d0e4ff", "secondary-container": "#c2dcfd", "surface-container-low": "#eef4ff", "surface-container-highest": "#d8e3f4", "on-secondary-fixed-variant": "#2f4963", "on-tertiary-fixed": "#321200", "on-primary": "#ffffff", "outline": "#737783", "surface-container": "#e4efff", "on-surface": "#111c28", "surface-variant": "#d8e3f4", "on-secondary-container": "#48617d", "on-background": "#111c28", "primary-fixed-dim": "#acc7ff", "outline-variant": "#c2c6d3", "secondary-fixed-dim": "#afc9e9", "on-secondary-fixed": "#001d34", "inverse-on-surface": "#e9f1ff", "surface-container-high": "#dee9fa", "on-tertiary-fixed-variant": "#753400", "inverse-primary": "#acc7ff" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "margin": "1rem", "space-xs": "0.25rem", "gutter-desktop": "1.5rem", "margin-tablet": "1.5rem", "gutter": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "margin-desktop": "2.5rem", "space-xl": "2.5rem", "space-md": "1rem" }, fontFamily: { "headline-xl": ["Plus Jakarta Sans"], "headline-sm": ["Plus Jakarta Sans"], "headline-md": ["Plus Jakarta Sans"], "body-lg": ["Plus Jakarta Sans"], "label-sm": ["Plus Jakarta Sans"], "price-display": ["Plus Jakarta Sans"], "headline-xl-mobile": ["Plus Jakarta Sans"], "body-md": ["Plus Jakarta Sans"], "label-md": ["Plus Jakarta Sans"], "label-lg": ["Plus Jakarta Sans"], "headline-lg-mobile": ["Plus Jakarta Sans"], "body-sm": ["Plus Jakarta Sans"], "headline-lg": ["Plus Jakarta Sans"] }, fontSize: { "headline-xl": ["36px", { lineHeight: "44px", letterSpacing: "-0.02em", fontWeight: "800" }], "headline-sm": ["16px", { lineHeight: "24px", fontWeight: "700" }], "headline-md": ["20px", { lineHeight: "28px", fontWeight: "700" }], "body-lg": ["16px", { lineHeight: "26px", fontWeight: "400" }], "label-sm": ["10px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "700" }], "price-display": ["18px", { lineHeight: "24px", fontWeight: "800" }], "headline-xl-mobile": ["28px", { lineHeight: "36px", letterSpacing: "-0.01em", fontWeight: "800" }], "body-md": ["14px", { lineHeight: "22px", fontWeight: "400" }], "label-md": ["12px", { lineHeight: "16px", fontWeight: "600" }], "label-lg": ["14px", { lineHeight: "20px", fontWeight: "600" }], "headline-lg-mobile": ["22px", { lineHeight: "30px", fontWeight: "700" }], "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }], "headline-lg": ["28px", { lineHeight: "36px", fontWeight: "700" }] } } } }</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-on-surface flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-gutter flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm"><div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary font-headline-md text-headline-md tracking-tighter">60</div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary leading-tight">شصت‌آنلاین</span><span class="font-label-sm text-label-sm text-on-surface-variant">Account</span></div></div><div class="flex items-center gap-space-xs"><button aria-label="جستجو" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[22px]">search</span></button><button aria-label="اعلان‌ها" class="w-11 h-11 relative flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span><span class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-error"></span></button><div class="pr-space-xs flex items-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/ALJJyrBsWS3k6KjydztPp_qYmQeIDIGnawzJrBzDHEqT-Wyt1LGGYXqRGjygBAB_fJy47b1AuSECW43W0tzE1ly76v8n_QtU_-jR1oHLCveZ_jABwCfEWD-aHF3kZH7WMgKxK91jL9_E7uZMPjB4kK_vzP8v7QtG3aOkKzPQKCE4FOsX1_0zP7yZXfO0YORQququ4VHRbskJFo__-592nq_d2NE_853ThG1xAgi8I-UdXdV7"/></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full px-space-md gap-space-lg pb-space-xl">
+<!-- Status & 60Coin Dashboard Card -->
+<section class="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary p-space-md shadow-md">
+<!-- Ambient decorative coin motif -->
+<div class="absolute -left-6 -bottom-6 w-32 h-32 rounded-full bg-primary-fixed/10 pointer-events-none blur-2xl"></div>
+<div class="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-tertiary-fixed-dim/20 pointer-events-none blur-xl"></div>
+<div class="relative z-10 flex flex-col gap-space-md">
+<!-- Tier status & Avatar snippet -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest/20 flex items-center justify-center backdrop-blur-md">
+<span class="material-symbols-outlined text-[24px] text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-on-primary">سطح نقره‌ای</span>
+<span class="font-label-sm text-label-sm bg-tertiary-container/80 text-on-tertiary-container px-2 py-0.5 rounded-full">VIP 2</span>
+</div>
+<span class="font-body-sm text-body-sm text-primary-fixed-dim">باشگاه وفاداری ۶۰کلاب</span>
+</div>
+</div>
+<button class="flex items-center gap-1 text-on-primary-container bg-surface-container-lowest/15 hover:bg-surface-container-lowest/25 px-2.5 py-1 rounded-full text-label-sm font-label-sm transition-colors" id="rules-btn">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span>مزایای سطح</span>
+</button>
+</div>
+<!-- Coin balance & Conversion CTA -->
+<div class="flex items-end justify-between bg-surface-container-lowest/10 backdrop-blur-md p-space-sm rounded-xl">
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-primary-fixed-dim">موجودی سکه‌های فعال</span>
+<div class="flex items-baseline gap-1.5 mt-0.5">
+<span class="font-headline-xl-mobile text-headline-xl-mobile text-on-primary tracking-tight" id="user-coins">۱,۴۸۰</span>
+<span class="font-label-md text-label-md text-tertiary-fixed-dim flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+              ۶۰coin
+            </span>
+</div>
+</div>
+<button class="flex items-center gap-1.5 bg-tertiary-fixed text-on-tertiary-fixed hover:bg-tertiary-fixed-dim px-space-sm py-2 rounded-lg font-label-lg text-label-lg shadow-sm active:scale-95 transition-all" id="convert-btn">
+<span class="material-symbols-outlined text-[18px]">currency_exchange</span>
+<span>تبدیل به خرید</span>
+</button>
+</div>
+<!-- Level progress bar -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-primary-fixed-dim">
+<span>تا رسیدن به سطح طلایی</span>
+<span class="font-price-display text-price-display text-on-primary">۵۲۰ سکه دیگر</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container-lowest/20 overflow-hidden p-0.5">
+<div class="h-full rounded-full bg-gradient-to-l from-tertiary-fixed to-primary-fixed-dim w-3/4 transition-all duration-700 ease-out"></div>
+</div>
+<div class="flex justify-between text-label-sm font-label-sm text-primary-fixed-dim/80">
+<span>نقره‌ای (۱۰۰۰)</span>
+<span>طلایی (۲۰۰۰)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Daily Wheel of Fortune / Reward Action -->
+<section class="flex flex-col gap-space-sm bg-surface-container-low rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-tertiary-fixed/40 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">casino</span>
+</div>
+<div class="flex flex-col">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">گردونه شانس روزانه</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant">هر روز شانس برنده شدن تا ۵۰۰ سکه</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full">۱ شانس فعال</span>
+</div>
+<!-- Spinner Visual Dial Container -->
+<div class="relative flex items-center justify-center py-space-sm">
+<div class="relative w-44 h-44 flex items-center justify-center">
+<!-- SVG Spinner Dial -->
+<svg class="w-full h-full transform transition-transform duration-[3500ms] cubic-bezier(0.17, 0.67, 0.12, 0.99)" id="fortune-wheel" viewbox="0 0 100 100">
+<!-- Outer Rim -->
+<circle class="fill-surface-container-high" cx="50" cy="50" r="47"></circle>
+<!-- Slices -->
+<!-- 1: 50 Coin -->
+<path class="fill-primary text-on-primary" d="M 50 50 L 50 5 A 45 45 0 0 1 88.97 27.5 Z"></path>
+<!-- 2: 100 Coin -->
+<path class="fill-tertiary-container" d="M 50 50 L 88.97 27.5 A 45 45 0 0 1 88.97 72.5 Z"></path>
+<!-- 3: 20 Coin -->
+<path class="fill-secondary-container" d="M 50 50 L 88.97 72.5 A 45 45 0 0 1 50 95 Z"></path>
+<!-- 4: 200 Coin -->
+<path class="fill-primary-container" d="M 50 50 L 50 95 A 45 45 0 0 1 11.03 72.5 Z"></path>
+<!-- 5: پوچ / دوباره -->
+<path class="fill-surface-container-highest" d="M 50 50 L 11.03 72.5 A 45 45 0 0 1 11.03 27.5 Z"></path>
+<!-- 6: ۵۰۰ شانس طلایی -->
+<path class="fill-tertiary" d="M 50 50 L 11.03 27.5 A 45 45 0 0 1 50 5 Z"></path>
+<!-- Inner Hub -->
+<circle class="fill-surface shadow-md" cx="50" cy="50" r="14"></circle>
+<circle class="fill-surface-container-high" cx="50" cy="50" r="10"></circle>
+<circle class="fill-tertiary-fixed" cx="50" cy="50" r="5"></circle>
+</svg>
+<!-- Center Indicator Arrow Needle -->
+<div class="absolute -top-2.5 z-20 flex flex-col items-center">
+<div class="w-4 h-5 bg-error rounded-t-sm clip-polygon shadow-md" style="clip-path: polygon(50% 100%, 0% 0%, 100% 0%);"></div>
+</div>
+<!-- Wheel Center Icon -->
+<div class="absolute z-10 pointer-events-none flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">stars</span>
+</div>
+</div>
+</div>
+<!-- Spinner Big Touch CTA -->
+<button class="w-full py-3 px-space-md rounded-xl bg-primary text-on-primary font-headline-sm text-headline-sm flex items-center justify-center gap-2 shadow-md hover:bg-primary-container active:scale-[0.98] transition-all" id="spin-action-btn">
+<span class="material-symbols-outlined text-[22px] animate-bounce">redeem</span>
+<span>دریافت سکه رایگان امروز</span>
+</button>
+<div class="hidden text-center py-2 px-space-sm bg-tertiary-fixed text-on-tertiary-fixed rounded-lg font-label-md text-label-md" id="spin-toast">
+      تبریک! ۲۰۰ سکه به موجودی شما افزوده شد ✨
+    </div>
+</section>
+<!-- Redeemable Club Rewards & Perks -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">local_offer</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">جوایز و بن‌های قابل تبدیل</h2>
+</div>
+<a class="font-label-md text-label-md text-primary hover:underline" href="#">مشاهده همه</a>
+</div>
+<!-- Reward Cards Carousel / Mosaic -->
+<div class="flex flex-col gap-space-sm">
+<!-- Card 1: 100k Discount -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-lowest rounded-xl shadow-sm hover:shadow transition-shadow">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0 text-primary">
+<span class="material-symbols-outlined text-[24px]">percent</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg text-on-surface truncate">کد تخفیف ۱۰۰ هزار تومانی</span>
+<span class="font-label-sm text-label-sm bg-error-container text-on-error-container px-1.5 py-0.2 rounded">ویژه</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">سفارش‌های بالای ۵۰۰ هزار تومان</span>
+</div>
+</div>
+<button class="flex-shrink-0 flex items-center gap-1 bg-surface-container-high hover:bg-primary hover:text-on-primary text-primary px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors mr-2" onclick="redeemReward(this, 300)">
+<span>۳۰۰</span>
+<span class="material-symbols-outlined text-[14px]">monetization_on</span>
+<span>دریافت</span>
+</button>
+</div>
+<!-- Card 2: Free Shipping -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-lowest rounded-xl shadow-sm hover:shadow transition-shadow">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-lg bg-secondary-container/40 flex items-center justify-center flex-shrink-0 text-secondary">
+<span class="material-symbols-outlined text-[24px]">local_shipping</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">ارسال اکسپرس رایگان</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">بدون محدودیت سقف خرید</span>
+</div>
+</div>
+<button class="flex-shrink-0 flex items-center gap-1 bg-surface-container-high hover:bg-primary hover:text-on-primary text-primary px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors mr-2" onclick="redeemReward(this, 180)">
+<span>۱۸۰</span>
+<span class="material-symbols-outlined text-[14px]">monetization_on</span>
+<span>دریافت</span>
+</button>
+</div>
+<!-- Card 3: 200k Bulk Discount -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-lowest rounded-xl shadow-sm hover:shadow transition-shadow">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-lg bg-tertiary-fixed/30 flex items-center justify-center flex-shrink-0 text-tertiary">
+<span class="material-symbols-outlined text-[24px]">inventory_2</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">کوپن ۲۰۰ هزار تومانی پک سازمانی</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">سفارش‌های پک تجاری و عمده</span>
+</div>
+</div>
+<button class="flex-shrink-0 flex items-center gap-1 bg-surface-container-high hover:bg-primary hover:text-on-primary text-primary px-3 py-1.5 rounded-lg font-label-md text-label-md transition-colors mr-2" onclick="redeemReward(this, 600)">
+<span>۶۰۰</span>
+<span class="material-symbols-outlined text-[14px]">monetization_on</span>
+<span>دریافت</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Missions for Fast Coins -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">task_alt</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">ماموریت‌های کسب سکه</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">۲ از ۴ انجام شده</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Mission 1: Sheba Confirmation (Pending) -->
+<div class="p-space-sm bg-surface-container-low rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-[20px]">account_balance</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="font-label-lg text-label-lg text-on-surface">تأیید شماره شبا بانکی</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">+۱۵۰ سکه</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">جهت بازگشت آنی وجه خریدهای لغوشده</span>
+</div>
+</div>
+<button class="px-3 py-1.5 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary-container active:scale-95 transition-all">
+          ثبت
+        </button>
+</div>
+<!-- Mission 2: Photo Review (Pending) -->
+<div class="p-space-sm bg-surface-container-low rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[20px]">add_a_photo</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="font-label-lg text-label-lg text-on-surface">اولین نظر همراه عکس محصول</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">+۸۰ سکه</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">برای خریدهای تحویل‌شده ماه جاری</span>
+</div>
+</div>
+<button class="px-3 py-1.5 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary-container active:scale-95 transition-all">
+          ارسال
+        </button>
+</div>
+<!-- Mission 3: Profile Completed (Done) -->
+<div class="p-space-sm bg-surface-container-highest/40 rounded-xl flex items-center justify-between opacity-80">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-surface-dim flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<span class="font-label-lg text-label-lg text-on-surface line-through">تکمیل اطلاعات سازمانی و شخصی</span>
+<span class="font-label-sm text-label-sm text-outline">دریافت شد</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">پروفایل ۱۰۰٪ تکمیل شده است</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Brief Coins Transaction History -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">گردش امتیازات اخیر</h2>
+</div>
+<a class="font-label-md text-label-md text-on-surface-variant hover:text-primary" href="#">گزارش کامل</a>
+</div>
+<div class="flex flex-col rounded-xl bg-surface-container-lowest shadow-sm divide-y-0">
+<!-- Item 1: Purchase reward -->
+<div class="flex items-center justify-between p-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">پاداش خرید سفارش #۶۰-۸۴۹۲</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">امروز، ساعت ۱۴:۲۰</span>
+</div>
+</div>
+<span class="font-price-display text-price-display text-primary">+۱۲۰</span>
+</div>
+<!-- Item 2: Wheel Fortune -->
+<div class="flex items-center justify-between p-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]">casino</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">گردونه شانس روزانه</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">دیروز، ساعت ۰۹:۱۵</span>
+</div>
+</div>
+<span class="font-price-display text-price-display text-primary">+۵۰</span>
+</div>
+<!-- Item 3: Coupon used -->
+<div class="flex items-center justify-between p-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-error-container/40 flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[18px]">redeem</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">تبدیل به کد تخفیف ۵۰ هزار تومانی</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">۳ روز پیش</span>
+</div>
+</div>
+<span class="font-price-display text-price-display text-error">-۲۰۰</span>
+</div>
+</div>
+</section>
+<!-- Interactive script for delightful micro-interactions -->
+<script>
+    (function() {
+      const wheel = document.getElementById('fortune-wheel');
+      const spinBtn = document.getElementById('spin-action-btn');
+      const toast = document.getElementById('spin-toast');
+      const coinEl = document.getElementById('user-coins');
+      let currentCoins = 1480;
+      let hasSpun = false;
+
+      // Ensure footer active tab is 'account'
+      const navLinks = document.querySelectorAll('nav a');
+      navLinks.forEach(link => {
+        if (link.getAttribute('data-path') === 'account') {
+          link.classList.remove('text-on-surface-variant');
+          link.classList.add('text-primary', 'font-bold');
+        } else {
+          link.classList.remove('text-primary', 'font-bold');
+          link.classList.add('text-on-surface-variant');
+        }
+      });
+
+      if (spinBtn && wheel) {
+        spinBtn.addEventListener('click', function() {
+          if (hasSpun) return;
+          hasSpun = true;
+          spinBtn.disabled = true;
+          spinBtn.classList.add('opacity-50', 'pointer-events-none');
+          
+          // Random rotations + landing slice (e.g. 2160 deg + target)
+          const targetRotation = 2160 + 240; 
+          wheel.style.transform = `rotate(${targetRotation}deg)`;
+
+          setTimeout(() => {
+            currentCoins += 200;
+            if (coinEl) {
+              coinEl.textContent = currentCoins.toLocaleString('fa-IR');
+            }
+            if (toast) {
+              toast.classList.remove('hidden');
+            }
+            spinBtn.textContent = 'شانس امروز دریافت شد';
+          }, 3600);
+        });
+      }
+
+      window.redeemReward = function(btn, cost) {
+        if (currentCoins >= cost) {
+          currentCoins -= cost;
+          if (coinEl) {
+            coinEl.textContent = currentCoins.toLocaleString('fa-IR');
+          }
+          btn.innerHTML = '<span class="material-symbols-outlined text-[16px] text-primary">check_circle</span> فعال شد';
+          btn.classList.add('bg-primary-fixed', 'text-on-primary-fixed', 'pointer-events-none');
+        } else {
+          alert('موجودی سکه شما برای این بن کافی نیست.');
+        }
+      };
+
+      const convertBtn = document.getElementById('convert-btn');
+      if (convertBtn) {
+        convertBtn.addEventListener('click', () => {
+          alert(`موجودی ${currentCoins.toLocaleString('fa-IR')} سکه شما معادل ${(currentCoins * 1000).toLocaleString('fa-IR')} ریال اعتبار خرید نقدی است.`);
+        });
+      }
+    })();
+  </script>
+</div></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/85 backdrop-blur-xl shadow-[0_-2px_12px_rgba(17,45,70,0.05)]" data-active-classes="text-primary font-bold"><div class="flex justify-around items-center h-16 px-space-xs"><a class="flex flex-col items-center justify-center gap-0.5 w-14 h-12 text-on-surface-variant hover:text-primary transition-colors" data-path="home" href="#"><span class="material-symbols-outlined text-[22px]">home</span><span class="font-label-sm text-label-sm">خانه</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-14 h-12 text-on-surface-variant hover:text-primary transition-colors" data-path="categories" href="#"><span class="material-symbols-outlined text-[22px]">grid_view</span><span class="font-label-sm text-label-sm">دسته‌بندی</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-14 h-12 text-on-surface-variant hover:text-primary transition-colors" data-path="cart" href="#"><span class="material-symbols-outlined text-[22px]">shopping_bag</span><span class="font-label-sm text-label-sm">سبد خرید</span></a><a class="flex flex-col items-center justify-center gap-0.5 w-14 h-12 text-on-surface-variant hover:text-primary transition-colors" data-path="orders" href="#"><span class="material-symbols-outlined text-[22px]">receipt_long</span><span class="font-label-sm text-label-sm">سفارش‌ها</span></a><a aria-current="page" class="flex flex-col items-center justify-center gap-0.5 w-14 h-12 transition-colors text-primary font-bold" data-path="account" href="#"><span class="material-symbols-outlined text-[22px]">person</span><span class="font-label-sm text-label-sm">حساب کاربری</span></a></div></nav></body></html>
