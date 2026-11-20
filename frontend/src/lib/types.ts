@@ -98,10 +98,15 @@ export interface Cart {
 
 export interface CheckoutQuote {
   recurring_discount_minor?: number;
+  /** 60Coin redemption applied to this quote (server-validated). */
+  redeem_coins?: number;
+  redeem_discount_minor?: number;
   cart: {
     item_count: number;
     subtotal: string;
     subtotal_minor: number;
+    /** Merchandise subtotal before any 60Coin/recurring discount. */
+    gross_subtotal_minor?: number;
     shipping_fee: string;
     shipping_fee_minor: number;
     total: string;
