@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/Toaster";
 import { AuthProvider } from "@/lib/auth-context";
 import { PwaClient } from "@/components/pwa/PwaClient";
 import { RefCapture } from "@/components/affiliate/RefCapture";
+import { ChunkReloadGuard } from "@/components/system/ChunkReloadGuard";
 
 // Self-hosted (SIL OFL, rastikerdar/vazirmatn v33.0.3): Google Fonts is unreliable from Iran and blocks builds offline.
 const vazirmatn = localFont({
@@ -76,6 +77,7 @@ export default function RootLayout({
           <PwaClient />
           <RefCapture />
         </AuthProvider>
+        <ChunkReloadGuard />
       </body>
     </html>
   );
