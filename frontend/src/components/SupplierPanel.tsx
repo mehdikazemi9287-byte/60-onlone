@@ -20,7 +20,144 @@ type Order = {
   order_number: string;
   status: string;
   created_at: string;
+  shipping_city?: string | null;
+  shipping_province?: string | null;
+  rejection_reason?: string | null;
 };
+// Persian labels for fulfillment-order statuses (backend fulfillment_engine.VALID_TRANSITIONS).
+const FO_STATUS_FA: Record<string, string> = {
+  pending_assignment: "در انتظار تخصیص",
+  assigned: "در انتظار پذیرش شما",
+  accepted: "پذیرفته‌شده",
+  preparing: "در حال آماده‌سازی",
+  ready: "آماده‌ی تحویل",
+  dispatched: "ارسال‌شده",
+  delivered: "تحویل‌شده",
+  rejected: "ردشده",
+  cancelled: "لغوشده",
+  failed: "ناموفق",
+};
+type OrderAction = "accept" | "reject" | "prepare" | "ready" | "dispatch" | "deliver";
+// Only transitions the backend allows a supplier to make from each status.
+const FO_ACTIONS: Record<string, { action: OrderAction; label: string }[]> = {
+  assigned: [
+    { action: "accept", label: "پذیرش سفارش" },
+    { action: "reject", label: "رد سفارش" },
+  ],
+  accepted: [{ action: "prepare", label: "شروع آماده‌سازی" }],
+  preparing: [{ action: "ready", label: "آماده‌ی تحویل شد" }],
+  ready: [
+    { action: "dispatch", label: "ارسال شد" },
+    { action: "deliver", label: "تحویل حضوری انجام شد" },
+  ],
+  dispatched: [{ action: "deliver", label: "تحویل مشتری شد" }],
+};
+function SupplierOrderCard({
+  order,
+  token,
+  onChanged,
+}: {
+  order: Order;
+  token: string;
+  onChanged: (o: Order) => void;
+}) {
+  const [busy, setBusy] = useState(false),
+    [message, setMessage] = useState(""),
+    [rejecting, setRejecting] = useState(false),
+    [reason, setReason] = useState("");
+  async function run(action: OrderAction) {
+    if (action === "reject") {
+      if (!reason.trim()) {
+        setMessage("دلیل رد سفارش را بنویسید.");
+        return;
+      }
+      if (!window.confirm("سفارش " + order.order_number + " رد شود؟ این کار برگشت‌پذیر نیست و سفارش به تأمین‌کننده‌ی دیگری سپرده می‌شود.")) return;
+    }
+    setBusy(true);
+    setMessage("");
+    try {
+      const res = await apiRequest<{ fulfillment_order: Order }>(
+        "/supplier/orders/" + order.id + "/" + action,
+        {
+          token,
+          method: "POST",
+          body: JSON.stringify(action === "reject" ? { reason: reason.trim() } : {}),
+        },
+      );
+      setRejecting(false);
+      setReason("");
+      setMessage("ثبت شد.");
+      onChanged({ ...order, ...res.fulfillment_order, order_number: order.order_number });
+    } catch (e) {
+      setMessage((e as Error).message || "ثبت انجام نشد؛ دوباره تلاش کنید.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  const actions = FO_ACTIONS[order.status] ?? [];
+  const place = [order.shipping_province, order.shipping_city].filter(Boolean).join("، ");
+  return (
+    <article className="border rounded-xl p-4 space-y-2">
+      <p className="font-bold">سفارش {order.order_number}</p>
+      <p>وضعیت: {FO_STATUS_FA[order.status] ?? "نامشخص"}</p>
+      {place && <p>مقصد: {place}</p>}
+      {order.status === "rejected" && order.rejection_reason && (
+        <p>دلیل رد: {order.rejection_reason}</p>
+      )}
+      {actions.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {actions.map((a) =>
+            a.action === "reject" ? (
+              <button
+                key={a.action}
+                type="button"
+                className="rounded-xl border border-red-300 px-3 py-1 text-red-700"
+                disabled={busy}
+                onClick={() => setRejecting((v) => !v)}
+              >
+                {a.label}
+              </button>
+            ) : (
+              <button
+                key={a.action}
+                type="button"
+                className="btn-primary"
+                disabled={busy}
+                onClick={() => run(a.action)}
+              >
+                {a.label}
+              </button>
+            ),
+          )}
+        </div>
+      )}
+      {rejecting && (
+        <div className="space-y-2">
+          <label className="block">
+            دلیل رد (الزامی)
+            <textarea
+              className="block w-full border rounded-xl p-2"
+              rows={2}
+              maxLength={500}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            className="rounded-xl bg-red-700 px-3 py-1 text-white"
+            disabled={busy || !reason.trim()}
+            onClick={() => run("reject")}
+          >
+            تأیید رد سفارش
+          </button>
+        </div>
+      )}
+      {busy && <p role="status">در حال ثبت…</p>}
+      {message && <p role="status">{message}</p>}
+    </article>
+  );
+}
 type Summary = {
   unbatched_minor: number;
   in_batch_minor: number;
@@ -230,12 +367,18 @@ function SupplierPanelBody() {
         {!busy && !orders.length && !error && (
           <p>سفارشی در این صفحه ثبت نشده است.</p>
         )}
-        {orders.map((o) => (
-          <article className="border rounded-xl p-4" key={o.id}>
-            <p>سفارش {o.order_number}</p>
-            <p>وضعیت: {o.status}</p>
-          </article>
-        ))}
+        <div className="space-y-3">
+          {orders.map((o) => (
+            <SupplierOrderCard
+              key={o.id}
+              order={o}
+              token={token!}
+              onChanged={(next) =>
+                setOrders((list) => list.map((x) => (x.id === next.id ? next : x)))
+              }
+            />
+          ))}
+        </div>
       </section>
       <nav className="flex justify-between">
         <button
