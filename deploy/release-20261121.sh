@@ -54,6 +54,6 @@ Rollback if needed (no DB restore required: 0083 only adds tables/nullable colum
 ignores them, and /health/ready only fails when the schema is BEHIND the code):
   docker tag sixty-backend:prev-20261121 sixty-backend:latest
   docker tag sixty-frontend:prev-20261121 sixty-frontend:latest
-  docker compose -f <directory of the previous release>/deploy/.compose-sixty.yml up -d
+  docker compose -f /opt/60online-rel-20261120/deploy/.compose-sixty.yml up -d   # code running before this release
 Full DB restore (only if data is damaged): bash deploy/sqlite-upgrade.sh rollback (restores the pre-switch backup).
 TXT
