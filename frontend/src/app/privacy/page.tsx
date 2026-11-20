@@ -1,5 +1,10 @@
-import { UnavailablePage } from "@/components/content/UnavailablePage";
+import { LegalCmsPage, legalMetadata } from "@/components/content/LegalCmsPage";
 
+// Text comes from the CMS page listed in lib/legal-pages.ts; nothing is hard-coded here.
+export const dynamic = "force-dynamic";
+export function generateMetadata() {
+  return legalMetadata("/privacy");
+}
 export default function PrivacyPage() {
-  return <UnavailablePage title="حریم خصوصی" message="سیاست رسمی حریم خصوصی هنوز از سوی 60Online منتشر نشده است. این صفحه عمداً بدون متن حقوقی ساختگی نمایش داده می‌شود." />;
+  return <LegalCmsPage path="/privacy" />;
 }

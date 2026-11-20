@@ -8,20 +8,88 @@ REAL carrier integrations are NOT IMPLEMENTED:
   - Real Tipax: NOT IMPLEMENTED
   - Real local_courier: NOT IMPLEMENTED
 
-The mock adapter is used for all tests and demo.
+The mock adapter exists for automated tests and local development only.
+It is registered only when:
+  - APP_ENV is "test" or "development", or
+  - ALLOW_MOCK_CARRIER=1 is set explicitly (and, in production, DEMO_MODE=1 too).
+When it is not registered, "mock" is an unknown provider everywhere (quotes,
+booking and the inbound webhook endpoint all reject it).
+
+Its inbound webhooks additionally need a secret:
+  - MOCK_CARRIER_WEBHOOK_SECRET (>= 32 characters) from the environment, or
+  - the built-in test secret, ONLY when APP_ENV=test.
+Without a secret the adapter rejects every webhook.
 """
 from __future__ import annotations
 
-from app.adapters.logistics.base import CarrierAdapter
-from app.adapters.logistics.mock import MockCarrierAdapter
+import logging
+import os
+from collections.abc import Mapping
 
-_ADAPTERS: dict[str, CarrierAdapter] = {
-    "mock": MockCarrierAdapter(),
-}
+from app.adapters.logistics.base import CarrierAdapter
+from app.adapters.logistics.mock import MOCK_WEBHOOK_SECRET, MockCarrierAdapter
+
+log = logging.getLogger(__name__)
+
+MIN_MOCK_WEBHOOK_SECRET_LENGTH = 32
+_MOCK_ENVIRONMENTS = ("test", "development")
+
+_ADAPTERS: dict[str, CarrierAdapter] = {}
 
 # Placeholder entries — future implementations will replace these.
 # Accessing them raises NotImplementedError from the base class.
 _NOT_IMPLEMENTED = ("alopeyk", "post", "tipax", "local_courier", "chapar")
+
+
+def _truthy(value: str | None) -> bool:
+    return (value or "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def mock_carrier_allowed(app_env: str, environ: Mapping[str, str] | None = None) -> bool:
+    env = os.environ if environ is None else environ
+    if app_env in _MOCK_ENVIRONMENTS:
+        return True
+    if not _truthy(env.get("ALLOW_MOCK_CARRIER")):
+        return False
+    if app_env == "production" and not _truthy(env.get("DEMO_MODE")):
+        return False
+    return True
+
+
+def _mock_webhook_secret(app_env: str, environ: Mapping[str, str]) -> bytes | None:
+    raw = (environ.get("MOCK_CARRIER_WEBHOOK_SECRET") or "").strip()
+    if raw:
+        if len(raw) < MIN_MOCK_WEBHOOK_SECRET_LENGTH:
+            log.warning("MOCK_CARRIER_WEBHOOK_SECRET is shorter than %d characters; "
+                        "mock carrier webhooks stay disabled", MIN_MOCK_WEBHOOK_SECRET_LENGTH)
+            return None
+        return raw.encode("utf-8")
+    if app_env == "test":
+        return MOCK_WEBHOOK_SECRET
+    return None
+
+
+def configure(app_env: str, environ: Mapping[str, str] | None = None) -> None:
+    """(Re)build the adapter table for an environment.  Called by create_app()."""
+    env = os.environ if environ is None else environ
+    _ADAPTERS.clear()
+    if mock_carrier_allowed(app_env, env):
+        _ADAPTERS["mock"] = MockCarrierAdapter(webhook_secret=_mock_webhook_secret(app_env, env))
+        if app_env not in _MOCK_ENVIRONMENTS:
+            log.warning("mock carrier enabled explicitly (ALLOW_MOCK_CARRIER) in APP_ENV=%s", app_env)
+
+
+def mock_carrier_status() -> dict:
+    """Non-secret summary for health/preflight output."""
+    adapter = _ADAPTERS.get("mock")
+    return {
+        "enabled": adapter is not None,
+        "webhooks_enabled": bool(adapter is not None and getattr(adapter, "_webhook_secret", None)),
+    }
+
+
+# Import-time default (before create_app runs): follow APP_ENV, default development.
+configure(os.environ.get("APP_ENV", "development"))
 
 
 def get_carrier_adapter(provider_code: str) -> CarrierAdapter:

@@ -40,6 +40,20 @@ def _expected_head() -> str | None:
     return migrations[-1][0]
 
 
+def _runtime_modes() -> dict:
+    """Non-secret runtime switches an operator must be able to see at a glance."""
+    from app.adapters.logistics.registry import mock_carrier_status
+    from app.core.deps import get_settings
+    from app.services.checkout_service import card_payment_mode
+    settings = get_settings()
+    return {
+        "environment": settings.app_env,
+        "payment": {"card_provider": settings.payment_provider,
+                    "card_mode": card_payment_mode(settings.payment_provider)},
+        "mock_carrier": mock_carrier_status(),
+    }
+
+
 @bp.get("/health")
 def health():
     """Combined health check — backward compatible."""
@@ -52,6 +66,7 @@ def health():
                 "status": "ok",
                 "database": "reachable",
                 "schema_version": schema_version,
+                **_runtime_modes(),
             }
         )
     except Exception:

@@ -61,6 +61,10 @@ def config_checks() -> list[tuple[str, str, str]]:
     pay = os.environ.get("PAYMENT_PROVIDER", "mock")
     add(OK if pay == "sepehr" and os.environ.get("SEPEHR_TERMINAL_ID") else BLOCKER, "PAYMENT_PROVIDER",
         f"درگاه واقعی سپهر با شمارهٔ ترمینال (الان: {pay})")
+    add(BLOCKER if _on("ALLOW_MOCK_CARRIER") else OK, "ALLOW_MOCK_CARRIER",
+        "پیک آزمایشی (mock) فقط برای تست است و روی سایت اصلی باید خاموش باشد")
+    add(BLOCKER if os.environ.get("MOCK_CARRIER_WEBHOOK_SECRET") else OK, "MOCK_CARRIER_WEBHOOK_SECRET",
+        "کلید وب‌هوک پیک آزمایشی نباید روی سایت اصلی تنظیم شود")
     add(OK if _on("STOREFRONT_SALES_ENABLED") else WARN, "STOREFRONT_SALES_ENABLED", "خاموش = سایت فقط ویترین است و خرید ممکن نیست")
     add(OK if _on("LEGAL_REQUIRE_BUYER_TERMS") else BLOCKER, "LEGAL_REQUIRE_BUYER_TERMS", "پذیرش شرایط خرید باید در پرداخت ثبت شود")
     sms_ok = os.environ.get("SMS_PROVIDER") == "kavenegar" and os.environ.get("KAVENEGAR_API_KEY") and os.environ.get("KAVENEGAR_TEMPLATE")

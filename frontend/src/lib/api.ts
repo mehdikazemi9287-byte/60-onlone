@@ -393,8 +393,9 @@ export function goToPaymentGateway(redirect: PaymentRedirect): void {
 }
 
 export const checkout = {
-  quote: (token: string) =>
-    request<import("./types").CheckoutQuote>("/checkout/quote", { token }),
+  quote: (token: string, redeem_coins = 0) =>
+    request<import("./types").CheckoutQuote>(
+      "/checkout/quote" + (redeem_coins > 0 ? "?redeem_coins=" + redeem_coins : ""), { token }),
 
   welfare: (token: string) =>
     request<{ available: boolean; allowed_minor: number; remaining_minor: number }>("/checkout/welfare", { token }),
@@ -408,13 +409,14 @@ export const checkout = {
     payment_provider?: string,
     use_welfare?: boolean,
     proforma_number?: string,
+    redeem_coins?: number,
   ) =>
     request<CheckoutPlaced>("/checkout", {
       method: "POST",
       token,
       body: JSON.stringify({ shipping_address, payment_method, ...(accepted_terms_version ? { accepted_terms_version } : {}),
         ...(payment_provider ? { payment_provider } : {}), ...(use_welfare ? { use_welfare: true } : {}),
-        ...(proforma_number ? { proforma_number } : {}) }),
+        ...(proforma_number ? { proforma_number } : {}), ...(redeem_coins && redeem_coins > 0 ? { redeem_coins } : {}) }),
       headers: { "Idempotency-Key": idempotencyKey },
     }),
 };

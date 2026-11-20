@@ -109,14 +109,93 @@ function AddressStep({
 //    are real for this customer (has_organization_credit). Never offers a
 //    fake credit balance to a customer with none. ─────────────────────────
 
+// ── 60Coin redemption — balance from /me/loyalty; the amount is applied by
+//    re-quoting with ?redeem_coins= (the server validates balance and cap). ──
+
+// Mirrors loyalty_service: 1 coin = 10,000 Rials, at most 50% of the merchandise subtotal.
+const COIN_MINOR = 10_000;
+const COIN_MAX_SHARE = 0.5;
+
+function CoinRedeem({
+  token, quote, onApplied,
+}: {
+  token: string;
+  quote: CheckoutQuote;
+  onApplied: (coins: number, q: CheckoutQuote) => void;
+}) {
+  const [balance, setBalance] = useState<number | null>(null);
+  const [value, setValue] = useState(quote.redeem_coins ? String(quote.redeem_coins) : "");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    apiRequest<{ balance_coins: number }>("/me/loyalty", { token })
+      .then((r) => setBalance(r.balance_coins))
+      .catch(() => setBalance(null));
+  }, [token]);
+  if (!balance || balance <= 0) return null;
+  const gross = quote.cart.gross_subtotal_minor ?? quote.cart.subtotal_minor;
+  const max = Math.max(0, Math.min(balance, Math.floor((gross * COIN_MAX_SHARE) / COIN_MINOR)));
+  const apply = async (coins: number) => {
+    setBusy(true);
+    setMessage("");
+    try {
+      const q = await checkoutApi.quote(token, coins);
+      onApplied(coins, q);
+      setValue(coins ? String(coins) : "");
+      setMessage(coins ? `${toPersianNum(coins)} کوین اعمال شد.` : "استفاده از کوین لغو شد.");
+    } catch (err) {
+      setMessage(err instanceof ApiError ? err.message : "اعمال کوین ممکن نشد؛ دوباره تلاش کنید.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const n = Number(value);
+  const valid = value !== "" && Number.isSafeInteger(n) && n >= 0 && n <= max;
+  return (
+    <div className="card p-4 space-y-2 text-sm">
+      <p className="font-semibold text-neutral-900">استفاده از ۶۰کوین</p>
+      <p className="text-neutral-600">
+        موجودی شما: {toPersianNum(balance)} کوین · حداکثر قابل استفاده در این سفارش: {toPersianNum(max)} کوین
+        (هر کوین {formatPrice(COIN_MINOR)})
+      </p>
+      {max > 0 ? (
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex-1 min-w-[8rem]">
+            <span className="block text-xs text-neutral-500">تعداد کوین</span>
+            <input type="number" inputMode="numeric" min={0} max={max} step={1} value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="block w-full rounded-xl border border-neutral-200 p-2" />
+          </label>
+          <button type="button" disabled={busy || !valid} onClick={() => apply(n)}
+            className="rounded-xl bg-primary-600 px-4 py-2 font-semibold text-white disabled:opacity-60">اعمال</button>
+          <button type="button" disabled={busy} onClick={() => apply(max)}
+            className="rounded-xl border border-neutral-200 px-3 py-2">حداکثر</button>
+          {!!quote.redeem_coins && (
+            <button type="button" disabled={busy} onClick={() => apply(0)}
+              className="rounded-xl border border-neutral-200 px-3 py-2">حذف</button>
+          )}
+        </div>
+      ) : (
+        <p className="text-neutral-500">برای این سبد امکان استفاده از کوین نیست.</p>
+      )}
+      {!!quote.redeem_discount_minor && (
+        <p className="text-success-600">تخفیف ۶۰کوین: −{formatPrice(quote.redeem_discount_minor)}</p>
+      )}
+      {message && <p role="status" className="text-neutral-700">{message}</p>}
+    </div>
+  );
+}
+
 function PaymentStep({
-  quote, method, onMethod, onNext, onBack,
+  quote, method, onMethod, onNext, onBack, token, onCoins,
 }: {
   quote: CheckoutQuote;
   method: PaymentMethod;
   onMethod: (m: PaymentMethod) => void;
   onNext: () => void;
   onBack: () => void;
+  token: string;
+  onCoins: (coins: number, q: CheckoutQuote) => void;
 }) {
   const options = [
     {
@@ -184,6 +263,8 @@ function PaymentStep({
         ))}
       </div>
 
+      <CoinRedeem token={token} quote={quote} onApplied={onCoins} />
+
       {/* Real, server-computed breakdown for the currently selected method */}
       <div className={cn("card p-4 bg-neutral-50 space-y-2 text-sm", method === "card" && "hidden")}>
         <p className="font-semibold text-neutral-900 mb-1">تفکیک پرداخت</p>
@@ -220,7 +301,7 @@ function PaymentStep({
 //    of risking a double order. ──────────────────────────────────────────
 
 function ConfirmStep({
-  cart, quote, address, method, onBack, token,
+  cart, quote, address, method, onBack, token, redeemCoins,
 }: {
   cart: Cart;
   quote: CheckoutQuote;
@@ -228,6 +309,7 @@ function ConfirmStep({
   method: PaymentMethod;
   onBack: () => void;
   token: string;
+  redeemCoins: number;
 }) {
   const [placing, setPlacing] = useState(false);
   const [placedOrderNumber, setPlacedOrderNumber] = useState<string | null>(null);
@@ -243,14 +325,16 @@ function ConfirmStep({
   // Card gateway or an external credit provider (Tara pattern: the lender funds, we only accept).
   const [payOptions, setPayOptions] = useState<{ provider: string; kind: string; label: string; note?: string }[]>([]);
   const [provider, setProvider] = useState<string | null>(null);
+  // Card gateway state reported by the server: live (real bank), test (automated test harness), unavailable.
+  const [cardMode, setCardMode] = useState<"live" | "test" | "unavailable" | null>(null);
   // Exclusive funding (owner decision 2026-11-18): VandaPay carries the whole order, so the internal
   // welfare wallet cannot be combined with it — the server refuses use_welfare=true with VandaPay (422).
   const vandapaySelected = payOptions.some((o) => o.provider === provider && o.kind === "vandapay");
   const welfareApplied = useWelfare && !vandapaySelected;
   useEffect(() => { if (vandapaySelected) setUseWelfare(false); }, [vandapaySelected]);
   useEffect(() => {
-    apiRequest<{ options: { provider: string; kind: string; label: string; note?: string }[] }>("/checkout/payment-options")
-      .then((r) => setPayOptions(r.options)).catch(() => {});
+    apiRequest<{ options: { provider: string; kind: string; label: string; note?: string }[]; card_payment_mode?: "live" | "test" | "unavailable" }>("/checkout/payment-options")
+      .then((r) => { setPayOptions(r.options); setCardMode(r.card_payment_mode ?? null); }).catch(() => {});
   }, []);
   useEffect(() => {
     apiRequest<{ documents: { doc_key: string; version: string; url: string }[] }>("/legal/terms")
@@ -290,7 +374,7 @@ function ConfirmStep({
       const external = payOptions.find((o) => o.provider === provider && o.kind !== "card");
       let proforma: string | undefined;
       try { proforma = new URLSearchParams(window.location.search).get("proforma") ?? undefined; } catch {}
-      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, welfareApplied, proforma);
+      const placed = await checkoutApi.place(token, idempotencyKey, address, method, terms?.version, external?.provider, welfareApplied, proforma, redeemCoins);
       if (placed.payment_redirect) {
         // Pay on the bank page; the bank sends the customer back to the order or here with the result.
         setRedirecting(true);
@@ -354,6 +438,16 @@ function ConfirmStep({
           در حال انتقال به درگاه بانک…
         </p>
       )}
+      {cardMode === "test" && (
+        <div role="note" className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm leading-7 text-sky-900">
+          <b>پرداخت آزمایشی</b> — درگاه بانکی واقعی وصل نیست و هیچ مبلغی از کارت شما کسر نمی‌شود.
+        </div>
+      )}
+      {cardMode === "unavailable" && !boundary && (
+        <div role="note" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-7 text-amber-900">
+          <b>پرداخت آنلاین با کارت هنوز فعال نیست.</b> اگر روش دیگری فعال نباشد، می‌توانید همین سبد را به‌صورت «درخواست خرید» ثبت کنید.
+        </div>
+      )}
       {boundary && (
         <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900">
           <b className="block">پرداخت آنلاین هنوز فعال نیست</b>
@@ -400,6 +494,12 @@ function ConfirmStep({
           <span className="text-neutral-500">مالیات (٪{(quote.tax_rate_bps / 100).toFixed(0)})</span>
           <span className="tabular-nums">{formatPrice(quote.tax_minor)}</span>
         </div>
+        {!!quote.redeem_discount_minor && (
+          <div className="flex justify-between text-success-600">
+            <span>تخفیف ۶۰کوین ({toPersianNum(quote.redeem_coins ?? 0)} کوین، اعمال‌شده در جمع کالاها)</span>
+            <span className="tabular-nums">−{formatPrice(quote.redeem_discount_minor)}</span>
+          </div>
+        )}
         {!!quote.recurring_discount_minor && (
           <div className="flex justify-between text-success-600">
             <span>تخفیف خرید دوره‌ای (اعمال‌شده در جمع کالاها)</span>
@@ -507,6 +607,7 @@ export default function CheckoutPage() {
   const [method, setMethod] = useState<PaymentMethod>("card");
   const [cart, setCart] = useState<Cart | null>(null);
   const [quote, setQuote] = useState<CheckoutQuote | null>(null);
+  const [redeemCoins, setRedeemCoins] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [paymentResult, setPaymentResult] = useState<string | null>(null);
 
@@ -585,10 +686,11 @@ export default function CheckoutPage() {
             <AddressStep address={address} onChange={setAddress} onNext={() => setStep(1)} fieldErrors={{}} />
           )}
           {step === 1 && (
-            <PaymentStep quote={quote} method={method} onMethod={setMethod} onNext={() => setStep(2)} onBack={() => setStep(0)} />
+            <PaymentStep quote={quote} method={method} onMethod={setMethod} onNext={() => setStep(2)} onBack={() => setStep(0)}
+              token={token!} onCoins={(coins, q) => { setRedeemCoins(coins); setQuote(q); }} />
           )}
           {step === 2 && (
-            <ConfirmStep cart={cart} quote={quote} address={address} method={method} onBack={() => setStep(1)} token={token!} />
+            <ConfirmStep cart={cart} quote={quote} address={address} method={method} onBack={() => setStep(1)} token={token!} redeemCoins={redeemCoins} />
           )}
         </div>
 

@@ -42,7 +42,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     category: d.breadcrumbs.length ? d.breadcrumbs.map((b) => b.name_fa).join(" > ") : undefined,
     // Typed attributes (Phase 6) as schema.org PropertyValue pairs.
     additionalProperty: additionalProperty.length ? additionalProperty : undefined,
-    offers: priced.length ? priced.map((o) => ({ "@type": "Offer", priceCurrency: "IRR", price: o.price_minor! / 10, seller: { "@type": "Organization", name: o.seller },
+    // price_minor is an integer count of Rials (CURRENCY=IRR, exponent 0): publish it as IRR unchanged.
+    offers: priced.length ? priced.map((o) => ({ "@type": "Offer", priceCurrency: "IRR", price: o.price_minor!, seller: { "@type": "Organization", name: o.seller },
       availability: o.stock_state === "in_stock" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock" })) : undefined,
   };
   return (

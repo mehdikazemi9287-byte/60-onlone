@@ -36,3 +36,6 @@ class PreflightTest(AppTestCase):
         with mock.patch.dict(os.environ, {**good, "COMMERCE_TEST_MODE": "1", "CORS_ORIGINS": "http://localhost:3000"}, clear=True):
             bad = {k for lvl, k, _ in lp.config_checks() if lvl == lp.BLOCKER}
         self.assertEqual(bad, {"COMMERCE_TEST_MODE", "CORS_ORIGINS"})
+        with mock.patch.dict(os.environ, {**good, "ALLOW_MOCK_CARRIER": "1", "MOCK_CARRIER_WEBHOOK_SECRET": "s" * 40}, clear=True):
+            bad = {k for lvl, k, _ in lp.config_checks() if lvl == lp.BLOCKER}
+        self.assertEqual(bad, {"ALLOW_MOCK_CARRIER", "MOCK_CARRIER_WEBHOOK_SECRET"})

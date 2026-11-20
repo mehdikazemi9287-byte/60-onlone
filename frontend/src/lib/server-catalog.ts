@@ -48,3 +48,21 @@ export async function serverShop(slug: string): Promise<{ shop: import("./shops"
   if (!res.ok) throw new Error("دریافت اطلاعات غرفه ناموفق بود");
   return res.json();
 }
+export async function serverPack(slug: string): Promise<import("./storefront").PackDetail | null> {
+  const res = await fetch(origin + "/api/v1/storefront/packs/" + encodeURIComponent(slug), { cache: "no-store", signal: AbortSignal.timeout(10000) });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("دریافت اطلاعات پک ناموفق بود");
+  return ((await res.json()) as { pack: import("./storefront").PackDetail }).pack;
+}
+/** Published packs (public list). */
+export async function serverPacks(): Promise<{ slug: string }[]> {
+  const res = await fetch(origin + "/api/v1/storefront/packs", { cache: "no-store", signal: AbortSignal.timeout(10000) });
+  if (!res.ok) throw new Error("دریافت پک‌ها ناموفق بود");
+  return ((await res.json()) as { items: { slug: string }[] }).items;
+}
+/** Active, approved public shops (the API returns at most 200). */
+export async function serverShops(): Promise<{ slug: string | null }[]> {
+  const res = await fetch(origin + "/api/v1/shops", { cache: "no-store", signal: AbortSignal.timeout(10000) });
+  if (!res.ok) throw new Error("دریافت غرفه‌ها ناموفق بود");
+  return ((await res.json()) as { items: { slug: string | null }[] }).items;
+}

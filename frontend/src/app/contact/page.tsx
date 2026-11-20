@@ -1,5 +1,10 @@
-import { UnavailablePage } from "@/components/content/UnavailablePage";
+import { LegalCmsPage, legalMetadata } from "@/components/content/LegalCmsPage";
 
+// Text comes from the CMS page listed in lib/legal-pages.ts; nothing is hard-coded here.
+export const dynamic = "force-dynamic";
+export function generateMetadata() {
+  return legalMetadata("/contact");
+}
 export default function ContactPage() {
-  return <UnavailablePage title="تماس با ما" message="اطلاعات تماس رسمی هنوز برای انتشار در این وب‌سایت تأیید نشده است." />;
+  return <LegalCmsPage path="/contact" />;
 }

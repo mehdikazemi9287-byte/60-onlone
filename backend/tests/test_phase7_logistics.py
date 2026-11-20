@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.adapters.logistics.mock import MockCarrierAdapter, _hmac_sha256_hex
+from app.adapters.logistics.mock import MOCK_WEBHOOK_SECRET, MockCarrierAdapter, _hmac_sha256_hex
 from app.adapters.logistics.base import (
     CarrierAdapter,
     ShipmentCreateRequest,
@@ -32,7 +32,7 @@ from app.adapters.logistics.chapar import ChaparCarrierAdapter
 class TestMockCarrierAdapterPhase7(unittest.TestCase):
 
     def setUp(self):
-        self.adapter = MockCarrierAdapter()
+        self.adapter = MockCarrierAdapter(webhook_secret=MOCK_WEBHOOK_SECRET)
 
     def _make_create_request(self, key: str = "test-key-001") -> ShipmentCreateRequest:
         return ShipmentCreateRequest(

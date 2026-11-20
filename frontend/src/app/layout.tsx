@@ -17,7 +17,7 @@ const vazirmatn = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://60online.ir"),
-  alternates: { canonical: "/" },
+  // No site-wide canonical here: each indexable page declares its own, so pages never inherit "/".
   title: {
     default: "60Online | بازار جامع خرید ایران",
     template: "%s | 60Online",

@@ -27,7 +27,7 @@ from app.adapters.connectors.csv_connector import parse_csv_feed
 class TestWebhookSignatureVerification(unittest.TestCase):
 
     def setUp(self):
-        self.adapter = MockCarrierAdapter()
+        self.adapter = MockCarrierAdapter(webhook_secret=MOCK_WEBHOOK_SECRET)
 
     def _make_headers(self, body: bytes, event_id: str = "evt-001",
                       shipment_id: str = "MOCK-ABC123",

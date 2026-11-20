@@ -643,9 +643,24 @@ def _fail_attempt(
 
 # -------------------------------------------------------------------- entry
 def _mock_payments_allowed() -> bool:
-    """Mock captures exist only for the automated unit-test harness (APP_ENV=test)."""
+    """Mock captures exist only for the automated unit-test harness (APP_ENV=test).
+
+    There is deliberately no environment flag that enables mock captures on a
+    deployed server (staging or production): without a real gateway the card
+    checkout is refused with ``payment_gateway_unavailable``.
+    """
     from app.services.sale_eligibility import _test_override_enabled
     return _test_override_enabled()
+
+
+def card_payment_mode(provider_name: str) -> str:
+    """How the card gateway behaves right now (non-secret; shown in health and checkout):
+    ``live`` = a real gateway (Sepehr) is configured; ``test`` = mock captures in the
+    automated test harness only; ``unavailable`` = mock provider on a deployed server,
+    so card checkout is refused and no payment is simulated."""
+    if provider_name != "mock":
+        return "live"
+    return "test" if _mock_payments_allowed() else "unavailable"
 
 
 def checkout(

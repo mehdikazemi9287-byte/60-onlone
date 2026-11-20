@@ -1,5 +1,10 @@
-import { UnavailablePage } from "@/components/content/UnavailablePage";
+import { LegalCmsPage, legalMetadata } from "@/components/content/LegalCmsPage";
 
+// Text comes from the CMS page listed in lib/legal-pages.ts; nothing is hard-coded here.
+export const dynamic = "force-dynamic";
+export function generateMetadata() {
+  return legalMetadata("/terms");
+}
 export default function TermsPage() {
-  return <UnavailablePage title="شرایط استفاده" message="متن رسمی شرایط استفاده هنوز از سوی 60Online منتشر نشده است. این صفحه عمداً بدون متن حقوقی ساختگی نمایش داده می‌شود." />;
+  return <LegalCmsPage path="/terms" />;
 }

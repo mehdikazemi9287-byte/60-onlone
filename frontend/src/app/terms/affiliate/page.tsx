@@ -1,5 +1,10 @@
-import { UnavailablePage } from "@/components/content/UnavailablePage";
+import { LegalCmsPage, legalMetadata } from "@/components/content/LegalCmsPage";
 
+// Text comes from the CMS page listed in lib/legal-pages.ts; nothing is hard-coded here.
+export const dynamic = "force-dynamic";
+export function generateMetadata() {
+  return legalMetadata("/terms/affiliate");
+}
 export default function AffiliateTermsPage() {
-  return <UnavailablePage title="قوانین همکاری در فروش" message="متن رسمی قوانین همکاری در فروش (نرخ کمیسیون، مهلت قابل‌برداشت شدن، شرط شبا و کد ملی به نام خود همکار، کسر مالیات و موارد لغو) پس از تأیید مشاور حقوقی منتشر می‌شود." />;
+  return <LegalCmsPage path="/terms/affiliate" />;
 }

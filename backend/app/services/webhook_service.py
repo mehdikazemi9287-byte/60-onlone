@@ -44,7 +44,6 @@ _STATUS_RANK: dict[str, int] = {
     "failed":           5,
 }
 
-KNOWN_PROVIDERS = set(list_provider_codes())
 
 
 def process_webhook(
@@ -64,7 +63,7 @@ def process_webhook(
     prevent the carrier from retrying indefinitely.  Failures are logged.
     """
     # 1. Unknown provider — reject before touching DB
-    if provider_code not in KNOWN_PROVIDERS:
+    if provider_code not in set(list_provider_codes()):
         log.warning("webhook: unknown provider_code=%r", provider_code)
         return {"outcome": "rejected", "reason": "unknown_provider"}
 
