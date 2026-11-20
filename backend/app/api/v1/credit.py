@@ -60,6 +60,8 @@ def checkout_quote():
         redeem_coins = int(raw_redeem) if raw_redeem not in (None, "") else 0
     except (TypeError, ValueError) as exc:
         raise ValidationError("redeem_coins باید عدد صحیح باشد") from exc
+    from app.services import shopping_mode
     return jsonify(quote_service.get_quote(
         get_db(), user_id=current_user()["id"], exponent=_exp(), redeem_coins=redeem_coins,
+        mode=shopping_mode.from_request(request.get_json(silent=True) if request.is_json else None),
     ))

@@ -59,6 +59,7 @@ from app.services import (
     order_service,
     payment_service,
     quote_service,
+    shopping_mode,
     welfare_wallet_service,
 )
 from app.services.integration_event_service import fan_out_business_event
@@ -110,17 +111,28 @@ def _new_order_number(conn: sqlite3.Connection) -> str:
 
 
 def validate_address(address: dict) -> dict:
+    from app.services.address_book_service import normalize_digits, normalize_postal_code
     errors, cleaned = {}, {}
     for field in REQUIRED_ADDRESS_FIELDS:
         value = (address.get(field) or "").strip() if isinstance(address, dict) else ""
         if not value:
             errors[field] = "این فیلد الزامی است"
         cleaned[field] = value
+    # Persian/Arabic digits are stored as ASCII so the phone is usable by couriers and SMS.
+    cleaned["recipient_phone"] = normalize_digits(cleaned["recipient_phone"]).strip()
     if not errors and len(cleaned["recipient_phone"]) < 8:
         errors["recipient_phone"] = "شماره تماس معتبر نیست"
+    raw_postal = address.get("postal_code") if isinstance(address, dict) else None
+    if isinstance(raw_postal, int) and not isinstance(raw_postal, bool):
+        raw_postal = str(raw_postal)
+    postal = normalize_digits(raw_postal if isinstance(raw_postal, str) else "").strip()
+    if postal:
+        try:
+            postal = normalize_postal_code(postal)
+        except ValidationError:
+            errors["postal_code"] = "کد پستی باید ۱۰ رقم باشد"
     if errors:
         raise ValidationError("آدرس ارسال ناقص است", details=errors)
-    postal = (address.get("postal_code") or "").strip() if isinstance(address, dict) else ""
     cleaned["postal_code"] = postal or None
     return cleaned
 
@@ -153,7 +165,7 @@ def _store_idempotent_result(
 def _begin_attempt(
     db: Database, *, user_id: int, cleaned_address: dict, idempotency_key: str,
     payload_hash: str, exponent: int, ip_address: str | None, redeem_coins: int = 0, use_welfare: bool = False,
-    funding_source: str = FUNDING_INTERNAL,
+    funding_source: str = FUNDING_INTERNAL, mode: str = shopping_mode.PERSONAL,
 ) -> tuple[int, dict] | tuple[None, tuple[int, dict]]:
     """Reserve everything and commit. Returns (intent_id, quote) or a replayed response."""
     with db.write_transaction() as conn:
@@ -196,14 +208,16 @@ def _begin_attempt(
                 (idempotency_key, user_id, ENDPOINT),
             )
 
-        cart = cart_service.read_cart(conn, user_id, exponent)
+        # Only the active shopping mode's cart is ever checked out (migration 0084); access is re-checked here.
+        shopping_mode.require(conn, user_id, mode)
+        cart = cart_service.read_cart(conn, user_id, exponent, mode)
         if not cart["items"]:
             raise ValidationError("سبد خرید خالی است", code="cart_empty")
 
         # Server-authoritative split. Recomputed here, inside the transaction —
         # a quote the client saw earlier is never trusted.
         quote = quote_service.build_quote(
-            conn, user_id=user_id, exponent=exponent, redeem_coins=redeem_coins,
+            conn, user_id=user_id, exponent=exponent, redeem_coins=redeem_coins, mode=mode,
         )
 
         for item in cart["items"]:
@@ -277,7 +291,7 @@ def _begin_attempt(
         # Applied first (restricted, expiring money), then credit, then card. The welfare share stays inside
         # cash_minor (total = credit + cash) but is owed by the organization: card = cash - welfare.
         welfare_minor, welfare_membership = 0, None
-        if use_welfare and funding_source == FUNDING_INTERNAL:
+        if use_welfare and funding_source == FUNDING_INTERNAL and shopping_mode.employer_funding_allowed(mode):
             welfare_membership, allowed = welfare_wallet_service.best_membership(conn, user_id, lines)
             total = int(quote["cart"]["total_minor"])
             welfare_minor = min(allowed, total)
@@ -292,6 +306,7 @@ def _begin_attempt(
             conn, user_id=user_id, idempotency_key=idempotency_key, request_hash=payload_hash,
             quote=quote, address=cleaned_address, lines=lines,
         )
+        conn.execute("UPDATE payment_intents SET shopping_mode = ? WHERE id = ?", (mode, intent_id))
         if quote.get("recurring_discount_minor"):
             conn.execute("UPDATE payment_intents SET recurring_run_id = ?, recurring_discount_minor = ? WHERE id = ?",
                          (quote["recurring_run_id"], quote["recurring_discount_minor"], intent_id))
@@ -337,7 +352,7 @@ def _begin_attempt(
                       "credit_minor": quote["credit_to_use_minor"],
                       "cash_minor": quote["cash_due_minor"],
                       "organization_id": (quote.get("organization") or {}).get("id"),
-                      "funding_source": funding_source},
+                      "funding_source": funding_source, "shopping_mode": mode},
             ip_address=ip_address,
         )
         return intent_id, quote
@@ -397,6 +412,8 @@ def _complete_attempt(
              redeem_coins, redeem_discount_minor),
         )
         order_id = int(cursor.lastrowid)
+        intent_mode = dict(intent).get("shopping_mode") or shopping_mode.PERSONAL  # NULL = intent made before 0084
+        conn.execute("UPDATE orders SET shopping_mode = ? WHERE id = ?", (intent_mode, order_id))
         if welfare_minor:
             conn.execute("UPDATE orders SET welfare_minor = ? WHERE id = ?", (welfare_minor, order_id))
         recurring_discount = int(dict(intent).get("recurring_discount_minor") or 0)
@@ -472,11 +489,10 @@ def _complete_attempt(
             provider_ref=payment_result.provider_ref if payment_result else f"credit:{intent['reference']}",
         )
 
-        active_cart = conn.execute(
-            "SELECT id FROM carts WHERE user_id = ? AND status = 'active'", (user_id,)
-        ).fetchone()
+        # Close only the cart of the mode that was checked out; the other modes' carts are untouched.
+        active_cart = cart_service.active_cart_id(conn, user_id, intent_mode)
         if active_cart is not None:
-            conn.execute("UPDATE carts SET status = 'ordered' WHERE id = ?", (active_cart["id"],))
+            conn.execute("UPDATE carts SET status = 'ordered' WHERE id = ?", (active_cart,))
 
         audit_service.record(
             conn, action="order.placed", entity_type="order", entity_id=order_id,
@@ -677,8 +693,11 @@ def checkout(
     redeem_coins: int = 0,
     callback_url: str | None = None,
     use_welfare: bool = False,
+    mode: str = shopping_mode.PERSONAL,
 ) -> tuple[int, dict]:
     """Returns (http_status, response_body).
+
+    ``mode`` is the shopping mode whose cart is checked out (default personal = backward compatible).
 
     With a redirect gateway (Sepehr) and cash to pay, returns 202 with ``payment_redirect``:
     the order is created later by ``complete_redirect_payment`` when the bank returns.
@@ -691,6 +710,12 @@ def checkout(
     if not isinstance(redeem_coins, int) or isinstance(redeem_coins, bool) or redeem_coins < 0:
         raise ValidationError("redeem_coins باید عدد صحیح نامنفی باشد")
 
+    mode = shopping_mode.parse(mode)
+    if use_welfare and not shopping_mode.employer_funding_allowed(mode):
+        raise ValidationError(
+            "کیف پول رفاهی فقط در حالت خرید «پرسنل سازمان» قابل استفاده است.",
+            code="welfare_not_in_mode", details={"shopping_mode": mode},
+        )
     funding_source = funding_source_for(payment_provider_name)
     if funding_source == FUNDING_VANDAPAY and use_welfare:
         raise ValidationError(
@@ -704,12 +729,14 @@ def checkout(
     payload_hash = _request_hash({
         "address": cleaned_address, "method": payment_method, "redeem_coins": redeem_coins,
         **({"use_welfare": True} if use_welfare else {}),
+        # Personal keeps the pre-0084 hash so an in-flight key from before the upgrade still replays.
+        **({"shopping_mode": mode} if mode != shopping_mode.PERSONAL else {}),
     })
     if payment_provider_name == "mock" and not _mock_payments_allowed():
         # Payment boundary: without a real gateway no charge, capture or paid order is ever simulated.
         # Cart problems (unverified/ineligible items) are reported first, as they would be at a real gateway.
         with db.write_transaction() as conn:
-            cart_service.read_cart(conn, user_id, exponent)
+            cart_service.read_cart(conn, user_id, exponent, mode)
         raise ConflictError(
             "درگاه پرداخت آنلاین هنوز متصل نیست؛ پرداخت انجام نشد. می‌توانید سبد را به‌صورت درخواست خرید ثبت کنید.",
             code="payment_gateway_unavailable", details={"alternative": "purchase_request"},
@@ -725,7 +752,7 @@ def checkout(
     intent_id, quote_or_replay = _begin_attempt(
         db, user_id=user_id, cleaned_address=cleaned_address, idempotency_key=idempotency_key,
         payload_hash=payload_hash, exponent=exponent, ip_address=ip_address,
-        redeem_coins=redeem_coins, use_welfare=bool(use_welfare), funding_source=funding_source,
+        redeem_coins=redeem_coins, use_welfare=bool(use_welfare), funding_source=funding_source, mode=mode,
     )
     if intent_id is None:
         return quote_or_replay  # replayed a completed attempt

@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 
 from app.core.deps import current_user, get_db, get_settings, require_auth
 from app.core.errors import ValidationError
-from app.services import cart_service
+from app.services import cart_service, shopping_mode
 
 bp = Blueprint("cart", __name__, url_prefix="/api/v1/cart")
 
@@ -28,9 +28,17 @@ def _require_int(body: dict, field: str) -> int:
 def get_cart():
     return jsonify(
         cart_service.get_cart(
-            get_db(), user_id=current_user()["id"], exponent=get_settings().currency_exponent
+            get_db(), user_id=current_user()["id"], exponent=get_settings().currency_exponent,
+            mode=shopping_mode.from_request(),
         )
     )
+
+
+@bp.get("/summary")
+@require_auth("customer")
+def cart_summary():
+    """Item count of each shopping mode's cart. Never creates a cart."""
+    return jsonify(cart_service.summary(get_db(), user_id=current_user()["id"]))
 
 
 @bp.post("/items")
@@ -44,6 +52,7 @@ def add_item():
                 user_id=current_user()["id"],
                 product_id=_require_int(body, "product_id"),
                 quantity=_require_int(body, "quantity"),
+                mode=shopping_mode.from_request(body),
             )
         ),
         201,
@@ -60,6 +69,7 @@ def update_item(product_id: int):
             user_id=current_user()["id"],
             product_id=product_id,
             quantity=_require_int(body, "quantity"),
+            mode=shopping_mode.from_request(body),
         )
     )
 
@@ -68,11 +78,12 @@ def update_item(product_id: int):
 @require_auth("customer")
 def remove_item(product_id: int):
     return jsonify(
-        cart_service.remove_item(get_db(), user_id=current_user()["id"], product_id=product_id)
+        cart_service.remove_item(get_db(), user_id=current_user()["id"], product_id=product_id,
+                                 mode=shopping_mode.from_request())
     )
 
 
 @bp.delete("")
 @require_auth("customer")
 def clear():
-    return jsonify(cart_service.clear_cart(get_db(), user_id=current_user()["id"]))
+    return jsonify(cart_service.clear_cart(get_db(), user_id=current_user()["id"], mode=shopping_mode.from_request()))

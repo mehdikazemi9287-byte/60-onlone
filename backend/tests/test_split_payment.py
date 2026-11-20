@@ -308,11 +308,15 @@ class CreditEligibilityCheckoutTest(SplitPaymentBase):
         org, org_admin, _, employee = self.org_fixture(credit_minor=50_000_000)
         self.client.patch(f"/api/v1/organizations/{org['id']}",
                           json={"status": "suspended"}, headers=org_admin)
-        self.fill_cart(employee["headers"])
-        quote = self.quote(employee["headers"])
+        # Since 0084 a suspended organization also closes the «پرسنل سازمان» mode itself (server-checked);
+        # the same person still buys in personal mode, paying everything in cash, never with the org credit.
+        staff = self.client.get("/api/v1/checkout/quote", headers=employee["headers"])
+        self.assertEqual((staff.status_code, staff.get_json()["error"]["code"]), (403, "shopping_mode_not_allowed"))
+        personal = {"Authorization": employee["headers"]["Authorization"]}
+        self.fill_cart(personal)
+        quote = self.quote(personal)
         self.assertEqual(quote["credit_to_use_minor"], 0)
-        self.assertIn("organization_not_active", [r["code"] for r in quote["restrictions"]])
-        order = self.checkout(employee["headers"]).get_json()["order"]
+        order = self.checkout(personal).get_json()["order"]
         # v6: VAT-inclusive total all paid in cash when org is suspended
         self.assertEqual(order["cash_minor"], self.CART_TOTAL_WITH_TAX)
 
@@ -322,10 +326,14 @@ class CreditEligibilityCheckoutTest(SplitPaymentBase):
             f"/api/v1/organizations/{org['id']}/members/{employee['id']}",
             json={"status": "inactive"}, headers=org_admin,
         )
-        self.fill_cart(employee["headers"])
-        quote = self.quote(employee["headers"])
-        self.assertEqual(quote["credit_to_use_minor"], 0)
-        self.assertIn("membership_inactive", [r["code"] for r in quote["restrictions"]])
+        # Since 0084 an inactive membership closes the «پرسنل سازمان» mode (server-checked); in personal mode
+        # the employer credit is never offered.
+        staff = self.client.get("/api/v1/checkout/quote", headers=employee["headers"])
+        self.assertEqual((staff.status_code, staff.get_json()["error"]["code"]), (403, "shopping_mode_not_allowed"))
+        personal = {"Authorization": employee["headers"]["Authorization"]}
+        self.fill_cart(personal)
+        quote = self.quote(personal)
+        self.assertEqual((quote["credit_to_use_minor"], quote["has_organization_credit"]), (0, False))
 
     def test_per_transaction_limit_caps_credit(self):
         org = self.create_organization()
@@ -608,7 +616,7 @@ class CreditRaceConditionTest(SplitPaymentBase):
                 status, _ = checkout_service.checkout(
                     self.db, user_id=user_id, user_email=employee["email"],
                     address=self.DEFAULT_ADDRESS, idempotency_key=uuid.uuid4().hex,
-                    payment_provider_name="mock",
+                    payment_provider_name="mock", mode="staff",  # the employee's staff cart
                 )
                 results.append(status)
             except ApiError as exc:

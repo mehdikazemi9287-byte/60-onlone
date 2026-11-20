@@ -277,11 +277,13 @@ def admin_catalog_visibility(master_product_id: int):
 @bp.post("/cart/packs/<slug>")
 @require_auth()
 def cart_add_pack(slug: str):
-    from app.services import cart_service
+    from app.services import cart_service, shopping_mode
     # Idempotent: a retry/double click with the same Idempotency-Key does not add the pack twice.
-    count = (request.get_json(silent=True) or {}).get("count", 1)
+    body = request.get_json(silent=True) or {}
+    count = body.get("count", 1)
     return jsonify(cart_service.add_pack(get_db(), user_id=current_user()["id"], slug=slug, count=count,
-                                         idempotency_key=request.headers.get("Idempotency-Key"), endpoint=request.path))
+                                         idempotency_key=request.headers.get("Idempotency-Key"), endpoint=request.path,
+                                         mode=shopping_mode.from_request(body if isinstance(body, dict) else None)))
 
 
 # ── Phase 2: Buy Box — all seller offers for a product and the winner ──

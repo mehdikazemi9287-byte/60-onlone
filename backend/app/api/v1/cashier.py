@@ -98,7 +98,9 @@ def recurring_status(list_id: int, action: str):
 def recurring_to_cart(list_id: int, run_id: int):
     """Confirm a recurring pre-invoice: the cart becomes the list; checkout applies the subscription discount."""
     with get_db().write_transaction() as conn:
-        return jsonify(recurring_service.to_cart(conn, user_id=current_user()["id"], list_id=list_id, run_id=run_id))
+        from app.services import shopping_mode
+        return jsonify(recurring_service.to_cart(conn, user_id=current_user()["id"], list_id=list_id, run_id=run_id,
+                                                 mode=shopping_mode.from_request()))
 
 
 @bp.get("/me/recurring/<int:list_id>/quote")

@@ -63,6 +63,8 @@ _RULES: tuple[tuple[str, frozenset[str] | None, frozenset[str]], ...] = (
     ("/api/v1/admin/cashier/recurring", None, frozenset({F})),
     ("/api/v1/tax", None, frozenset({F})),
     ("/api/v1/admin/returns/<int:return_id>/refund-split", READ, frozenset({F, S})),
+    ("/api/v1/admin/order-refunds", READ, frozenset({F, S})),
+    ("/api/v1/admin/order-refunds", None, frozenset({F})),
     # Marketing
     ("/api/v1/admin/partner-discounts", None, frozenset({M})),
     ("/api/v1/loyalty/earn", None, frozenset({M})),

@@ -12,7 +12,7 @@ import sqlite3
 from app.core.db import Database
 from app.core.errors import ConflictError, NotFoundError, OutOfStockError, ValidationError
 from app.core.money import format_minor
-from app.services import sale_eligibility
+from app.services import sale_eligibility, shopping_mode
 
 MAX_LINE_QUANTITY = 20
 SHIPPING_FLAT_MINOR = 350_000  # 35,000 Toman expressed in IRR minor units
@@ -29,13 +29,22 @@ def _first_image_url(raw: str | None) -> str | None:
     return urls[0] if isinstance(urls, list) and urls else None
 
 
-def get_or_create_active_cart_id(conn: sqlite3.Connection, user_id: int) -> int:
+def active_cart_id(conn: sqlite3.Connection, user_id: int, mode: str = shopping_mode.PERSONAL) -> int | None:
+    """The user's active cart for one shopping mode (migration 0084: one per user AND mode), or None."""
     row = conn.execute(
-        "SELECT id FROM carts WHERE user_id = ? AND status = 'active'", (user_id,)
+        "SELECT id FROM carts WHERE user_id = ? AND status = 'active' AND shopping_mode = ?", (user_id, mode)
     ).fetchone()
-    if row is not None:
-        return int(row["id"])
-    cursor = conn.execute("INSERT INTO carts (user_id, status) VALUES (?, 'active')", (user_id,))
+    return int(row["id"]) if row is not None else None
+
+
+def get_or_create_active_cart_id(conn: sqlite3.Connection, user_id: int,
+                                 mode: str = shopping_mode.PERSONAL) -> int:
+    mode = shopping_mode.parse(mode)
+    cart_id = active_cart_id(conn, user_id, mode)
+    if cart_id is not None:
+        return cart_id
+    cursor = conn.execute("INSERT INTO carts (user_id, status, shopping_mode) VALUES (?, 'active', ?)",
+                          (user_id, mode))
     return int(cursor.lastrowid)
 
 
@@ -65,12 +74,14 @@ def _check_quantity(offer, quantity: int) -> None:
         raise ValidationError(f"حداکثر سفارش این کالا {offer['max_order_quantity']} عدد است")
 
 
-def add_item(db: Database, *, user_id: int, product_id: int, quantity: int) -> dict:
+def add_item(db: Database, *, user_id: int, product_id: int, quantity: int,
+             mode: str = shopping_mode.PERSONAL) -> dict:
     if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity < 1:
         raise ValidationError("تعداد باید عدد صحیح و حداقل ۱ باشد")
     with db.write_transaction() as conn:
+        shopping_mode.require(conn, user_id, mode)
         product, offer = _load_product(conn, product_id)
-        cart_id = get_or_create_active_cart_id(conn, user_id)
+        cart_id = get_or_create_active_cart_id(conn, user_id, mode)
         existing = conn.execute(
             "SELECT quantity FROM cart_items WHERE cart_id = ? AND product_id = ?",
             (cart_id, product_id),
@@ -90,14 +101,18 @@ def add_item(db: Database, *, user_id: int, product_id: int, quantity: int) -> d
             (cart_id, product_id, new_quantity, sale_eligibility.unit_price(conn, offer, new_quantity), offer["id"] or None),
         )
         conn.execute("UPDATE carts SET updated_at = datetime('now') WHERE id = ?", (cart_id,))
-    return get_cart(db, user_id=user_id)
+    return get_cart(db, user_id=user_id, mode=mode)
 
 
-def set_item_quantity(db: Database, *, user_id: int, product_id: int, quantity: int) -> dict:
+def set_item_quantity(db: Database, *, user_id: int, product_id: int, quantity: int,
+                      mode: str = shopping_mode.PERSONAL) -> dict:
     if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity < 0:
         raise ValidationError("تعداد باید عدد صحیح و غیرمنفی باشد")
     with db.write_transaction() as conn:
-        cart_id = get_or_create_active_cart_id(conn, user_id)
+        if quantity > 0:
+            # Removing a line is always allowed (a user who lost a membership can still empty that cart).
+            shopping_mode.require(conn, user_id, mode)
+        cart_id = get_or_create_active_cart_id(conn, user_id, mode)
         if quantity == 0:
             conn.execute(
                 "DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?", (cart_id, product_id)
@@ -116,18 +131,19 @@ def set_item_quantity(db: Database, *, user_id: int, product_id: int, quantity: 
             if updated.rowcount == 0:
                 raise NotFoundError("این کالا در سبد شما نیست", code="cart_item_not_found")
         conn.execute("UPDATE carts SET updated_at = datetime('now') WHERE id = ?", (cart_id,))
-    return get_cart(db, user_id=user_id)
+    return get_cart(db, user_id=user_id, mode=mode)
 
 
-def remove_item(db: Database, *, user_id: int, product_id: int) -> dict:
-    return set_item_quantity(db, user_id=user_id, product_id=product_id, quantity=0)
+def remove_item(db: Database, *, user_id: int, product_id: int, mode: str = shopping_mode.PERSONAL) -> dict:
+    return set_item_quantity(db, user_id=user_id, product_id=product_id, quantity=0, mode=mode)
 
 
-def clear_cart(db: Database, *, user_id: int) -> dict:
+def clear_cart(db: Database, *, user_id: int, mode: str = shopping_mode.PERSONAL) -> dict:
     with db.write_transaction() as conn:
-        cart_id = get_or_create_active_cart_id(conn, user_id)
-        conn.execute("DELETE FROM cart_items WHERE cart_id = ?", (cart_id,))
-    return get_cart(db, user_id=user_id)
+        cart_id = active_cart_id(conn, user_id, shopping_mode.parse(mode))
+        if cart_id is not None:
+            conn.execute("DELETE FROM cart_items WHERE cart_id = ?", (cart_id,))
+    return get_cart(db, user_id=user_id, mode=mode)
 
 
 def shipping_fee_minor(subtotal_minor: int) -> int:
@@ -136,9 +152,16 @@ def shipping_fee_minor(subtotal_minor: int) -> int:
     return 0 if subtotal_minor >= FREE_SHIPPING_THRESHOLD_MINOR else SHIPPING_FLAT_MINOR
 
 
-def read_cart(conn: sqlite3.Connection, user_id: int, exponent: int = 0) -> dict:
-    """Cart projection. Totals are integer sums -- no float anywhere."""
-    cart_id = get_or_create_active_cart_id(conn, user_id)
+def read_cart(conn: sqlite3.Connection, user_id: int, exponent: int = 0,
+              mode: str = shopping_mode.PERSONAL) -> dict:
+    """Cart projection of ONE shopping mode's cart. Totals are integer sums -- no float anywhere.
+
+    A mode the user may not use is read without creating a cart (read-only view, ``mode_access.allowed``
+    false); every write, quote and checkout of that mode is refused elsewhere."""
+    mode = shopping_mode.parse(mode)
+    state = shopping_mode.access(conn, user_id, mode)
+    cart_id = (get_or_create_active_cart_id(conn, user_id, mode) if state["allowed"]
+               else active_cart_id(conn, user_id, mode))
     rows = conn.execute(
         """
         SELECT ci.product_id, ci.quantity, ci.unit_price_minor,
@@ -152,7 +175,7 @@ def read_cart(conn: sqlite3.Connection, user_id: int, exponent: int = 0) -> dict
         ORDER BY ci.id
         """,
         (cart_id,),
-    ).fetchall()
+    ).fetchall() if cart_id is not None else []
 
     items = []
     subtotal = 0
@@ -196,27 +219,47 @@ def read_cart(conn: sqlite3.Connection, user_id: int, exponent: int = 0) -> dict
         "total": format_minor(subtotal + shipping, exponent),
         "total_minor": subtotal + shipping,
         "currency": "IRR",
+        "shopping_mode": mode,
+        "mode_access": {"allowed": state["allowed"], "reason": state["reason"]},
     }
 
 
-def get_cart(db: Database, *, user_id: int, exponent: int = 0) -> dict:
+def get_cart(db: Database, *, user_id: int, exponent: int = 0, mode: str = shopping_mode.PERSONAL) -> dict:
     with db.write_transaction() as conn:
-        return read_cart(conn, user_id, exponent)
+        return read_cart(conn, user_id, exponent, mode)
 
 
-def add_pack(db: Database, *, user_id: int, slug: str, count: int, idempotency_key: str | None = None, endpoint: str = "") -> dict:
+def summary(db: Database, *, user_id: int) -> dict:
+    """Item count of every mode's cart (for a badge per mode). Read-only: never creates a cart."""
+    with db.read_transaction() as conn:
+        rows = conn.execute(
+            """SELECT c.shopping_mode, COALESCE(SUM(ci.quantity), 0) AS n FROM carts c
+               LEFT JOIN cart_items ci ON ci.cart_id = c.id
+               WHERE c.user_id = ? AND c.status = 'active' GROUP BY c.shopping_mode""", (user_id,)).fetchall()
+        counts = {m: 0 for m in shopping_mode.MODES}
+        for r in rows:
+            counts[r["shopping_mode"]] = int(r["n"])
+        return {"modes": [{"shopping_mode": m, "label": shopping_mode.LABELS[m], "item_count": counts[m],
+                           **{k: v for k, v in shopping_mode.access(conn, user_id, m).items()
+                              if k in ("allowed", "reason")}} for m in shopping_mode.MODES]}
+
+
+def add_pack(db: Database, *, user_id: int, slug: str, count: int, idempotency_key: str | None = None, endpoint: str = "",
+             mode: str = shopping_mode.PERSONAL) -> dict:
     """Add every component of a sellable pack in ONE transaction: all lines or none.
     Components use the same verified offers, stock, MOQ and prices as single-item sales; stock is reserved
     at checkout per offer, so pack and single sales compete for the same units."""
     from app.services import pack_service
     if not isinstance(count, int) or isinstance(count, bool) or not 1 <= count <= 1000:
         raise ValidationError("تعداد پک نامعتبر است")
+    # Personal keeps the pre-0084 hash so replays of keys stored before the upgrade still match.
+    request_hash = f"{slug}:{count}" if mode == shopping_mode.PERSONAL else f"{slug}:{count}:{mode}"
     with db.write_transaction() as conn:  # BEGIN IMMEDIATE: key check, all lines and key store are one unit
         if idempotency_key:
             done = conn.execute("SELECT response_json, request_hash FROM idempotency_keys WHERE key=? AND user_id=? AND endpoint=?",
                                 (idempotency_key, user_id, endpoint)).fetchone()
             if done:
-                if done["request_hash"] != f"{slug}:{count}":
+                if done["request_hash"] != request_hash:
                     raise ConflictError("این شناسه قبلاً برای درخواست دیگری استفاده شده است", code="idempotency_conflict")
                 return json.loads(done["response_json"])
         pack = pack_service.detail(conn, slug)
@@ -225,7 +268,8 @@ def add_pack(db: Database, *, user_id: int, slug: str, count: int, idempotency_k
         if pack["availability"] != "purchasable":
             raise ConflictError("این پک هنوز قیمت و موجودی تأییدشده برای همه اقلام ندارد؛ از مسیر استعلام استفاده کنید",
                                 code="pack_not_sellable")
-        cart_id = get_or_create_active_cart_id(conn, user_id)
+        shopping_mode.require(conn, user_id, mode)
+        cart_id = get_or_create_active_cart_id(conn, user_id, mode)
         for it in pack["items"]:
             if not it["required"] and not it["available"]:
                 continue
@@ -239,8 +283,8 @@ def add_pack(db: Database, *, user_id: int, slug: str, count: int, idempotency_k
                             unit_price_minor=excluded.unit_price_minor, offer_id=excluded.offer_id""",
                          (cart_id, it["sku_id"], qty, sale_eligibility.unit_price(conn, offer, qty), offer["id"] or None))
         conn.execute("UPDATE carts SET updated_at = datetime('now') WHERE id = ?", (cart_id,))
-        cart = read_cart(conn, user_id)
+        cart = read_cart(conn, user_id, mode=mode)
         if idempotency_key:
             conn.execute("""INSERT INTO idempotency_keys (key, user_id, endpoint, request_hash, response_json, status_code)
-                            VALUES (?,?,?,?,?,200)""", (idempotency_key, user_id, endpoint, f"{slug}:{count}", json.dumps(cart, ensure_ascii=False)))
+                            VALUES (?,?,?,?,?,200)""", (idempotency_key, user_id, endpoint, request_hash, json.dumps(cart, ensure_ascii=False)))
     return cart

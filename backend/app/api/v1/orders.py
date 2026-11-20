@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, redirect, request
 
 from app.core.deps import client_ip, current_user, get_db, get_settings, require_auth
 from app.core.errors import ValidationError
-from app.services import checkout_service, fulfillment_service, order_service
+from app.services import checkout_service, fulfillment_service, order_service, shopping_mode
 
 bp = Blueprint("orders", __name__, url_prefix="/api/v1")
 
@@ -51,12 +51,13 @@ def checkout():
         if not isinstance(proforma, str) or len(proforma) > 40:
             raise ValidationError("شمارهٔ پیش‌فاکتور نامعتبر است")
         with get_db().write_transaction() as conn:
-            proforma_service.guard_checkout(conn, user_id=user["id"], number=proforma)
+            proforma_service.guard_checkout(conn, user_id=user["id"], number=proforma,
+                                            mode=shopping_mode.from_request(body))
     status, payload = checkout_service.checkout(
         get_db(),
         user_id=user["id"],
         user_email=user["email"],
-        address=body.get("shipping_address") or {},
+        address=_shipping_address(body, user["id"]),
         idempotency_key=request.headers.get("Idempotency-Key", ""),
         payment_provider_name=provider_name,
         payment_method=body.get("payment_method", "card"),
@@ -65,6 +66,7 @@ def checkout():
         redeem_coins=redeem_coins,
         callback_url=_callback_url(settings, provider_name),
         use_welfare=body.get("use_welfare") is True,
+        mode=shopping_mode.from_request(body),
     )
     if status == 202:  # pay on the bank page first; the order is created on return
         return jsonify(payload), status
@@ -80,7 +82,8 @@ def checkout():
 def create_proforma():
     from app.services import proforma_service
     with get_db().write_transaction() as conn:
-        return jsonify(proforma_service.create(conn, user_id=current_user()["id"])), 201
+        return jsonify(proforma_service.create(conn, user_id=current_user()["id"],
+                                               mode=shopping_mode.from_request(request.get_json(silent=True)))), 201
 
 
 @bp.get("/me/proformas")
@@ -106,6 +109,15 @@ def get_proforma(number: str):
     from app.services import proforma_service
     with get_db().read_transaction() as conn:
         return jsonify(proforma_service.get(conn, user_id=current_user()["id"], number=number))
+
+
+def _shipping_address(body: dict, user_id: int) -> dict:
+    """A saved address (address_id, owner-scoped) or the typed shipping_address."""
+    if body.get("address_id") is not None:
+        from app.services import address_book_service
+        with get_db().read_transaction() as conn:
+            return address_book_service.as_shipping_address(conn, user_id=user_id, address_id=body.get("address_id"))
+    return body.get("shipping_address") or {}
 
 
 def _callback_url(settings, provider_name: str | None = None) -> str | None:
@@ -256,7 +268,47 @@ def get_order(order_number: str):
         fulfillment_orders = fulfillment_service.list_fulfillment_orders_for_order(
             conn, order_id=order_id
         )
-    return jsonify({"order": order, "fulfillment_orders": fulfillment_orders})
+        from app.services import order_cancellation_service
+        cancellation = order_cancellation_service.status_for(conn, order_id=order_id)
+    return jsonify({"order": order, "fulfillment_orders": fulfillment_orders, "cancellation": cancellation})
+
+
+@bp.post("/orders/<order_number>/cancel")
+@require_auth("customer")
+def cancel_order(order_number: str):
+    """Customer cancels their own order before shipment. Atomic; repeating it returns the first result (200)."""
+    from app.services import order_cancellation_service
+    body = request.get_json(silent=True) or {}
+    if not isinstance(body, dict):
+        raise ValidationError("بدنه درخواست باید JSON باشد")
+    user = current_user()
+    with get_db().write_transaction() as conn:
+        created, view = order_cancellation_service.cancel(
+            conn, user_id=user["id"], order_number=order_number, reason=body.get("reason"), ip_address=client_ip())
+        order = order_service.read_order(conn, order_id=view["order_id"], user_id=user["id"],
+                                         exponent=get_settings().currency_exponent)
+    return jsonify({"order": order, "cancellation": view, "already_cancelled": not created}), (201 if created else 200)
+
+
+@bp.get("/admin/order-refunds")
+@require_auth("admin")
+def admin_order_refunds():
+    """Refunds owed for customer-cancelled orders (finance queue). ?status=pending_finance|paid"""
+    from app.services import order_cancellation_service
+    with get_db().read_transaction() as conn:
+        return jsonify({"items": order_cancellation_service.list_refunds(conn, status=request.args.get("status") or None)})
+
+
+@bp.post("/admin/order-refunds/<int:refund_id>/mark-paid")
+@require_auth("admin")
+def admin_order_refund_paid(refund_id: int):
+    """Finance records the bank/gateway reference after paying the refund outside the system."""
+    from app.services import order_cancellation_service
+    body = request.get_json(silent=True) or {}
+    with get_db().write_transaction() as conn:
+        return jsonify({"refund": order_cancellation_service.mark_refund_paid(
+            conn, refund_id=refund_id, actor_user_id=current_user()["id"],
+            bank_reference=body.get("bank_reference") if isinstance(body, dict) else None, ip_address=client_ip())})
 
 
 @bp.get("/checkout/welfare")
@@ -265,9 +317,12 @@ def welfare_for_cart():
     """How much of the current cart the buyer's welfare wallet can pay (0 when none)."""
     from app.services import cart_service, welfare_wallet_service
     user = current_user()
+    mode = shopping_mode.from_request()
     with get_db().read_transaction() as conn:
-        cart = cart_service.read_cart(conn, user["id"], get_settings().currency_exponent)
+        cart = cart_service.read_cart(conn, user["id"], get_settings().currency_exponent, mode)
         lines = [{"product_id": i["product_id"], "line_total_minor": i["line_total_minor"]} for i in cart["items"]]
-        membership, allowed = welfare_wallet_service.best_membership(conn, user["id"], lines) if lines else (None, 0)
+        # Welfare is employer money: only the «پرسنل سازمان» cart may use it.
+        usable = lines and cart["mode_access"]["allowed"] and shopping_mode.employer_funding_allowed(mode)
+        membership, allowed = welfare_wallet_service.best_membership(conn, user["id"], lines) if usable else (None, 0)
         return jsonify({"available": allowed > 0, "allowed_minor": allowed,
                         "remaining_minor": welfare_wallet_service.member_summary(conn, user["id"])["remaining_minor"]})

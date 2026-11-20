@@ -6,7 +6,7 @@ import json
 import secrets
 
 from app.core.errors import ConflictError, NotFoundError
-from app.services import cart_service, quote_service
+from app.services import cart_service, quote_service, shopping_mode
 
 PROFORMA_VALID_HOURS = 72
 DAILY_LIMIT = 30
@@ -26,20 +26,23 @@ def _org_of(conn, user_id: int):
     return int(row["organization_id"]) if row else None
 
 
-def create(conn, *, user_id: int, now: _dt.datetime | None = None) -> dict:
+def create(conn, *, user_id: int, now: _dt.datetime | None = None, mode: str = shopping_mode.PERSONAL) -> dict:
     now = now or _now()
     if conn.execute("SELECT COUNT(*) FROM proformas WHERE user_id=? AND created_at>?",
                     (user_id, _iso(now - _dt.timedelta(days=1)))).fetchone()[0] >= DAILY_LIMIT:
         raise ConflictError(f"حداکثر {DAILY_LIMIT} پیش‌فاکتور در روز", code="proforma_rate_limited")
-    cart = cart_service.read_cart(conn, user_id)
+    mode = shopping_mode.parse(mode)
+    shopping_mode.require(conn, user_id, mode)
+    cart = cart_service.read_cart(conn, user_id, mode=mode)
     if not cart["items"]:
         raise ConflictError("سبد خرید خالی است", code="cart_empty")
-    quote = quote_service.build_quote(conn, user_id=user_id)
+    quote = quote_service.build_quote(conn, user_id=user_id, mode=mode)
     snapshot = {
         "items": [{k: i[k] for k in ("product_id", "title_fa", "sku", "quantity", "unit_price_minor", "line_total_minor")}
                   for i in cart["items"]],
         "subtotal_minor": quote["cart"]["subtotal_minor"], "shipping_fee_minor": quote["cart"]["shipping_fee_minor"],
         "tax_minor": quote["tax_minor"], "total_minor": quote["cart"]["total_minor"],
+        "shopping_mode": mode,
     }
     number = f"PF-{now:%y%m%d}-{secrets.token_hex(3).upper()}"
     conn.execute("INSERT INTO proformas (number, user_id, organization_id, snapshot_json, total_minor, created_at, valid_until) "
@@ -77,12 +80,14 @@ def list_for_user(conn, *, user_id: int, date_from: str | None = None, date_to: 
             for r in conn.execute(sql, args).fetchall()]
 
 
-def guard_checkout(conn, *, user_id: int, number: str) -> None:
+def guard_checkout(conn, *, user_id: int, number: str, mode: str = shopping_mode.PERSONAL) -> None:
     """Refuse a checkout that would cost more than the approved pro-forma (cheaper is fine)."""
     pf = get(conn, user_id=user_id, number=number)
     if pf["expired"]:
         raise ConflictError("مهلت این پیش‌فاکتور تمام شده است؛ پیش‌فاکتور تازه بگیرید", code="proforma_expired")
-    total = quote_service.build_quote(conn, user_id=user_id)["cart"]["total_minor"]
+    if (pf.get("shopping_mode") or shopping_mode.PERSONAL) != mode:  # snapshots before 0084 were personal carts
+        raise ConflictError("این پیش‌فاکتور برای سبد حالت خرید دیگری صادر شده است", code="proforma_mode_mismatch")
+    total = quote_service.build_quote(conn, user_id=user_id, mode=mode)["cart"]["total_minor"]
     if total > pf["total_minor"]:
         raise ConflictError(f"مبلغ سبد ({total:,} ریال) از پیش‌فاکتور تأییدشده ({pf['total_minor']:,} ریال) بیشتر شده است؛ "
                             "سبد یا قیمت‌ها تغییر کرده‌اند", code="proforma_price_changed",

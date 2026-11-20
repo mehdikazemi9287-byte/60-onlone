@@ -33,6 +33,8 @@ ENTRY_EARN = "earn"
 ENTRY_REDEEM = "redeem"
 ENTRY_EXPIRE = "expire"
 ENTRY_ADJUSTMENT = "adjustment"
+# Idempotency keys of the cancellation adjustments (order_cancellation_service).
+CLAWBACK_KEY_PATTERN = "order-cancel:%:earn-reverse"
 
 SOURCES = (
     "purchase", "campaign", "activity", "referral",
@@ -96,6 +98,46 @@ def _entry_dict(row: sqlite3.Row) -> dict:
     }
 
 
+def _order_cancelled(conn: sqlite3.Connection, order_id: int) -> bool:
+    row = conn.execute("SELECT status FROM orders WHERE id = ?", (order_id,)).fetchone()
+    return row is not None and row["status"] == "cancelled"
+
+
+def order_coin_totals(conn: sqlite3.Connection, order_id: int) -> dict:
+    """Coins actually posted for an order, read from the ledger (never from orders.redeem_coins):
+    ``redeemed`` = coins debited by 'redeem' entries, ``earned`` = coins credited by purchase 'earn' entries."""
+    row = conn.execute(
+        """SELECT COALESCE(SUM(CASE WHEN entry_type='redeem' THEN -amount_coins ELSE 0 END), 0) AS redeemed,
+                  COALESCE(SUM(CASE WHEN entry_type='earn' AND source='purchase' THEN amount_coins ELSE 0 END), 0) AS earned
+           FROM loyalty_ledger_entries WHERE order_id = ?""", (order_id,)).fetchone()
+    return {"redeemed": int(row["redeemed"]), "earned": int(row["earned"])}
+
+
+def post_adjustment_conn(conn: sqlite3.Connection, *, user_id: int, amount_coins: int, order_id: int | None,
+                         idempotency_key: str, actor_user_id: int | None, note: str) -> int:
+    """Append one signed 'adjustment' entry inside the CALLER's transaction. Idempotent on the key.
+    A negative adjustment never takes the balance below zero (the caller caps it). Returns the amount posted."""
+    if isinstance(amount_coins, bool) or not isinstance(amount_coins, int) or amount_coins == 0:
+        raise ValidationError("مقدار تعدیل کوین نامعتبر است")
+    existing = _find_by_idempotency_key(conn, idempotency_key)
+    if existing is not None:
+        return int(existing["amount_coins"])
+    if amount_coins < 0 and balance(conn, user_id) + amount_coins < 0:
+        raise ConflictError("تعدیل کوین موجودی را منفی می‌کند", code="loyalty_negative_balance")
+    cursor = conn.execute(
+        """INSERT INTO loyalty_ledger_entries
+               (reference, user_id, entry_type, amount_coins, source, order_id,
+                idempotency_key, actor_user_id, note, created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?)""",
+        (_ref("LOY"), user_id, ENTRY_ADJUSTMENT, amount_coins, "manual_adjustment", order_id,
+         idempotency_key, actor_user_id, note, _now()))
+    audit_service.record(
+        conn, action="loyalty.adjustment", entity_type="loyalty_ledger_entries", entity_id=int(cursor.lastrowid),
+        actor_user_id=actor_user_id, metadata={"user_id": user_id, "amount_coins": amount_coins,
+                                               "order_id": order_id, "note": note})
+    return amount_coins
+
+
 def balance(conn: sqlite3.Connection, user_id: int) -> int:
     """Fold the ledger into the current coin balance. Never negative by construction."""
     row = conn.execute(
@@ -134,6 +176,9 @@ def earn(
             existing = _find_by_idempotency_key(conn, idempotency_key)
             if existing is not None:
                 return {"entry": _entry_dict(existing), "balance_coins": balance(conn, user_id), "created": False}
+        if order_id is not None and _order_cancelled(conn, order_id):
+            # Customer cancelled the order before its coins were posted: nothing is earned for it.
+            return {"entry": None, "balance_coins": balance(conn, user_id), "created": False, "skipped": "order_cancelled"}
 
         cursor = conn.execute(
             """
@@ -176,6 +221,9 @@ def redeem(
             existing = _find_by_idempotency_key(conn, idempotency_key)
             if existing is not None:
                 return {"entry": _entry_dict(existing), "balance_coins": balance(conn, user_id), "created": False}
+        if order_id is not None and _order_cancelled(conn, order_id):
+            # Cancelled before the redemption was posted: the coins were never taken, so nothing to restore later.
+            return {"entry": None, "balance_coins": balance(conn, user_id), "created": False, "skipped": "order_cancelled"}
 
         current = balance(conn, user_id)
         if current < amount_coins:
@@ -274,10 +322,11 @@ def lifetime_earned_coins(conn: sqlite3.Connection, user_id: int) -> int:
     Folded from the ledger on every read, same rule as balance()."""
     row = conn.execute(
         "SELECT COALESCE(SUM(amount_coins), 0) AS n FROM loyalty_ledger_entries "
-        "WHERE user_id = ? AND entry_type = ?",
-        (user_id, ENTRY_EARN),
+        "WHERE user_id = ? AND (entry_type = ? OR (entry_type = ? AND idempotency_key LIKE ?))",
+        (user_id, ENTRY_EARN, ENTRY_ADJUSTMENT, CLAWBACK_KEY_PATTERN),
     ).fetchone()
-    return int(row["n"])
+    # Purchase coins clawed back from a cancelled order no longer count toward the tier.
+    return max(0, int(row["n"]))
 
 
 def current_tier(conn: sqlite3.Connection, user_id: int) -> dict | None:

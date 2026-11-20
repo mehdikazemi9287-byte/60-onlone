@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from app.core.db import Database
 from app.core.errors import ConflictError, ValidationError
 from app.core.money import format_minor
-from app.services import cart_service, credit_rules, loyalty_service
+from app.services import cart_service, credit_rules, loyalty_service, shopping_mode
 from app.services.credit_rules import CartLine, CreditContext
 from app.services.tax_service import calculate_line_tax_with_conn
 
@@ -84,9 +84,14 @@ def _user_organization_id(conn: sqlite3.Connection, user_id: int) -> int | None:
 
 def build_quote(
     conn: sqlite3.Connection, *, user_id: int, exponent: int = 0, now: datetime | None = None,
-    redeem_coins: int = 0,
+    redeem_coins: int = 0, mode: str = shopping_mode.PERSONAL,
 ) -> dict:
-    """Compute the funding breakdown for the caller's current cart.
+    """Compute the funding breakdown for the caller's cart of one shopping mode.
+
+    Shopping mode (migration 0084, ``shopping_mode`` module): the quote reads only that mode's cart, the
+    caller must be allowed to use the mode, and organization credit is evaluated only for the ``staff``
+    cart (employer money is a staff benefit). In ``personal`` mode no organization is used for the VAT
+    exemption either: a personal purchase is not the organization's purchase.
 
     Runs inside whatever transaction the caller owns, so checkout and the
     preview endpoint see exactly the same numbers.
@@ -112,7 +117,9 @@ def build_quote(
     from app.services.credit_service import allocation_state
 
     now = now or datetime.now(timezone.utc)
-    cart = cart_service.read_cart(conn, user_id, exponent)
+    mode = shopping_mode.parse(mode)
+    shopping_mode.require(conn, user_id, mode)
+    cart = cart_service.read_cart(conn, user_id, exponent, mode)
     lines = _cart_lines(conn, cart["items"])
 
     gross_subtotal_minor = int(cart["subtotal_minor"])
@@ -138,11 +145,11 @@ def build_quote(
     redeem_discount_minor = redeem_coins * loyalty_service.REDEEM_MINOR_PER_COIN
     # Subscribe & Save: a confirmed recurring run, while the cart is exactly its list (platform-funded).
     recurring_run_id, recurring_discount_minor = None, 0
-    cart_row = conn.execute("SELECT id FROM carts WHERE user_id=? AND status='active'", (user_id,)).fetchone()
-    if cart_row is not None and cart["items"]:
+    cart_row_id = cart_service.active_cart_id(conn, user_id, mode)
+    if cart_row_id is not None and cart["items"]:
         from app.services import recurring_service
         recurring_run_id, recurring_discount_minor = recurring_service.discount_for_cart(
-            conn, user_id=user_id, cart_id=int(cart_row["id"]), lines=cart["items"])
+            conn, user_id=user_id, cart_id=cart_row_id, lines=cart["items"])
         recurring_discount_minor = min(recurring_discount_minor, gross_subtotal_minor - redeem_discount_minor)
     subtotal_minor = gross_subtotal_minor - redeem_discount_minor - recurring_discount_minor
 
@@ -152,7 +159,7 @@ def build_quote(
     # the whole base). We need the organization for exemption checking — use
     # the user's active membership (if any) so employees buying on behalf of
     # their org get the correct exemption applied at quote time.
-    org_id = _user_organization_id(conn, user_id)
+    org_id = None if mode == shopping_mode.PERSONAL else _user_organization_id(conn, user_id)
     today_str = now.strftime("%Y-%m-%d")
 
     taxable_base_minor = subtotal_minor + shipping_minor
@@ -206,9 +213,10 @@ def build_quote(
         "final_payable_minor": total_minor,
         "restrictions": [],
         "payment_method": "card",
+        "shopping_mode": mode,
     }
 
-    if total_minor <= 0:
+    if total_minor <= 0 or not shopping_mode.employer_funding_allowed(mode):
         return quote
 
     # Candidate allocations: active membership, ordered so the one expiring
@@ -316,6 +324,7 @@ def build_quote(
     return quote
 
 
-def get_quote(db: Database, *, user_id: int, exponent: int = 0, redeem_coins: int = 0) -> dict:
+def get_quote(db: Database, *, user_id: int, exponent: int = 0, redeem_coins: int = 0,
+              mode: str = shopping_mode.PERSONAL) -> dict:
     with db.read_transaction() as conn:
-        return build_quote(conn, user_id=user_id, exponent=exponent, redeem_coins=redeem_coins)
+        return build_quote(conn, user_id=user_id, exponent=exponent, redeem_coins=redeem_coins, mode=mode)

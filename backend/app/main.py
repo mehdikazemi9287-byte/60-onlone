@@ -15,6 +15,7 @@ from app.api.v1 import credit as credit_api
 from app.api.v1 import health as health_api
 from app.api.v1 import logistics as logistics_api
 from app.api.v1 import orders as orders_api
+from app.api.v1 import addresses as addresses_api
 from app.api.v1 import organizations as organizations_api
 from app.api.v1 import settlement as settlement_api
 from app.api.v1 import suppliers as suppliers_api
@@ -171,6 +172,7 @@ def create_app(
         catalog_api.bp,
         cart_api.bp,
         orders_api.bp,
+        addresses_api.bp,
         credit_api.bp,
         organizations_api.bp,
         suppliers_api.bp,
@@ -342,7 +344,7 @@ def create_app(
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Vary"] = "Origin"
             response.headers["Access-Control-Allow-Headers"] = (
-                "Authorization, Content-Type, Idempotency-Key, X-Request-ID, X-Supplier-Id"
+                "Authorization, Content-Type, Idempotency-Key, X-Request-ID, X-Supplier-Id, X-Shopping-Mode"
             )
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PATCH, DELETE, OPTIONS"
             response.headers["Access-Control-Max-Age"] = "600"

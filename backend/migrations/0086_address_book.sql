@@ -1,0 +1,6 @@
+-- 0086: customer address book (دفترچهٔ نشانی). Reuses the addresses table from 0001, which had no API until now.
+-- ADDITIVE ONLY: one nullable column and one partial unique index. Nothing is dropped or rewritten.
+ALTER TABLE addresses ADD COLUMN updated_at TEXT;
+
+-- At most one default address per user (the service also keeps it so atomically).
+CREATE UNIQUE INDEX IF NOT EXISTS ux_addresses_one_default ON addresses(user_id) WHERE is_default = 1;

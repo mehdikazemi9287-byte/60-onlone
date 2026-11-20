@@ -211,14 +211,16 @@ def _fresh_run(conn, user_id: int, run_id: int):
     return run
 
 
-def to_cart(conn, *, user_id: int, list_id: int, run_id: int) -> dict:
+def to_cart(conn, *, user_id: int, list_id: int, run_id: int, mode: str = "personal") -> dict:
     """Confirm a quoted run: the cart becomes exactly the list (previous cart lines are replaced)."""
     from app.services import cart_service, sale_eligibility
     run = _fresh_run(conn, user_id, run_id)
     if run is None or int(run["list_id"]) != list_id:
         raise ConflictError("این پیش‌فاکتور دوره‌ای قابل تأیید نیست (منقضی، تأییدشده یا فهرست غیرفعال)",
                             code="recurring_run_unavailable")
-    cart_id = cart_service.get_or_create_active_cart_id(conn, user_id)
+    from app.services import shopping_mode
+    shopping_mode.require(conn, user_id, mode)
+    cart_id = cart_service.get_or_create_active_cart_id(conn, user_id, mode)  # only that mode's cart is replaced
     conn.execute("DELETE FROM cart_items WHERE cart_id=?", (cart_id,))
     skipped = []
     for product_id, qty in _list_items(conn, list_id).items():
@@ -231,7 +233,7 @@ def to_cart(conn, *, user_id: int, list_id: int, run_id: int) -> dict:
         conn.execute("INSERT INTO cart_items (cart_id, product_id, quantity, unit_price_minor, offer_id) VALUES (?,?,?,?,?)",
                      (cart_id, product_id, qty, sale_eligibility.unit_price(conn, offer, qty), offer["id"] or None))
     conn.execute("UPDATE carts SET recurring_run_id=?, updated_at=datetime('now') WHERE id=?", (run_id, cart_id))
-    return {"cart_id": cart_id, "run_id": run_id, "skipped": skipped,
+    return {"cart_id": cart_id, "run_id": run_id, "skipped": skipped, "shopping_mode": mode,
             "discount_applies": not skipped}
 
 

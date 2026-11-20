@@ -35,6 +35,8 @@ DEFAULT_ACCOUNTS: tuple[tuple[str, str, str], ...] = (
     (ACCOUNT_VAT_PAYABLE, "مالیات بر ارزش افزوده پرداختنی", "liability"),
     (ACCOUNT_SALES_REVENUE, "درآمد فروش کالا", "revenue"),
     (ACCOUNT_SHIPPING_REVENUE, "درآمد حمل و نقل", "revenue"),
+    # Migration 0085: card/gateway money owed back to customers for cancelled orders.
+    ("2060", "بازپرداختنی به مشتریان (لغو سفارش)", "liability"),
 )
 
 DEBIT_POSITIVE_TYPES = {"asset", "expense"}

@@ -154,7 +154,9 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(added.status_code, 201, added.get_json())
         member = added.get_json()["member"]
         member["password"] = password
-        member["headers"] = {"Authorization": f"Bearer {self.login(email, password)}"}
+        # Employees in these tests buy as staff: employer credit and welfare apply only to the
+        # «پرسنل سازمان» cart (migration 0084, app/services/shopping_mode.py).
+        member["headers"] = {"Authorization": f"Bearer {self.login(email, password)}", "X-Shopping-Mode": "staff"}
         return member
 
     def allocate(self, org_id: int, admin_headers: dict, membership_id: int, amount_minor: int,

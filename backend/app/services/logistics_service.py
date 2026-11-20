@@ -457,6 +457,9 @@ def book_shipment(
     with db.write_transaction() as conn:
         fo = _check_fo_access(conn, fo_id, user_id=user_id, user_role=user_role,
                               supplier_id=supplier_id)
+        if dict(fo).get("status") == "cancelled":
+            # A customer-cancelled FO (order_cancellation_service) must never be handed to a carrier.
+            raise ConflictError("این سفارش لغو شده و ارسال ندارد", code="fo_cancelled")
 
         plan = conn.execute(
             "SELECT * FROM shipment_plans WHERE fulfillment_order_id = ?", (fo_id,)

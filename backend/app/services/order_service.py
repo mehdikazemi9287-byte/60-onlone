@@ -75,6 +75,7 @@ def read_order(conn: sqlite3.Connection, *, order_id: int, user_id: int | None, 
         ),
         "redeem_discount_minor": row["redeem_discount_minor"] if "redeem_discount_minor" in row.keys() else 0,
         "organization_id": row["organization_id"],
+        "shopping_mode": (row["shopping_mode"] if "shopping_mode" in row.keys() else None) or "personal",
         "is_split_payment": bool((row["credit_minor"] or 0) > 0 and (row["cash_minor"] or 0) > 0),
         "shipping_address": {
             "recipient_name": row["recipient_name"],
