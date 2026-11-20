@@ -234,7 +234,7 @@ class WebhookMockAdapterTest(AppTestCase):
     def test_verify_correct_signature(self):
         """Mock adapter accepts correctly-signed webhook."""
         from app.adapters.logistics.mock import MockCarrierAdapter
-        adapter = MockCarrierAdapter()
+        adapter = MockCarrierAdapter(webhook_secret=MOCK_WEBHOOK_SECRET)
         body = b'{"event":"test"}'
         sig = _make_signature(body)
         headers = {
@@ -251,7 +251,7 @@ class WebhookMockAdapterTest(AppTestCase):
         """Mock adapter rejects wrong signature."""
         from app.adapters.logistics.mock import MockCarrierAdapter
         from app.adapters.logistics.base import WebhookVerificationError
-        adapter = MockCarrierAdapter()
+        adapter = MockCarrierAdapter(webhook_secret=MOCK_WEBHOOK_SECRET)
         body = b'{"event":"test"}'
         headers = {
             "X-Mock-Signature": "wrong",

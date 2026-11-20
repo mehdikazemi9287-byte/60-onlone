@@ -111,6 +111,10 @@ def create_app(
     app.extensions["settings"] = settings
     app.extensions["db"] = database
 
+    # Mock courier: test/development only, or explicit ALLOW_MOCK_CARRIER=1 (see registry docstring).
+    from app.adapters.logistics import registry as carrier_registry
+    carrier_registry.configure(settings.app_env)
+
     if settings.payment_provider == "sepehr":
         from app.adapters.payment import registry as payment_registry
         from app.adapters.payment.sepehr import SepehrPaymentProvider

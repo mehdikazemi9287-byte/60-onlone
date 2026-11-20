@@ -5,9 +5,12 @@ This adapter:
   - Creates shipments with a deterministic external_shipment_id derived from
     the booking_idempotency_key — so retries with the same key always return
     the same external ID (idempotent).
-  - Verifies webhooks using a deterministic HMAC-SHA256 signature:
-      X-Mock-Signature: hmac_sha256(raw_body, MOCK_WEBHOOK_SECRET)
-    The test-only secret value is defined in this module as MOCK_WEBHOOK_SECRET.
+  - Verifies webhooks using an HMAC-SHA256 signature:
+      X-Mock-Signature: hmac_sha256(raw_body, <webhook secret>)
+    The secret is injected by the registry (see registry.configure): it comes
+    from MOCK_CARRIER_WEBHOOK_SECRET, and only the automated test harness
+    (APP_ENV=test) falls back to MOCK_WEBHOOK_SECRET below.  An adapter built
+    without a secret rejects every webhook.
 
 IMPORTANT: This adapter is for testing and development only.  It does NOT
 call any real carrier network.  Real carrier integrations are NOT IMPLEMENTED.
@@ -31,7 +34,8 @@ from app.adapters.logistics.base import (
     WebhookVerificationError,
 )
 
-# Stable test secret; never used outside tests.
+# Stable secret for the automated test harness ONLY (APP_ENV=test).  The registry
+# never hands it to an adapter in any other environment.
 MOCK_WEBHOOK_SECRET = b"mock-webhook-secret-test-only"
 
 # Status map: incoming mock event type → normalized status.
@@ -59,6 +63,10 @@ class MockCarrierAdapter(CarrierAdapter):
     """Deterministic mock carrier for tests and demo."""
 
     provider_code = "mock"
+
+    def __init__(self, webhook_secret: bytes | None = None) -> None:
+        # No secret -> every inbound webhook is rejected (fail closed).
+        self._webhook_secret = webhook_secret or None
 
     def get_quotes(self, request: ShipmentQuoteRequest) -> list[ShipmentQuote]:
         """Return cheap, mid-price and expensive quotes based on required_capabilities."""
@@ -113,13 +121,19 @@ class MockCarrierAdapter(CarrierAdapter):
 
         Verification failure raises WebhookVerificationError.
         """
+        # 0. Webhooks are disabled unless a secret was configured for this environment.
+        if not self._webhook_secret:
+            raise WebhookVerificationError(
+                "Mock carrier webhooks are disabled in this environment", code="webhook_disabled"
+            )
+
         # 1. Signature
         sig_header = headers.get("X-Mock-Signature") or headers.get("x-mock-signature") or ""
         if not sig_header:
             raise WebhookVerificationError(
                 "Missing X-Mock-Signature header", code="missing_signature"
             )
-        expected_sig = hmac.new(MOCK_WEBHOOK_SECRET, raw_body, hashlib.sha256).hexdigest()
+        expected_sig = hmac.new(self._webhook_secret, raw_body, hashlib.sha256).hexdigest()
         if not hmac.compare_digest(sig_header.lower(), expected_sig.lower()):
             raise WebhookVerificationError(
                 "Invalid mock webhook signature", code="invalid_signature"
