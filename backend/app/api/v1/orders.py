@@ -120,7 +120,9 @@ def payment_options():
     from flask import current_app
     from app.adapters.payment.external_credit import PROVIDERS
     settings = get_settings()
-    opts = [{"provider": settings.payment_provider, "kind": "card", "label": "کارت بانکی (درگاه شتاب)"}]
+    card_mode = checkout_service.card_payment_mode(settings.payment_provider)
+    opts = [{"provider": settings.payment_provider, "kind": "card", "label": "کارت بانکی (درگاه شتاب)",
+             "mode": card_mode}]
     for name in current_app.extensions.get("external_credit_providers", []):
         opts.append({"provider": name, "kind": "external_credit", "label": PROVIDERS[name][0],
                      "note": "اعتبار را خود این شرکت می‌دهد؛ شرایط و اقساط با اوست."})
@@ -129,7 +131,7 @@ def payment_options():
         opts.append({"provider": current_app.extensions["vandapay_provider"], "kind": "vandapay",
                      "label": VANDAPAY_LABEL,
                      "note": "پرداخت در صفحهٔ ونداپی با اعتبار سازمانی، کارت هدیه، اعتبار باشگاه یا کارت بانکی."})
-    return jsonify({"options": opts})
+    return jsonify({"options": opts, "card_payment_mode": card_mode})
 
 
 def _extra_providers(app) -> list[str]:
