@@ -192,7 +192,9 @@ def cancel(conn: sqlite3.Connection, *, user_id: int, order_number: str, reason=
         conn.execute("UPDATE inventory SET quantity_available = quantity_available + ?, updated_at = datetime('now') "
                      "WHERE product_id = ?", (int(item["quantity"]), int(item["product_id"])))
 
-    conn.execute("UPDATE orders SET status = 'cancelled' WHERE id = ? AND status = 'paid'", (order_id,))
+    if conn.execute("UPDATE orders SET status = 'cancelled' WHERE id = ? AND status = 'paid'",
+                    (order_id,)).rowcount != 1:  # compare-and-set; the whole cancellation rolls back otherwise
+        raise ConflictError("وضعیت سفارش همزمان تغییر کرد؛ دوباره تلاش کنید", code="order_state_changed")
 
     # 2. Organization credit (append-only reversal; amount must match what the order used).
     credit_restored = 0

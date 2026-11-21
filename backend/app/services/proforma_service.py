@@ -20,12 +20,6 @@ def _iso(d: _dt.datetime) -> str:
     return d.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _org_of(conn, user_id: int):
-    row = conn.execute("SELECT organization_id FROM organization_memberships WHERE user_id=? AND status='active' "
-                       "ORDER BY id LIMIT 1", (user_id,)).fetchone()
-    return int(row["organization_id"]) if row else None
-
-
 def create(conn, *, user_id: int, now: _dt.datetime | None = None, mode: str = shopping_mode.PERSONAL) -> dict:
     now = now or _now()
     if conn.execute("SELECT COUNT(*) FROM proformas WHERE user_id=? AND created_at>?",
@@ -46,7 +40,7 @@ def create(conn, *, user_id: int, now: _dt.datetime | None = None, mode: str = s
     }
     number = f"PF-{now:%y%m%d}-{secrets.token_hex(3).upper()}"
     conn.execute("INSERT INTO proformas (number, user_id, organization_id, snapshot_json, total_minor, created_at, valid_until) "
-                 "VALUES (?,?,?,?,?,?,?)", (number, user_id, _org_of(conn, user_id), json.dumps(snapshot, ensure_ascii=False),
+                 "VALUES (?,?,?,?,?,?,?)", (number, user_id, shopping_mode.tax_organization_id(conn, user_id, mode), json.dumps(snapshot, ensure_ascii=False),
                                           snapshot["total_minor"], _iso(now),
                                           _iso(now + _dt.timedelta(hours=PROFORMA_VALID_HOURS))))
     return get(conn, user_id=user_id, number=number)

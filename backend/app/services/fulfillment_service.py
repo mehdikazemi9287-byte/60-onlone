@@ -146,11 +146,15 @@ def _transition(
             set_clauses.append(f"{col} = ?")
             params.append(val)
 
-    params.append(fulfillment_order_id)
-    conn.execute(
-        f"UPDATE fulfillment_orders SET {', '.join(set_clauses)} WHERE id = ?",
+    params.extend([fulfillment_order_id, from_status])
+    # Compare-and-set on the status read above: on a backend without BEGIN IMMEDIATE (PostgreSQL, READ
+    # COMMITTED) a concurrent transition (e.g. customer cancel vs. supplier mark-ready) must not be overwritten.
+    changed = conn.execute(
+        f"UPDATE fulfillment_orders SET {', '.join(set_clauses)} WHERE id = ? AND status = ?",
         params,
     )
+    if changed.rowcount != 1:
+        raise ConflictError("وضعیت سفارش تأمین همزمان تغییر کرد؛ دوباره تلاش کنید", code="fulfillment_state_changed")
 
     # Append to state log
     conn.execute(

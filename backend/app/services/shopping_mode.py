@@ -86,6 +86,18 @@ def require(conn: sqlite3.Connection, user_id: int, mode: str) -> dict:
     return state
 
 
+def tax_organization_id(conn: sqlite3.Connection, user_id: int, mode: str) -> int | None:
+    """Organization whose VAT exemption may apply to this mode's cart (review 2026-11-22).
+
+    personal → none (a personal purchase is not the organization's). staff → the active membership in an
+    ACTIVE organization (same rule as access). org → only a manager role (admin/procurement/finance) of an
+    active organization; any other buyer in the open «سازمانی و عمده» cart pays VAT like a personal buyer.
+    A membership in a suspended organization never carries an exemption."""
+    if mode == PERSONAL:
+        return None
+    return access(conn, user_id, mode)["organization_id"]
+
+
 def employer_funding_allowed(mode: str) -> bool:
     """Organization credit and welfare wallet are staff benefits."""
     return mode == STAFF
