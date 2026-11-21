@@ -12,7 +12,10 @@
 set -euo pipefail
 NEW="$(cd "$(dirname "$0")/.." && pwd)"
 UP="$NEW/deploy/sqlite-upgrade.sh"
-code() { curl -s -o /dev/null -m 20 -w '%{http_code}' "$@"; }
+code() { curl -s -o /dev/null -m 20 -w '%{http_code}' "$@" || true; }  # never abort the script: a refused connection prints 000
+wait_up() {  # $1=url: wait up to 90s until it answers anything but 000 (frontend needs a few seconds after "Started")
+  for _ in $(seq 1 45); do [ "$(code "$1")" != 000 ] && return 0; sleep 2; done; return 0
+}
 db_has() {  # $1=db file, $2=table: prints 1 if the table exists
   python3 -c "import sqlite3,sys;c=sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True);print(c.execute(\"SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?\",(sys.argv[2],)).fetchone()[0])" "$1" "$2"
 }
@@ -30,6 +33,7 @@ docker tag sixty-frontend:latest sixty-frontend:prev-20261122
 
 echo "== 2. stage on a DB copy (live site untouched; migrations 0084-0086 run on the copy)"
 bash "$UP" stage
+wait_up http://127.0.0.1:3100/
 FAIL=0
 STAGE_DB=/srv/60online-stage/data/60online.db
 for p in / /pack-builder /cart /checkout /login /me/addresses /admin; do
@@ -42,7 +46,11 @@ for e in /api/v1/cart/summary /api/v1/me/addresses /api/v1/admin/order-refunds; 
   a=$(code "http://127.0.0.1:8100$e"); printf '  stage %-28s %s (expect 401)\n' "$e" "$a"; [ "$a" = 401 ] || FAIL=1
 done
 a=$(code -X POST http://127.0.0.1:8100/api/v1/orders/ORD-0/cancel); printf '  stage %-28s %s (expect 401)\n' "POST /orders/<n>/cancel" "$a"; [ "$a" = 401 ] || FAIL=1
-for t in order_cancellations order_refunds; do
+# 2026-11-21 contents (migration 0083) ship in this release too when 2026-11-21 was not deployed separately.
+for e in /api/v1/admin/staff /api/v1/auth/mfa/status; do
+  a=$(code "http://127.0.0.1:8100$e"); printf '  stage %-28s %s (expect 401)\n' "$e" "$a"; [ "$a" = 401 ] || FAIL=1
+done
+for t in staff_role_assignments admin_mfa admin_mfa_recovery_codes login_lockouts order_cancellations order_refunds; do
   h=$(db_has "$STAGE_DB" "$t"); printf '  stage table %-30s %s\n' "$t" "$h"; [ "$h" = 1 ] || FAIL=1
 done
 for tc in carts:shopping_mode payment_intents:shopping_mode orders:shopping_mode addresses:updated_at; do
@@ -58,7 +66,7 @@ printf '  stage %-36s %s\n' "ledger account 2060" "$h"; [ "$h" = 1 ] || FAIL=1
 
 echo "== 3. switch to live (fresh backup first, then migrations 0084-0086 on the live DB)"
 bash "$UP" switch
-sleep 5
+wait_up http://127.0.0.1:3000/
 for p in / /pack-builder /cart /checkout /login /me/addresses /api/v1/health/ready; do
   printf '  live  %-22s %s\n' "$p" "$(code -H 'Host: 60online.ir' "http://127.0.0.1$p")"
 done
@@ -72,6 +80,6 @@ Rollback if needed (no DB restore required: 0084-0086 only add columns/tables/in
 them. After a rollback a user with carts in several modes sees one of them; cancelled orders stay cancelled):
   docker tag sixty-backend:prev-20261122 sixty-backend:latest
   docker tag sixty-frontend:prev-20261122 sixty-frontend:latest
-  docker compose -f /opt/60online-rel-20261121/deploy/.compose-sixty.yml up -d   # code running before this release
+  docker compose -f /opt/60online-rel-20261120/deploy/.compose-sixty.yml up -d   # code running before this release (2026-11-21 was shipped inside this release)
 Full DB restore (only if data is damaged): bash deploy/sqlite-upgrade.sh rollback (restores the pre-switch backup).
 TXT

@@ -12,7 +12,10 @@ set -euo pipefail
 NEW="$(cd "$(dirname "$0")/.." && pwd)"
 UP="$NEW/deploy/sqlite-upgrade.sh"
 ENV_FILE=/opt/60online/secrets/backend.env
-code() { curl -s -o /dev/null -m 20 -w '%{http_code}' "$@"; }
+code() { curl -s -o /dev/null -m 20 -w '%{http_code}' "$@" || true; }  # never abort the script: a refused connection prints 000
+wait_up() {  # $1=url: wait up to 90s until it answers anything but 000 (frontend needs a few seconds after "Started")
+  for _ in $(seq 1 45); do [ "$(code "$1")" != 000 ] && return 0; sleep 2; done; return 0
+}
 db_has() {  # $1=db file, $2=table: prints 1 if the table exists
   python3 -c "import sqlite3,sys;c=sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True);print(c.execute(\"SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?\",(sys.argv[2],)).fetchone()[0])" "$1" "$2"
 }
@@ -25,6 +28,7 @@ docker tag sixty-frontend:latest sixty-frontend:prev-20261121
 
 echo "== 2. stage on a DB copy (live site untouched; migration 0083 runs on the copy)"
 bash "$UP" stage
+wait_up http://127.0.0.1:3100/
 FAIL=0
 for p in / /pack-builder /checkout /login /admin; do
   c=$(code "http://127.0.0.1:3100$p"); printf '  stage %-16s %s\n' "$p" "$c"
@@ -41,7 +45,7 @@ done
 
 echo "== 3. switch to live (fresh backup first, then migration 0083 on the live DB)"
 bash "$UP" switch
-sleep 5
+wait_up http://127.0.0.1:3000/
 for p in / /pack-builder /checkout /login /api/v1/health/ready; do
   printf '  live  %-22s %s\n' "$p" "$(code -H 'Host: 60online.ir' "http://127.0.0.1$p")"
 done
