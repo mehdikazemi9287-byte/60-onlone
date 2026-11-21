@@ -17,7 +17,7 @@ wait_up() {  # $1=url: wait up to 90s until it answers anything but 000 (fronten
   for _ in $(seq 1 45); do [ "$(code "$1")" != 000 ] && return 0; sleep 2; done; return 0
 }
 db_has() {  # $1=db file, $2=table: prints 1 if the table exists
-  python3 -c "import sqlite3,sys;c=sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True);print(c.execute(\"SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?\",(sys.argv[2],)).fetchone()[0])" "$1" "$2"
+  python3 -c "import sqlite3,sys;c=sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True);print(c.execute(\"SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?\",(sys.argv[2],)).fetchone()[0])" "$1" "$2" 2>/dev/null || echo ERR
 }
 
 echo "== 0. code: $(git -C "$NEW" log --oneline -1 2>/dev/null || echo "$NEW")"

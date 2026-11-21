@@ -105,7 +105,10 @@ case "${1:-status}" in
     echo "== before (copy):"; counts "$STAGE/60online.db"
     echo "== 2. build + start new code on ports 8100/3100"
     F=$(write_compose sixtystage "$STAGE" 8100 3100)
-    docker compose -f "$F" up -d --build
+    # A stage stack left running from an earlier attempt still holds the deleted DB copy and would not
+    # re-run migrations on the fresh copy: always stop it first (stage only; live stack untouched).
+    docker compose -f "$F" down --remove-orphans >/dev/null 2>&1 || true
+    docker compose -f "$F" up -d --build --force-recreate
     wait_health 8100
     echo "== 3. after migrations:"; counts "$STAGE/60online.db"
     docker compose -f "$F" logs --tail 15 backend
