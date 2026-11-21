@@ -112,8 +112,12 @@ def set_item_quantity(db: Database, *, user_id: int, product_id: int, quantity: 
         if quantity > 0:
             # Removing a line is always allowed (a user who lost a membership can still empty that cart).
             shopping_mode.require(conn, user_id, mode)
-        cart_id = get_or_create_active_cart_id(conn, user_id, mode)
+        # Removing never creates a cart (a forbidden mode stays without one).
+        cart_id = (get_or_create_active_cart_id(conn, user_id, mode) if quantity > 0
+                   else active_cart_id(conn, user_id, shopping_mode.parse(mode)))
         if quantity == 0:
+            if cart_id is None:
+                return get_cart(db, user_id=user_id, mode=mode)
             conn.execute(
                 "DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?", (cart_id, product_id)
             )

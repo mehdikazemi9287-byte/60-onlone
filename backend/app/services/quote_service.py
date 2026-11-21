@@ -69,19 +69,6 @@ def _period_consumed(conn: sqlite3.Connection, allocation_id: int) -> int:
     return int(row["n"])
 
 
-def _user_organization_id(conn: sqlite3.Connection, user_id: int) -> int | None:
-    """Return the organization_id for the user's active org membership, or None."""
-    row = conn.execute(
-        """
-        SELECT organization_id FROM organization_memberships
-        WHERE user_id = ? AND status = 'active'
-        LIMIT 1
-        """,
-        (user_id,),
-    ).fetchone()
-    return int(row["organization_id"]) if row else None
-
-
 def build_quote(
     conn: sqlite3.Connection, *, user_id: int, exponent: int = 0, now: datetime | None = None,
     redeem_coins: int = 0, mode: str = shopping_mode.PERSONAL,
@@ -159,7 +146,9 @@ def build_quote(
     # the whole base). We need the organization for exemption checking — use
     # the user's active membership (if any) so employees buying on behalf of
     # their org get the correct exemption applied at quote time.
-    org_id = None if mode == shopping_mode.PERSONAL else _user_organization_id(conn, user_id)
+    # Review 2026-11-22: the exemption follows the organization this mode is entitled to (active org, right role),
+    # not just any active membership row (a suspended organization or a non-buyer role carried it before).
+    org_id = shopping_mode.tax_organization_id(conn, user_id, mode)
     today_str = now.strftime("%Y-%m-%d")
 
     taxable_base_minor = subtotal_minor + shipping_minor
