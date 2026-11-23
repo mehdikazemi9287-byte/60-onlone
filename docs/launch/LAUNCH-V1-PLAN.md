@@ -5,7 +5,7 @@
 
 ## ۰. نکتهٔ مهم پیش از همه
 - **`main` از کار واقعی عقب است.** دو انتشار آماده ولی مستقرنشده و ادغام‌نشده وجود دارد: `release/2026-11-21` (نقش‌های کارکنان، ورود دومرحله‌ای مدیر، مهاجرت ۰۰۸۳) و `release/2026-11-22` (سبد جدا برای هر حالت خرید، لغو سفارش، دفترچهٔ نشانی؛ مهاجرت ۰۰۸۴–۰۰۸۶). سند خودش می‌گوید: «این شاخه هنوز روی سرور نرفته است… با `main` ادغام نشده است» (`docs/releases/RELEASE-2026-11-22.md` روی همان شاخه).
-- **ناسازگاری دامنه:** مالک دامنه را `6online.ir` می‌گوید، اما همهٔ پیکربندی و راهنماها `60online.ir` دارند: `deploy/docker-compose.prod.yml` (`MAIN_DOMAIN` پیش‌فرض `60online.ir`)، `deploy/Caddyfile`، `docs/runbooks/phase0-sepehr-payment.md` (`PUBLIC_BASE_URL=https://60online.ir` و آدرس بازگشت بانک). باید مالک یک دامنهٔ نهایی را تعیین کند.
+- **ناسازگاری دامنه:** مالک دامنه را `6online.ir` می‌گوید، اما همهٔ پیکربندی و راهنماها `60online.ir` دارند: `deploy/docker-compose.prod.yml` (`MAIN_DOMAIN` پیش‌فرض `60online.ir`؛ `deploy/Caddyfile` همان `{$MAIN_DOMAIN}` را می‌خواند، پس با تنظیم متغیر قابل تغییر است)، `docs/runbooks/phase0-sepehr-payment.md` (`PUBLIC_BASE_URL=https://60online.ir` و آدرس بازگشت بانک). باید مالک یک دامنهٔ نهایی را تعیین کند.
 - سرور زنده طبق آخرین شاهد (۲۹ آبان، اجرا توسط مالک) پشت **nginx** است و `health` مقدار `environment=staging` و `payment.card_mode=unavailable` داده است (`docs/releases/RELEASE-2026-11-19.md`).
 
 ## ۱. جدول وضعیت
