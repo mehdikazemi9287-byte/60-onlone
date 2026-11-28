@@ -1,3 +1,4 @@
+import { CatalogSkeleton } from "@/components/catalog/CatalogSkeleton";
 import { Suspense } from "react";
 import { CatalogBrowser } from "@/components/catalog/CatalogBrowser";
 export const metadata = {
@@ -6,7 +7,7 @@ export const metadata = {
 };
 export default function Search() {
   return (
-    <Suspense fallback={<p className="p-8">در حال دریافت…</p>}>
+    <Suspense fallback={<CatalogSkeleton />}>
       <CatalogBrowser />
     </Suspense>
   );

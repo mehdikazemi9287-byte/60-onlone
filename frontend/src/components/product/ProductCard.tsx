@@ -134,6 +134,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         {hasRealImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            loading="lazy"
+            decoding="async"
             src={product.image_url}
             alt={product.name}
             onError={() => setImageFailed(true)}

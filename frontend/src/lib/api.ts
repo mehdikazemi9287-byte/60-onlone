@@ -1,3 +1,4 @@
+import { coalesceRead, deadline, invalidatePendingReads } from "./request-performance";
 /**
  * API client — thin wrapper around fetch, connects to the Flask backend.
  * Browser requests are same-origin by default and proxied by Next.js to Flask.
@@ -27,41 +28,54 @@ async function request<T>(
   if (!token && typeof window !== "undefined" && /^\/(storefront|products|shops|stores|brands|categories|offers|vambi)\b/.test(path)) {
     try { token = window.localStorage.getItem("60online_token") ?? undefined; } catch {}
   }
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(rest.headers as Record<string, string>),
-  };
+  const requestHeaders = new Headers({ "Content-Type": "application/json" });
+  if (token) requestHeaders.set("Authorization", `Bearer ${token}`);
+  new Headers(rest.headers).forEach((value, name) => requestHeaders.set(name, value));
+  const headers = Object.fromEntries(requestHeaders.entries());
   // Users with several supplier accounts pick one; the API verifies membership.
   if (path.startsWith("/supplier") && typeof window !== "undefined") {
     try { const sid = window.localStorage.getItem("60online_supplier"); if (sid) headers["X-Supplier-Id"] = sid; } catch {}
   }
 
-  const res = await fetch(`${BASE}/api/v1${path}`, { ...rest, headers });
-
-  if (!res.ok) {
-    if (res.status===401 && token && typeof window!=="undefined") window.dispatchEvent(new CustomEvent("60online:session-invalid",{detail:token}));
-    // Real backend error shape: {"error": {"code": "...", "message": "...", "details": {...}}}
-    let code = "UNKNOWN";
-    let message = res.statusText;
-    let details: Record<string, string> | undefined;
+  const method = (rest.method ?? "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD") invalidatePendingReads();
+  const execute = async (): Promise<T> => {
+    const timing = deadline(rest.signal);
     try {
-      const body = await res.json();
-      const err = body.error;
-      if (err && typeof err === "object") {
-        code = err.code ?? code;
-        message = err.message ?? message;
-        details = err.details;
-      } else if (typeof err === "string") {
-        code = err;
-        message = body.message ?? message;
-      }
-    } catch {}
-    throw new ApiError(res.status, code, message, details);
-  }
+      const res = await fetch(`${BASE}/api/v1${path}`, { ...rest, headers, cache: "no-store", signal: timing.signal });
 
-  if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>;
+      if (!res.ok) {
+        if (res.status===401 && token && typeof window!=="undefined") window.dispatchEvent(new CustomEvent("60online:session-invalid",{detail:token}));
+        // Real backend error shape: {"error": {"code": "...", "message": "...", "details": {...}}}
+        let code = "UNKNOWN";
+        let message = res.statusText;
+        let details: Record<string, string> | undefined;
+        try {
+          const body = await res.json();
+          const err = body.error;
+          if (err && typeof err === "object") {
+            code = err.code ?? code;
+            message = err.message ?? message;
+            details = err.details;
+          } else if (typeof err === "string") {
+            code = err;
+            message = body.message ?? message;
+          }
+        } catch {}
+        throw new ApiError(res.status, code, message, details);
+      }
+
+      if (res.status === 204) return undefined as T;
+      return await res.json() as T;
+    } finally {
+      timing.dispose();
+      if (method !== "GET" && method !== "HEAD") invalidatePendingReads();
+    }
+  };
+  // Caller-owned cancellation stays independent; server requests never share user data.
+  if (typeof window === "undefined" || method !== "GET" || rest.signal || rest.body) return execute();
+  const key = JSON.stringify([`${BASE}/api/v1${path}`, headers, rest.credentials, rest.mode, rest.redirect]);
+  return coalesceRead(key, execute);
 }
 
 /** Random idempotency key for a checkout attempt. */
